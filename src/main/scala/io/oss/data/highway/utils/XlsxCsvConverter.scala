@@ -17,7 +17,7 @@ object XlsxCsvConverter {
    * @param sheet           The provided Xlsx Sheet
    * @param csvOutputFolder The generated CSV output folder
    */
-  def convertXlsxSheetToCsvFile(sheet: Sheet, csvOutputFolder: String): Either[DataHighwayError, Path] = {
+  private[utils] def convertXlsxSheetToCsvFile(sheet: Sheet, csvOutputFolder: String): Either[DataHighwayError, Path] = {
     val data = new StringBuilder
     Either.catchNonFatal {
       val rowIterator = sheet.iterator
@@ -58,7 +58,7 @@ object XlsxCsvConverter {
    * @param inputExcelPath The provided Excel file
    * @param csvOutputPath  The generated CSV output folder
    */
-  def convertXlsxFileToCsvFiles(inputExcelPath: FileInputStream, csvOutputPath: String): Either[DataHighwayError, Unit] = {
+  private[utils] def convertXlsxFileToCsvFiles(inputExcelPath: FileInputStream, csvOutputPath: String): Either[DataHighwayError, Unit] = {
     Either.catchNonFatal {
       val wb = WorkbookFactory.create(inputExcelPath)
       for (i <- 0 until wb.getNumberOfSheets) {
@@ -71,7 +71,30 @@ object XlsxCsvConverter {
     })
   }
 
+  /**
+   * Gets files' names located in a provided path
+   *
+   * @param path The provided path
+   * @return a list of files names without the extension
+   */
+  private[utils] def getFilesFromPath(path: String): Either[CsvGenerationError, List[String]] = {
+    Either.catchNonFatal {
+      val d = new File(path)
+      if (d.exists && d.isDirectory)
+        d.listFiles.toList.map(file => file.getPath).filter(name => name.endsWith(".xlsx") || name.endsWith(".xls"))
+      else if (d.exists && d.isFile && (path.endsWith(".xlsx") || path.endsWith(".xls")))
+        List(d.getPath)
+      else
+        throw PathNotFound(path)
+    }.leftMap(thr => CsvGenerationError(thr.getMessage, thr.getCause, thr.getStackTrace))
+  }
 
+  /**
+   * Converts Xlsx files to multiple CSV files.
+   *
+   * @param inputPath  The provided Excel input folder
+   * @param outputPath The generated CSV output folder
+   */
   def apply(inputPath: String, outputPath: String): Either[DataHighwayError, List[Unit]] = {
     getFilesFromPath(inputPath).flatMap(files =>
       files.traverse(file => {
@@ -79,23 +102,4 @@ object XlsxCsvConverter {
       })
     )
   }
-
-  /**
-   * Gets files' names located in a provided path
-   *
-   * @param path The provided path
-   * @return a list of files names without the extension
-   */
-  def getFilesFromPath(path: String): Either[CsvGenerationError, List[String]] = {
-    Either.catchNonFatal {
-      val d = new File(path)
-      if (d.exists && d.isDirectory)
-        d.listFiles.toList.map(file => file.getPath)
-      else if (d.exists && d.isFile)
-        List(d.getPath)
-      else
-        throw PathNotFound(path)
-    }.leftMap(thr => CsvGenerationError(thr.getMessage, thr.getCause, thr.getStackTrace))
-  }
-
 }
