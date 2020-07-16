@@ -22,7 +22,7 @@ class XlsxCsvConverterSpec extends AnyFlatSpec with Matchers with BeforeAndAfter
   "XlsxCsvConverter.convertXlsxFileToCsvFile" should "convert xlsx sheet to a csv file" in {
 
     XlsxCsvConverter.convertXlsxSheetToCsvFile(MockSheetCreator.createXlsxSheet("new-sheet"), folder + "output/")
-      .map(path => path.toUri.getPath).map(str => str.split("/").last)
+      .map(path => path.toUri.getPath).map(str => str.split(File.separatorChar).last)
     val d = new File(folder + "output/")
     d.listFiles.map(file => file.getName).filterNot(_ == ".gitkeep").toList should contain theSameElementsAs List(
       "new-sheet.csv"
@@ -31,7 +31,7 @@ class XlsxCsvConverterSpec extends AnyFlatSpec with Matchers with BeforeAndAfter
 
   "XlsxCsvConverter.getFilesFromPath" should "list all files in folder" in {
 
-    val files = XlsxCsvConverter.getFilesFromPath(folder + "input/").map(list => list.map(str => str.split("\\\\").last))
+    val files = XlsxCsvConverter.getFilesFromPath(folder + "input/").map(list => list.map(str => str.split(File.separatorChar).last))
     files.map(fs => {
       fs should contain theSameElementsAs List(
         "mock-xlsx-data-1.xlsx",
