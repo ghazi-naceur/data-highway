@@ -35,11 +35,11 @@ class XlsxCsvConverterSpec extends AnyFlatSpec with Matchers with BeforeAndAfter
 
   "XlsxCsvConverter.getFilesFromPath" should "list all files in folder" in {
 
-    val files = XlsxCsvConverter.getFilesFromPath(folder + "input/").map(list => list.map(str => str.split(File.separatorChar).last))
+    val files = XlsxCsvConverter.getFilesFromPath(folder + "input/folder2").map(list => list.map(str => str.split(File.separatorChar).last))
     files.map(fs => {
       fs should contain theSameElementsAs List(
-        "mock-xlsx-data-1.xlsx",
-        "mock-xlsx-data-2.xlsx"
+        "mock-xlsx-data-21.xlsx",
+        "mock-xlsx-data-22.xlsx"
       )
     })
   }
@@ -77,14 +77,57 @@ class XlsxCsvConverterSpec extends AnyFlatSpec with Matchers with BeforeAndAfter
   "XlsxCsvConverter.apply" should "convert xlsx files to multiple csv files" in {
 
     XlsxCsvConverter.apply(folder + "input/", folder + "output/")
-    val d = new File(folder + "output/mock-xlsx-data-2")
-    d.listFiles.map(file => file.getName).toList should contain allElementsOf List(
+    val list1 = List(
+      "data1.csv",
+      "data2.csv",
+      "data3.csv",
+      "data4.csv",
+      "data5.csv",
+    )
+    val list2 = List(
       "data6.csv",
       "data7.csv",
       "data8.csv",
       "data9.csv",
       "data10.csv",
     )
+
+    val dir1 = new File(folder + "output/mock-xlsx-data-1")
+    dir1.listFiles.map(file => file.getName).toList should contain allElementsOf list1
+
+    val dir2 = new File(folder + "output/mock-xlsx-data-2")
+    dir2.listFiles.map(file => file.getName).toList should contain allElementsOf list2
+
+    val dir3 = new File(folder + "output/folder1/folder3/mock-xlsx-data-31")
+    dir3.listFiles.map(file => file.getName).toList should contain allElementsOf list1
+
+    val dir4 = new File(folder + "output/folder1/folder3/mock-xlsx-data-32")
+    dir4.listFiles.map(file => file.getName).toList should contain allElementsOf list2
+
+    val dir5 = new File(folder + "output/folder1/mock-xlsx-data-11")
+    dir5.listFiles.map(file => file.getName).toList should contain allElementsOf list1
+
+    val dir6 = new File(folder + "output/folder1/mock-xlsx-data-12")
+    dir6.listFiles.map(file => file.getName).toList should contain allElementsOf list2
+
+    val dir7 = new File(folder + "output/folder2/mock-xlsx-data-21")
+    dir7.listFiles.map(file => file.getName).toList should contain allElementsOf list1
+
+    val dir8 = new File(folder + "output/folder2/mock-xlsx-data-22")
+    dir8.listFiles.map(file => file.getName).toList should contain allElementsOf list2
   }
 
+  "XlsxCsvConverter.createPathRecursively" should "create a directory and its subdirectories" in {
+    val str = XlsxCsvConverter.createPathRecursively("src/test/resources/xlsx-data/output/sub1/sub2/sub3")
+    Files.exists(Paths.get(str)) shouldBe true
+    beforeEach() // delete folder
+  }
+
+  "XlsxCsvConverter.listFilesRecursively" should "list the files under a provided path" in {
+    val list = XlsxCsvConverter.listFilesRecursively(new File("src/test/resources/xlsx-data/input/folder2")).toList
+    val actual: List[String] = list.map(file => XlsxCsvConverter.reversePathSeparator(file.toString))
+    val expected = List("src/test/resources/xlsx-data/input/folder2/mock-xlsx-data-21.xlsx", "src/test/resources/xlsx-data/input/folder2/mock-xlsx-data-22.xlsx")
+
+    actual should contain theSameElementsAs expected
+  }
 }

@@ -3,24 +3,24 @@ package io.oss.data.highway.utils
 import java.io.{File, FileInputStream}
 import java.nio.file.{Files, Path, Paths}
 
-import scala.annotation.tailrec
-
 import cats.implicits._
 import io.oss.data.highway.model.DataHighwayError
 import io.oss.data.highway.model.DataHighwayError.CsvGenerationError
 import io.oss.data.highway.utils.Constants._
 import org.apache.poi.ss.usermodel.{CellType, Sheet, WorkbookFactory}
 
+import scala.annotation.tailrec
+
 object XlsxCsvConverter {
 
   /**
    * Converts an Xlsx sheet to a CSV file.
    *
-   * @param fileName        The xlsx input file name
-   * @param sheet           The provided Xlsx Sheet
-   * @param csvOutputFolder The generated CSV output folder
+   * @param fileRelativePath The xlsx input file name with its relative path
+   * @param sheet            The provided Xlsx Sheet
+   * @param csvOutputFolder  The generated CSV output folder
    */
-  private[utils] def convertXlsxSheetToCsvFile(fileName: String, sheet: Sheet, csvOutputFolder: String): Either[DataHighwayError, Path] = {
+  private[utils] def convertXlsxSheetToCsvFile(fileRelativePath: String, sheet: Sheet, csvOutputFolder: String): Either[DataHighwayError, Path] = {
     val data = new StringBuilder
     Either.catchNonFatal {
       val rowIterator = sheet.iterator
@@ -48,17 +48,24 @@ object XlsxCsvConverter {
         }
         data.append("\n")
       }
-      val fName = fileName.split(File.separatorChar).last.replaceFirst("[.][^.]+$", EMPTY)
-      createPathRecursively(s"$csvOutputFolder${File.separatorChar}$fName")
+
+      val fName = fileRelativePath.replaceFirst(PATH_WITHOUT_EXTENSION, EMPTY)
+      createPathRecursively(s"$csvOutputFolder/$fName")
       Files.write(
-        Paths.get(s"$csvOutputFolder${File.separatorChar}$fName${File.separatorChar}${sheet.getSheetName}$CSV_EXTENSION"),
+        Paths.get(s"$csvOutputFolder/$fName/${sheet.getSheetName}$CSV_EXTENSION"),
         data.toString.getBytes(FORMAT)
       )
     }.leftMap(thr => CsvGenerationError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
-  def createPathRecursively(path: String): String = {
-    val folders = path.replaceAll("\\\\", "").split("/").toList
+  /**
+   * Creates a path recusuvely
+   *
+   * @param path The provided path to be created
+   * @return the created path
+   */
+  private[utils] def createPathRecursively(path: String): String = {
+    val folders = path.split("/").toList
 
     @tailrec
     def loop(list: List[String], existingPath: String): String = {
@@ -80,26 +87,20 @@ object XlsxCsvConverter {
   /**
    * Converts an Xlsx file to a CSV file.
    *
-   * @param fileName       The xlsx input file name
-   * @param inputExcelPath The provided Excel file
-   * @param csvOutputPath  The generated CSV output folder
+   * @param fileRelativePath The xlsx input file name with its relative path
+   * @param inputExcelPath   The provided Excel file
+   * @param csvOutputPath    The generated CSV output folder
    */
-  private[utils] def convertXlsxFileToCsvFiles(fileName: String, inputExcelPath: FileInputStream, csvOutputPath: String): Either[DataHighwayError, Unit] = {
+  private[utils] def convertXlsxFileToCsvFiles(fileRelativePath: String, inputExcelPath: FileInputStream, csvOutputPath: String): Either[DataHighwayError, Unit] = {
     Either.catchNonFatal {
       val wb = WorkbookFactory.create(inputExcelPath)
       for (i <- 0 until wb.getNumberOfSheets) {
-        convertXlsxSheetToCsvFile(fileName, wb.getSheetAt(i), csvOutputPath)
+        convertXlsxSheetToCsvFile(fileRelativePath, wb.getSheetAt(i), csvOutputPath)
       }
       if (inputExcelPath != null) inputExcelPath.close()
     }.leftMap(thr => {
       if (inputExcelPath != null) inputExcelPath.close()
       CsvGenerationError(thr.getMessage, thr.getCause, thr.getStackTrace)
-    })
-  }
-
-  def getFilesList(path: File): List[String] = {
-    path.listFiles().toList.map(file => file.getPath).filter(name => {
-      name.endsWith(XLSX_EXTENSION) || name.endsWith(XLS_EXTENSION)
     })
   }
 
@@ -115,17 +116,29 @@ object XlsxCsvConverter {
     }.leftMap(thr => CsvGenerationError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
-  final def listFilesRecursively(base: File, recursive: Boolean = true): Seq[File] = {
-    val files = base.listFiles
+  /**
+   * Lists files recursively from a path
+   *
+   * @param path The provided path
+   * @return a Seq of files
+   */
+  private[utils] def listFilesRecursively(path: File): Seq[File] = {
+    val files = path.listFiles
     val result = files.filter(_.isFile).filter(file => {
       file.getPath.endsWith(XLSX_EXTENSION) || file.getPath.endsWith(XLS_EXTENSION)
     })
     result ++
       files
         .filter(_.isDirectory)
-        .flatMap(listFilesRecursively(_, recursive))
+        .flatMap(listFilesRecursively)
   }
 
+  /**
+   * Replaces each backslash by a slash
+   *
+   * @param path The provided path
+   * @return a path with slash as file separator
+   */
   def reversePathSeparator(path: String): String =
     path.replace("\\", "/")
 

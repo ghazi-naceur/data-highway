@@ -8,4 +8,5 @@ object Constants {
   val CSV_EXTENSION = ".csv"
   val XLS_EXTENSION = ".xls"
   val XLSX_EXTENSION = ".xlsx"
+  val PATH_WITHOUT_EXTENSION = "[.][^.]+$"
 }
