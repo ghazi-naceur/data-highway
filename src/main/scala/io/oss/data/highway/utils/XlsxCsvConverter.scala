@@ -3,9 +3,11 @@ package io.oss.data.highway.utils
 import java.io.{File, FileInputStream}
 import java.nio.file.{Files, Path, Paths}
 
+import scala.annotation.tailrec
+
 import cats.implicits._
 import io.oss.data.highway.model.DataHighwayError
-import io.oss.data.highway.model.DataHighwayError.{CsvGenerationError, PathNotFound}
+import io.oss.data.highway.model.DataHighwayError.CsvGenerationError
 import io.oss.data.highway.utils.Constants._
 import org.apache.poi.ss.usermodel.{CellType, Sheet, WorkbookFactory}
 
@@ -46,13 +48,33 @@ object XlsxCsvConverter {
         }
         data.append("\n")
       }
-      if (!Files.exists(Paths.get(s"$csvOutputFolder${File.separatorChar}$fileName")))
-        Files.createDirectory(Paths.get(s"$csvOutputFolder${File.separatorChar}$fileName"))
+      val fName = fileName.split(File.separatorChar).last.replaceFirst("[.][^.]+$", EMPTY)
+      createPathRecursively(s"$csvOutputFolder${File.separatorChar}$fName")
       Files.write(
-        Paths.get(s"$csvOutputFolder${File.separatorChar}$fileName${File.separatorChar}${sheet.getSheetName}$CSV_EXTENSION"),
+        Paths.get(s"$csvOutputFolder${File.separatorChar}$fName${File.separatorChar}${sheet.getSheetName}$CSV_EXTENSION"),
         data.toString.getBytes(FORMAT)
       )
     }.leftMap(thr => CsvGenerationError(thr.getMessage, thr.getCause, thr.getStackTrace))
+  }
+
+  def createPathRecursively(path: String): String = {
+    val folders = path.replaceAll("\\\\", "").split("/").toList
+
+    @tailrec
+    def loop(list: List[String], existingPath: String): String = {
+      list match {
+        case Nil => existingPath
+        case head :: tail =>
+          if (Files.exists(Paths.get(s"$existingPath$head"))) {
+            loop(tail, s"$existingPath$head/")
+          } else {
+            Files.createDirectory(Paths.get(s"$existingPath$head")).toUri.getPath
+            loop(tail, s"$existingPath$head/")
+          }
+      }
+    }
+
+    loop(folders, "")
   }
 
   /**
@@ -75,6 +97,12 @@ object XlsxCsvConverter {
     })
   }
 
+  def getFilesList(path: File): List[String] = {
+    path.listFiles().toList.map(file => file.getPath).filter(name => {
+      name.endsWith(XLSX_EXTENSION) || name.endsWith(XLS_EXTENSION)
+    })
+  }
+
   /**
    * Gets files' names located in a provided path
    *
@@ -83,17 +111,23 @@ object XlsxCsvConverter {
    */
   private[utils] def getFilesFromPath(path: String): Either[CsvGenerationError, List[String]] = {
     Either.catchNonFatal {
-      val d = new File(path)
-      if (d.exists && d.isDirectory)
-        d.listFiles.toList.map(file => file.getPath).filter(name => {
-          name.endsWith(XLSX_EXTENSION) || name.endsWith(XLS_EXTENSION)
-        })
-      else if (d.exists && d.isFile && (path.endsWith(XLSX_EXTENSION) || path.endsWith(XLS_EXTENSION)))
-        List(d.getPath)
-      else
-        throw PathNotFound(path)
+      listFilesRecursively(new File(path)).map(_.getPath).toList
     }.leftMap(thr => CsvGenerationError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
+
+  final def listFilesRecursively(base: File, recursive: Boolean = true): Seq[File] = {
+    val files = base.listFiles
+    val result = files.filter(_.isFile).filter(file => {
+      file.getPath.endsWith(XLSX_EXTENSION) || file.getPath.endsWith(XLS_EXTENSION)
+    })
+    result ++
+      files
+        .filter(_.isDirectory)
+        .flatMap(listFilesRecursively(_, recursive))
+  }
+
+  def reversePathSeparator(path: String): String =
+    path.replace("\\", "/")
 
   /**
    * Converts Xlsx files to multiple CSV files.
@@ -104,8 +138,8 @@ object XlsxCsvConverter {
   def apply(inputPath: String, outputPath: String): Either[DataHighwayError, List[Unit]] = {
     getFilesFromPath(inputPath).flatMap(files =>
       files.traverse(file => {
-        val fileName = file.split(File.separatorChar).last.replaceFirst("[.][^.]+$", EMPTY)
-        convertXlsxFileToCsvFiles(fileName, new FileInputStream(file), outputPath)
+        val suffix = reversePathSeparator(file).stripPrefix(inputPath)
+        convertXlsxFileToCsvFiles(suffix, new FileInputStream(file), outputPath)
       })
     )
   }

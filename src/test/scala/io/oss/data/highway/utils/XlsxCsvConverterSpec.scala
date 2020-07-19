@@ -15,7 +15,7 @@ class XlsxCsvConverterSpec extends AnyFlatSpec with Matchers with BeforeAndAfter
   val folder = "src/test/resources/xlsx-data/"
 
   override def beforeEach(): Unit = {
-    new File(folder + "output").listFiles.toList.filter(_.getName != ".gitkeep").foreach(file => {
+    new File(folder + "output").listFiles.toList.filterNot(_.getName.endsWith(".gitkeep")).foreach(file => {
       val path = Paths.get(file.getPath)
       val directory = new Directory(file)
       directory.deleteRecursively()
@@ -28,7 +28,7 @@ class XlsxCsvConverterSpec extends AnyFlatSpec with Matchers with BeforeAndAfter
     XlsxCsvConverter.convertXlsxSheetToCsvFile("something", MockSheetCreator.createXlsxSheet("new-sheet"), folder + "output/")
       .map(path => path.toUri.getPath).map(str => str.split(File.separatorChar).last)
     val d = new File(folder + "output/something/")
-    d.listFiles.map(file => file.getName).filterNot(_ == ".gitkeep").toList should contain theSameElementsAs List(
+    d.listFiles.map(file => file.getName).toList should contain theSameElementsAs List(
       "new-sheet.csv"
     )
   }
