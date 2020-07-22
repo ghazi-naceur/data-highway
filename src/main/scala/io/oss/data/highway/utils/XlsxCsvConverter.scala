@@ -3,7 +3,11 @@ package io.oss.data.highway.utils
 import java.io.{File, FileInputStream}
 import java.nio.file.{Files, Path, Paths}
 
-import cats.implicits._
+import cats.instances.either._
+import cats.instances.list._
+import cats.syntax.either._
+import cats.syntax.traverse._
+
 import io.oss.data.highway.model.DataHighwayError
 import io.oss.data.highway.model.DataHighwayError.CsvGenerationError
 import io.oss.data.highway.utils.Constants._
