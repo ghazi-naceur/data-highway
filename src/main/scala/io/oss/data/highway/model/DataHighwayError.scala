@@ -10,8 +10,12 @@ trait DataHighwayError extends Throwable {
 
 object DataHighwayError {
 
-  case class CsvGenerationError(message: String, cause: Throwable, stacktrace: Array[StackTraceElement]) extends DataHighwayError {
-    override def asString: String = s"message: $message \n cause: $cause \n stacktrace: ${stacktrace.mkString("\n")}"
+  case class ReadFileError(message: String,
+                           cause: Throwable,
+                           stacktrace: Array[StackTraceElement])
+      extends DataHighwayError {
+    override def asString: String =
+      s"- Message: $message \n- Cause: $cause \n- Stacktrace: ${stacktrace.mkString("\n")}"
   }
 
   case class PathNotFound(path: String) extends DataHighwayError {
@@ -21,7 +25,11 @@ object DataHighwayError {
     override def asString: String = s"The provided path '$path' does not exist."
   }
 
-  case class ParquetError(message: String, cause: Throwable, stacktrace: Array[StackTraceElement]) extends DataHighwayError {
-    override def asString: String = s"message: $message \n cause: $cause \n stacktrace: ${stacktrace.mkString("\n")}"
+  case class ParquetError(message: String,
+                          cause: Throwable,
+                          stacktrace: Array[StackTraceElement])
+      extends DataHighwayError {
+    override def asString: String =
+      s"- Message: $message \n- Cause: $cause \n- Stacktrace: ${stacktrace.mkString("\n")}"
   }
 }
