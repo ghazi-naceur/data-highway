@@ -51,7 +51,7 @@ class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach {
         extensions)
       .toList
     val actual: List[String] =
-      list.map(file => XlsxCsvConverter.reversePathSeparator(file.toString))
+      list.map(file => FilesUtils.reversePathSeparator(file.toString))
     val expected = List(
       "src/test/resources/xlsx_to_csv-data/input/folder2/mock-xlsx-data-21.xlsx",
       "src/test/resources/xlsx_to_csv-data/input/folder2/mock-xlsx-data-22.xlsx")

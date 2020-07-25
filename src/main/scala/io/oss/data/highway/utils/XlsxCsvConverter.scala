@@ -126,15 +126,6 @@ object XlsxCsvConverter {
   }
 
   /**
-    * Replaces each backslash by a slash
-    *
-    * @param path The provided path
-    * @return a path with slash as file separator
-    */
-  def reversePathSeparator(path: String): String =
-    path.replace("\\", "/")
-
-  /**
     * Converts Xlsx files to multiple CSV files.
     *
     * @param inputPath  The provided Excel input folder
@@ -147,7 +138,8 @@ object XlsxCsvConverter {
       .getFilesFromPath(inputPath, extensions)
       .flatMap(files =>
         files.traverse(file => {
-          val suffix = reversePathSeparator(file).stripPrefix(inputPath)
+          val suffix =
+            FilesUtils.reversePathSeparator(file).stripPrefix(inputPath)
           convertXlsxFileToCsvFiles(suffix,
                                     new FileInputStream(file),
                                     outputPath)

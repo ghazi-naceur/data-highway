@@ -2,7 +2,7 @@ package io.oss.data.highway.utils
 
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import cats.implicits._
-import io.oss.data.highway.model.DataHighwayError.ParquetError
+import io.oss.data.highway.model.DataHighwayError.{ParquetError, ReadFileError}
 
 object ParquetHandler {
 
@@ -56,19 +56,25 @@ object ParquetHandler {
 
   /**
     *
-    * @param in The input csv path
-    * @param out The generated parquet file path
+    * @param in              The input csv path
+    * @param out             The generated parquet file path
     * @param columnSeparator The column separator for each line in the csv file
-    * @param saveMode The file saving mode
+    * @param saveMode        The file saving mode
     * @return
     */
   def apply(in: String,
             out: String,
             columnSeparator: String,
-            saveMode: SaveMode): Either[ParquetError, Unit] = {
+            saveMode: SaveMode,
+            extensions: Seq[String])
+    : Either[ReadFileError, Either[ParquetError, List[Unit]]] = {
     for {
-      _ <- ParquetHandler.saveCsvAsParquet(in, out, columnSeparator, saveMode)
-      df <- ParquetHandler.readParquet(out)
-    } yield df.show(false)
+      folders <- FilesUtils.listFoldersRecursively(in)
+    } yield
+      folders.traverse(folder => {
+        val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
+        ParquetHandler
+          .saveCsvAsParquet(folder, s"$out/$suffix", columnSeparator, saveMode)
+      })
   }
 }
