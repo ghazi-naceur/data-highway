@@ -3,6 +3,7 @@ package io.oss.data.highway.utils
 import java.io.{File, FileInputStream}
 import java.nio.file.{Files, Paths}
 
+import io.oss.data.highway.utils.Constants.XLSX_EXTENSION
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -12,7 +13,8 @@ import scala.reflect.io.Directory
 
 class XlsxCsvConverterSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach {
 
-  val folder = "src/test/resources/xlsx-data/"
+  val folder = "src/test/resources/xlsx_to_csv-data/"
+  val extensions = Seq(XLSX_EXTENSION, Constants.XLS_EXTENSION)
 
   override def beforeEach(): Unit = {
     new File(folder + "output").listFiles.toList.filterNot(_.getName.endsWith(".gitkeep")).foreach(file => {
@@ -33,33 +35,6 @@ class XlsxCsvConverterSpec extends AnyFlatSpec with Matchers with BeforeAndAfter
     )
   }
 
-  "XlsxCsvConverter.getFilesFromPath" should "list all files in folder" in {
-
-    val files = XlsxCsvConverter.getFilesFromPath(folder + "input/folder2").map(list => list.map(str => str.split(File.separatorChar).last))
-    files.map(fs => {
-      fs should contain theSameElementsAs List(
-        "mock-xlsx-data-21.xlsx",
-        "mock-xlsx-data-22.xlsx"
-      )
-    })
-  }
-
-  "XlsxCsvConverter.getFilesFromPath" should "list a file" in {
-
-    val files = XlsxCsvConverter.getFilesFromPath(folder + "input/mock-xlsx-data-1.xlsx").map(list => list.map(str => str.split(File.separatorChar).last))
-    files.map(fs => {
-      fs should contain theSameElementsAs List("mock-xlsx-data-1.xlsx")
-    })
-  }
-
-  "XlsxCsvConverter.getFilesFromPath" should "not list files" in {
-
-    val files = XlsxCsvConverter.getFilesFromPath(folder + "input/empty.doc").map(list => list.map(str => str.split(File.separatorChar).last))
-    files.map(fs => {
-      fs should contain theSameElementsAs Nil
-    })
-  }
-
   "XlsxCsvConverter.convertXlsxFileToCsvFiles" should "convert xlsx file to multiple csv files" in {
 
     val inputStream = new FileInputStream(folder + "input/mock-xlsx-data-1.xlsx")
@@ -76,7 +51,7 @@ class XlsxCsvConverterSpec extends AnyFlatSpec with Matchers with BeforeAndAfter
 
   "XlsxCsvConverter.apply" should "convert xlsx files to multiple csv files" in {
 
-    XlsxCsvConverter.apply(folder + "input/", folder + "output/")
+    XlsxCsvConverter.apply(folder + "input/", folder + "output/", Seq(XLSX_EXTENSION, XLSX_EXTENSION))
     val list1 = List(
       "data1.csv",
       "data2.csv",
@@ -118,16 +93,8 @@ class XlsxCsvConverterSpec extends AnyFlatSpec with Matchers with BeforeAndAfter
   }
 
   "XlsxCsvConverter.createPathRecursively" should "create a directory and its subdirectories" in {
-    val str = XlsxCsvConverter.createPathRecursively("src/test/resources/xlsx-data/output/sub1/sub2/sub3")
+    val str = XlsxCsvConverter.createPathRecursively("src/test/resources/xlsx_to_csv-data/output/sub1/sub2/sub3")
     Files.exists(Paths.get(str)) shouldBe true
     beforeEach() // delete folder
-  }
-
-  "XlsxCsvConverter.listFilesRecursively" should "list the files under a provided path" in {
-    val list = XlsxCsvConverter.listFilesRecursively(new File("src/test/resources/xlsx-data/input/folder2")).toList
-    val actual: List[String] = list.map(file => XlsxCsvConverter.reversePathSeparator(file.toString))
-    val expected = List("src/test/resources/xlsx-data/input/folder2/mock-xlsx-data-21.xlsx", "src/test/resources/xlsx-data/input/folder2/mock-xlsx-data-22.xlsx")
-
-    actual should contain theSameElementsAs expected
   }
 }
