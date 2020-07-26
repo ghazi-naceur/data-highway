@@ -73,11 +73,7 @@ object ParquetHandler {
       list <- folders
         .traverse(folder => {
           val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
-          ParquetHandler
-            .saveCsvAsParquet(folder,
-                              s"$out/$suffix",
-                              columnSeparator,
-                              saveMode)
+          saveCsvAsParquet(folder, s"$out/$suffix", columnSeparator, saveMode)
         })
         .leftMap(error =>
           ParquetError(error.message, error.cause, error.stacktrace))

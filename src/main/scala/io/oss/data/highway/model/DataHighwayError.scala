@@ -42,4 +42,12 @@ object DataHighwayError {
       s"- Message: $message \n- Cause: $cause \n- Stacktrace: ${stacktrace.mkString("\n")}"
   }
 
+  case class JsonError(message: String,
+                       cause: Throwable,
+                       stacktrace: Array[StackTraceElement])
+      extends DataHighwayError {
+    override def asString: String =
+      s"- Message: $message \n- Cause: $cause \n- Stacktrace: ${stacktrace.mkString("\n")}"
+  }
+
 }
