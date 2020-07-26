@@ -1,13 +1,14 @@
 package io.oss.data.highway.configuration
 
-import pureconfig.ConfigReader.Result
-import pureconfig.ConfigSource
+import cats.data.EitherNel
+import cats.syntax.either._
+import pureconfig.error.ConfigReaderFailures
 
 object ConfLoader {
 
-  def loadConf(): Result[Conf] = {
+  def loadConf(): EitherNel[ConfigReaderFailures, Conf] = {
     import pureconfig._
-    import pureconfig.generic.auto._
-    ConfigSource.default.load[Conf]
+    import pureconfig.generic.auto._ // To be kept, even though intellij didn't recognize its usage
+    ConfigSource.default.load[Conf].toEitherNel
   }
 }
