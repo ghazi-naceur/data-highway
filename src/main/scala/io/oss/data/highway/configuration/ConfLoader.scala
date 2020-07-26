@@ -3,7 +3,6 @@ package io.oss.data.highway.configuration
 import pureconfig.ConfigReader.Result
 import pureconfig.ConfigSource
 
-
 object ConfLoader {
 
   def loadConf(): Result[Conf] = {

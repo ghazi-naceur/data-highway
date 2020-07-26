@@ -1,11 +1,14 @@
 package io.oss.data.highway.utils
 
-
 import java.io.FileOutputStream
 
 import org.apache.poi.ss.usermodel.Sheet
 import org.apache.poi.ss.util.CellReference
-import org.apache.poi.xssf.usermodel.{XSSFSheet, XSSFTableStyleInfo, XSSFWorkbook}
+import org.apache.poi.xssf.usermodel.{
+  XSSFSheet,
+  XSSFTableStyleInfo,
+  XSSFWorkbook
+}
 
 object MockSheetCreator {
 
@@ -17,7 +20,8 @@ object MockSheetCreator {
 
   private def feedSheet(wb: XSSFWorkbook, sheet: XSSFSheet): XSSFSheet = {
     val reference =
-      wb.getCreationHelper.createAreaReference(new CellReference(0, 0), new CellReference(2, 2))
+      wb.getCreationHelper
+        .createAreaReference(new CellReference(0, 0), new CellReference(2, 2))
 
     val table = sheet.createTable(reference)
     table.getCTTable.getTableColumns.getTableColumnArray(1).setId(2)
