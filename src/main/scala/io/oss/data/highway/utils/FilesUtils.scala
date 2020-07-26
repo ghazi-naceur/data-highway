@@ -64,8 +64,9 @@ object FilesUtils {
     * @param path The provided path
     * @return a Seq of folders
     */
-  def listFoldersRecursively(
+  private[utils] def listFoldersRecursively(
       path: String): Either[ReadFileError, List[String]] = {
+    @scala.annotation.tailrec
     def getFolders(path: List[File], results: List[File]): Seq[File] =
       path match {
         case head :: tail =>

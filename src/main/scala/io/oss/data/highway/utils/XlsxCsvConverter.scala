@@ -54,7 +54,7 @@ object XlsxCsvConverter {
             }
             data.append(SEPARATOR)
           }
-          data.append("\n")
+          data.deleteCharAt(data.length() - 1).append("\n")
         }
 
         val fName = fileRelativePath.replaceFirst(PATH_WITHOUT_EXTENSION, EMPTY)
