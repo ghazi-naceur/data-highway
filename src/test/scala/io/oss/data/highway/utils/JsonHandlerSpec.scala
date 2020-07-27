@@ -43,10 +43,10 @@ class JsonHandlerSpec
     import spark.implicits._
 
     JsonHandler
-      .saveParquetAsJson(folder + "input/mock-csv-data-2",
-                         folder + "output/mock-csv-data-2",
+      .saveParquetAsJson(folder + "input/mock-data-2",
+                         folder + "output/mock-data-2",
                          SaveMode.Overwrite)
-    val actual = JsonHandler.readJson(folder + "output/mock-csv-data-2")
+    val actual = JsonHandler.readJson(folder + "output/mock-data-2")
 
     val expected = List(
       (6.0,
@@ -71,7 +71,6 @@ class JsonHandlerSpec
        "215.57.123.52")
     ).toDF("id", "first_name", "last_name", "email", "gender", "ip_address")
 
-    actual.right.get.orderBy("id").show(false)
     assertSmallDatasetEquality(actual.right.get
                                  .orderBy("id")
                                  .select("id",
