@@ -11,13 +11,13 @@ import org.scalatest.matchers.should.Matchers
 
 import scala.reflect.io.Directory
 
-class CsvHandlerSpec
+class JsonHandlerSpec
     extends AnyFlatSpec
     with Matchers
     with BeforeAndAfterEach
     with DatasetComparer {
 
-  val folder = "src/test/resources/parquet_to_csv-data/"
+  val folder = "src/test/resources/parquet_to_json-data/"
 
   lazy val spark: SparkSession = {
     SparkSession
@@ -39,15 +39,14 @@ class CsvHandlerSpec
       })
   }
 
-  "CsvHandler.saveCsvAsParquet" should "save a parquet as a csv file" in {
+  "JsonHandler.saveParquetAsJson" should "save a parquet as a json file" in {
     import spark.implicits._
 
-    CsvHandler
-      .saveParquetAsCsv(folder + "input/mock-data-2",
-                        folder + "output/mock-data-2",
-                        ";",
-                        SaveMode.Overwrite)
-    val actual = CsvHandler.readParquet(folder + "output/mock-data-2", ";")
+    JsonHandler
+      .saveParquetAsJson(folder + "input/mock-data-2",
+                         folder + "output/mock-data-2",
+                         SaveMode.Overwrite)
+    val actual = JsonHandler.readJson(folder + "output/mock-data-2")
 
     val expected = List(
       (6.0,
@@ -72,7 +71,14 @@ class CsvHandlerSpec
        "215.57.123.52")
     ).toDF("id", "first_name", "last_name", "email", "gender", "ip_address")
 
-    assertSmallDatasetEquality(actual.right.get.orderBy("id"),
+    assertSmallDatasetEquality(actual.right.get
+                                 .orderBy("id")
+                                 .select("id",
+                                         "first_name",
+                                         "last_name",
+                                         "email",
+                                         "gender",
+                                         "ip_address"),
                                expected,
                                ignoreNullable = true)
   }

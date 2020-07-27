@@ -43,11 +43,11 @@ class ParquetHandlerSpec
     import spark.implicits._
 
     ParquetHandler
-      .saveCsvAsParquet(folder + "input/mock-csv-data-2",
-                        folder + "output/mock-csv-data-2",
+      .saveCsvAsParquet(folder + "input/mock-data-2",
+                        folder + "output/mock-data-2",
                         ";",
                         SaveMode.Overwrite)
-    val actual = ParquetHandler.readParquet(folder + "output/mock-csv-data-2")
+    val actual = ParquetHandler.readParquet(folder + "output/mock-data-2")
 
     val expected = List(
       (6.0,

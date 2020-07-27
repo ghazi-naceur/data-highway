@@ -1,13 +1,23 @@
 package io.oss.data.highway
 
 import io.oss.data.highway.configuration.ConfLoader
-import io.oss.data.highway.model.{CsvToParquet, ParquetToCsv, XlsxToCsv}
+import io.oss.data.highway.model.{
+  CsvToParquet,
+  ParquetToCsv,
+  ParquetToJson,
+  XlsxToCsv
+}
 import io.oss.data.highway.utils.Constants.{
   SEPARATOR,
   XLSX_EXTENSION,
   XLS_EXTENSION
 }
-import io.oss.data.highway.utils.{CsvHandler, ParquetHandler, XlsxCsvConverter}
+import io.oss.data.highway.utils.{
+  CsvHandler,
+  JsonHandler,
+  ParquetHandler,
+  XlsxCsvConverter
+}
 import org.apache.spark.sql.SaveMode.Overwrite
 
 object App {
@@ -22,6 +32,8 @@ object App {
           ParquetHandler.apply(in, out, SEPARATOR, Overwrite)
         case ParquetToCsv(in, out) =>
           CsvHandler.apply(in, out, SEPARATOR, Overwrite)
+        case ParquetToJson(in, out) =>
+          JsonHandler.apply(in, out, Overwrite)
       }
     } yield ()
   }

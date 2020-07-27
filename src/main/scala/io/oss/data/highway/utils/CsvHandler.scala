@@ -9,7 +9,7 @@ object CsvHandler {
 
   val ss: SparkSession = SparkSession
     .builder()
-    .appName("parquet-handler")
+    .appName("csv-handler")
     .master("local[*]")
     .getOrCreate()
   ss.sparkContext.setLogLevel("WARN")
