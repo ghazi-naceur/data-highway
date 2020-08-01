@@ -22,14 +22,16 @@ object App extends StrictLogging {
     val result = for {
       conf <- ConfLoader.loadConf()
       _ <- conf match {
-        case XlsxToCsv(in, out) =>
-          XlsxCsvConverter.apply(in, out, Seq(XLS_EXTENSION, XLSX_EXTENSION))
         case obj @ CsvToParquet(in, out) =>
           ParquetHandler.apply(in, out, SEPARATOR, obj.value, Overwrite)
         case obj @ JsonToParquet(in, out) =>
           ParquetHandler.apply(in, out, SEPARATOR, obj.value, Overwrite)
-        case ParquetToCsv(in, out) =>
-          CsvHandler.apply(in, out, SEPARATOR, Overwrite)
+        case XlsxToCsv(in, out) =>
+          XlsxCsvConverter.apply(in, out, Seq(XLS_EXTENSION, XLSX_EXTENSION))
+        case obj @ ParquetToCsv(in, out) =>
+          CsvHandler.apply(in, out, SEPARATOR, obj.value, Overwrite)
+        case obj @ JsonToCsv(in, out) =>
+          CsvHandler.apply(in, out, SEPARATOR, obj.value, Overwrite)
         case obj @ ParquetToJson(in, out) =>
           JsonHandler.apply(in, out, SEPARATOR, obj.value, Overwrite)
         case obj @ CsvToJson(in, out) =>
