@@ -1,12 +1,8 @@
 package io.oss.data.highway
 
+import com.typesafe.scalalogging.StrictLogging
 import io.oss.data.highway.configuration.ConfLoader
-import io.oss.data.highway.model.{
-  CsvToParquet,
-  ParquetToCsv,
-  ParquetToJson,
-  XlsxToCsv
-}
+import io.oss.data.highway.model._
 import io.oss.data.highway.utils.Constants.{
   SEPARATOR,
   XLSX_EXTENSION,
@@ -20,21 +16,30 @@ import io.oss.data.highway.utils.{
 }
 import org.apache.spark.sql.SaveMode.Overwrite
 
-object App {
+object App extends StrictLogging {
 
   def main(args: Array[String]): Unit = {
-    for {
+    val result = for {
       conf <- ConfLoader.loadConf()
-      _ <- conf.route match {
+      _ <- conf match {
         case XlsxToCsv(in, out) =>
           XlsxCsvConverter.apply(in, out, Seq(XLS_EXTENSION, XLSX_EXTENSION))
         case CsvToParquet(in, out) =>
           ParquetHandler.apply(in, out, SEPARATOR, Overwrite)
         case ParquetToCsv(in, out) =>
           CsvHandler.apply(in, out, SEPARATOR, Overwrite)
-        case ParquetToJson(in, out) =>
-          JsonHandler.apply(in, out, Overwrite)
+        case obj @ ParquetToJson(in, out) =>
+          JsonHandler.apply(in, out, SEPARATOR, obj.value, Overwrite)
+        case obj @ CsvToJson(in, out) =>
+          JsonHandler.apply(in, out, SEPARATOR, obj.value, Overwrite)
+        case _ =>
+          throw new RuntimeException(
+            s"The provided route '$conf' is ont supported.")
       }
     } yield ()
+    result match {
+      case Left(thr)    => logger.error("Error", thr.asString)
+      case Right(value) => logger.info("Success", value)
+    }
   }
 }

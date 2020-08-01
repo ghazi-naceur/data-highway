@@ -1,4 +1,5 @@
 package io.oss.data.highway.model
+import pureconfig.error.ConfigReaderFailures
 
 trait DataHighwayError extends Throwable {
   val message: String
@@ -48,6 +49,17 @@ object DataHighwayError {
       extends DataHighwayError {
     override def asString: String =
       s"- Message: $message \n- Cause: $cause \n- Stacktrace: ${stacktrace.mkString("\n")}"
+  }
+
+  case class BulkErrorAccumulator(errors: ConfigReaderFailures)
+      extends DataHighwayError {
+    override val message: String = ""
+    override val cause: Throwable = null
+    override val stacktrace: Array[StackTraceElement] = null
+
+    override def asString: String =
+      s"- Errors: ${errors.toList.mkString("\n")}"
+
   }
 
 }

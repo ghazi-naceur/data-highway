@@ -1,6 +1,14 @@
 package io.oss.data.highway.utils
 
-import io.oss.data.highway.model.DataHighwayError
+import io.oss.data.highway.model.{
+  Channel,
+  CsvJson,
+  CsvParquet,
+  DataHighwayError,
+  ParquetCsv,
+  ParquetJson,
+  XlsxCsv
+}
 import io.oss.data.highway.model.DataHighwayError.JsonError
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import cats.implicits._
@@ -39,6 +47,34 @@ object JsonHandler {
   }
 
   /**
+    * Save csv file as json
+    *
+    * @param in       The input csv path
+    * @param out      The generated json file path
+    * @param saveMode The file saving mode
+    * @return Unit if successful, otherwise Error
+    */
+  def saveCsvAsJson(in: String,
+                    out: String,
+                    columnSeparator: String,
+                    saveMode: SaveMode): Either[JsonError, Unit] = {
+    Either
+      .catchNonFatal {
+        ss.read
+          .option("inferSchema", "true")
+          .option("header", "true")
+          .option("sep", columnSeparator)
+          .csv(in)
+          .coalesce(1)
+          .write
+          .mode(saveMode)
+          .json(out)
+      }
+      .leftMap(thr =>
+        JsonError(thr.getMessage, thr.getCause, thr.getStackTrace))
+  }
+
+  /**
     * Reads json file
     *
     * @param path The json file path
@@ -63,13 +99,21 @@ object JsonHandler {
     */
   def apply(in: String,
             out: String,
+            separator: String,
+            channel: Channel,
             saveMode: SaveMode): Either[DataHighwayError, List[Unit]] = {
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
       list <- folders
         .traverse(folder => {
           val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
-          saveParquetAsJson(folder, s"$out/$suffix", saveMode)
+          channel match {
+            case ParquetJson =>
+              saveParquetAsJson(folder, s"$out/$suffix", saveMode)
+            case CsvJson =>
+              saveCsvAsJson(folder, s"$out/$suffix", separator, saveMode)
+            case _ => throw new RuntimeException("Not suppose to happen !")
+          }
         })
         .leftMap(error =>
           JsonError(error.message, error.cause, error.stacktrace))

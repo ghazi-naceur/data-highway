@@ -18,7 +18,8 @@ libraryDependencies ++= Seq("com.github.pureconfig" %% "pureconfig" % "0.13.0",
   "org.apache.spark" %% "spark-hive" % "2.4.6",
   "org.apache.spark" %% "spark-avro" % "2.4.6",
   "org.apache.spark" %% "spark-streaming" % "2.4.6",
-  "MrPowers" % "spark-fast-tests" % "0.20.0-s_2.12"
+  "MrPowers" % "spark-fast-tests" % "0.20.0-s_2.12",
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
 )
 
 scalacOptions += "-Ypartial-unification"
