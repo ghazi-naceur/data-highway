@@ -17,7 +17,8 @@ class JsonHandlerSpec
     with BeforeAndAfterEach
     with DatasetComparer {
 
-  val folder = "src/test/resources/csv_to_json-data/"
+  val folderParquetToJson = "src/test/resources/parquet_to_json-data/"
+  val folderCsvToJson = "src/test/resources/csv_to_json-data/"
 
   lazy val spark: SparkSession = {
     SparkSession
@@ -29,7 +30,12 @@ class JsonHandlerSpec
   }
 
   override def beforeEach(): Unit = {
-    new File(folder + "output").listFiles.toList
+    deleteFoldersWithContents(folderParquetToJson)
+    deleteFoldersWithContents(folderCsvToJson)
+  }
+
+  private def deleteFoldersWithContents(path: String): Unit = {
+    new File(path + "output").listFiles.toList
       .filterNot(_.getName.endsWith(".gitkeep"))
       .foreach(file => {
         val path = Paths.get(file.getPath)
@@ -43,10 +49,11 @@ class JsonHandlerSpec
     import spark.implicits._
 
     JsonHandler
-      .saveParquetAsJson(folder + "input/mock-data-2",
-                         folder + "output/mock-data-2",
+      .saveParquetAsJson(folderParquetToJson + "input/mock-data-2",
+                         folderParquetToJson + "output/mock-data-2",
                          SaveMode.Overwrite)
-    val actual = JsonHandler.readJson(folder + "output/mock-data-2")
+    val actual =
+      JsonHandler.readJson(folderParquetToJson + "output/mock-data-2")
 
     val expected = List(
       (6.0,
@@ -87,11 +94,11 @@ class JsonHandlerSpec
     import spark.implicits._
 
     JsonHandler
-      .saveCsvAsJson(folder + "input/mock-data-2",
-                     folder + "output/mock-data-2",
+      .saveCsvAsJson(folderCsvToJson + "input/mock-data-2",
+                     folderCsvToJson + "output/mock-data-2",
                      ";",
                      SaveMode.Overwrite)
-    val actual = JsonHandler.readJson(folder + "output/mock-data-2")
+    val actual = JsonHandler.readJson(folderCsvToJson + "output/mock-data-2")
 
     val expected = List(
       (6.0,
