@@ -13,7 +13,7 @@ object FilesUtils {
     * @param path The provided path
     * @return a list of files names without the extension
     */
-  private[utils] def getFilesFromPath(
+  def getFilesFromPath(
       path: String,
       extensions: Seq[String]): Either[ReadFileError, List[String]] = {
     Either
@@ -30,9 +30,7 @@ object FilesUtils {
     * @param path The provided path
     * @return a Seq of files
     */
-  private[utils] def listFilesRecursively(
-      path: File,
-      extensions: Seq[String]): Seq[File] = {
+  def listFilesRecursively(path: File, extensions: Seq[String]): Seq[File] = {
     val files = path.listFiles
     val result = files
       .filter(_.isFile)
@@ -52,8 +50,7 @@ object FilesUtils {
     * @param extensions The provided extensions
     * @return True if the file has a valid extension, otherwise False
     */
-  private[utils] def filterByExtension(file: String,
-                                       extensions: Seq[String]): Boolean = {
+  def filterByExtension(file: String, extensions: Seq[String]): Boolean = {
     val fileName = file.split("/").last
     extensions.contains(fileName.substring(fileName.lastIndexOf(".") + 1))
   }
@@ -64,7 +61,7 @@ object FilesUtils {
     * @param path The provided path
     * @return a Seq of folders
     */
-  private[utils] def listFoldersRecursively(
+  def listFoldersRecursively(
       path: String): Either[ReadFileError, List[String]] = {
     @scala.annotation.tailrec
     def getFolders(path: List[File], results: List[File]): Seq[File] =

@@ -2,18 +2,13 @@ package io.oss.data.highway
 
 import com.typesafe.scalalogging.StrictLogging
 import io.oss.data.highway.configuration.ConfLoader
+import io.oss.data.highway.converter.{
+  CsvConverter,
+  JsonConverter,
+  ParquetConverter
+}
 import io.oss.data.highway.model._
-import io.oss.data.highway.utils.Constants.{
-  SEPARATOR,
-  XLSX_EXTENSION,
-  XLS_EXTENSION
-}
-import io.oss.data.highway.utils.{
-  CsvHandler,
-  JsonHandler,
-  ParquetHandler,
-  XlsxCsvConverter
-}
+import io.oss.data.highway.utils.Constants.SEPARATOR
 import org.apache.spark.sql.SaveMode.Overwrite
 
 object App extends StrictLogging {
@@ -23,19 +18,19 @@ object App extends StrictLogging {
       conf <- ConfLoader.loadConf()
       _ <- conf match {
         case obj @ CsvToParquet(in, out) =>
-          ParquetHandler.apply(in, out, SEPARATOR, obj.value, Overwrite)
+          ParquetConverter.apply(in, out, SEPARATOR, obj.value, Overwrite)
         case obj @ JsonToParquet(in, out) =>
-          ParquetHandler.apply(in, out, SEPARATOR, obj.value, Overwrite)
-        case XlsxToCsv(in, out) =>
-          XlsxCsvConverter.apply(in, out, Seq(XLS_EXTENSION, XLSX_EXTENSION))
+          ParquetConverter.apply(in, out, SEPARATOR, obj.value, Overwrite)
+        case obj @ XlsxToCsv(in, out) =>
+          CsvConverter.apply(in, out, SEPARATOR, obj.value, Overwrite)
         case obj @ ParquetToCsv(in, out) =>
-          CsvHandler.apply(in, out, SEPARATOR, obj.value, Overwrite)
+          CsvConverter.apply(in, out, SEPARATOR, obj.value, Overwrite)
         case obj @ JsonToCsv(in, out) =>
-          CsvHandler.apply(in, out, SEPARATOR, obj.value, Overwrite)
+          CsvConverter.apply(in, out, SEPARATOR, obj.value, Overwrite)
         case obj @ ParquetToJson(in, out) =>
-          JsonHandler.apply(in, out, SEPARATOR, obj.value, Overwrite)
+          JsonConverter.apply(in, out, SEPARATOR, obj.value, Overwrite)
         case obj @ CsvToJson(in, out) =>
-          JsonHandler.apply(in, out, SEPARATOR, obj.value, Overwrite)
+          JsonConverter.apply(in, out, SEPARATOR, obj.value, Overwrite)
         case _ =>
           throw new RuntimeException(
             s"The provided route '$conf' is ont supported.")
