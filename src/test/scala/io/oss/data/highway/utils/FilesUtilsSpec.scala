@@ -11,7 +11,7 @@ class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach {
   val folder = "src/test/resources/xlsx_to_csv-data/"
   val extensions = Seq(Constants.XLSX_EXTENSION, Constants.XLS_EXTENSION)
 
-  "FilesUtils.getFilesFromPath" should "list all files in folder" in {
+  "FilesUtils.getFilesFromPath" should "list all files in folderXlsxCsvData" in {
 
     val files = FilesUtils
       .getFilesFromPath(folder + "input/folder2", extensions)

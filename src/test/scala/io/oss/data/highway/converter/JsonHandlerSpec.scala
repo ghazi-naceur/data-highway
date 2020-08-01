@@ -1,4 +1,4 @@
-package io.oss.data.highway.utils
+package io.oss.data.highway.converter
 
 import java.io.File
 import java.nio.file.{Files, Paths}
@@ -45,15 +45,15 @@ class JsonHandlerSpec
       })
   }
 
-  "JsonHandler.saveParquetAsJson" should "save a parquet as a json file" in {
+  "JsonConverter.saveParquetAsJson" should "save a parquet as a json file" in {
     import spark.implicits._
 
-    JsonHandler
+    JsonConverter
       .saveParquetAsJson(folderParquetToJson + "input/mock-data-2",
                          folderParquetToJson + "output/mock-data-2",
                          SaveMode.Overwrite)
     val actual =
-      JsonHandler.readJson(folderParquetToJson + "output/mock-data-2")
+      JsonConverter.readJson(folderParquetToJson + "output/mock-data-2")
 
     val expected = List(
       (6.0,
@@ -90,15 +90,15 @@ class JsonHandlerSpec
                                ignoreNullable = true)
   }
 
-  "JsonHandler.saveCsvAsJson" should "save a csv as a json file" in {
+  "JsonConverter.saveCsvAsJson" should "save a csv as a json file" in {
     import spark.implicits._
 
-    JsonHandler
+    JsonConverter
       .saveCsvAsJson(folderCsvToJson + "input/mock-data-2",
                      folderCsvToJson + "output/mock-data-2",
                      ";",
                      SaveMode.Overwrite)
-    val actual = JsonHandler.readJson(folderCsvToJson + "output/mock-data-2")
+    val actual = JsonConverter.readJson(folderCsvToJson + "output/mock-data-2")
 
     val expected = List(
       (6.0,
