@@ -17,20 +17,20 @@ object App extends StrictLogging {
     val result = for {
       conf <- ConfLoader.loadConf()
       _ <- conf match {
-        case obj @ CsvToParquet(in, out) =>
-          ParquetConverter.apply(in, out, SEPARATOR, obj.value, Overwrite)
-        case obj @ JsonToParquet(in, out) =>
-          ParquetConverter.apply(in, out, SEPARATOR, obj.value, Overwrite)
-        case obj @ XlsxToCsv(in, out) =>
-          CsvConverter.apply(in, out, SEPARATOR, obj.value, Overwrite)
-        case obj @ ParquetToCsv(in, out) =>
-          CsvConverter.apply(in, out, SEPARATOR, obj.value, Overwrite)
-        case obj @ JsonToCsv(in, out) =>
-          CsvConverter.apply(in, out, SEPARATOR, obj.value, Overwrite)
-        case obj @ ParquetToJson(in, out) =>
-          JsonConverter.apply(in, out, SEPARATOR, obj.value, Overwrite)
-        case obj @ CsvToJson(in, out) =>
-          JsonConverter.apply(in, out, SEPARATOR, obj.value, Overwrite)
+        case route @ CsvToParquet(in, out) =>
+          ParquetConverter.apply(in, out, SEPARATOR, route.channel, Overwrite)
+        case route @ JsonToParquet(in, out) =>
+          ParquetConverter.apply(in, out, SEPARATOR, route.channel, Overwrite)
+        case route @ XlsxToCsv(in, out) =>
+          CsvConverter.apply(in, out, SEPARATOR, route.channel, Overwrite)
+        case route @ ParquetToCsv(in, out) =>
+          CsvConverter.apply(in, out, SEPARATOR, route.channel, Overwrite)
+        case route @ JsonToCsv(in, out) =>
+          CsvConverter.apply(in, out, SEPARATOR, route.channel, Overwrite)
+        case route @ ParquetToJson(in, out) =>
+          JsonConverter.apply(in, out, SEPARATOR, route.channel, Overwrite)
+        case route @ CsvToJson(in, out) =>
+          JsonConverter.apply(in, out, SEPARATOR, route.channel, Overwrite)
         case _ =>
           throw new RuntimeException(
             s"The provided route '$conf' is ont supported.")
