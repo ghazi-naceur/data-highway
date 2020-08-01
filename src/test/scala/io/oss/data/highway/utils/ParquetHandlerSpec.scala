@@ -17,7 +17,8 @@ class ParquetHandlerSpec
     with BeforeAndAfterEach
     with DatasetComparer {
 
-  val folder = "src/test/resources/csv_to_parquet-data/"
+  val folderCsvToParquet = "src/test/resources/csv_to_parquet-data/"
+  val folderJsonToParquet = "src/test/resources/json_to_parquet-data/"
 
   lazy val spark: SparkSession = {
     SparkSession
@@ -29,7 +30,12 @@ class ParquetHandlerSpec
   }
 
   override def beforeEach(): Unit = {
-    new File(folder + "output").listFiles.toList
+    deleteFolderWithItsContent(folderCsvToParquet)
+    deleteFolderWithItsContent(folderJsonToParquet)
+  }
+
+  private def deleteFolderWithItsContent(path: String): Unit = {
+    new File(path + "output").listFiles.toList
       .filterNot(_.getName.endsWith(".gitkeep"))
       .foreach(file => {
         val path = Paths.get(file.getPath)
@@ -43,11 +49,12 @@ class ParquetHandlerSpec
     import spark.implicits._
 
     ParquetHandler
-      .saveCsvAsParquet(folder + "input/mock-data-2",
-                        folder + "output/mock-data-2",
+      .saveCsvAsParquet(folderCsvToParquet + "input/mock-data-2",
+                        folderCsvToParquet + "output/mock-data-2",
                         ";",
                         SaveMode.Overwrite)
-    val actual = ParquetHandler.readParquet(folder + "output/mock-data-2")
+    val actual =
+      ParquetHandler.readParquet(folderCsvToParquet + "output/mock-data-2")
 
     val expected = List(
       (6.0,
@@ -73,6 +80,51 @@ class ParquetHandlerSpec
     ).toDF("id", "first_name", "last_name", "email", "gender", "ip_address")
 
     assertSmallDatasetEquality(actual.right.get.orderBy("id"),
+                               expected,
+                               ignoreNullable = true)
+  }
+
+  "ParquetHandler.saveJsonAsParquet" should "save a json as a parquet file" in {
+    import spark.implicits._
+
+    ParquetHandler
+      .saveJsonAsParquet(folderJsonToParquet + "input/mock-data-2",
+                         folderJsonToParquet + "output/mock-data-2",
+                         SaveMode.Overwrite)
+    val actual =
+      ParquetHandler.readParquet(folderJsonToParquet + "output/mock-data-2")
+
+    val expected = List(
+      (6.0,
+       "Marquita",
+       "Jarrad",
+       "mjarrad5@rakuten.co.jp",
+       "Female",
+       "247.246.40.151"),
+      (7.0, "Bordie", "Altham", "baltham6@hud.gov", "Male", "234.202.91.240"),
+      (8.0, "Dom", "Greson", "dgreson7@somehting.com", "Male", "103.7.243.71"),
+      (9.0,
+       "Alphard",
+       "Meardon",
+       "ameardon8@comsenz.com",
+       "Male",
+       "37.31.17.200"),
+      (10.0,
+       "Reynold",
+       "Neighbour",
+       "rneighbour9@gravatar.com",
+       "Male",
+       "215.57.123.52")
+    ).toDF("id", "first_name", "last_name", "email", "gender", "ip_address")
+
+    assertSmallDatasetEquality(actual.right.get
+                                 .orderBy("id")
+                                 .select("id",
+                                         "first_name",
+                                         "last_name",
+                                         "email",
+                                         "gender",
+                                         "ip_address"),
                                expected,
                                ignoreNullable = true)
   }

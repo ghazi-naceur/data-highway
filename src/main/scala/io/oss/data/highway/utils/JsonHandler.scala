@@ -3,11 +3,8 @@ package io.oss.data.highway.utils
 import io.oss.data.highway.model.{
   Channel,
   CsvJson,
-  CsvParquet,
   DataHighwayError,
-  ParquetCsv,
   ParquetJson,
-  XlsxCsv
 }
 import io.oss.data.highway.model.DataHighwayError.JsonError
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
@@ -89,6 +86,48 @@ object JsonHandler {
         JsonError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
+  def apply(in: String,
+            out: String,
+            separator: String,
+            channel: Channel,
+            saveMode: SaveMode): Either[DataHighwayError, List[Unit]] = {
+    channel match {
+      case ParquetJson =>
+        handleParquetJsonChannel(in, out, saveMode)
+      case CsvJson =>
+        handleCsvJsonChannel(in, out, separator, saveMode)
+      case _ =>
+        throw new RuntimeException("Not suppose to happen !")
+    }
+  }
+
+  /**
+    * Converts csv files to json files
+    *
+    * @param in        The input csv path
+    * @param out       The generated json file path
+    * @param separator The csv columns separator
+    * @param saveMode  The file saving mode
+    * @return List[Unit], otherwise Error
+    */
+  private def handleCsvJsonChannel(
+      in: String,
+      out: String,
+      separator: String,
+      saveMode: SaveMode): Either[DataHighwayError, List[Unit]] = {
+    for {
+      folders <- FilesUtils.listFoldersRecursively(in)
+      list <- folders
+        .traverse(folder => {
+          val suffix =
+            FilesUtils.reversePathSeparator(folder).split("/").last
+          saveCsvAsJson(folder, s"$out/$suffix", separator, saveMode)
+        })
+        .leftMap(error =>
+          JsonError(error.message, error.cause, error.stacktrace))
+    } yield list
+  }
+
   /**
     * Converts parquet files to json files
     *
@@ -97,23 +136,17 @@ object JsonHandler {
     * @param saveMode The file saving mode
     * @return List[Unit], otherwise Error
     */
-  def apply(in: String,
-            out: String,
-            separator: String,
-            channel: Channel,
-            saveMode: SaveMode): Either[DataHighwayError, List[Unit]] = {
+  private def handleParquetJsonChannel(
+      in: String,
+      out: String,
+      saveMode: SaveMode): Either[DataHighwayError, List[Unit]] = {
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
       list <- folders
         .traverse(folder => {
-          val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
-          channel match {
-            case ParquetJson =>
-              saveParquetAsJson(folder, s"$out/$suffix", saveMode)
-            case CsvJson =>
-              saveCsvAsJson(folder, s"$out/$suffix", separator, saveMode)
-            case _ => throw new RuntimeException("Not suppose to happen !")
-          }
+          val suffix =
+            FilesUtils.reversePathSeparator(folder).split("/").last
+          saveParquetAsJson(folder, s"$out/$suffix", saveMode)
         })
         .leftMap(error =>
           JsonError(error.message, error.cause, error.stacktrace))
