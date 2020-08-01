@@ -1,33 +1,33 @@
 package io.oss.data.highway.model
 
 sealed trait Route {
-  val value: Channel
+  val channel: Channel
 }
 
 case class XlsxToCsv(in: String, out: String) extends Route {
-  override val value: Channel = XlsxCsv
+  override val channel: Channel = XlsxCsv
 }
 
 case class CsvToParquet(in: String, out: String) extends Route {
-  override val value: Channel = CsvParquet
+  override val channel: Channel = CsvParquet
 }
 
 case class JsonToParquet(in: String, out: String) extends Route {
-  override val value: Channel = JsonParquet
+  override val channel: Channel = JsonParquet
 }
 
 case class ParquetToCsv(in: String, out: String) extends Route {
-  override val value: Channel = ParquetCsv
+  override val channel: Channel = ParquetCsv
 }
 
 case class JsonToCsv(in: String, out: String) extends Route {
-  override val value: Channel = JsonCsv
+  override val channel: Channel = JsonCsv
 }
 
 case class ParquetToJson(in: String, out: String) extends Route {
-  override val value: Channel = ParquetJson
+  override val channel: Channel = ParquetJson
 }
 
 case class CsvToJson(in: String, out: String) extends Route {
-  override val value: Channel = CsvJson
+  override val channel: Channel = CsvJson
 }
