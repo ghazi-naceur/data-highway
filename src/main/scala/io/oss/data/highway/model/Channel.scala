@@ -10,6 +10,8 @@ case object JsonParquet extends Channel
 
 case object ParquetCsv extends Channel
 
+case object JsonCsv extends Channel
+
 case object ParquetJson extends Channel
 
 case object CsvJson extends Channel

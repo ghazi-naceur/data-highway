@@ -20,6 +20,10 @@ case class ParquetToCsv(in: String, out: String) extends Route {
   override val value: Channel = ParquetCsv
 }
 
+case class JsonToCsv(in: String, out: String) extends Route {
+  override val value: Channel = JsonCsv
+}
+
 case class ParquetToJson(in: String, out: String) extends Route {
   override val value: Channel = ParquetJson
 }
