@@ -11,7 +11,7 @@ import io.oss.data.highway.utils.FilesUtils
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import cats.implicits._
 
-object ParquetConverter {
+object ParquetSink {
 
   val ss: SparkSession = SparkSession
     .builder()

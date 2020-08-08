@@ -13,7 +13,7 @@ import cats.implicits._
 
 import scala.annotation.tailrec
 
-object CsvConverter {
+object CsvSink {
 
   val ss: SparkSession = SparkSession
     .builder()

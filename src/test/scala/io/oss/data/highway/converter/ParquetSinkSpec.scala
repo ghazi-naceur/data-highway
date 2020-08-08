@@ -11,14 +11,14 @@ import org.scalatest.matchers.should.Matchers
 
 import scala.reflect.io.Directory
 
-class JsonHandlerSpec
+class ParquetSinkSpec
     extends AnyFlatSpec
     with Matchers
     with BeforeAndAfterEach
     with DatasetComparer {
 
-  val folderParquetToJson = "src/test/resources/parquet_to_json-data/"
-  val folderCsvToJson = "src/test/resources/csv_to_json-data/"
+  val folderCsvToParquet = "src/test/resources/csv_to_parquet-data/"
+  val folderJsonToParquet = "src/test/resources/json_to_parquet-data/"
 
   lazy val spark: SparkSession = {
     SparkSession
@@ -30,11 +30,11 @@ class JsonHandlerSpec
   }
 
   override def beforeEach(): Unit = {
-    deleteFoldersWithContents(folderParquetToJson)
-    deleteFoldersWithContents(folderCsvToJson)
+    deleteFolderWithItsContent(folderCsvToParquet)
+    deleteFolderWithItsContent(folderJsonToParquet)
   }
 
-  private def deleteFoldersWithContents(path: String): Unit = {
+  private def deleteFolderWithItsContent(path: String): Unit = {
     new File(path + "output").listFiles.toList
       .filterNot(_.getName.endsWith(".gitkeep"))
       .foreach(file => {
@@ -45,15 +45,16 @@ class JsonHandlerSpec
       })
   }
 
-  "JsonConverter.saveParquetAsJson" should "save a parquet as a json file" in {
+  "ParquetSink.saveCsvAsParquet" should "save a csv as a parquet file" in {
     import spark.implicits._
 
-    JsonConverter
-      .saveParquetAsJson(folderParquetToJson + "input/mock-data-2",
-                         folderParquetToJson + "output/mock-data-2",
-                         SaveMode.Overwrite)
+    ParquetSink
+      .saveCsvAsParquet(folderCsvToParquet + "input/mock-data-2",
+                        folderCsvToParquet + "output/mock-data-2",
+                        ";",
+                        SaveMode.Overwrite)
     val actual =
-      JsonConverter.readJson(folderParquetToJson + "output/mock-data-2")
+      ParquetSink.readParquet(folderCsvToParquet + "output/mock-data-2")
 
     val expected = List(
       (6.0,
@@ -78,27 +79,20 @@ class JsonHandlerSpec
        "215.57.123.52")
     ).toDF("id", "first_name", "last_name", "email", "gender", "ip_address")
 
-    assertSmallDatasetEquality(actual.right.get
-                                 .orderBy("id")
-                                 .select("id",
-                                         "first_name",
-                                         "last_name",
-                                         "email",
-                                         "gender",
-                                         "ip_address"),
+    assertSmallDatasetEquality(actual.right.get.orderBy("id"),
                                expected,
                                ignoreNullable = true)
   }
 
-  "JsonConverter.saveCsvAsJson" should "save a csv as a json file" in {
+  "ParquetSink.saveJsonAsParquet" should "save a json as a parquet file" in {
     import spark.implicits._
 
-    JsonConverter
-      .saveCsvAsJson(folderCsvToJson + "input/mock-data-2",
-                     folderCsvToJson + "output/mock-data-2",
-                     ";",
-                     SaveMode.Overwrite)
-    val actual = JsonConverter.readJson(folderCsvToJson + "output/mock-data-2")
+    ParquetSink
+      .saveJsonAsParquet(folderJsonToParquet + "input/mock-data-2",
+                         folderJsonToParquet + "output/mock-data-2",
+                         SaveMode.Overwrite)
+    val actual =
+      ParquetSink.readParquet(folderJsonToParquet + "output/mock-data-2")
 
     val expected = List(
       (6.0,
