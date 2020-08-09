@@ -11,8 +11,11 @@ import org.apache.kafka.common.serialization.StringSerializer
 
 import scala.io.Source
 import scala.util.Try
+import org.apache.log4j.Logger
 
-object KafkaSink {
+class KafkaSink {
+
+  val logger: Logger = Logger.getLogger(classOf[KafkaSink].getName)
 
   def sendToTopic(jsonPath: String,
                   topic: String,
@@ -27,7 +30,7 @@ object KafkaSink {
 
     Try {
       for (line <- getJsonLines(jsonPath)) {
-        println(line)
+        logger.info(line)
         val data =
           new ProducerRecord[String, String](topic, timestamp, line)
         producer.send(data)
