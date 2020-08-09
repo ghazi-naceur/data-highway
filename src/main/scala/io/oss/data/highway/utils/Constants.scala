@@ -9,4 +9,5 @@ object Constants {
   val XLS_EXTENSION = "xls"
   val XLSX_EXTENSION = "xlsx"
   val PATH_WITHOUT_EXTENSION = "[.][^.]+$"
+  val DateTimePattern = "yyyy-MM-dd_HH:mm:ss.SSS"
 }
