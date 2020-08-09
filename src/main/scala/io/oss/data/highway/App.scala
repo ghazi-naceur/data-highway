@@ -1,15 +1,18 @@
 package io.oss.data.highway
 
-import com.typesafe.scalalogging.StrictLogging
 import io.oss.data.highway.configuration.ConfLoader
 import io.oss.data.highway.converter.{CsvSink, JsonSink, KafkaSink, ParquetSink}
 import io.oss.data.highway.model._
 import io.oss.data.highway.utils.Constants.SEPARATOR
 import org.apache.spark.sql.SaveMode.Overwrite
+import org.apache.log4j.{BasicConfigurator, Logger}
 
-object App extends StrictLogging {
+object App {
+
+  val logger: Logger = Logger.getLogger(classOf[App].getName)
 
   def main(args: Array[String]): Unit = {
+    BasicConfigurator.configure()
     val result = for {
       conf <- ConfLoader.loadConf()
       _ <- conf match {
@@ -28,7 +31,7 @@ object App extends StrictLogging {
         case route @ CsvToJson(in, out) =>
           JsonSink.apply(in, out, SEPARATOR, route.channel, Overwrite)
         case JsonToKafka(in, out, brokerUrl) =>
-          KafkaSink.sendToTopic(in, out, brokerUrl)
+          new KafkaSink().sendToTopic(in, out, brokerUrl)
 
         case _ =>
           throw new RuntimeException(
@@ -37,7 +40,7 @@ object App extends StrictLogging {
     } yield ()
     result match {
       case Left(thr)    => logger.error("Error", thr)
-      case Right(value) => logger.info("Success", value)
+      case Right(value) => logger.info("Success")
     }
   }
 }
