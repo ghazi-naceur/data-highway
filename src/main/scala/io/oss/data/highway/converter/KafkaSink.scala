@@ -6,7 +6,9 @@ import java.time.format.DateTimeFormatter
 import org.apache.kafka.clients.producer._
 import java.util.Properties
 
+import io.oss.data.highway.model.Offset
 import io.oss.data.highway.utils.Constants.DateTimePattern
+import io.oss.data.highway.utils.KafkaTopicConsumer
 import org.apache.kafka.common.serialization.StringSerializer
 
 import scala.io.Source
@@ -19,7 +21,10 @@ class KafkaSink {
 
   def sendToTopic(jsonPath: String,
                   topic: String,
-                  bootstrapServers: String): Either[Throwable, Unit] = {
+                  bootstrapServers: String,
+                  useConsumer: Boolean,
+                  offset: Offset,
+                  consumerGroup: String): Either[Throwable, Any] = {
     val props = new Properties()
     props.put("bootstrap.servers", bootstrapServers)
     props.put("key.serializer", classOf[StringSerializer].getName)
@@ -36,6 +41,13 @@ class KafkaSink {
         producer.send(data)
       }
       producer.close()
+
+      if (useConsumer) {
+        KafkaTopicConsumer.consumeFromKafka(topic,
+                                            bootstrapServers,
+                                            offset,
+                                            consumerGroup)
+      }
     }.toEither
   }
 
