@@ -31,7 +31,12 @@ case class ParquetToJson(in: String, out: String) extends Route {
 case class CsvToJson(in: String, out: String) extends Route {
   override val channel: Channel = CsvJson
 }
-case class JsonToKafka(in: String, out: String, brokerUrl: String)
+case class JsonToKafka(in: String,
+                       out: String,
+                       brokerUrls: String,
+                       useConsumer: Boolean,
+                       offset: Offset,
+                       consumerGroup: String)
     extends Route {
   override val channel: Channel = JsonKafka
 }

@@ -30,8 +30,18 @@ object App {
           JsonSink.apply(in, out, SEPARATOR, route.channel, Overwrite)
         case route @ CsvToJson(in, out) =>
           JsonSink.apply(in, out, SEPARATOR, route.channel, Overwrite)
-        case JsonToKafka(in, out, brokerUrl) =>
-          new KafkaSink().sendToTopic(in, out, brokerUrl)
+        case JsonToKafka(in,
+                         out,
+                         brokerUrl,
+                         useConsumer,
+                         offset,
+                         consumerGroup) =>
+          new KafkaSink().sendToTopic(in,
+                                      out,
+                                      brokerUrl,
+                                      useConsumer,
+                                      offset,
+                                      consumerGroup)
 
         case _ =>
           throw new RuntimeException(
@@ -39,8 +49,8 @@ object App {
       }
     } yield ()
     result match {
-      case Left(thr)    => logger.error("Error", thr)
-      case Right(value) => logger.info("Success")
+      case Left(thr) => logger.error("Error", thr)
+      case Right(_)  => logger.info("Success")
     }
   }
 }
