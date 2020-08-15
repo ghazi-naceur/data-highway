@@ -29,9 +29,6 @@ class KafkaSink {
   def sendToTopic(jsonPath: String,
                   topic: String,
                   bootstrapServers: String,
-                  useConsumer: Boolean,
-                  offset: Offset,
-                  consumerGroup: String,
                   kafkaMode: KafkaMode): Either[Throwable, Any] = {
     val props = new Properties()
     props.put("bootstrap.servers", bootstrapServers)
@@ -39,24 +36,15 @@ class KafkaSink {
     props.put("value.serializer", classOf[StringSerializer].getName)
     val producer = new KafkaProducer[String, String](props)
     kafkaMode match {
-      case ProducerConsumer =>
-        send(jsonPath,
-             topic,
-             bootstrapServers,
-             useConsumer,
-             offset,
-             consumerGroup,
-             producer,
-             kafkaMode)
-      case KafkaStreaming(streamsOutputTopic) =>
-        send(jsonPath,
-             topic,
-             bootstrapServers,
-             useConsumer,
-             offset,
-             consumerGroup,
-             producer,
-             kafkaMode)
+      case ProducerConsumer(useConsumer, offset, consumerGroup) =>
+        send(jsonPath, topic, producer)
+        consume(topic, bootstrapServers, useConsumer, offset, consumerGroup)
+      case KafkaStreaming(streamsOutputTopic,
+                          useConsumer,
+                          offset,
+                          consumerGroup) =>
+        send(jsonPath, topic, producer)
+
         Either.catchNonFatal {
           import org.apache.kafka.streams.scala.ImplicitConversions._
           import org.apache.kafka.streams.scala.Serdes._
@@ -77,6 +65,12 @@ class KafkaSink {
 
           streams.start()
 
+          consume(streamsOutputTopic,
+                  bootstrapServers,
+                  useConsumer,
+                  offset,
+                  consumerGroup)
+
           sys.ShutdownHookThread {
             streams.close(Duration.ofSeconds(10))
           }
@@ -87,14 +81,25 @@ class KafkaSink {
 
   }
 
-  private def send(jsonPath: String,
-                   topic: String,
-                   bootstrapServers: String,
-                   useConsumer: Boolean,
-                   offset: Offset,
-                   consumerGroup: String,
-                   producer: KafkaProducer[String, String],
-                   kafkaMode: KafkaMode): Either[Throwable, Any] = {
+  private def consume(topic: String,
+                      bootstrapServers: String,
+                      useConsumer: Boolean,
+                      offset: Offset,
+                      consumerGroup: String): Either[Throwable, Any] = {
+    Either.catchNonFatal {
+      if (useConsumer) {
+        KafkaTopicConsumer.consumeFromKafka(topic,
+                                            bootstrapServers,
+                                            offset,
+                                            consumerGroup)
+      }
+    }
+  }
+
+  private def send(
+      jsonPath: String,
+      topic: String,
+      producer: KafkaProducer[String, String]): Either[Throwable, Any] = {
     Try {
       for (line <- getJsonLines(jsonPath)) {
         val uuid = UUID.randomUUID().toString
@@ -104,13 +109,6 @@ class KafkaSink {
         logger.info(line)
       }
       producer.close()
-
-      if (useConsumer && kafkaMode == ProducerConsumer) {
-        KafkaTopicConsumer.consumeFromKafka(topic,
-                                            bootstrapServers,
-                                            offset,
-                                            consumerGroup)
-      }
     }.toEither
   }
 
