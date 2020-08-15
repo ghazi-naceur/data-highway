@@ -34,9 +34,6 @@ case class CsvToJson(in: String, out: String) extends Route {
 case class JsonToKafka(in: String,
                        out: String,
                        brokerUrls: String,
-                       useConsumer: Boolean,
-                       offset: Offset,
-                       consumerGroup: String,
                        kafkaMode: KafkaMode)
     extends Route {
   override val channel: Channel = JsonKafka

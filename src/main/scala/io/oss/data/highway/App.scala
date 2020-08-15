@@ -30,21 +30,8 @@ object App {
           JsonSink.apply(in, out, SEPARATOR, route.channel, Overwrite)
         case route @ CsvToJson(in, out) =>
           JsonSink.apply(in, out, SEPARATOR, route.channel, Overwrite)
-        case JsonToKafka(in,
-                         out,
-                         brokerUrl,
-                         useConsumer,
-                         offset,
-                         consumerGroup,
-                         kafkaMode) =>
-          new KafkaSink().sendToTopic(in,
-                                      out,
-                                      brokerUrl,
-                                      useConsumer,
-                                      offset,
-                                      consumerGroup,
-                                      kafkaMode)
-
+        case JsonToKafka(in, out, brokerUrl, kafkaMode) =>
+          new KafkaSink().sendToTopic(in, out, brokerUrl, kafkaMode)
         case _ =>
           throw new RuntimeException(
             s"The provided route '$conf' is ont supported.")
