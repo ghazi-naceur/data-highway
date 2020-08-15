@@ -36,7 +36,8 @@ case class JsonToKafka(in: String,
                        brokerUrls: String,
                        useConsumer: Boolean,
                        offset: Offset,
-                       consumerGroup: String)
+                       consumerGroup: String,
+                       kafkaMode: KafkaMode)
     extends Route {
   override val channel: Channel = JsonKafka
 }

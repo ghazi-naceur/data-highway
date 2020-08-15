@@ -35,13 +35,15 @@ object App {
                          brokerUrl,
                          useConsumer,
                          offset,
-                         consumerGroup) =>
+                         consumerGroup,
+                         kafkaMode) =>
           new KafkaSink().sendToTopic(in,
                                       out,
                                       brokerUrl,
                                       useConsumer,
                                       offset,
-                                      consumerGroup)
+                                      consumerGroup,
+                                      kafkaMode)
 
         case _ =>
           throw new RuntimeException(
@@ -49,8 +51,9 @@ object App {
       }
     } yield ()
     result match {
-      case Left(thr) => logger.error("Error", thr)
-      case Right(_)  => logger.info("Success")
+      case Left(thr) =>
+        logger.error("Error : " + thr.toString)
+      case Right(_) => logger.info("Success")
     }
   }
 }
