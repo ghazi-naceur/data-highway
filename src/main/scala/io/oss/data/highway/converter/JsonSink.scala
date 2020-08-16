@@ -8,17 +8,11 @@ import io.oss.data.highway.model.{
   ParquetJson
 }
 import io.oss.data.highway.utils.FilesUtils
-import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
+import org.apache.spark.sql.{DataFrame, SaveMode}
 import cats.implicits._
+import io.oss.data.highway.utils.DataFrameUtils.sparkSession
 
 object JsonSink {
-
-  val ss: SparkSession = SparkSession
-    .builder()
-    .appName("json-handler")
-    .master("local[*]")
-    .getOrCreate()
-  ss.sparkContext.setLogLevel("WARN")
 
   /**
     * Save parquet file as json
@@ -33,7 +27,8 @@ object JsonSink {
                         saveMode: SaveMode): Either[JsonError, Unit] = {
     Either
       .catchNonFatal {
-        ss.read
+        // TODO Use DataFrameUtils.loadDataFrame
+        sparkSession.read
           .parquet(in)
           .coalesce(1)
           .write
@@ -58,7 +53,7 @@ object JsonSink {
                     saveMode: SaveMode): Either[JsonError, Unit] = {
     Either
       .catchNonFatal {
-        ss.read
+        sparkSession.read
           .option("inferSchema", "true")
           .option("header", "true")
           .option("sep", columnSeparator)
@@ -81,7 +76,7 @@ object JsonSink {
   def readJson(path: String): Either[JsonError, DataFrame] = {
     Either
       .catchNonFatal {
-        ss.read.json(path)
+        sparkSession.read.json(path)
       }
       .leftMap(thr =>
         JsonError(thr.getMessage, thr.getCause, thr.getStackTrace))

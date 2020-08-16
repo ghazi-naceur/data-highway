@@ -8,17 +8,11 @@ import io.oss.data.highway.model.{
   JsonParquet
 }
 import io.oss.data.highway.utils.FilesUtils
-import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
+import org.apache.spark.sql.{DataFrame, SaveMode}
 import cats.implicits._
+import io.oss.data.highway.utils.DataFrameUtils.sparkSession
 
 object ParquetSink {
-
-  val ss: SparkSession = SparkSession
-    .builder()
-    .appName("parquet-handler")
-    .master("local[*]")
-    .getOrCreate()
-  ss.sparkContext.setLogLevel("WARN")
 
   /**
     * Save a csv file as parquet
@@ -34,7 +28,8 @@ object ParquetSink {
                        saveMode: SaveMode): Either[ParquetError, Unit] = {
     Either
       .catchNonFatal {
-        ss.read
+        // TODO Use DataFrameUtils.loadDataFrame
+        sparkSession.read
           .option("inferSchema", "true")
           .option("header", "true")
           .option("sep", columnSeparator)
@@ -60,7 +55,7 @@ object ParquetSink {
                         saveMode: SaveMode): Either[ParquetError, Unit] = {
     Either
       .catchNonFatal {
-        ss.read
+        sparkSession.read
           .json(in)
           .write
           .mode(saveMode)
@@ -79,7 +74,7 @@ object ParquetSink {
   def readParquet(path: String): Either[ParquetError, DataFrame] = {
     Either
       .catchNonFatal {
-        ss.read.parquet(path)
+        sparkSession.read.parquet(path)
       }
       .leftMap(thr =>
         ParquetError(thr.getMessage, thr.getCause, thr.getStackTrace))

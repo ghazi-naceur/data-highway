@@ -8,19 +8,13 @@ import io.oss.data.highway.model._
 import io.oss.data.highway.utils.Constants._
 import io.oss.data.highway.utils.FilesUtils
 import org.apache.poi.ss.usermodel.{CellType, Sheet, WorkbookFactory}
-import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
+import org.apache.spark.sql.{DataFrame, SaveMode}
 import cats.implicits._
+import io.oss.data.highway.utils.DataFrameUtils.sparkSession
 
 import scala.annotation.tailrec
 
 object CsvSink {
-
-  val ss: SparkSession = SparkSession
-    .builder()
-    .appName("csv-handler")
-    .master("local[*]")
-    .getOrCreate()
-  ss.sparkContext.setLogLevel("WARN")
 
   /**
     * Save parquet file as csv
@@ -37,7 +31,8 @@ object CsvSink {
                        saveMode: SaveMode): Either[CsvError, Unit] = {
     Either
       .catchNonFatal {
-        ss.read
+        // TODO Use DataFrameUtils.loadDataFrame
+        sparkSession.read
           .parquet(in)
           .coalesce(1)
           .write
@@ -65,7 +60,7 @@ object CsvSink {
                     saveMode: SaveMode): Either[CsvError, Unit] = {
     Either
       .catchNonFatal {
-        ss.read
+        sparkSession.read
           .json(in)
           .coalesce(1)
           .write
@@ -88,7 +83,7 @@ object CsvSink {
                   columnSeparator: String): Either[CsvError, DataFrame] = {
     Either
       .catchNonFatal {
-        ss.read
+        sparkSession.read
           .option("inferSchema", "true")
           .option("header", "true")
           .option("sep", columnSeparator)

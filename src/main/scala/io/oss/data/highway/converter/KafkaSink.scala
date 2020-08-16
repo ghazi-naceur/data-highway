@@ -6,13 +6,14 @@ import org.apache.kafka.clients.producer._
 import java.util.{Properties, UUID}
 
 import io.oss.data.highway.model.{
+  JSON,
   KafkaMode,
   KafkaStreaming,
   Offset,
   ProducerConsumer,
   SparkKafkaPlugin
 }
-import io.oss.data.highway.utils.KafkaTopicConsumer
+import io.oss.data.highway.utils.{DataFrameUtils, KafkaTopicConsumer}
 import org.apache.kafka.common.serialization.{Serdes, StringSerializer}
 import org.apache.kafka.streams.scala.StreamsBuilder
 import org.apache.kafka.streams.{KafkaStreams, StreamsConfig}
@@ -75,10 +76,35 @@ class KafkaSink {
             streams.close(Duration.ofSeconds(10))
           }
         }
-      case SparkKafkaPlugin =>
-        ???
+      case SparkKafkaPlugin(useConsumer, offset, consumerGroup, useStream) =>
+        if (useStream) {
+          DataFrameUtils
+            .loadDataFrame(jsonPath, JSON)
+            .map(df => {
+              df.writeStream
+                .format("kafka")
+                .option("kafka.bootstrap.servers", bootstrapServers)
+                .option("topic", topic)
+                .start()
+            })
+        } else {
+          import org.apache.spark.sql.functions._
+          DataFrameUtils
+            .loadDataFrame(jsonPath, JSON)
+            .map(df => {
+              df.show(false)
+              val dff = df.withColumn("uuid", lit(UUID.randomUUID().toString))
+              dff
+                .select(col("uuid").cast("string").as("key"),
+                        to_json(struct("*")).as("value"))
+                .write
+                .format("kafka")
+                .option("kafka.bootstrap.servers", bootstrapServers)
+                .option("topic", topic)
+                .save()
+            })
+        }
     }
-
   }
 
   private def consume(topic: String,
