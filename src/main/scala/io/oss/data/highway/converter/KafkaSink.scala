@@ -22,6 +22,8 @@ import scala.io.Source
 import scala.util.Try
 import org.apache.log4j.Logger
 import cats.syntax.either._
+import io.oss.data.highway.utils.DataFrameUtils.sparkSession
+import org.apache.spark.sql.functions.{col, concat, lit, struct, to_json}
 
 class KafkaSink {
 
@@ -81,18 +83,42 @@ class KafkaSink {
           DataFrameUtils
             .loadDataFrame(jsonPath, JSON)
             .map(df => {
-              df.writeStream
+//          Either.catchNonFatal {
+
+              val kafkaStream = sparkSession.readStream
                 .format("kafka")
                 .option("kafka.bootstrap.servers", bootstrapServers)
+                .option("startingOffsets", "latest")
+                .option("subscribe", "json-to-kafka-streaming-topic")
+                .load()
+
+              // TODO Using a topic as an input => need to load file as an input
+//              val streamingDataFrame =
+//                sparkSession.readStream
+//                  .schema(df.schema)
+//                  .json(jsonPath)
+//              val dfff = streamingDataFrame
+//                .select(concat(streamingDataFrame.col("*")))
+//                .as("value")
+
+              val dff =
+                kafkaStream.withColumn("uuid", lit(UUID.randomUUID().toString))
+              dff
+                .selectExpr("CAST(value AS STRING)")
+                .writeStream
+                .format("kafka") // console
+                .option("truncate", false)
+                .option("kafka.bootstrap.servers", bootstrapServers)
+                .option("checkpointLocation", "/tmp/data-highway/checkpoint")
                 .option("topic", topic)
                 .start()
+                .awaitTermination()
             })
         } else {
           import org.apache.spark.sql.functions._
           DataFrameUtils
             .loadDataFrame(jsonPath, JSON)
             .map(df => {
-              df.show(false)
               val dff = df.withColumn("uuid", lit(UUID.randomUUID().toString))
               dff
                 .select(col("uuid").cast("string").as("key"),
