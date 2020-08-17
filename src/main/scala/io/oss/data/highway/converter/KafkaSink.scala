@@ -23,7 +23,7 @@ import scala.util.Try
 import org.apache.log4j.Logger
 import cats.syntax.either._
 import io.oss.data.highway.utils.DataFrameUtils.sparkSession
-import org.apache.spark.sql.functions.{col, concat, lit, struct, to_json}
+import org.apache.spark.sql.functions.lit
 
 class KafkaSink {
 
@@ -83,7 +83,9 @@ class KafkaSink {
           DataFrameUtils
             .loadDataFrame(jsonPath, JSON)
             .map(df => {
-//          Either.catchNonFatal {
+
+              // Use an intermediate topic
+              send(jsonPath, "json-to-kafka-streaming-topic", producer)
 
               val kafkaStream = sparkSession.readStream
                 .format("kafka")
@@ -91,15 +93,6 @@ class KafkaSink {
                 .option("startingOffsets", "latest")
                 .option("subscribe", "json-to-kafka-streaming-topic")
                 .load()
-
-              // TODO Using a topic as an input => need to load file as an input
-//              val streamingDataFrame =
-//                sparkSession.readStream
-//                  .schema(df.schema)
-//                  .json(jsonPath)
-//              val dfff = streamingDataFrame
-//                .select(concat(streamingDataFrame.col("*")))
-//                .as("value")
 
               val dff =
                 kafkaStream.withColumn("uuid", lit(UUID.randomUUID().toString))
