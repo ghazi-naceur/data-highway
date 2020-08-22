@@ -57,10 +57,9 @@ class CsvSinkSpec
     CsvSink
       .saveParquetAsCsv(folderParquetToCsvData + "input/mock-data-2",
                         folderParquetToCsvData + "output/mock-data-2",
-                        ";",
                         SaveMode.Overwrite)
     val actual =
-      CsvSink.readParquet(folderParquetToCsvData + "output/mock-data-2", ";")
+      CsvSink.readParquet(folderParquetToCsvData + "output/mock-data-2")
 
     val expected = List(
       (6.0,
@@ -96,10 +95,9 @@ class CsvSinkSpec
     CsvSink
       .saveJsonAsCsv(folderJsonToCsvData + "input/mock-data-2",
                      folderJsonToCsvData + "output/mock-data-2",
-                     ";",
                      SaveMode.Overwrite)
     val actual =
-      CsvSink.readParquet(folderJsonToCsvData + "output/mock-data-2", ";")
+      CsvSink.readParquet(folderJsonToCsvData + "output/mock-data-2")
 
     val expected = List(
       (6.0,
@@ -175,7 +173,6 @@ class CsvSinkSpec
 
     CsvSink.apply(folderXlsxCsvData + "input/",
                   folderXlsxCsvData + "output/",
-                  ";",
                   XlsxCsv,
                   SaveMode.Overwrite)
     val list1 = List(
