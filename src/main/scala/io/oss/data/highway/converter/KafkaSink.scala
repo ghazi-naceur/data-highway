@@ -9,6 +9,7 @@ import io.oss.data.highway.model.{
   JSON,
   KafkaMode,
   KafkaStreaming,
+  Latest,
   Offset,
   ProducerConsumer,
   SparkKafkaPlugin
@@ -43,7 +44,9 @@ class KafkaSink {
     kafkaMode match {
       case ProducerConsumer(useConsumer, offset, consumerGroup) =>
         send(jsonPath, topic, producer)
-        consume(topic, bootstrapServers, useConsumer, offset, consumerGroup)
+        Try(if (useConsumer) {
+          consume(topic, bootstrapServers, offset, consumerGroup)
+        }).toEither
       case KafkaStreaming(streamAppId,
                           streamsOutputTopic,
                           useConsumer,
@@ -57,20 +60,13 @@ class KafkaSink {
                   useConsumer,
                   offset,
                   consumerGroup)
-      case SparkKafkaPlugin(useConsumer,
-                            offset,
-                            consumerGroup,
-                            useStream,
-                            intermediateTopic,
-                            checkpointFolder) =>
-        // TODO consumer is ont implemented yet for both cases
+      case SparkKafkaPlugin(useStream, intermediateTopic, checkpointFolder) =>
         if (useStream) {
           sendUsingStreamSparkKafkaPlugin(jsonPath,
                                           producer,
                                           bootstrapServers,
                                           topic,
                                           intermediateTopic,
-                                          offset,
                                           checkpointFolder)
         } else {
           sendUsingSparkKafkaPlugin(jsonPath, bootstrapServers, topic)
@@ -87,9 +83,9 @@ class KafkaSink {
       .loadDataFrame(jsonPath, JSON)
       .map(df => {
         val intermediateData =
-          df.withColumn("uuid", lit(UUID.randomUUID().toString))
+          df.withColumn("technical_uuid", lit(UUID.randomUUID().toString))
         intermediateData
-          .select(col("uuid").cast("string").as("key"),
+          .select(col("technical_uuid").cast("string").as("key"),
                   to_json(struct("*")).as("value"))
           .write
           .format("kafka")
@@ -105,8 +101,8 @@ class KafkaSink {
       bootstrapServers: String,
       outputTopic: String,
       intermediateTopic: String,
-      offset: Offset,
-      checkpointFolder: String): Either[Throwable, Unit] = {
+      checkpointFolder: String,
+      offset: Offset = Latest): Either[Throwable, Unit] = {
     Either.catchNonFatal {
       send(jsonPath, intermediateTopic, producer)
 
@@ -118,7 +114,8 @@ class KafkaSink {
         .load()
 
       val intermediateDf =
-        kafkaStream.withColumn("uuid", lit(UUID.randomUUID().toString))
+        kafkaStream.withColumn("technical_uuid",
+                               lit(UUID.randomUUID().toString))
       intermediateDf
         .selectExpr("CAST(value AS STRING)")
         .writeStream
@@ -160,11 +157,9 @@ class KafkaSink {
 
       streams.start()
 
-      consume(streamsOutputTopic,
-              bootstrapServers,
-              useConsumer,
-              offset,
-              consumerGroup)
+      if (useConsumer) {
+        consume(streamsOutputTopic, bootstrapServers, offset, consumerGroup)
+      }
 
       sys.ShutdownHookThread {
         streams.close(Duration.ofSeconds(10))
@@ -174,16 +169,13 @@ class KafkaSink {
 
   private def consume(topic: String,
                       bootstrapServers: String,
-                      useConsumer: Boolean,
                       offset: Offset,
                       consumerGroup: String): Either[Throwable, Any] = {
     Either.catchNonFatal {
-      if (useConsumer) {
-        KafkaTopicConsumer.consumeFromKafka(topic,
-                                            bootstrapServers,
-                                            offset,
-                                            consumerGroup)
-      }
+      KafkaTopicConsumer.consumeFromKafka(topic,
+                                          bootstrapServers,
+                                          offset,
+                                          consumerGroup)
     }
   }
 
