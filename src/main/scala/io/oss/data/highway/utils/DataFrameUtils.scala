@@ -6,6 +6,7 @@ import io.oss.data.highway.model.{CSV, DataType, JSON, PARQUET}
 
 object DataFrameUtils {
 
+  // TODO externalize "local[*]"
   val sparkSession: SparkSession = {
     val ss = SparkSession
       .builder()
@@ -16,6 +17,7 @@ object DataFrameUtils {
     ss
   }
 
+  // TODO use this method
   def loadDataFrame(in: String,
                     dataType: DataType): Either[Throwable, DataFrame] = {
     Either.catchNonFatal {
@@ -24,6 +26,7 @@ object DataFrameUtils {
           sparkSession.read
             .json(in)
         case CSV =>
+          // TODO Add options for csv data type
           sparkSession.read
             .csv(in)
         case PARQUET =>
