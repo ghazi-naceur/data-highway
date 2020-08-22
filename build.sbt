@@ -28,3 +28,4 @@ libraryDependencies ++= Seq("com.github.pureconfig" %% "pureconfig" % "0.13.0",
 )
 
 scalacOptions += "-Ypartial-unification"
+parallelExecution in Test := false

@@ -13,10 +13,7 @@ case class KafkaStreaming(streamAppId: String,
                           offset: Offset,
                           consumerGroup: String)
     extends KafkaMode
-case class SparkKafkaPlugin(useConsumer: Boolean,
-                            offset: Offset,
-                            consumerGroup: String,
-                            useStream: Boolean,
+case class SparkKafkaPlugin(useStream: Boolean,
                             intermediateTopic: String,
                             checkpointFolder: String)
     extends KafkaMode
