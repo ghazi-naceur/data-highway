@@ -1,7 +1,7 @@
 package io.oss.data.highway.zoo.manual.tests
 
 import io.oss.data.highway.converter.KafkaSink
-import io.oss.data.highway.model.{KafkaStreaming, Latest, ProducerConsumer}
+import io.oss.data.highway.model.{KafkaStreaming, Latest}
 import org.apache.log4j.BasicConfigurator
 
 object KafkaStreamingTest {

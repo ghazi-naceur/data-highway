@@ -51,7 +51,6 @@ class ParquetSinkSpec
     ParquetSink
       .saveCsvAsParquet(folderCsvToParquet + "input/mock-data-2",
                         folderCsvToParquet + "output/mock-data-2",
-                        ";",
                         SaveMode.Overwrite)
     val actual =
       ParquetSink.readParquet(folderCsvToParquet + "output/mock-data-2")

@@ -96,7 +96,6 @@ class JsonSinkSpec
     JsonSink
       .saveCsvAsJson(folderCsvToJson + "input/mock-data-2",
                      folderCsvToJson + "output/mock-data-2",
-                     ";",
                      SaveMode.Overwrite)
     val actual = JsonSink.readJson(folderCsvToJson + "output/mock-data-2")
 
