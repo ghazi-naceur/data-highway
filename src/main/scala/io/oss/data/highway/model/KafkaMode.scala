@@ -7,7 +7,8 @@ case class ProducerConsumer(useConsumer: Boolean,
                             consumerGroup: String)
     extends KafkaMode
 // TODO Use an intermediate topic and remove out-streams from config + keep "out" as a the output topic
-case class KafkaStreaming(outStreams: String,
+case class KafkaStreaming(streamAppId: String,
+                          outStreams: String,
                           useConsumer: Boolean,
                           offset: Offset,
                           consumerGroup: String)
@@ -15,5 +16,9 @@ case class KafkaStreaming(outStreams: String,
 case class SparkKafkaPlugin(useConsumer: Boolean,
                             offset: Offset,
                             consumerGroup: String,
-                            useStream: Boolean)
+                            useStream: Boolean,
+                            intermediateTopic: String,
+                            checkpointFolder: String)
     extends KafkaMode
+// TODO It is recommended that intermediateTopic and checkpointFolder should be changed together :
+//  see : https://stackoverflow.com/questions/57030933/spark-streaming-failing-due-to-error-on-a-different-kafka-topic-than-the-one-bei

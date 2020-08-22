@@ -44,24 +44,34 @@ class KafkaSink {
       case ProducerConsumer(useConsumer, offset, consumerGroup) =>
         send(jsonPath, topic, producer)
         consume(topic, bootstrapServers, useConsumer, offset, consumerGroup)
-      case KafkaStreaming(streamsOutputTopic,
+      case KafkaStreaming(streamAppId,
+                          streamsOutputTopic,
                           useConsumer,
                           offset,
                           consumerGroup) =>
         send(jsonPath, topic, producer)
-        runStream(topic,
+        runStream(streamAppId,
+                  topic,
                   bootstrapServers,
                   streamsOutputTopic,
                   useConsumer,
                   offset,
                   consumerGroup)
-      case SparkKafkaPlugin(useConsumer, offset, consumerGroup, useStream) =>
+      case SparkKafkaPlugin(useConsumer,
+                            offset,
+                            consumerGroup,
+                            useStream,
+                            intermediateTopic,
+                            checkpointFolder) =>
         // TODO consumer is ont implemented yet for both cases
         if (useStream) {
           sendUsingStreamSparkKafkaPlugin(jsonPath,
                                           producer,
                                           bootstrapServers,
-                                          topic)
+                                          topic,
+                                          intermediateTopic,
+                                          offset,
+                                          checkpointFolder)
         } else {
           sendUsingSparkKafkaPlugin(jsonPath, bootstrapServers, topic)
         }
@@ -76,8 +86,9 @@ class KafkaSink {
     DataFrameUtils
       .loadDataFrame(jsonPath, JSON)
       .map(df => {
-        val dff = df.withColumn("uuid", lit(UUID.randomUUID().toString))
-        dff
+        val intermediateData =
+          df.withColumn("uuid", lit(UUID.randomUUID().toString))
+        intermediateData
           .select(col("uuid").cast("string").as("key"),
                   to_json(struct("*")).as("value"))
           .write
@@ -92,34 +103,37 @@ class KafkaSink {
       jsonPath: String,
       producer: KafkaProducer[String, String],
       bootstrapServers: String,
-      topic: String): Either[Throwable, Unit] = {
+      outputTopic: String,
+      intermediateTopic: String,
+      offset: Offset,
+      checkpointFolder: String): Either[Throwable, Unit] = {
     Either.catchNonFatal {
-      // Use an intermediate topic
-      send(jsonPath, "json-to-kafka-streaming-topic", producer)
+      send(jsonPath, intermediateTopic, producer)
 
       val kafkaStream = sparkSession.readStream
         .format("kafka")
         .option("kafka.bootstrap.servers", bootstrapServers)
-        .option("startingOffsets", "latest")
-        .option("subscribe", "json-to-kafka-streaming-topic")
+        .option("startingOffsets", offset.value)
+        .option("subscribe", intermediateTopic)
         .load()
 
-      val dff =
+      val intermediateDf =
         kafkaStream.withColumn("uuid", lit(UUID.randomUUID().toString))
-      dff
+      intermediateDf
         .selectExpr("CAST(value AS STRING)")
         .writeStream
         .format("kafka") // console
         .option("truncate", false)
         .option("kafka.bootstrap.servers", bootstrapServers)
-        .option("checkpointLocation", "/tmp/data-highway/checkpoint")
-        .option("topic", topic)
+        .option("checkpointLocation", checkpointFolder)
+        .option("topic", outputTopic)
         .start()
         .awaitTermination()
     }
   }
 
   private def runStream(
+      streamAppId: String,
       topic: String,
       bootstrapServers: String,
       streamsOutputTopic: String,
@@ -132,7 +146,7 @@ class KafkaSink {
 
       val props = new Properties
       props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers)
-      props.put(StreamsConfig.APPLICATION_ID_CONFIG, "stream-app")
+      props.put(StreamsConfig.APPLICATION_ID_CONFIG, streamAppId)
       props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG,
                 Serdes.String().getClass)
       props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG,
