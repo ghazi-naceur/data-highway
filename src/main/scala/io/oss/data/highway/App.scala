@@ -3,7 +3,6 @@ package io.oss.data.highway
 import io.oss.data.highway.configuration.ConfLoader
 import io.oss.data.highway.converter.{CsvSink, JsonSink, KafkaSink, ParquetSink}
 import io.oss.data.highway.model._
-import io.oss.data.highway.utils.Constants.SEPARATOR
 import org.apache.spark.sql.SaveMode.Overwrite
 import org.apache.log4j.{BasicConfigurator, Logger}
 

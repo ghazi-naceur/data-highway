@@ -1,9 +1,10 @@
 package io.oss.data.highway.converter
 
+import java.text.SimpleDateFormat
 import java.time.Duration
 
 import org.apache.kafka.clients.producer._
-import java.util.{Properties, UUID}
+import java.util.{Date, Properties, UUID}
 
 import io.oss.data.highway.model.{
   JSON,
@@ -31,7 +32,8 @@ import scala.sys.ShutdownHookThread
 class KafkaSink {
 
   val logger: Logger = Logger.getLogger(classOf[KafkaSink].getName)
-
+  val intermediateTopic: String =
+    s"intermediate-topic-${UUID.randomUUID().toString}"
   def sendToTopic(jsonPath: String,
                   topic: String,
                   bootstrapServers: String,
@@ -47,16 +49,12 @@ class KafkaSink {
         Try(if (useConsumer) {
           consume(topic, bootstrapServers, offset, consumerGroup)
         }).toEither
-      case KafkaStreaming(streamAppId,
-                          streamsOutputTopic,
-                          useConsumer,
-                          offset,
-                          consumerGroup) =>
-        send(jsonPath, topic, producer)
+      case KafkaStreaming(streamAppId, useConsumer, offset, consumerGroup) =>
+        send(jsonPath, intermediateTopic, producer)
         runStream(streamAppId,
-                  topic,
+                  intermediateTopic,
                   bootstrapServers,
-                  streamsOutputTopic,
+                  topic,
                   useConsumer,
                   offset,
                   consumerGroup)
@@ -131,7 +129,7 @@ class KafkaSink {
 
   private def runStream(
       streamAppId: String,
-      topic: String,
+      intermediateTopic: String,
       bootstrapServers: String,
       streamsOutputTopic: String,
       useConsumer: Boolean,
@@ -150,7 +148,7 @@ class KafkaSink {
                 Serdes.String().getClass)
       val builder = new StreamsBuilder
 
-      val dataKStream = builder.stream[String, String](topic)
+      val dataKStream = builder.stream[String, String](intermediateTopic)
       dataKStream.to(streamsOutputTopic)
 
       val streams = new KafkaStreams(builder.build(), props)

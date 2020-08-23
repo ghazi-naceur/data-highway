@@ -6,13 +6,13 @@ case class ProducerConsumer(useConsumer: Boolean,
                             offset: Offset,
                             consumerGroup: String)
     extends KafkaMode
-// TODO Use an intermediate topic and remove out-streams from config + keep "out" as a the output topic
+
 case class KafkaStreaming(streamAppId: String,
-                          outStreams: String,
                           useConsumer: Boolean,
                           offset: Offset,
                           consumerGroup: String)
     extends KafkaMode
+
 case class SparkKafkaPlugin(useStream: Boolean,
                             intermediateTopic: String,
                             checkpointFolder: String)

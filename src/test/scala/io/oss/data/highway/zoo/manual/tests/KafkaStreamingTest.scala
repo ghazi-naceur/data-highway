@@ -9,14 +9,13 @@ object KafkaStreamingTest {
   def main(args: Array[String]): Unit = {
     BasicConfigurator.configure()
     val in = "src/test/resources/json_to_kafka-data/input/data.json"
-    val out = "json-to-kafka-topic"
+    val out = "json-to-kafka-topic-3"
     val brokerUrl = "localhost:9092"
 
     new KafkaSink().sendToTopic(in,
                                 out,
                                 brokerUrl,
                                 KafkaStreaming("stream-app",
-                                               "output-topic-3",
                                                useConsumer = true,
                                                Latest,
                                                "consumer-group-ks"))
