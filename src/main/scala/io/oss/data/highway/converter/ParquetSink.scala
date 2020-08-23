@@ -2,47 +2,37 @@ package io.oss.data.highway.converter
 
 import io.oss.data.highway.model.DataHighwayError.ParquetError
 import io.oss.data.highway.model.{
+  CSV,
   Channel,
   CsvParquet,
   DataHighwayError,
-  JsonParquet
+  JSON,
+  JsonParquet,
+  PARQUET
 }
-import io.oss.data.highway.utils.FilesUtils
-import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
+import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
+import org.apache.spark.sql.{DataFrame, SaveMode}
 import cats.implicits._
 
-object ParquetConverter {
-
-  val ss: SparkSession = SparkSession
-    .builder()
-    .appName("parquet-handler")
-    .master("local[*]")
-    .getOrCreate()
-  ss.sparkContext.setLogLevel("WARN")
+object ParquetSink {
 
   /**
     * Save a csv file as parquet
     * @param in The input csv path
     * @param out The generated parquet file path
-    * @param columnSeparator The column separator for each line in the csv file
     * @param saveMode The file saving mode
     * @return Unit if successful, otherwise Error
     */
   def saveCsvAsParquet(in: String,
                        out: String,
-                       columnSeparator: String,
                        saveMode: SaveMode): Either[ParquetError, Unit] = {
-    Either
-      .catchNonFatal {
-        ss.read
-          .option("inferSchema", "true")
-          .option("header", "true")
-          .option("sep", columnSeparator)
-          .csv(in)
-          .write
+    DataFrameUtils
+      .loadDataFrame(in, CSV)
+      .map(df => {
+        df.write
           .mode(saveMode)
           .parquet(out)
-      }
+      })
       .leftMap(thr =>
         ParquetError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
@@ -58,14 +48,13 @@ object ParquetConverter {
   def saveJsonAsParquet(in: String,
                         out: String,
                         saveMode: SaveMode): Either[ParquetError, Unit] = {
-    Either
-      .catchNonFatal {
-        ss.read
-          .json(in)
-          .write
+    DataFrameUtils
+      .loadDataFrame(in, JSON)
+      .map(df => {
+        df.write
           .mode(saveMode)
           .parquet(out)
-      }
+      })
       .leftMap(thr =>
         ParquetError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
@@ -77,22 +66,19 @@ object ParquetConverter {
     * @return DataFrame, otherwise Error
     */
   def readParquet(path: String): Either[ParquetError, DataFrame] = {
-    Either
-      .catchNonFatal {
-        ss.read.parquet(path)
-      }
+    DataFrameUtils
+      .loadDataFrame(path, PARQUET)
       .leftMap(thr =>
         ParquetError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   def apply(in: String,
             out: String,
-            columnSeparator: String,
             channel: Channel,
             saveMode: SaveMode): Either[DataHighwayError, List[Unit]] = {
     channel match {
       case CsvParquet =>
-        handleCsvParquetChannel(in, out, columnSeparator, saveMode)
+        handleCsvParquetChannel(in, out, saveMode)
       case JsonParquet =>
         handleJsonParquetChannel(in, out, saveMode)
       case _ =>
@@ -105,21 +91,19 @@ object ParquetConverter {
     *
     * @param in              The input csv path
     * @param out             The generated parquet file path
-    * @param columnSeparator The column separator for each line in the csv file
     * @param saveMode        The file saving mode
     * @return List[Unit], otherwise Error
     */
   private def handleCsvParquetChannel(
       in: String,
       out: String,
-      columnSeparator: String,
       saveMode: SaveMode): Either[DataHighwayError, List[Unit]] = {
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
       list <- folders
         .traverse(folder => {
           val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
-          saveCsvAsParquet(folder, s"$out/$suffix", columnSeparator, saveMode)
+          saveCsvAsParquet(folder, s"$out/$suffix", saveMode)
         })
         .leftMap(error =>
           ParquetError(error.message, error.cause, error.stacktrace))

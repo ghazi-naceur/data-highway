@@ -2,23 +2,19 @@ package io.oss.data.highway.converter
 
 import io.oss.data.highway.model.DataHighwayError.JsonError
 import io.oss.data.highway.model.{
+  CSV,
   Channel,
   CsvJson,
   DataHighwayError,
+  JSON,
+  PARQUET,
   ParquetJson
 }
-import io.oss.data.highway.utils.FilesUtils
-import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
+import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
+import org.apache.spark.sql.{DataFrame, SaveMode}
 import cats.implicits._
 
-object JsonConverter {
-
-  val ss: SparkSession = SparkSession
-    .builder()
-    .appName("json-handler")
-    .master("local[*]")
-    .getOrCreate()
-  ss.sparkContext.setLogLevel("WARN")
+object JsonSink {
 
   /**
     * Save parquet file as json
@@ -31,15 +27,14 @@ object JsonConverter {
   def saveParquetAsJson(in: String,
                         out: String,
                         saveMode: SaveMode): Either[JsonError, Unit] = {
-    Either
-      .catchNonFatal {
-        ss.read
-          .parquet(in)
-          .coalesce(1)
+    DataFrameUtils
+      .loadDataFrame(in, PARQUET)
+      .map(df => {
+        df.coalesce(1)
           .write
           .mode(saveMode)
           .json(out)
-      }
+      })
       .leftMap(thr =>
         JsonError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
@@ -54,20 +49,15 @@ object JsonConverter {
     */
   def saveCsvAsJson(in: String,
                     out: String,
-                    columnSeparator: String,
                     saveMode: SaveMode): Either[JsonError, Unit] = {
-    Either
-      .catchNonFatal {
-        ss.read
-          .option("inferSchema", "true")
-          .option("header", "true")
-          .option("sep", columnSeparator)
-          .csv(in)
-          .coalesce(1)
+    DataFrameUtils
+      .loadDataFrame(in, CSV)
+      .map(df => {
+        df.coalesce(1)
           .write
           .mode(saveMode)
           .json(out)
-      }
+      })
       .leftMap(thr =>
         JsonError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
@@ -79,24 +69,21 @@ object JsonConverter {
     * @return DataFrame, otherwise Error
     */
   def readJson(path: String): Either[JsonError, DataFrame] = {
-    Either
-      .catchNonFatal {
-        ss.read.json(path)
-      }
+    DataFrameUtils
+      .loadDataFrame(path, JSON)
       .leftMap(thr =>
         JsonError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   def apply(in: String,
             out: String,
-            separator: String,
             channel: Channel,
             saveMode: SaveMode): Either[DataHighwayError, List[Unit]] = {
     channel match {
       case ParquetJson =>
         handleParquetJsonChannel(in, out, saveMode)
       case CsvJson =>
-        handleCsvJsonChannel(in, out, separator, saveMode)
+        handleCsvJsonChannel(in, out, saveMode)
       case _ =>
         throw new RuntimeException("Not suppose to happen !")
     }
@@ -107,14 +94,12 @@ object JsonConverter {
     *
     * @param in        The input csv path
     * @param out       The generated json file path
-    * @param separator The csv columns separator
     * @param saveMode  The file saving mode
     * @return List[Unit], otherwise Error
     */
   private def handleCsvJsonChannel(
       in: String,
       out: String,
-      separator: String,
       saveMode: SaveMode): Either[DataHighwayError, List[Unit]] = {
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
@@ -122,7 +107,7 @@ object JsonConverter {
         .traverse(folder => {
           val suffix =
             FilesUtils.reversePathSeparator(folder).split("/").last
-          saveCsvAsJson(folder, s"$out/$suffix", separator, saveMode)
+          saveCsvAsJson(folder, s"$out/$suffix", saveMode)
         })
         .leftMap(error =>
           JsonError(error.message, error.cause, error.stacktrace))

@@ -5,8 +5,6 @@ trait DataHighwayError extends Throwable {
   val message: String
   val cause: Throwable
   val stacktrace: Array[StackTraceElement]
-
-  def asString: String
 }
 
 object DataHighwayError {
@@ -15,7 +13,7 @@ object DataHighwayError {
                            cause: Throwable,
                            stacktrace: Array[StackTraceElement])
       extends DataHighwayError {
-    override def asString: String =
+    override def toString: String =
       s"- Message: $message \n- Cause: $cause \n- Stacktrace: ${stacktrace.mkString("\n")}"
   }
 
@@ -24,14 +22,14 @@ object DataHighwayError {
     override val cause: Throwable = null
     override val stacktrace: Array[StackTraceElement] = null
 
-    override def asString: String = s"The provided path '$path' does not exist."
+    override def toString: String = s"The provided path '$path' does not exist."
   }
 
   case class ParquetError(message: String,
                           cause: Throwable,
                           stacktrace: Array[StackTraceElement])
       extends DataHighwayError {
-    override def asString: String =
+    override def toString: String =
       s"- Message: $message \n- Cause: $cause \n- Stacktrace: ${stacktrace.mkString("\n")}"
   }
 
@@ -39,7 +37,7 @@ object DataHighwayError {
                       cause: Throwable,
                       stacktrace: Array[StackTraceElement])
       extends DataHighwayError {
-    override def asString: String =
+    override def toString: String =
       s"- Message: $message \n- Cause: $cause \n- Stacktrace: ${stacktrace.mkString("\n")}"
   }
 
@@ -47,7 +45,7 @@ object DataHighwayError {
                        cause: Throwable,
                        stacktrace: Array[StackTraceElement])
       extends DataHighwayError {
-    override def asString: String =
+    override def toString: String =
       s"- Message: $message \n- Cause: $cause \n- Stacktrace: ${stacktrace.mkString("\n")}"
   }
 
@@ -56,10 +54,16 @@ object DataHighwayError {
     override val message: String = ""
     override val cause: Throwable = null
     override val stacktrace: Array[StackTraceElement] = null
-
-    override def asString: String =
+    override def toString: String =
       s"- Errors: ${errors.toList.mkString("\n")}"
 
   }
 
+  case class KafkaError(message: String,
+                        cause: Throwable,
+                        stacktrace: Array[StackTraceElement])
+      extends DataHighwayError {
+    override def toString: String =
+      s"- Message: $message \n- Cause: $cause \n- Stacktrace: ${stacktrace.mkString("\n")}"
+  }
 }

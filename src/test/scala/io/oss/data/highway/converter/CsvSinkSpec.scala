@@ -14,7 +14,7 @@ import org.scalatest.matchers.should.Matchers
 
 import scala.reflect.io.Directory
 
-class CsvConverterSpec
+class CsvSinkSpec
     extends AnyFlatSpec
     with Matchers
     with BeforeAndAfterEach
@@ -51,17 +51,15 @@ class CsvConverterSpec
       })
   }
 
-  "CsvConverter.saveCsvAsParquet" should "save a parquet as a csv file" in {
+  "CsvSink.saveCsvAsParquet" should "save a parquet as a csv file" in {
     import spark.implicits._
 
-    CsvConverter
+    CsvSink
       .saveParquetAsCsv(folderParquetToCsvData + "input/mock-data-2",
                         folderParquetToCsvData + "output/mock-data-2",
-                        ";",
                         SaveMode.Overwrite)
     val actual =
-      CsvConverter.readParquet(folderParquetToCsvData + "output/mock-data-2",
-                               ";")
+      CsvSink.readParquet(folderParquetToCsvData + "output/mock-data-2")
 
     val expected = List(
       (6.0,
@@ -91,16 +89,15 @@ class CsvConverterSpec
                                ignoreNullable = true)
   }
 
-  "CsvConverter.saveJsonAsCsv" should "save a json as a csv file" in {
+  "CsvSink.saveJsonAsCsv" should "save a json as a csv file" in {
     import spark.implicits._
 
-    CsvConverter
+    CsvSink
       .saveJsonAsCsv(folderJsonToCsvData + "input/mock-data-2",
                      folderJsonToCsvData + "output/mock-data-2",
-                     ";",
                      SaveMode.Overwrite)
     val actual =
-      CsvConverter.readParquet(folderJsonToCsvData + "output/mock-data-2", ";")
+      CsvSink.readParquet(folderJsonToCsvData + "output/mock-data-2")
 
     val expected = List(
       (6.0,
@@ -137,9 +134,9 @@ class CsvConverterSpec
                                ignoreNullable = true)
   }
 
-  "CsvConverter.convertXlsxFileToCsvFile" should "convert xlsx sheet to a csv file" in {
+  "CsvSink.convertXlsxFileToCsvFile" should "convert xlsx sheet to a csv file" in {
 
-    CsvConverter
+    CsvSink
       .convertXlsxSheetToCsvFile("something",
                                  MockSheetCreator.createXlsxSheet("new-sheet"),
                                  folderXlsxCsvData + "output/")
@@ -153,13 +150,13 @@ class CsvConverterSpec
     )
   }
 
-  "CsvConverter.convertXlsxFileToCsvFiles" should "convert xlsx file to multiple csv files" in {
+  "CsvSink.convertXlsxFileToCsvFiles" should "convert xlsx file to multiple csv files" in {
 
     val inputStream =
       new FileInputStream(folderXlsxCsvData + "input/mock-xlsx-data-1.xlsx")
-    CsvConverter.convertXlsxFileToCsvFiles("mock-xlsx-data-1",
-                                           inputStream,
-                                           folderXlsxCsvData + "output/")
+    CsvSink.convertXlsxFileToCsvFiles("mock-xlsx-data-1",
+                                      inputStream,
+                                      folderXlsxCsvData + "output/")
     val d = new File(folderXlsxCsvData + "output/mock-xlsx-data-1")
     d.listFiles
       .map(file => file.getName)
@@ -172,13 +169,12 @@ class CsvConverterSpec
     )
   }
 
-  "CsvConverter.apply" should "convert xlsx files to multiple csv files" in {
+  "CsvSink.apply" should "convert xlsx files to multiple csv files" in {
 
-    CsvConverter.apply(folderXlsxCsvData + "input/",
-                       folderXlsxCsvData + "output/",
-                       ";",
-                       XlsxCsv,
-                       SaveMode.Overwrite)
+    CsvSink.apply(folderXlsxCsvData + "input/",
+                  folderXlsxCsvData + "output/",
+                  XlsxCsv,
+                  SaveMode.Overwrite)
     val list1 = List(
       "data1.csv",
       "data2.csv",
@@ -237,8 +233,8 @@ class CsvConverterSpec
       .toList should contain allElementsOf list2
   }
 
-  "CsvConverter.createPathRecursively" should "create a directory and its subdirectories" in {
-    val str = CsvConverter.createPathRecursively(
+  "CsvSink.createPathRecursively" should "create a directory and its subdirectories" in {
+    val str = CsvSink.createPathRecursively(
       "src/test/resources/xlsx_to_csv-data/output/sub1/sub2/sub3")
     Files.exists(Paths.get(str)) shouldBe true
     beforeEach() // delete folderXlsxCsvData

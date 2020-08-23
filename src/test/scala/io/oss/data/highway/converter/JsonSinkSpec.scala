@@ -11,7 +11,7 @@ import org.scalatest.matchers.should.Matchers
 
 import scala.reflect.io.Directory
 
-class JsonHandlerSpec
+class JsonSinkSpec
     extends AnyFlatSpec
     with Matchers
     with BeforeAndAfterEach
@@ -45,15 +45,15 @@ class JsonHandlerSpec
       })
   }
 
-  "JsonConverter.saveParquetAsJson" should "save a parquet as a json file" in {
+  "JsonSink.saveParquetAsJson" should "save a parquet as a json file" in {
     import spark.implicits._
 
-    JsonConverter
+    JsonSink
       .saveParquetAsJson(folderParquetToJson + "input/mock-data-2",
                          folderParquetToJson + "output/mock-data-2",
                          SaveMode.Overwrite)
     val actual =
-      JsonConverter.readJson(folderParquetToJson + "output/mock-data-2")
+      JsonSink.readJson(folderParquetToJson + "output/mock-data-2")
 
     val expected = List(
       (6.0,
@@ -90,15 +90,14 @@ class JsonHandlerSpec
                                ignoreNullable = true)
   }
 
-  "JsonConverter.saveCsvAsJson" should "save a csv as a json file" in {
+  "JsonSink.saveCsvAsJson" should "save a csv as a json file" in {
     import spark.implicits._
 
-    JsonConverter
+    JsonSink
       .saveCsvAsJson(folderCsvToJson + "input/mock-data-2",
                      folderCsvToJson + "output/mock-data-2",
-                     ";",
                      SaveMode.Overwrite)
-    val actual = JsonConverter.readJson(folderCsvToJson + "output/mock-data-2")
+    val actual = JsonSink.readJson(folderCsvToJson + "output/mock-data-2")
 
     val expected = List(
       (6.0,
