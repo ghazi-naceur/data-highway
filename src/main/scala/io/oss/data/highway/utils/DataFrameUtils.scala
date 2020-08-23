@@ -3,6 +3,7 @@ package io.oss.data.highway.utils
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import cats.syntax.either._
 import io.oss.data.highway.model.{CSV, DataType, JSON, PARQUET}
+import io.oss.data.highway.utils.Constants.{MASTER_URL, SEPARATOR}
 
 object DataFrameUtils {
 
@@ -10,7 +11,7 @@ object DataFrameUtils {
     val ss = SparkSession
       .builder()
       .appName("handler")
-      .master("local[*]")
+      .master(MASTER_URL)
       .getOrCreate()
     ss.sparkContext.setLogLevel("WARN")
     ss
@@ -25,6 +26,9 @@ object DataFrameUtils {
             .json(in)
         case CSV =>
           sparkSession.read
+            .option("inferSchema", "true")
+            .option("header", "true")
+            .option("sep", SEPARATOR)
             .csv(in)
         case PARQUET =>
           sparkSession.read

@@ -6,11 +6,10 @@ import java.nio.file.{Files, Path, Paths}
 import io.oss.data.highway.model.DataHighwayError.{CsvError, ReadFileError}
 import io.oss.data.highway.model._
 import io.oss.data.highway.utils.Constants._
-import io.oss.data.highway.utils.FilesUtils
+import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
 import org.apache.poi.ss.usermodel.{CellType, Sheet, WorkbookFactory}
 import org.apache.spark.sql.{DataFrame, SaveMode}
 import cats.implicits._
-import io.oss.data.highway.utils.DataFrameUtils.sparkSession
 
 import scala.annotation.tailrec
 
@@ -21,27 +20,23 @@ object CsvSink {
     *
     * @param in              The input parquet path
     * @param out             The generated csv file path
-    * @param columnSeparator The column separator for each line in the csv file
     * @param saveMode        The file saving mode
     * @return Unit if successful, otherwise Error
     */
   def saveParquetAsCsv(in: String,
                        out: String,
-                       columnSeparator: String,
                        saveMode: SaveMode): Either[CsvError, Unit] = {
-    Either
-      .catchNonFatal {
-        // TODO Use DataFrameUtils.loadDataFrame
-        sparkSession.read
-          .parquet(in)
-          .coalesce(1)
+    DataFrameUtils
+      .loadDataFrame(in, PARQUET)
+      .map(df => {
+        df.coalesce(1)
           .write
           .mode(saveMode)
           .option("inferSchema", "true")
           .option("header", "true")
-          .option("sep", columnSeparator)
+          .option("sep", SEPARATOR)
           .csv(out)
-      }
+      })
       .leftMap(thr => CsvError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
@@ -50,26 +45,23 @@ object CsvSink {
     *
     * @param in              The input json path
     * @param out             The generated csv file path
-    * @param columnSeparator The column separator for each line in the csv file
     * @param saveMode        The file saving mode
     * @return Unit if successful, otherwise Error
     */
   def saveJsonAsCsv(in: String,
                     out: String,
-                    columnSeparator: String,
                     saveMode: SaveMode): Either[CsvError, Unit] = {
-    Either
-      .catchNonFatal {
-        sparkSession.read
-          .json(in)
-          .coalesce(1)
+    DataFrameUtils
+      .loadDataFrame(in, JSON)
+      .map(df => {
+        df.coalesce(1)
           .write
           .mode(saveMode)
           .option("inferSchema", "true")
           .option("header", "true")
-          .option("sep", columnSeparator)
+          .option("sep", SEPARATOR)
           .csv(out)
-      }
+      })
       .leftMap(thr => CsvError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
@@ -79,29 +71,21 @@ object CsvSink {
     * @param path The csv file path
     * @return DataFrame, otherwise Error
     */
-  def readParquet(path: String,
-                  columnSeparator: String): Either[CsvError, DataFrame] = {
-    Either
-      .catchNonFatal {
-        sparkSession.read
-          .option("inferSchema", "true")
-          .option("header", "true")
-          .option("sep", columnSeparator)
-          .csv(path)
-      }
+  def readParquet(path: String): Either[CsvError, DataFrame] = {
+    DataFrameUtils
+      .loadDataFrame(path, CSV)
       .leftMap(thr => CsvError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   def apply(in: String,
             out: String,
-            columnSeparator: String,
             channel: Channel,
             saveMode: SaveMode): Either[DataHighwayError, List[Unit]] = {
     channel match {
       case ParquetCsv =>
-        handleParquetCsvChannel(in, out, columnSeparator, saveMode)
+        handleParquetCsvChannel(in, out, saveMode)
       case JsonCsv =>
-        handleJsonCsvChannel(in, out, columnSeparator, saveMode)
+        handleJsonCsvChannel(in, out, saveMode)
       case XlsxCsv =>
         handleXlsxCsvChannel(in, out, Seq(XLSX_EXTENSION, XLS_EXTENSION))
       case _ =>
@@ -114,21 +98,19 @@ object CsvSink {
     *
     * @param in              The input parquet path
     * @param out             The generated csv file path
-    * @param columnSeparator The column separator for each line in the csv file
     * @param saveMode        The file saving mode
     * @return List[Unit], otherwise Error
     */
   private def handleParquetCsvChannel(
       in: String,
       out: String,
-      columnSeparator: String,
       saveMode: SaveMode): Either[DataHighwayError, List[Unit]] = {
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
       list <- folders
         .traverse(folder => {
           val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
-          saveParquetAsCsv(folder, s"$out/$suffix", columnSeparator, saveMode)
+          saveParquetAsCsv(folder, s"$out/$suffix", saveMode)
         })
         .leftMap(error =>
           CsvError(error.message, error.cause, error.stacktrace))
@@ -140,21 +122,19 @@ object CsvSink {
     *
     * @param in              The input json path
     * @param out             The generated csv file path
-    * @param columnSeparator The column separator for each line in the csv file
     * @param saveMode        The file saving mode
     * @return List[Unit], otherwise Error
     */
   private def handleJsonCsvChannel(
       in: String,
       out: String,
-      columnSeparator: String,
       saveMode: SaveMode): Either[DataHighwayError, List[Unit]] = {
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
       list <- folders
         .traverse(folder => {
           val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
-          saveJsonAsCsv(folder, s"$out/$suffix", columnSeparator, saveMode)
+          saveJsonAsCsv(folder, s"$out/$suffix", saveMode)
         })
         .leftMap(error =>
           CsvError(error.message, error.cause, error.stacktrace))

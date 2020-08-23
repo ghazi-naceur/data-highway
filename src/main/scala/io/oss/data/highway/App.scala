@@ -3,7 +3,6 @@ package io.oss.data.highway
 import io.oss.data.highway.configuration.ConfLoader
 import io.oss.data.highway.converter.{CsvSink, JsonSink, KafkaSink, ParquetSink}
 import io.oss.data.highway.model._
-import io.oss.data.highway.utils.Constants.SEPARATOR
 import org.apache.spark.sql.SaveMode.Overwrite
 import org.apache.log4j.{BasicConfigurator, Logger}
 
@@ -17,19 +16,19 @@ object App {
       conf <- ConfLoader.loadConf()
       _ <- conf match {
         case route @ CsvToParquet(in, out) =>
-          ParquetSink.apply(in, out, SEPARATOR, route.channel, Overwrite)
+          ParquetSink.apply(in, out, route.channel, Overwrite)
         case route @ JsonToParquet(in, out) =>
-          ParquetSink.apply(in, out, SEPARATOR, route.channel, Overwrite)
+          ParquetSink.apply(in, out, route.channel, Overwrite)
         case route @ XlsxToCsv(in, out) =>
-          CsvSink.apply(in, out, SEPARATOR, route.channel, Overwrite)
+          CsvSink.apply(in, out, route.channel, Overwrite)
         case route @ ParquetToCsv(in, out) =>
-          CsvSink.apply(in, out, SEPARATOR, route.channel, Overwrite)
+          CsvSink.apply(in, out, route.channel, Overwrite)
         case route @ JsonToCsv(in, out) =>
-          CsvSink.apply(in, out, SEPARATOR, route.channel, Overwrite)
+          CsvSink.apply(in, out, route.channel, Overwrite)
         case route @ ParquetToJson(in, out) =>
-          JsonSink.apply(in, out, SEPARATOR, route.channel, Overwrite)
+          JsonSink.apply(in, out, route.channel, Overwrite)
         case route @ CsvToJson(in, out) =>
-          JsonSink.apply(in, out, SEPARATOR, route.channel, Overwrite)
+          JsonSink.apply(in, out, route.channel, Overwrite)
         case JsonToKafka(in, out, brokerUrl, kafkaMode) =>
           new KafkaSink().sendToTopic(in, out, brokerUrl, kafkaMode)
         case _ =>
