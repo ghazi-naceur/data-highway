@@ -4,7 +4,8 @@ import java.io.{File, FileInputStream}
 import java.nio.file.{Files, Paths}
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
-import io.oss.data.highway.model.XlsxCsv
+import io.oss.data.highway.configuration.SparkConfig
+import io.oss.data.highway.model.{WARN, XlsxCsv}
 import io.oss.data.highway.utils.Constants.XLSX_EXTENSION
 import io.oss.data.highway.utils.{Constants, MockSheetCreator}
 import org.apache.spark.sql.{SaveMode, SparkSession}
@@ -24,6 +25,8 @@ class CsvSinkSpec
   val folderJsonToCsvData = "src/test/resources/json_to_csv-data/"
   val folderXlsxCsvData = "src/test/resources/xlsx_to_csv-data/"
   val extensions = Seq(XLSX_EXTENSION, Constants.XLS_EXTENSION)
+  val sparkConfig: SparkConfig =
+    SparkConfig("handler-app-test", "local[*]", WARN)
 
   lazy val spark: SparkSession = {
     SparkSession
@@ -57,9 +60,11 @@ class CsvSinkSpec
     CsvSink
       .saveParquetAsCsv(folderParquetToCsvData + "input/mock-data-2",
                         folderParquetToCsvData + "output/mock-data-2",
-                        SaveMode.Overwrite)
+                        SaveMode.Overwrite,
+                        sparkConfig)
     val actual =
-      CsvSink.readParquet(folderParquetToCsvData + "output/mock-data-2")
+      CsvSink.readParquet(folderParquetToCsvData + "output/mock-data-2",
+                          sparkConfig)
 
     val expected = List(
       (6.0,
@@ -95,9 +100,11 @@ class CsvSinkSpec
     CsvSink
       .saveJsonAsCsv(folderJsonToCsvData + "input/mock-data-2",
                      folderJsonToCsvData + "output/mock-data-2",
-                     SaveMode.Overwrite)
+                     SaveMode.Overwrite,
+                     sparkConfig)
     val actual =
-      CsvSink.readParquet(folderJsonToCsvData + "output/mock-data-2")
+      CsvSink.readParquet(folderJsonToCsvData + "output/mock-data-2",
+                          sparkConfig)
 
     val expected = List(
       (6.0,
@@ -174,7 +181,8 @@ class CsvSinkSpec
     CsvSink.apply(folderXlsxCsvData + "input/",
                   folderXlsxCsvData + "output/",
                   XlsxCsv,
-                  SaveMode.Overwrite)
+                  SaveMode.Overwrite,
+                  sparkConfig)
     val list1 = List(
       "data1.csv",
       "data2.csv",

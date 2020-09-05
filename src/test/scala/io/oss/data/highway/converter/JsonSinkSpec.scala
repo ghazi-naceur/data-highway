@@ -4,6 +4,8 @@ import java.io.File
 import java.nio.file.{Files, Paths}
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
+import io.oss.data.highway.configuration.SparkConfig
+import io.oss.data.highway.model.WARN
 import org.apache.spark.sql.{SaveMode, SparkSession}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
@@ -19,6 +21,8 @@ class JsonSinkSpec
 
   val folderParquetToJson = "src/test/resources/parquet_to_json-data/"
   val folderCsvToJson = "src/test/resources/csv_to_json-data/"
+  val sparkConfig: SparkConfig =
+    SparkConfig("handler-app-test", "local[*]", WARN)
 
   lazy val spark: SparkSession = {
     SparkSession
@@ -51,9 +55,10 @@ class JsonSinkSpec
     JsonSink
       .saveParquetAsJson(folderParquetToJson + "input/mock-data-2",
                          folderParquetToJson + "output/mock-data-2",
-                         SaveMode.Overwrite)
+                         SaveMode.Overwrite,
+                         sparkConfig)
     val actual =
-      JsonSink.readJson(folderParquetToJson + "output/mock-data-2")
+      JsonSink.readJson(folderParquetToJson + "output/mock-data-2", sparkConfig)
 
     val expected = List(
       (6.0,
@@ -96,8 +101,10 @@ class JsonSinkSpec
     JsonSink
       .saveCsvAsJson(folderCsvToJson + "input/mock-data-2",
                      folderCsvToJson + "output/mock-data-2",
-                     SaveMode.Overwrite)
-    val actual = JsonSink.readJson(folderCsvToJson + "output/mock-data-2")
+                     SaveMode.Overwrite,
+                     sparkConfig)
+    val actual =
+      JsonSink.readJson(folderCsvToJson + "output/mock-data-2", sparkConfig)
 
     val expected = List(
       (6.0,

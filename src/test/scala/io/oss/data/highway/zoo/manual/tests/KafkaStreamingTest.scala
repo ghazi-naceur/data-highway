@@ -1,10 +1,14 @@
 package io.oss.data.highway.zoo.manual.tests
 
+import io.oss.data.highway.configuration.SparkConfig
 import io.oss.data.highway.converter.KafkaSink
-import io.oss.data.highway.model.{KafkaStreaming, Latest}
+import io.oss.data.highway.model.{KafkaStreaming, Latest, WARN}
 import org.apache.log4j.BasicConfigurator
 
 object KafkaStreamingTest {
+
+  val sparkConfig: SparkConfig =
+    SparkConfig("handler-app-test", "local[*]", WARN)
 
   def main(args: Array[String]): Unit = {
     BasicConfigurator.configure()
@@ -18,6 +22,7 @@ object KafkaStreamingTest {
                                 KafkaStreaming("stream-app",
                                                useConsumer = true,
                                                Latest,
-                                               "consumer-group-ks"))
+                                               "consumer-group-ks"),
+                                sparkConfig)
   }
 }

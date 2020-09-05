@@ -1,10 +1,9 @@
 package io.oss.data.highway.converter
 
-import java.text.SimpleDateFormat
 import java.time.Duration
 
 import org.apache.kafka.clients.producer._
-import java.util.{Date, Properties, UUID}
+import java.util.{Properties, UUID}
 
 import io.oss.data.highway.model.{
   JSON,
@@ -24,7 +23,7 @@ import scala.io.Source
 import scala.util.Try
 import org.apache.log4j.Logger
 import cats.syntax.either._
-import io.oss.data.highway.utils.DataFrameUtils.sparkSession
+import io.oss.data.highway.configuration.SparkConfig
 import org.apache.spark.sql.functions.lit
 
 import scala.sys.ShutdownHookThread
@@ -37,7 +36,8 @@ class KafkaSink {
   def sendToTopic(jsonPath: String,
                   topic: String,
                   bootstrapServers: String,
-                  kafkaMode: KafkaMode): Either[Throwable, Any] = {
+                  kafkaMode: KafkaMode,
+                  sparkConfig: SparkConfig): Either[Throwable, Any] = {
     val props = new Properties()
     props.put("bootstrap.servers", bootstrapServers)
     props.put("key.serializer", classOf[StringSerializer].getName)
@@ -65,9 +65,13 @@ class KafkaSink {
                                           bootstrapServers,
                                           topic,
                                           intermediateTopic,
-                                          checkpointFolder)
+                                          checkpointFolder,
+                                          sparkConfig)
         } else {
-          sendUsingSparkKafkaPlugin(jsonPath, bootstrapServers, topic)
+          sendUsingSparkKafkaPlugin(jsonPath,
+                                    bootstrapServers,
+                                    topic,
+                                    sparkConfig)
         }
     }
   }
@@ -75,9 +79,10 @@ class KafkaSink {
   private def sendUsingSparkKafkaPlugin(
       jsonPath: String,
       bootstrapServers: String,
-      topic: String): Either[Throwable, Unit] = {
+      topic: String,
+      sparkConfig: SparkConfig): Either[Throwable, Unit] = {
     import org.apache.spark.sql.functions._
-    DataFrameUtils
+    DataFrameUtils(sparkConfig)
       .loadDataFrame(jsonPath, JSON)
       .map(df => {
         val intermediateData =
@@ -100,11 +105,12 @@ class KafkaSink {
       outputTopic: String,
       intermediateTopic: String,
       checkpointFolder: String,
+      sparkConfig: SparkConfig,
       offset: Offset = Latest): Either[Throwable, Unit] = {
     Either.catchNonFatal {
       send(jsonPath, intermediateTopic, producer)
 
-      val kafkaStream = sparkSession.readStream
+      val kafkaStream = DataFrameUtils(sparkConfig).sparkSession.readStream
         .format("kafka")
         .option("kafka.bootstrap.servers", bootstrapServers)
         .option("startingOffsets", offset.value)
