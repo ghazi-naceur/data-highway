@@ -54,20 +54,11 @@ class KafkaSink {
     props.put("value.serializer", classOf[StringSerializer].getName)
     val producer = new KafkaProducer[String, String](props)
     kafkaMode match {
-      case SimpleProducer(useConsumer, offset, consumerGroup) =>
+      case SimpleProducer =>
         send(jsonPath, topic, producer)
-        Try(if (useConsumer) {
-          consume(topic, bootstrapServers, offset, consumerGroup)
-        }).toEither
-      case KafkaStreaming(streamAppId, useConsumer, offset, consumerGroup) =>
+      case KafkaStreaming(streamAppId) =>
         send(jsonPath, intermediateTopic, producer)
-        runStream(streamAppId,
-                  intermediateTopic,
-                  bootstrapServers,
-                  topic,
-                  useConsumer,
-                  offset,
-                  consumerGroup)
+        runStream(streamAppId, intermediateTopic, bootstrapServers, topic)
       case SparkKafkaPlugin(useStream, intermediateTopic, checkpointFolder) =>
         if (useStream) {
           sendUsingStreamSparkKafkaPlugin(jsonPath,
@@ -137,6 +128,7 @@ class KafkaSink {
       checkpointFolder: String,
       sparkConfig: SparkConfig,
       offset: Offset = Latest): Either[Throwable, Unit] = {
+    //TODO offset has a default value that could be externalized
     Either.catchNonFatal {
 
       send(jsonPath, intermediateTopic, producer)
@@ -170,19 +162,13 @@ class KafkaSink {
     * @param intermediateTopic The Kafka intermediate topic
     * @param bootstrapServers The kafka brokers urls
     * @param streamsOutputTopic The Kafka output topic
-    * @param useConsumer The ability to launch a consumer (Debug feature)
-    * @param offset The Kafka consumer offset
-    * @param consumerGroup The Kafka consumer group
     * @return ShutdownHookThread, otherwise an Error
     */
   private def runStream(
       streamAppId: String,
       intermediateTopic: String,
       bootstrapServers: String,
-      streamsOutputTopic: String,
-      useConsumer: Boolean,
-      offset: Offset,
-      consumerGroup: String): Either[Throwable, ShutdownHookThread] = {
+      streamsOutputTopic: String): Either[Throwable, ShutdownHookThread] = {
     Either.catchNonFatal {
       import org.apache.kafka.streams.scala.ImplicitConversions._
       import org.apache.kafka.streams.scala.Serdes._
@@ -203,33 +189,9 @@ class KafkaSink {
 
       streams.start()
 
-      if (useConsumer) {
-        consume(streamsOutputTopic, bootstrapServers, offset, consumerGroup)
-      }
-
       sys.ShutdownHookThread {
         streams.close(Duration.ofSeconds(10))
       }
-    }
-  }
-
-  /**
-    * Consumes from a Kafka topic
-    * @param topic The Kafka topic to consumer from
-    * @param bootstrapServers The kafka brokers urls
-    * @param offset The Kafka consumer offset
-    * @param consumerGroup The Kafka consumer group
-    * @return Any, otherwise an Error
-    */
-  private def consume(topic: String,
-                      bootstrapServers: String,
-                      offset: Offset,
-                      consumerGroup: String): Either[Throwable, Any] = {
-    Either.catchNonFatal {
-      KafkaTopicConsumer.consumeFromKafka(topic,
-                                          bootstrapServers,
-                                          offset,
-                                          consumerGroup)
     }
   }
 
