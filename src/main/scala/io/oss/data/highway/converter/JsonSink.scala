@@ -13,6 +13,7 @@ import io.oss.data.highway.model.{
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
 import org.apache.spark.sql.{DataFrame, SaveMode}
 import cats.implicits._
+import io.oss.data.highway.configuration.SparkConfig
 
 object JsonSink {
 
@@ -22,12 +23,14 @@ object JsonSink {
     * @param in       The input parquet path
     * @param out      The generated json file path
     * @param saveMode The file saving mode
+    * @param sparkConfig The Spark Configuration
     * @return Unit if successful, otherwise Error
     */
   def saveParquetAsJson(in: String,
                         out: String,
-                        saveMode: SaveMode): Either[JsonError, Unit] = {
-    DataFrameUtils
+                        saveMode: SaveMode,
+                        sparkConfig: SparkConfig): Either[JsonError, Unit] = {
+    DataFrameUtils(sparkConfig)
       .loadDataFrame(in, PARQUET)
       .map(df => {
         df.coalesce(1)
@@ -45,12 +48,14 @@ object JsonSink {
     * @param in       The input csv path
     * @param out      The generated json file path
     * @param saveMode The file saving mode
+    * @param sparkConfig The Spark Configuration
     * @return Unit if successful, otherwise Error
     */
   def saveCsvAsJson(in: String,
                     out: String,
-                    saveMode: SaveMode): Either[JsonError, Unit] = {
-    DataFrameUtils
+                    saveMode: SaveMode,
+                    sparkConfig: SparkConfig): Either[JsonError, Unit] = {
+    DataFrameUtils(sparkConfig)
       .loadDataFrame(in, CSV)
       .map(df => {
         df.coalesce(1)
@@ -66,10 +71,12 @@ object JsonSink {
     * Reads json file
     *
     * @param path The json file path
+    * @param sparkConfig The Spark Configuration
     * @return DataFrame, otherwise Error
     */
-  def readJson(path: String): Either[JsonError, DataFrame] = {
-    DataFrameUtils
+  def readJson(path: String,
+               sparkConfig: SparkConfig): Either[JsonError, DataFrame] = {
+    DataFrameUtils(sparkConfig)
       .loadDataFrame(path, JSON)
       .leftMap(thr =>
         JsonError(thr.getMessage, thr.getCause, thr.getStackTrace))
@@ -78,12 +85,13 @@ object JsonSink {
   def apply(in: String,
             out: String,
             channel: Channel,
-            saveMode: SaveMode): Either[DataHighwayError, List[Unit]] = {
+            saveMode: SaveMode,
+            sparkConfig: SparkConfig): Either[DataHighwayError, List[Unit]] = {
     channel match {
       case ParquetJson =>
-        handleParquetJsonChannel(in, out, saveMode)
+        handleParquetJsonChannel(in, out, saveMode, sparkConfig)
       case CsvJson =>
-        handleCsvJsonChannel(in, out, saveMode)
+        handleCsvJsonChannel(in, out, saveMode, sparkConfig)
       case _ =>
         throw new RuntimeException("Not suppose to happen !")
     }
@@ -95,19 +103,21 @@ object JsonSink {
     * @param in        The input csv path
     * @param out       The generated json file path
     * @param saveMode  The file saving mode
+    * @param sparkConfig The Spark Configuration
     * @return List[Unit], otherwise Error
     */
   private def handleCsvJsonChannel(
       in: String,
       out: String,
-      saveMode: SaveMode): Either[DataHighwayError, List[Unit]] = {
+      saveMode: SaveMode,
+      sparkConfig: SparkConfig): Either[DataHighwayError, List[Unit]] = {
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
       list <- folders
         .traverse(folder => {
           val suffix =
             FilesUtils.reversePathSeparator(folder).split("/").last
-          saveCsvAsJson(folder, s"$out/$suffix", saveMode)
+          saveCsvAsJson(folder, s"$out/$suffix", saveMode, sparkConfig)
         })
         .leftMap(error =>
           JsonError(error.message, error.cause, error.stacktrace))
@@ -120,19 +130,21 @@ object JsonSink {
     * @param in       The input parquet path
     * @param out      The generated json file path
     * @param saveMode The file saving mode
+    * @param sparkConfig The Spark Configuration
     * @return List[Unit], otherwise Error
     */
   private def handleParquetJsonChannel(
       in: String,
       out: String,
-      saveMode: SaveMode): Either[DataHighwayError, List[Unit]] = {
+      saveMode: SaveMode,
+      sparkConfig: SparkConfig): Either[DataHighwayError, List[Unit]] = {
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
       list <- folders
         .traverse(folder => {
           val suffix =
             FilesUtils.reversePathSeparator(folder).split("/").last
-          saveParquetAsJson(folder, s"$out/$suffix", saveMode)
+          saveParquetAsJson(folder, s"$out/$suffix", saveMode, sparkConfig)
         })
         .leftMap(error =>
           JsonError(error.message, error.cause, error.stacktrace))

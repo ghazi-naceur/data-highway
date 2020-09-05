@@ -2,16 +2,9 @@ package io.oss.data.highway.model
 
 sealed trait KafkaMode
 
-case class ProducerConsumer(useConsumer: Boolean,
-                            offset: Offset,
-                            consumerGroup: String)
-    extends KafkaMode
+case object SimpleProducer extends KafkaMode
 
-case class KafkaStreaming(streamAppId: String,
-                          useConsumer: Boolean,
-                          offset: Offset,
-                          consumerGroup: String)
-    extends KafkaMode
+case class KafkaStreaming(streamAppId: String) extends KafkaMode
 
 case class SparkKafkaPlugin(useStream: Boolean,
                             intermediateTopic: String,

@@ -10,6 +10,7 @@ import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
 import org.apache.poi.ss.usermodel.{CellType, Sheet, WorkbookFactory}
 import org.apache.spark.sql.{DataFrame, SaveMode}
 import cats.implicits._
+import io.oss.data.highway.configuration.SparkConfig
 
 import scala.annotation.tailrec
 
@@ -21,12 +22,14 @@ object CsvSink {
     * @param in              The input parquet path
     * @param out             The generated csv file path
     * @param saveMode        The file saving mode
+    * @param sparkConfig The Spark Configuration
     * @return Unit if successful, otherwise Error
     */
   def saveParquetAsCsv(in: String,
                        out: String,
-                       saveMode: SaveMode): Either[CsvError, Unit] = {
-    DataFrameUtils
+                       saveMode: SaveMode,
+                       sparkConfig: SparkConfig): Either[CsvError, Unit] = {
+    DataFrameUtils(sparkConfig)
       .loadDataFrame(in, PARQUET)
       .map(df => {
         df.coalesce(1)
@@ -46,12 +49,14 @@ object CsvSink {
     * @param in              The input json path
     * @param out             The generated csv file path
     * @param saveMode        The file saving mode
+    * @param sparkConfig The Spark Configuration
     * @return Unit if successful, otherwise Error
     */
   def saveJsonAsCsv(in: String,
                     out: String,
-                    saveMode: SaveMode): Either[CsvError, Unit] = {
-    DataFrameUtils
+                    saveMode: SaveMode,
+                    sparkConfig: SparkConfig): Either[CsvError, Unit] = {
+    DataFrameUtils(sparkConfig)
       .loadDataFrame(in, JSON)
       .map(df => {
         df.coalesce(1)
@@ -69,10 +74,12 @@ object CsvSink {
     * Reads csv file
     *
     * @param path The csv file path
+    * @param sparkConfig The Spark Configuration
     * @return DataFrame, otherwise Error
     */
-  def readParquet(path: String): Either[CsvError, DataFrame] = {
-    DataFrameUtils
+  def readParquet(path: String,
+                  sparkConfig: SparkConfig): Either[CsvError, DataFrame] = {
+    DataFrameUtils(sparkConfig)
       .loadDataFrame(path, CSV)
       .leftMap(thr => CsvError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
@@ -80,12 +87,13 @@ object CsvSink {
   def apply(in: String,
             out: String,
             channel: Channel,
-            saveMode: SaveMode): Either[DataHighwayError, List[Unit]] = {
+            saveMode: SaveMode,
+            sparkConfig: SparkConfig): Either[DataHighwayError, List[Unit]] = {
     channel match {
       case ParquetCsv =>
-        handleParquetCsvChannel(in, out, saveMode)
+        handleParquetCsvChannel(in, out, saveMode, sparkConfig)
       case JsonCsv =>
-        handleJsonCsvChannel(in, out, saveMode)
+        handleJsonCsvChannel(in, out, saveMode, sparkConfig)
       case XlsxCsv =>
         handleXlsxCsvChannel(in, out, Seq(XLSX_EXTENSION, XLS_EXTENSION))
       case _ =>
@@ -99,18 +107,20 @@ object CsvSink {
     * @param in              The input parquet path
     * @param out             The generated csv file path
     * @param saveMode        The file saving mode
+    * @param sparkConfig The Spark Configuration
     * @return List[Unit], otherwise Error
     */
   private def handleParquetCsvChannel(
       in: String,
       out: String,
-      saveMode: SaveMode): Either[DataHighwayError, List[Unit]] = {
+      saveMode: SaveMode,
+      sparkConfig: SparkConfig): Either[DataHighwayError, List[Unit]] = {
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
       list <- folders
         .traverse(folder => {
           val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
-          saveParquetAsCsv(folder, s"$out/$suffix", saveMode)
+          saveParquetAsCsv(folder, s"$out/$suffix", saveMode, sparkConfig)
         })
         .leftMap(error =>
           CsvError(error.message, error.cause, error.stacktrace))
@@ -123,18 +133,20 @@ object CsvSink {
     * @param in              The input json path
     * @param out             The generated csv file path
     * @param saveMode        The file saving mode
+    * @param sparkConfig The Spark Configuration
     * @return List[Unit], otherwise Error
     */
   private def handleJsonCsvChannel(
       in: String,
       out: String,
-      saveMode: SaveMode): Either[DataHighwayError, List[Unit]] = {
+      saveMode: SaveMode,
+      sparkConfig: SparkConfig): Either[DataHighwayError, List[Unit]] = {
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
       list <- folders
         .traverse(folder => {
           val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
-          saveJsonAsCsv(folder, s"$out/$suffix", saveMode)
+          saveJsonAsCsv(folder, s"$out/$suffix", saveMode, sparkConfig)
         })
         .leftMap(error =>
           CsvError(error.message, error.cause, error.stacktrace))

@@ -1,10 +1,9 @@
 package io.oss.data.highway.converter
 
-import java.text.SimpleDateFormat
 import java.time.Duration
 
 import org.apache.kafka.clients.producer._
-import java.util.{Date, Properties, UUID}
+import java.util.{Properties, UUID}
 
 import io.oss.data.highway.model.{
   JSON,
@@ -12,7 +11,7 @@ import io.oss.data.highway.model.{
   KafkaStreaming,
   Latest,
   Offset,
-  ProducerConsumer,
+  SimpleProducer,
   SparkKafkaPlugin
 }
 import io.oss.data.highway.utils.{DataFrameUtils, KafkaTopicConsumer}
@@ -24,7 +23,7 @@ import scala.io.Source
 import scala.util.Try
 import org.apache.log4j.Logger
 import cats.syntax.either._
-import io.oss.data.highway.utils.DataFrameUtils.sparkSession
+import io.oss.data.highway.configuration.SparkConfig
 import org.apache.spark.sql.functions.lit
 
 import scala.sys.ShutdownHookThread
@@ -34,30 +33,32 @@ class KafkaSink {
   val logger: Logger = Logger.getLogger(classOf[KafkaSink].getName)
   val intermediateTopic: String =
     s"intermediate-topic-${UUID.randomUUID().toString}"
+
+  /**
+    * Sends message to Kafka topic
+    * @param jsonPath The path that contains json data to be send
+    * @param topic The output topic
+    * @param bootstrapServers The kafka brokers urls
+    * @param kafkaMode The Kafka launch mode : SimpleProducer, KafkaStreaming or SparkKafkaPlugin
+    * @param sparkConfig The Spark configuration
+    * @return Any, otherwise an Error
+    */
   def sendToTopic(jsonPath: String,
                   topic: String,
                   bootstrapServers: String,
-                  kafkaMode: KafkaMode): Either[Throwable, Any] = {
+                  kafkaMode: KafkaMode,
+                  sparkConfig: SparkConfig): Either[Throwable, Any] = {
     val props = new Properties()
     props.put("bootstrap.servers", bootstrapServers)
     props.put("key.serializer", classOf[StringSerializer].getName)
     props.put("value.serializer", classOf[StringSerializer].getName)
     val producer = new KafkaProducer[String, String](props)
     kafkaMode match {
-      case ProducerConsumer(useConsumer, offset, consumerGroup) =>
+      case SimpleProducer =>
         send(jsonPath, topic, producer)
-        Try(if (useConsumer) {
-          consume(topic, bootstrapServers, offset, consumerGroup)
-        }).toEither
-      case KafkaStreaming(streamAppId, useConsumer, offset, consumerGroup) =>
+      case KafkaStreaming(streamAppId) =>
         send(jsonPath, intermediateTopic, producer)
-        runStream(streamAppId,
-                  intermediateTopic,
-                  bootstrapServers,
-                  topic,
-                  useConsumer,
-                  offset,
-                  consumerGroup)
+        runStream(streamAppId, intermediateTopic, bootstrapServers, topic)
       case SparkKafkaPlugin(useStream, intermediateTopic, checkpointFolder) =>
         if (useStream) {
           sendUsingStreamSparkKafkaPlugin(jsonPath,
@@ -65,19 +66,32 @@ class KafkaSink {
                                           bootstrapServers,
                                           topic,
                                           intermediateTopic,
-                                          checkpointFolder)
+                                          checkpointFolder,
+                                          sparkConfig)
         } else {
-          sendUsingSparkKafkaPlugin(jsonPath, bootstrapServers, topic)
+          sendUsingSparkKafkaPlugin(jsonPath,
+                                    bootstrapServers,
+                                    topic,
+                                    sparkConfig)
         }
     }
   }
 
+  /**
+    * Sends message via Spark Kafka-Plugin
+    * @param jsonPath The path that contains json data to be send
+    * @param bootstrapServers The kafka brokers urls
+    * @param topic The output topic
+    * @param sparkConfig The spark configuration
+    * @return Unit, otherwise an Error
+    */
   private def sendUsingSparkKafkaPlugin(
       jsonPath: String,
       bootstrapServers: String,
-      topic: String): Either[Throwable, Unit] = {
+      topic: String,
+      sparkConfig: SparkConfig): Either[Throwable, Unit] = {
     import org.apache.spark.sql.functions._
-    DataFrameUtils
+    DataFrameUtils(sparkConfig)
       .loadDataFrame(jsonPath, JSON)
       .map(df => {
         val intermediateData =
@@ -93,6 +107,18 @@ class KafkaSink {
       })
   }
 
+  /**
+    * Sends message via Spark Kafka-Stream-Plugin
+    * @param jsonPath The path that contains json data to be send
+    * @param producer The Kafka Producer
+    * @param bootstrapServers The kafka brokers urls
+    * @param outputTopic The output topic
+    * @param intermediateTopic The intermediate kafka topic
+    * @param checkpointFolder The checkpoint folder
+    * @param sparkConfig The Spark configuration
+    * @param offset The Kafka consumer offset
+    * @return Unit, otherwise an Error
+    */
   private def sendUsingStreamSparkKafkaPlugin(
       jsonPath: String,
       producer: KafkaProducer[String, String],
@@ -100,11 +126,14 @@ class KafkaSink {
       outputTopic: String,
       intermediateTopic: String,
       checkpointFolder: String,
+      sparkConfig: SparkConfig,
       offset: Offset = Latest): Either[Throwable, Unit] = {
+    //TODO offset has a default value that could be externalized
     Either.catchNonFatal {
+
       send(jsonPath, intermediateTopic, producer)
 
-      val kafkaStream = sparkSession.readStream
+      val kafkaStream = DataFrameUtils(sparkConfig).sparkSession.readStream
         .format("kafka")
         .option("kafka.bootstrap.servers", bootstrapServers)
         .option("startingOffsets", offset.value)
@@ -127,14 +156,19 @@ class KafkaSink {
     }
   }
 
+  /**
+    * Runs Kafka stream
+    * @param streamAppId The Kafka stream application id
+    * @param intermediateTopic The Kafka intermediate topic
+    * @param bootstrapServers The kafka brokers urls
+    * @param streamsOutputTopic The Kafka output topic
+    * @return ShutdownHookThread, otherwise an Error
+    */
   private def runStream(
       streamAppId: String,
       intermediateTopic: String,
       bootstrapServers: String,
-      streamsOutputTopic: String,
-      useConsumer: Boolean,
-      offset: Offset,
-      consumerGroup: String): Either[Throwable, ShutdownHookThread] = {
+      streamsOutputTopic: String): Either[Throwable, ShutdownHookThread] = {
     Either.catchNonFatal {
       import org.apache.kafka.streams.scala.ImplicitConversions._
       import org.apache.kafka.streams.scala.Serdes._
@@ -155,28 +189,19 @@ class KafkaSink {
 
       streams.start()
 
-      if (useConsumer) {
-        consume(streamsOutputTopic, bootstrapServers, offset, consumerGroup)
-      }
-
       sys.ShutdownHookThread {
         streams.close(Duration.ofSeconds(10))
       }
     }
   }
 
-  private def consume(topic: String,
-                      bootstrapServers: String,
-                      offset: Offset,
-                      consumerGroup: String): Either[Throwable, Any] = {
-    Either.catchNonFatal {
-      KafkaTopicConsumer.consumeFromKafka(topic,
-                                          bootstrapServers,
-                                          offset,
-                                          consumerGroup)
-    }
-  }
-
+  /**
+    * Sends message to Kafka topic
+    * @param jsonPath The path that contains json data to be send
+    * @param topic The output Kafka topic
+    * @param producer The Kafka producer
+    * @return Any, otherwise an Error
+    */
   private def send(
       jsonPath: String,
       topic: String,
@@ -193,6 +218,11 @@ class KafkaSink {
     }.toEither
   }
 
+  /**
+    * Get lines from json file
+    * @param jsonPath The path that contains json data to be send
+    * @return an Iterator of String
+    */
   private def getJsonLines(jsonPath: String): Iterator[String] = {
     val jsonFile = Source.fromFile(jsonPath)
     jsonFile.getLines
