@@ -91,7 +91,7 @@ route {
   out = "your-output-kafka-topic"
   broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas", // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
   kafka-mode = {
-      type = "producer-consumer"
+      type = simple-producer
       use-consumer = false // This is a quick-debug feature (Experimental). You may want to leave it as `false`. It allows to launch a consumer for your producer.
       offset = "latest" // This parameter takes 3 possible values : "latest", "earliest" and "none". It will be taken into consideration once `use-consumer = true`.
       consumer-group = "your-consumer-group-name" // This is the consumer group name. It will be taken into consideration once `use-consumer = true`.
