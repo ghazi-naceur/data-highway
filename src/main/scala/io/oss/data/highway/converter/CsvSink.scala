@@ -22,6 +22,7 @@ object CsvSink {
     * @param in              The input parquet path
     * @param out             The generated csv file path
     * @param saveMode        The file saving mode
+    * @param sparkConfig The Spark Configuration
     * @return Unit if successful, otherwise Error
     */
   def saveParquetAsCsv(in: String,
@@ -48,6 +49,7 @@ object CsvSink {
     * @param in              The input json path
     * @param out             The generated csv file path
     * @param saveMode        The file saving mode
+    * @param sparkConfig The Spark Configuration
     * @return Unit if successful, otherwise Error
     */
   def saveJsonAsCsv(in: String,
@@ -72,6 +74,7 @@ object CsvSink {
     * Reads csv file
     *
     * @param path The csv file path
+    * @param sparkConfig The Spark Configuration
     * @return DataFrame, otherwise Error
     */
   def readParquet(path: String,
@@ -104,6 +107,7 @@ object CsvSink {
     * @param in              The input parquet path
     * @param out             The generated csv file path
     * @param saveMode        The file saving mode
+    * @param sparkConfig The Spark Configuration
     * @return List[Unit], otherwise Error
     */
   private def handleParquetCsvChannel(
@@ -129,6 +133,7 @@ object CsvSink {
     * @param in              The input json path
     * @param out             The generated csv file path
     * @param saveMode        The file saving mode
+    * @param sparkConfig The Spark Configuration
     * @return List[Unit], otherwise Error
     */
   private def handleJsonCsvChannel(

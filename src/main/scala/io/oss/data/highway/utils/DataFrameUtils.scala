@@ -18,6 +18,12 @@ case class DataFrameUtils(sparkConf: SparkConfig) {
     ss
   }
 
+  /**
+    * Loads a dataframe
+    * @param in The input path
+    * @param dataType a datatype to be load : CSV, JSON or PARQUET
+    * @return A DataFrame, otherwise an Error
+    */
   def loadDataFrame(in: String,
                     dataType: DataType): Either[Throwable, DataFrame] = {
     Either.catchNonFatal {
