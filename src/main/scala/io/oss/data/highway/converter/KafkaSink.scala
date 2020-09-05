@@ -11,7 +11,7 @@ import io.oss.data.highway.model.{
   KafkaStreaming,
   Latest,
   Offset,
-  ProducerConsumer,
+  SimpleProducer,
   SparkKafkaPlugin
 }
 import io.oss.data.highway.utils.{DataFrameUtils, KafkaTopicConsumer}
@@ -39,7 +39,7 @@ class KafkaSink {
     * @param jsonPath The path that contains json data to be send
     * @param topic The output topic
     * @param bootstrapServers The kafka brokers urls
-    * @param kafkaMode The Kafka launch mode : ProducerConsumer, KafkaStreaming or SparkKafkaPlugin
+    * @param kafkaMode The Kafka launch mode : SimpleProducer, KafkaStreaming or SparkKafkaPlugin
     * @param sparkConfig The Spark configuration
     * @return Any, otherwise an Error
     */
@@ -54,7 +54,7 @@ class KafkaSink {
     props.put("value.serializer", classOf[StringSerializer].getName)
     val producer = new KafkaProducer[String, String](props)
     kafkaMode match {
-      case ProducerConsumer(useConsumer, offset, consumerGroup) =>
+      case SimpleProducer(useConsumer, offset, consumerGroup) =>
         send(jsonPath, topic, producer)
         Try(if (useConsumer) {
           consume(topic, bootstrapServers, offset, consumerGroup)
