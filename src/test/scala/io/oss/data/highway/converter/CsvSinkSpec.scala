@@ -41,6 +41,7 @@ class CsvSinkSpec
   override def beforeEach(): Unit = {
     deleteFolderWithItsContent(folderParquetToCsvData)
     deleteFolderWithItsContent(folderJsonToCsvData)
+    deleteFolderWithItsContent(folderAvroToCsvData)
     deleteFolderWithItsContent(folderXlsxCsvData)
   }
 
