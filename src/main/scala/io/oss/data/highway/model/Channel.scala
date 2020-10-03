@@ -18,6 +18,8 @@ case object ParquetJson extends Channel
 
 case object CsvJson extends Channel
 
+case object AvroJson extends Channel
+
 case object JsonKafka extends Channel
 
 case object ParquetAvro extends Channel

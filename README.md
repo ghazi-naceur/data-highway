@@ -25,6 +25,15 @@ route {
 }
 ````
 
+**c- From Avro to JSON** : 
+````hocon
+route {
+  type = avro-to-json
+  in = "your-input-folder-containing-avro-files"
+  out = "your-output-folder-that-will-contain-your-generated-json-files"
+}
+````
+
 **2- Parquet conversion** :
 ---
 

@@ -36,6 +36,8 @@ class AvroSinkSpec
 
   override def beforeEach(): Unit = {
     deleteFolderWithItsContent(folderParquetToAvro)
+    deleteFolderWithItsContent(folderJsonToAvro)
+    deleteFolderWithItsContent(folderCsvToAvro)
   }
 
   private def deleteFolderWithItsContent(path: String): Unit = {
