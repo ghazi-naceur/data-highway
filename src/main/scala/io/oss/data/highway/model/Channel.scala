@@ -8,6 +8,8 @@ case object CsvParquet extends Channel
 
 case object JsonParquet extends Channel
 
+case object AvroParquet extends Channel
+
 case object ParquetCsv extends Channel
 
 case object JsonCsv extends Channel
