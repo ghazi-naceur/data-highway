@@ -44,6 +44,8 @@ object App {
                                       sparkConfig)
         case route @ ParquetToAvro(in, out) =>
           AvroSink.apply(in, out, route.channel, Overwrite, sparkConfig)
+        case route @ JsonToAvro(in, out) =>
+          AvroSink.apply(in, out, route.channel, Overwrite, sparkConfig)
         case _ =>
           throw new RuntimeException(
             s"The provided route '$conf' is ont supported.")

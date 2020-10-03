@@ -90,6 +90,15 @@ route {
 }
 ```
 
+**b- From Json to Avro** :
+```hocon
+route {
+  type = json-to-avro
+  in = src/test/resources/json_to_avro-data/input/
+  out = src/test/resources/json_to_avro-data/output/
+}
+```
+
 **5- Send data to Kafka** :
 ---
 
