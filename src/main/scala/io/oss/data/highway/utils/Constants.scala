@@ -11,4 +11,5 @@ object Constants {
   val PATH_WITHOUT_EXTENSION = "[.][^.]+$"
   val DateTimePattern = "yyyy-MM-dd_HH:mm:ss.SSS"
   val MASTER_URL = "local[*]"
+  val AVRO_TYPE = "avro"
 }

@@ -3,8 +3,8 @@ package io.oss.data.highway.utils
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import cats.syntax.either._
 import io.oss.data.highway.configuration.SparkConfig
-import io.oss.data.highway.model.{CSV, DataType, JSON, PARQUET}
-import io.oss.data.highway.utils.Constants.{MASTER_URL, SEPARATOR}
+import io.oss.data.highway.model.{AVRO, CSV, DataType, JSON, PARQUET}
+import io.oss.data.highway.utils.Constants.{AVRO_TYPE, SEPARATOR}
 
 case class DataFrameUtils(sparkConf: SparkConfig) {
 
@@ -40,6 +40,10 @@ case class DataFrameUtils(sparkConf: SparkConfig) {
         case PARQUET =>
           sparkSession.read
             .parquet(in)
+        case AVRO =>
+          sparkSession.read
+            .format(AVRO_TYPE)
+            .load(in)
       }
     }
   }

@@ -2,6 +2,8 @@ package io.oss.data.highway.converter
 
 import io.oss.data.highway.model.DataHighwayError.JsonError
 import io.oss.data.highway.model.{
+  AVRO,
+  AvroJson,
   CSV,
   Channel,
   CsvJson,
@@ -68,6 +70,31 @@ object JsonSink {
   }
 
   /**
+    * Save avro file as json
+    *
+    * @param in       The input avro path
+    * @param out      The generated json file path
+    * @param saveMode The file saving mode
+    * @param sparkConfig The Spark Configuration
+    * @return Unit if successful, otherwise Error
+    */
+  def saveAvroAsJson(in: String,
+                     out: String,
+                     saveMode: SaveMode,
+                     sparkConfig: SparkConfig): Either[JsonError, Unit] = {
+    DataFrameUtils(sparkConfig)
+      .loadDataFrame(in, AVRO)
+      .map(df => {
+        df.coalesce(1)
+          .write
+          .mode(saveMode)
+          .json(out)
+      })
+      .leftMap(thr =>
+        JsonError(thr.getMessage, thr.getCause, thr.getStackTrace))
+  }
+
+  /**
     * Reads json file
     *
     * @param path The json file path
@@ -92,6 +119,8 @@ object JsonSink {
         handleParquetJsonChannel(in, out, saveMode, sparkConfig)
       case CsvJson =>
         handleCsvJsonChannel(in, out, saveMode, sparkConfig)
+      case AvroJson =>
+        handleAvroJsonChannel(in, out, saveMode, sparkConfig)
       case _ =>
         throw new RuntimeException("Not suppose to happen !")
     }
@@ -118,6 +147,33 @@ object JsonSink {
           val suffix =
             FilesUtils.reversePathSeparator(folder).split("/").last
           saveCsvAsJson(folder, s"$out/$suffix", saveMode, sparkConfig)
+        })
+        .leftMap(error =>
+          JsonError(error.message, error.cause, error.stacktrace))
+    } yield list
+  }
+
+  /**
+    * Converts avro files to json files
+    *
+    * @param in        The input avro path
+    * @param out       The generated json file path
+    * @param saveMode  The file saving mode
+    * @param sparkConfig The Spark Configuration
+    * @return List[Unit], otherwise Error
+    */
+  private def handleAvroJsonChannel(
+      in: String,
+      out: String,
+      saveMode: SaveMode,
+      sparkConfig: SparkConfig): Either[DataHighwayError, List[Unit]] = {
+    for {
+      folders <- FilesUtils.listFoldersRecursively(in)
+      list <- folders
+        .traverse(folder => {
+          val suffix =
+            FilesUtils.reversePathSeparator(folder).split("/").last
+          saveAvroAsJson(folder, s"$out/$suffix", saveMode, sparkConfig)
         })
         .leftMap(error =>
           JsonError(error.message, error.cause, error.stacktrace))

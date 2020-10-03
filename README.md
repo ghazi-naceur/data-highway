@@ -5,7 +5,7 @@ You can convert your data to multiple data types.
 Provide the following parameters in the `application.conf` and launch the app :
 
 **1- JSON conversion** :
-___
+---
 
 **a- From Parquet to JSON** : 
 ````hocon
@@ -25,8 +25,17 @@ route {
 }
 ````
 
+**c- From Avro to JSON** : 
+````hocon
+route {
+  type = avro-to-json
+  in = "your-input-folder-containing-avro-files"
+  out = "your-output-folder-that-will-contain-your-generated-json-files"
+}
+````
+
 **2- Parquet conversion** :
-___
+---
 
 **a- From JSON to Parquet** : 
 ````hocon
@@ -46,8 +55,17 @@ route {
 }
 ````
 
+**c- From Avro to Parquet** : 
+````hocon
+route {
+  type = avro-to-parquet
+  in = "your-input-folder-containing-avro-files"
+  out = "your-output-folder-that-will-contain-your-generated-parquet-files"
+}
+````
+
 **3- CSV conversion** :
-___
+---
 
 **a- From JSON to CSV** : 
 ````hocon
@@ -67,7 +85,16 @@ route {
 }
 ````
 
-**c- From XLSX to CSV** : 
+**c- From Avro to CSV** : 
+````hocon
+route {
+  type = avro-to-csv
+  in = "your-input-folder-containing-avro-files"
+  out = "your-output-folder-that-will-contain-your-generated-csv-files"
+}
+````
+
+**d- From XLSX to CSV** : 
 
 Consist of converting the different sheets of an XLSX or XLS file to multiple csv files.
 ````hocon
@@ -78,8 +105,38 @@ route {
 }
 ````
 
-**4- Send data to Kafka** :
-___
+**4- Avro conversion** :
+---
+
+**a- From Parquet to Avro** :
+```hocon
+route {
+  type = parquet-to-avro
+  in = "your-input-folder-containing-parquet-files"
+  out = "your-output-folder-that-will-contain-your-generated-avro-files"
+}
+```
+
+**b- From Json to Avro** :
+```hocon
+route {
+  type = json-to-avro
+  in = "your-input-folder-containing-json-files"
+  out = "your-output-folder-that-will-contain-your-generated-avro-files"
+}
+```
+
+**c- From Csv to Avro** :
+```hocon
+route {
+    type = csv-to-avro
+  in = "your-input-folder-containing-csv-files"
+  out = "your-output-folder-that-will-contain-your-generated-avro-files"
+}
+```
+
+**5- Send data to Kafka** :
+---
 
 This mode is available using 3 types of channel : 
 

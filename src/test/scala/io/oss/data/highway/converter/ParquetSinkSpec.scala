@@ -21,6 +21,7 @@ class ParquetSinkSpec
 
   val folderCsvToParquet = "src/test/resources/csv_to_parquet-data/"
   val folderJsonToParquet = "src/test/resources/json_to_parquet-data/"
+  val folderAvroToParquet = "src/test/resources/avro_to_parquet-data/"
   val sparkConfig: SparkConfig =
     SparkConfig("handler-app-test", "local[*]", WARN)
 
@@ -36,6 +37,7 @@ class ParquetSinkSpec
   override def beforeEach(): Unit = {
     deleteFolderWithItsContent(folderCsvToParquet)
     deleteFolderWithItsContent(folderJsonToParquet)
+    deleteFolderWithItsContent(folderAvroToParquet)
   }
 
   private def deleteFolderWithItsContent(path: String): Unit = {
@@ -59,6 +61,46 @@ class ParquetSinkSpec
                         sparkConfig)
     val actual =
       ParquetSink.readParquet(folderCsvToParquet + "output/mock-data-2",
+                              sparkConfig)
+
+    val expected = List(
+      (6.0,
+       "Marquita",
+       "Jarrad",
+       "mjarrad5@rakuten.co.jp",
+       "Female",
+       "247.246.40.151"),
+      (7.0, "Bordie", "Altham", "baltham6@hud.gov", "Male", "234.202.91.240"),
+      (8.0, "Dom", "Greson", "dgreson7@somehting.com", "Male", "103.7.243.71"),
+      (9.0,
+       "Alphard",
+       "Meardon",
+       "ameardon8@comsenz.com",
+       "Male",
+       "37.31.17.200"),
+      (10.0,
+       "Reynold",
+       "Neighbour",
+       "rneighbour9@gravatar.com",
+       "Male",
+       "215.57.123.52")
+    ).toDF("id", "first_name", "last_name", "email", "gender", "ip_address")
+
+    assertSmallDatasetEquality(actual.right.get.orderBy("id"),
+                               expected,
+                               ignoreNullable = true)
+  }
+
+  "ParquetSink.saveAvroAsParquet" should "save a avro as a parquet file" in {
+    import spark.implicits._
+
+    ParquetSink
+      .saveAvroAsParquet(folderAvroToParquet + "input/mock-data-2",
+                         folderAvroToParquet + "output/mock-data-2",
+                         SaveMode.Overwrite,
+                         sparkConfig)
+    val actual =
+      ParquetSink.readParquet(folderAvroToParquet + "output/mock-data-2",
                               sparkConfig)
 
     val expected = List(

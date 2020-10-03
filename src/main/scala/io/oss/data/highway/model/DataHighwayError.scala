@@ -66,4 +66,12 @@ object DataHighwayError {
     override def toString: String =
       s"- Message: $message \n- Cause: $cause \n- Stacktrace: ${stacktrace.mkString("\n")}"
   }
+
+  case class AvroError(message: String,
+                       cause: Throwable,
+                       stacktrace: Array[StackTraceElement])
+      extends DataHighwayError {
+    override def toString: String =
+      s"- Message: $message \n- Cause: $cause \n- Stacktrace: ${stacktrace.mkString("\n")}"
+  }
 }

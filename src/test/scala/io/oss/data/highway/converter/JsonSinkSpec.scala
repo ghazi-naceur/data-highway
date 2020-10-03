@@ -21,6 +21,7 @@ class JsonSinkSpec
 
   val folderParquetToJson = "src/test/resources/parquet_to_json-data/"
   val folderCsvToJson = "src/test/resources/csv_to_json-data/"
+  val folderAvroToJson = "src/test/resources/avro_to_json-data/"
   val sparkConfig: SparkConfig =
     SparkConfig("handler-app-test", "local[*]", WARN)
 
@@ -35,6 +36,7 @@ class JsonSinkSpec
 
   override def beforeEach(): Unit = {
     deleteFoldersWithContents(folderParquetToJson)
+    deleteFoldersWithContents(folderAvroToJson)
     deleteFoldersWithContents(folderCsvToJson)
   }
 
@@ -59,6 +61,52 @@ class JsonSinkSpec
                          sparkConfig)
     val actual =
       JsonSink.readJson(folderParquetToJson + "output/mock-data-2", sparkConfig)
+
+    val expected = List(
+      (6.0,
+       "Marquita",
+       "Jarrad",
+       "mjarrad5@rakuten.co.jp",
+       "Female",
+       "247.246.40.151"),
+      (7.0, "Bordie", "Altham", "baltham6@hud.gov", "Male", "234.202.91.240"),
+      (8.0, "Dom", "Greson", "dgreson7@somehting.com", "Male", "103.7.243.71"),
+      (9.0,
+       "Alphard",
+       "Meardon",
+       "ameardon8@comsenz.com",
+       "Male",
+       "37.31.17.200"),
+      (10.0,
+       "Reynold",
+       "Neighbour",
+       "rneighbour9@gravatar.com",
+       "Male",
+       "215.57.123.52")
+    ).toDF("id", "first_name", "last_name", "email", "gender", "ip_address")
+
+    assertSmallDatasetEquality(actual.right.get
+                                 .orderBy("id")
+                                 .select("id",
+                                         "first_name",
+                                         "last_name",
+                                         "email",
+                                         "gender",
+                                         "ip_address"),
+                               expected,
+                               ignoreNullable = true)
+  }
+
+  "JsonSink.saveAvroAsJson" should "save an avro as a json file" in {
+    import spark.implicits._
+
+    JsonSink
+      .saveAvroAsJson(folderAvroToJson + "input/mock-data-2",
+                      folderAvroToJson + "output/mock-data-2",
+                      SaveMode.Overwrite,
+                      sparkConfig)
+    val actual =
+      JsonSink.readJson(folderAvroToJson + "output/mock-data-2", sparkConfig)
 
     val expected = List(
       (6.0,
