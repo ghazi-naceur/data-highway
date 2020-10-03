@@ -4,7 +4,9 @@ import io.oss.data.highway.configuration.SparkConfig
 import io.oss.data.highway.model.DataHighwayError.{AvroError, ParquetError}
 import io.oss.data.highway.model.{
   AVRO,
+  CSV,
   Channel,
+  CsvAvro,
   DataHighwayError,
   JSON,
   JsonAvro,
@@ -67,6 +69,30 @@ object AvroSink {
   }
 
   /**
+    * Save a csv file as avro
+    * @param in The input csv path
+    * @param out The generated avro file path
+    * @param saveMode The file saving mode
+    * @param sparkConfig The Spark Configuration
+    * @return Unit if successful, otherwise Error
+    */
+  def saveCsvAsAvro(in: String,
+                    out: String,
+                    saveMode: SaveMode,
+                    sparkConfig: SparkConfig): Either[AvroError, Unit] = {
+    DataFrameUtils(sparkConfig)
+      .loadDataFrame(in, CSV)
+      .map(df => {
+        df.write
+          .format(AVRO_TYPE)
+          .mode(saveMode)
+          .save(out)
+      })
+      .leftMap(thr =>
+        AvroError(thr.getMessage, thr.getCause, thr.getStackTrace))
+  }
+
+  /**
     * Converts parquet files to avro files
     *
     * @param in              The input parquet path
@@ -118,6 +144,32 @@ object AvroSink {
     } yield list
   }
 
+  /**
+    * Converts csv files to avro files
+    *
+    * @param in              The input csv path
+    * @param out             The generated avro file path
+    * @param saveMode        The file saving mode
+    * @param sparkConfig The Spark Configuration
+    * @return List[Unit], otherwise Error
+    */
+  private def handleCsvAvroChannel(
+      in: String,
+      out: String,
+      saveMode: SaveMode,
+      sparkConfig: SparkConfig): Either[DataHighwayError, List[Unit]] = {
+    for {
+      folders <- FilesUtils.listFoldersRecursively(in)
+      list <- folders
+        .traverse(folder => {
+          val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
+          saveCsvAsAvro(folder, s"$out/$suffix", saveMode, sparkConfig)
+        })
+        .leftMap(error =>
+          AvroError(error.message, error.cause, error.stacktrace))
+    } yield list
+  }
+
   def apply(in: String,
             out: String,
             channel: Channel,
@@ -128,6 +180,8 @@ object AvroSink {
         handleParquetAvroChannel(in, out, saveMode, sparkConfig)
       case JsonAvro =>
         handleJsonAvroChannel(in, out, saveMode, sparkConfig)
+      case CsvAvro =>
+        handleCsvAvroChannel(in, out, saveMode, sparkConfig)
       case _ =>
         throw new RuntimeException("Not suppose to happen !")
     }

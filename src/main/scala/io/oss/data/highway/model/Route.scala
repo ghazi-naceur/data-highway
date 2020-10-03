@@ -46,3 +46,7 @@ case class ParquetToAvro(in: String, out: String) extends Route {
 case class JsonToAvro(in: String, out: String) extends Route {
   override val channel: Channel = JsonAvro
 }
+
+case class CsvToAvro(in: String, out: String) extends Route {
+  override val channel: Channel = CsvAvro
+}

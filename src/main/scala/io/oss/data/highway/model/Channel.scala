@@ -21,3 +21,5 @@ case object JsonKafka extends Channel
 case object ParquetAvro extends Channel
 
 case object JsonAvro extends Channel
+
+case object CsvAvro extends Channel
