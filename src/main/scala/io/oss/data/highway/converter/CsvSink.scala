@@ -71,6 +71,33 @@ object CsvSink {
   }
 
   /**
+    * Save avro file as csv
+    *
+    * @param in              The input avro path
+    * @param out             The generated csv file path
+    * @param saveMode        The file saving mode
+    * @param sparkConfig The Spark Configuration
+    * @return Unit if successful, otherwise Error
+    */
+  def saveAvroAsCsv(in: String,
+                    out: String,
+                    saveMode: SaveMode,
+                    sparkConfig: SparkConfig): Either[CsvError, Unit] = {
+    DataFrameUtils(sparkConfig)
+      .loadDataFrame(in, AVRO)
+      .map(df => {
+        df.coalesce(1)
+          .write
+          .mode(saveMode)
+          .option("inferSchema", "true")
+          .option("header", "true")
+          .option("sep", SEPARATOR)
+          .csv(out)
+      })
+      .leftMap(thr => CsvError(thr.getMessage, thr.getCause, thr.getStackTrace))
+  }
+
+  /**
     * Reads csv file
     *
     * @param path The csv file path
@@ -94,6 +121,8 @@ object CsvSink {
         handleParquetCsvChannel(in, out, saveMode, sparkConfig)
       case JsonCsv =>
         handleJsonCsvChannel(in, out, saveMode, sparkConfig)
+      case AvroCsv =>
+        handleAvroCsvChannel(in, out, saveMode, sparkConfig)
       case XlsxCsv =>
         handleXlsxCsvChannel(in, out, Seq(XLSX_EXTENSION, XLS_EXTENSION))
       case _ =>
@@ -147,6 +176,32 @@ object CsvSink {
         .traverse(folder => {
           val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
           saveJsonAsCsv(folder, s"$out/$suffix", saveMode, sparkConfig)
+        })
+        .leftMap(error =>
+          CsvError(error.message, error.cause, error.stacktrace))
+    } yield list
+  }
+
+  /**
+    * Converts avro files to csv files
+    *
+    * @param in              The input avro path
+    * @param out             The generated csv file path
+    * @param saveMode        The file saving mode
+    * @param sparkConfig The Spark Configuration
+    * @return List[Unit], otherwise Error
+    */
+  private def handleAvroCsvChannel(
+      in: String,
+      out: String,
+      saveMode: SaveMode,
+      sparkConfig: SparkConfig): Either[DataHighwayError, List[Unit]] = {
+    for {
+      folders <- FilesUtils.listFoldersRecursively(in)
+      list <- folders
+        .traverse(folder => {
+          val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
+          saveAvroAsCsv(folder, s"$out/$suffix", saveMode, sparkConfig)
         })
         .leftMap(error =>
           CsvError(error.message, error.cause, error.stacktrace))

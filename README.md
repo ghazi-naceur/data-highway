@@ -67,7 +67,16 @@ route {
 }
 ````
 
-**c- From XLSX to CSV** : 
+**c- From Avro to CSV** : 
+````hocon
+route {
+  type = avro-to-csv
+  in = "your-input-folder-containing-avro-files"
+  out = "your-output-folder-that-will-contain-your-generated-csv-files"
+}
+````
+
+**d- From XLSX to CSV** : 
 
 Consist of converting the different sheets of an XLSX or XLS file to multiple csv files.
 ````hocon
@@ -85,8 +94,8 @@ route {
 ```hocon
 route {
   type = parquet-to-avro
-  in = src/test/resources/parquet_to_avro-data/input/
-  out = src/test/resources/parquet_to_avro-data/output/
+  in = "your-input-folder-containing-parquet-files"
+  out = "your-output-folder-that-will-contain-your-generated-avro-files"
 }
 ```
 
@@ -94,8 +103,8 @@ route {
 ```hocon
 route {
   type = json-to-avro
-  in = src/test/resources/json_to_avro-data/input/
-  out = src/test/resources/json_to_avro-data/output/
+  in = "your-input-folder-containing-json-files"
+  out = "your-output-folder-that-will-contain-your-generated-avro-files"
 }
 ```
 
@@ -103,8 +112,8 @@ route {
 ```hocon
 route {
     type = csv-to-avro
-    in = src/test/resources/csv_to_avro-data/input/
-    out = src/test/resources/csv_to_avro-data/output/
+  in = "your-input-folder-containing-csv-files"
+  out = "your-output-folder-that-will-contain-your-generated-avro-files"
 }
 ```
 

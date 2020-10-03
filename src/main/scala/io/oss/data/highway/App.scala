@@ -30,6 +30,8 @@ object App {
           CsvSink.apply(in, out, route.channel, Overwrite, sparkConfig)
         case route @ ParquetToCsv(in, out) =>
           CsvSink.apply(in, out, route.channel, Overwrite, sparkConfig)
+        case route @ AvroToCsv(in, out) =>
+          CsvSink.apply(in, out, route.channel, Overwrite, sparkConfig)
         case route @ JsonToCsv(in, out) =>
           CsvSink.apply(in, out, route.channel, Overwrite, sparkConfig)
         case route @ ParquetToJson(in, out) =>
