@@ -48,12 +48,12 @@ object App {
                                       brokerUrl,
                                       kafkaMode,
                                       sparkConfig)
-        case route @ ParquetToAvro(in, out) =>
-          AvroSink.apply(in, out, route.channel, Overwrite, sparkConfig)
-        case route @ JsonToAvro(in, out) =>
-          AvroSink.apply(in, out, route.channel, Overwrite, sparkConfig)
-        case route @ CsvToAvro(in, out) =>
-          AvroSink.apply(in, out, route.channel, Overwrite, sparkConfig)
+        case ParquetToAvro(in, out) =>
+          AvroSink.apply(in, out, Overwrite, PARQUET, sparkConfig)
+        case JsonToAvro(in, out) =>
+          AvroSink.apply(in, out, Overwrite, JSON, sparkConfig)
+        case CsvToAvro(in, out) =>
+          AvroSink.apply(in, out, Overwrite, CSV, sparkConfig)
         case _ =>
           throw new RuntimeException(
             s"The provided route '$conf' is ont supported.")
