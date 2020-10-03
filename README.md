@@ -99,6 +99,15 @@ route {
 }
 ```
 
+**c- From Csv to Avro** :
+```hocon
+route {
+    type = csv-to-avro
+    in = src/test/resources/csv_to_avro-data/input/
+    out = src/test/resources/csv_to_avro-data/output/
+}
+```
+
 **5- Send data to Kafka** :
 ---
 
