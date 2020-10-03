@@ -1,7 +1,13 @@
 package io.oss.data.highway
 
 import io.oss.data.highway.configuration.ConfigLoader
-import io.oss.data.highway.converter.{CsvSink, JsonSink, KafkaSink, ParquetSink}
+import io.oss.data.highway.converter.{
+  AvroSink,
+  CsvSink,
+  JsonSink,
+  KafkaSink,
+  ParquetSink
+}
 import io.oss.data.highway.model._
 import org.apache.spark.sql.SaveMode.Overwrite
 import org.apache.log4j.{BasicConfigurator, Logger}
@@ -36,6 +42,8 @@ object App {
                                       brokerUrl,
                                       kafkaMode,
                                       sparkConfig)
+        case route @ ParquetToAvro(in, out) =>
+          AvroSink.apply(in, out, route.channel, Overwrite, sparkConfig)
         case _ =>
           throw new RuntimeException(
             s"The provided route '$conf' is ont supported.")

@@ -38,3 +38,7 @@ case class JsonToKafka(in: String,
     extends Route {
   override val channel: Channel = JsonKafka
 }
+
+case class ParquetToAvro(in: String, out: String) extends Route {
+  override val channel: Channel = ParquetAvro
+}
