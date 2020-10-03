@@ -6,6 +6,8 @@ import io.oss.data.highway.model.{
   AVRO,
   Channel,
   DataHighwayError,
+  JSON,
+  JsonAvro,
   PARQUET,
   ParquetAvro
 }
@@ -30,6 +32,30 @@ object AvroSink {
                         sparkConfig: SparkConfig): Either[AvroError, Unit] = {
     DataFrameUtils(sparkConfig)
       .loadDataFrame(in, PARQUET)
+      .map(df => {
+        df.write
+          .format(AVRO_TYPE)
+          .mode(saveMode)
+          .save(out)
+      })
+      .leftMap(thr =>
+        AvroError(thr.getMessage, thr.getCause, thr.getStackTrace))
+  }
+
+  /**
+    * Save a json file as avro
+    * @param in The input json path
+    * @param out The generated avro file path
+    * @param saveMode The file saving mode
+    * @param sparkConfig The Spark Configuration
+    * @return Unit if successful, otherwise Error
+    */
+  def saveJsonAsAvro(in: String,
+                     out: String,
+                     saveMode: SaveMode,
+                     sparkConfig: SparkConfig): Either[AvroError, Unit] = {
+    DataFrameUtils(sparkConfig)
+      .loadDataFrame(in, JSON)
       .map(df => {
         df.write
           .format(AVRO_TYPE)
@@ -66,6 +92,32 @@ object AvroSink {
     } yield list
   }
 
+  /**
+    * Converts json files to avro files
+    *
+    * @param in              The input json path
+    * @param out             The generated avro file path
+    * @param saveMode        The file saving mode
+    * @param sparkConfig The Spark Configuration
+    * @return List[Unit], otherwise Error
+    */
+  private def handleJsonAvroChannel(
+      in: String,
+      out: String,
+      saveMode: SaveMode,
+      sparkConfig: SparkConfig): Either[DataHighwayError, List[Unit]] = {
+    for {
+      folders <- FilesUtils.listFoldersRecursively(in)
+      list <- folders
+        .traverse(folder => {
+          val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
+          saveJsonAsAvro(folder, s"$out/$suffix", saveMode, sparkConfig)
+        })
+        .leftMap(error =>
+          AvroError(error.message, error.cause, error.stacktrace))
+    } yield list
+  }
+
   def apply(in: String,
             out: String,
             channel: Channel,
@@ -74,6 +126,8 @@ object AvroSink {
     channel match {
       case ParquetAvro =>
         handleParquetAvroChannel(in, out, saveMode, sparkConfig)
+      case JsonAvro =>
+        handleJsonAvroChannel(in, out, saveMode, sparkConfig)
       case _ =>
         throw new RuntimeException("Not suppose to happen !")
     }
