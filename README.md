@@ -55,6 +55,15 @@ route {
 }
 ````
 
+**c- From Avro to Parquet** : 
+````hocon
+route {
+  type = avro-to-parquet
+  in = "your-input-folder-containing-avro-files"
+  out = "your-output-folder-that-will-contain-your-generated-parquet-files"
+}
+````
+
 **3- CSV conversion** :
 ---
 

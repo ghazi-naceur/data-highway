@@ -16,6 +16,10 @@ case class JsonToParquet(in: String, out: String) extends Route {
   override val channel: Channel = JsonParquet
 }
 
+case class AvroToParquet(in: String, out: String) extends Route {
+  override val channel: Channel = AvroParquet
+}
+
 case class ParquetToCsv(in: String, out: String) extends Route {
   override val channel: Channel = ParquetCsv
 }

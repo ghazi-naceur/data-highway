@@ -26,6 +26,8 @@ object App {
           ParquetSink.apply(in, out, route.channel, Overwrite, sparkConfig)
         case route @ JsonToParquet(in, out) =>
           ParquetSink.apply(in, out, route.channel, Overwrite, sparkConfig)
+        case route @ AvroToParquet(in, out) =>
+          ParquetSink.apply(in, out, route.channel, Overwrite, sparkConfig)
         case route @ XlsxToCsv(in, out) =>
           CsvSink.apply(in, out, route.channel, Overwrite, sparkConfig)
         case route @ ParquetToCsv(in, out) =>

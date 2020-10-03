@@ -2,6 +2,8 @@ package io.oss.data.highway.converter
 
 import io.oss.data.highway.model.DataHighwayError.ParquetError
 import io.oss.data.highway.model.{
+  AVRO,
+  AvroParquet,
   CSV,
   Channel,
   CsvParquet,
@@ -66,6 +68,31 @@ object ParquetSink {
   }
 
   /**
+    * Save a avro file as parquet
+    *
+    * @param in       The input avro path
+    * @param out      The generated parquet file path
+    * @param saveMode The file saving mode
+    * @param sparkConfig The Spark Configuration
+    * @return Unit if successful, otherwise Error
+    */
+  def saveAvroAsParquet(
+      in: String,
+      out: String,
+      saveMode: SaveMode,
+      sparkConfig: SparkConfig): Either[ParquetError, Unit] = {
+    DataFrameUtils(sparkConfig)
+      .loadDataFrame(in, AVRO)
+      .map(df => {
+        df.write
+          .mode(saveMode)
+          .parquet(out)
+      })
+      .leftMap(thr =>
+        ParquetError(thr.getMessage, thr.getCause, thr.getStackTrace))
+  }
+
+  /**
     * Reads parquet file
     *
     * @param path The parquet file path
@@ -90,6 +117,8 @@ object ParquetSink {
         handleCsvParquetChannel(in, out, saveMode, sparkConfig)
       case JsonParquet =>
         handleJsonParquetChannel(in, out, saveMode, sparkConfig)
+      case AvroParquet =>
+        handleAvroParquetChannel(in, out, saveMode, sparkConfig)
       case _ =>
         throw new RuntimeException("Not suppose to happen !")
     }
@@ -115,6 +144,32 @@ object ParquetSink {
         .traverse(folder => {
           val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
           saveCsvAsParquet(folder, s"$out/$suffix", saveMode, sparkConfig)
+        })
+        .leftMap(error =>
+          ParquetError(error.message, error.cause, error.stacktrace))
+    } yield list
+  }
+
+  /**
+    * Converts avro files to parquet files
+    *
+    * @param in              The input avro path
+    * @param out             The generated parquet file path
+    * @param saveMode        The file saving mode
+    * @param sparkConfig The Spark Configuration
+    * @return List[Unit], otherwise Error
+    */
+  private def handleAvroParquetChannel(
+      in: String,
+      out: String,
+      saveMode: SaveMode,
+      sparkConfig: SparkConfig): Either[DataHighwayError, List[Unit]] = {
+    for {
+      folders <- FilesUtils.listFoldersRecursively(in)
+      list <- folders
+        .traverse(folder => {
+          val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
+          saveAvroAsParquet(folder, s"$out/$suffix", saveMode, sparkConfig)
         })
         .leftMap(error =>
           ParquetError(error.message, error.cause, error.stacktrace))
