@@ -5,7 +5,7 @@ You can convert your data to multiple data types.
 Provide the following parameters in the `application.conf` and launch the app :
 
 **1- JSON conversion** :
-___
+---
 
 **a- From Parquet to JSON** : 
 ````hocon
@@ -26,7 +26,7 @@ route {
 ````
 
 **2- Parquet conversion** :
-___
+---
 
 **a- From JSON to Parquet** : 
 ````hocon
@@ -47,7 +47,7 @@ route {
 ````
 
 **3- CSV conversion** :
-___
+---
 
 **a- From JSON to CSV** : 
 ````hocon
@@ -78,8 +78,20 @@ route {
 }
 ````
 
-**4- Send data to Kafka** :
-___
+**4- Avro conversion** :
+---
+
+**a- From Parquet to Avro** :
+```hocon
+route {
+  type = parquet-to-avro
+  in = src/test/resources/parquet_to_avro-data/input/
+  out = src/test/resources/parquet_to_avro-data/output/
+}
+```
+
+**5- Send data to Kafka** :
+---
 
 This mode is available using 3 types of channel : 
 
