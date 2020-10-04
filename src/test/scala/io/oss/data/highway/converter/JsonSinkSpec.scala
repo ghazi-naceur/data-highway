@@ -5,8 +5,9 @@ import java.nio.file.{Files, Paths}
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
 import io.oss.data.highway.configuration.SparkConfig
-import io.oss.data.highway.model.WARN
-import org.apache.spark.sql.{SaveMode, SparkSession}
+import io.oss.data.highway.model.{AVRO, CSV, JSON, PARQUET, WARN}
+import io.oss.data.highway.utils.DataFrameUtils
+import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -24,7 +25,31 @@ class JsonSinkSpec
   val folderAvroToJson = "src/test/resources/avro_to_json-data/"
   val sparkConfig: SparkConfig =
     SparkConfig("handler-app-test", "local[*]", WARN)
-
+  val getExpected: DataFrame = {
+    import spark.implicits._
+    List(
+      (6.0,
+       "Marquita",
+       "Jarrad",
+       "mjarrad5@rakuten.co.jp",
+       "Female",
+       "247.246.40.151"),
+      (7.0, "Bordie", "Altham", "baltham6@hud.gov", "Male", "234.202.91.240"),
+      (8.0, "Dom", "Greson", "dgreson7@somehting.com", "Male", "103.7.243.71"),
+      (9.0,
+       "Alphard",
+       "Meardon",
+       "ameardon8@comsenz.com",
+       "Male",
+       "37.31.17.200"),
+      (10.0,
+       "Reynold",
+       "Neighbour",
+       "rneighbour9@gravatar.com",
+       "Male",
+       "215.57.123.52")
+    ).toDF("id", "first_name", "last_name", "email", "gender", "ip_address")
+  }
   lazy val spark: SparkSession = {
     SparkSession
       .builder()
@@ -52,140 +77,71 @@ class JsonSinkSpec
   }
 
   "JsonSink.saveParquetAsJson" should "save a parquet as a json file" in {
-    import spark.implicits._
-
     JsonSink
-      .saveParquetAsJson(folderParquetToJson + "input/mock-data-2",
-                         folderParquetToJson + "output/mock-data-2",
-                         SaveMode.Overwrite,
-                         sparkConfig)
+      .convertToJson(folderParquetToJson + "input/mock-data-2",
+                     folderParquetToJson + "output/mock-data-2",
+                     SaveMode.Overwrite,
+                     PARQUET,
+                     sparkConfig)
     val actual =
-      JsonSink.readJson(folderParquetToJson + "output/mock-data-2", sparkConfig)
+      DataFrameUtils(sparkConfig)
+        .loadDataFrame(folderParquetToJson + "output/mock-data-2", JSON)
+        .right
+        .get
+        .orderBy("id")
+        .select("id",
+                "first_name",
+                "last_name",
+                "email",
+                "gender",
+                "ip_address")
 
-    val expected = List(
-      (6.0,
-       "Marquita",
-       "Jarrad",
-       "mjarrad5@rakuten.co.jp",
-       "Female",
-       "247.246.40.151"),
-      (7.0, "Bordie", "Altham", "baltham6@hud.gov", "Male", "234.202.91.240"),
-      (8.0, "Dom", "Greson", "dgreson7@somehting.com", "Male", "103.7.243.71"),
-      (9.0,
-       "Alphard",
-       "Meardon",
-       "ameardon8@comsenz.com",
-       "Male",
-       "37.31.17.200"),
-      (10.0,
-       "Reynold",
-       "Neighbour",
-       "rneighbour9@gravatar.com",
-       "Male",
-       "215.57.123.52")
-    ).toDF("id", "first_name", "last_name", "email", "gender", "ip_address")
-
-    assertSmallDatasetEquality(actual.right.get
-                                 .orderBy("id")
-                                 .select("id",
-                                         "first_name",
-                                         "last_name",
-                                         "email",
-                                         "gender",
-                                         "ip_address"),
-                               expected,
-                               ignoreNullable = true)
+    assertSmallDatasetEquality(actual, getExpected, ignoreNullable = true)
   }
 
   "JsonSink.saveAvroAsJson" should "save an avro as a json file" in {
-    import spark.implicits._
-
     JsonSink
-      .saveAvroAsJson(folderAvroToJson + "input/mock-data-2",
-                      folderAvroToJson + "output/mock-data-2",
-                      SaveMode.Overwrite,
-                      sparkConfig)
+      .convertToJson(folderAvroToJson + "input/mock-data-2",
+                     folderAvroToJson + "output/mock-data-2",
+                     SaveMode.Overwrite,
+                     AVRO,
+                     sparkConfig)
     val actual =
-      JsonSink.readJson(folderAvroToJson + "output/mock-data-2", sparkConfig)
+      DataFrameUtils(sparkConfig)
+        .loadDataFrame(folderAvroToJson + "output/mock-data-2", JSON)
+        .right
+        .get
+        .orderBy("id")
+        .select("id",
+                "first_name",
+                "last_name",
+                "email",
+                "gender",
+                "ip_address")
 
-    val expected = List(
-      (6.0,
-       "Marquita",
-       "Jarrad",
-       "mjarrad5@rakuten.co.jp",
-       "Female",
-       "247.246.40.151"),
-      (7.0, "Bordie", "Altham", "baltham6@hud.gov", "Male", "234.202.91.240"),
-      (8.0, "Dom", "Greson", "dgreson7@somehting.com", "Male", "103.7.243.71"),
-      (9.0,
-       "Alphard",
-       "Meardon",
-       "ameardon8@comsenz.com",
-       "Male",
-       "37.31.17.200"),
-      (10.0,
-       "Reynold",
-       "Neighbour",
-       "rneighbour9@gravatar.com",
-       "Male",
-       "215.57.123.52")
-    ).toDF("id", "first_name", "last_name", "email", "gender", "ip_address")
-
-    assertSmallDatasetEquality(actual.right.get
-                                 .orderBy("id")
-                                 .select("id",
-                                         "first_name",
-                                         "last_name",
-                                         "email",
-                                         "gender",
-                                         "ip_address"),
-                               expected,
-                               ignoreNullable = true)
+    assertSmallDatasetEquality(actual, getExpected, ignoreNullable = true)
   }
 
   "JsonSink.saveCsvAsJson" should "save a csv as a json file" in {
-    import spark.implicits._
-
     JsonSink
-      .saveCsvAsJson(folderCsvToJson + "input/mock-data-2",
+      .convertToJson(folderCsvToJson + "input/mock-data-2",
                      folderCsvToJson + "output/mock-data-2",
                      SaveMode.Overwrite,
+                     CSV,
                      sparkConfig)
     val actual =
-      JsonSink.readJson(folderCsvToJson + "output/mock-data-2", sparkConfig)
+      DataFrameUtils(sparkConfig)
+        .loadDataFrame(folderCsvToJson + "output/mock-data-2", JSON)
+        .right
+        .get
+        .orderBy("id")
+        .select("id",
+                "first_name",
+                "last_name",
+                "email",
+                "gender",
+                "ip_address")
 
-    val expected = List(
-      (6.0,
-       "Marquita",
-       "Jarrad",
-       "mjarrad5@rakuten.co.jp",
-       "Female",
-       "247.246.40.151"),
-      (7.0, "Bordie", "Altham", "baltham6@hud.gov", "Male", "234.202.91.240"),
-      (8.0, "Dom", "Greson", "dgreson7@somehting.com", "Male", "103.7.243.71"),
-      (9.0,
-       "Alphard",
-       "Meardon",
-       "ameardon8@comsenz.com",
-       "Male",
-       "37.31.17.200"),
-      (10.0,
-       "Reynold",
-       "Neighbour",
-       "rneighbour9@gravatar.com",
-       "Male",
-       "215.57.123.52")
-    ).toDF("id", "first_name", "last_name", "email", "gender", "ip_address")
-
-    assertSmallDatasetEquality(actual.right.get
-                                 .orderBy("id")
-                                 .select("id",
-                                         "first_name",
-                                         "last_name",
-                                         "email",
-                                         "gender",
-                                         "ip_address"),
-                               expected,
-                               ignoreNullable = true)
+    assertSmallDatasetEquality(actual, getExpected, ignoreNullable = true)
   }
 }

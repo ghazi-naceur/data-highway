@@ -11,7 +11,8 @@ import io.oss.data.highway.utils.Constants.AVRO_TYPE
 object AvroSink {
 
   /**
-    * Converts a file to avro
+    * Converts file to avro
+    *
     * @param in The input data path
     * @param out The generated avro file path
     * @param saveMode The file saving mode
@@ -37,9 +38,9 @@ object AvroSink {
   }
 
   /**
-    * Converts parquet files to avro files
+    * Converts files to avro
     *
-    * @param in The input parquet path
+    * @param in The input data path
     * @param out The generated avro file path
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
