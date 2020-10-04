@@ -1,4 +1,4 @@
-package io.oss.data.highway.zoo.manual.tests
+package io.oss.data.highway.z.kafka.integration.tests
 
 import io.oss.data.highway.configuration.SparkConfig
 import io.oss.data.highway.converter.KafkaSink
