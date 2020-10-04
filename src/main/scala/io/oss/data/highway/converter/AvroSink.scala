@@ -12,7 +12,7 @@ object AvroSink {
 
   /**
     * Converts a file to avro
-    * @param in The input parquet path
+    * @param in The input data path
     * @param out The generated avro file path
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
@@ -46,7 +46,7 @@ object AvroSink {
     * @param sparkConfig The Spark Configuration
     * @return List[Unit], otherwise Error
     */
-  private def handleAvroChannel(
+  def handleAvroChannel(
       in: String,
       out: String,
       saveMode: SaveMode,
@@ -66,13 +66,5 @@ object AvroSink {
         .leftMap(error =>
           AvroError(error.message, error.cause, error.stacktrace))
     } yield list
-  }
-
-  def apply(in: String,
-            out: String,
-            saveMode: SaveMode,
-            inputDataType: DataType,
-            sparkConfig: SparkConfig): Either[DataHighwayError, List[Unit]] = {
-    handleAvroChannel(in, out, saveMode, inputDataType, sparkConfig)
   }
 }
