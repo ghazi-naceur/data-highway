@@ -1,6 +1,7 @@
 package io.oss.data.highway.model
 
 sealed trait Route {
+  // TODO channel to be removed
   val channel: Channel
 }
 

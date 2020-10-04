@@ -5,10 +5,10 @@ import java.nio.file.{Files, Paths}
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
 import io.oss.data.highway.configuration.SparkConfig
-import io.oss.data.highway.model.{WARN, XlsxCsv}
-import io.oss.data.highway.utils.Constants.XLSX_EXTENSION
-import io.oss.data.highway.utils.{Constants, MockSheetCreator}
-import org.apache.spark.sql.{SaveMode, SparkSession}
+import io.oss.data.highway.model.{AVRO, CSV, JSON, PARQUET, WARN}
+import io.oss.data.highway.utils.Constants.{XLSX_EXTENSION, XLS_EXTENSION}
+import io.oss.data.highway.utils.{Constants, DataFrameUtils, MockSheetCreator}
+import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -28,7 +28,31 @@ class CsvSinkSpec
   val extensions = Seq(XLSX_EXTENSION, Constants.XLS_EXTENSION)
   val sparkConfig: SparkConfig =
     SparkConfig("handler-app-test", "local[*]", WARN)
-
+  val getExpected: DataFrame = {
+    import spark.implicits._
+    List(
+      (6.0,
+       "Marquita",
+       "Jarrad",
+       "mjarrad5@rakuten.co.jp",
+       "Female",
+       "247.246.40.151"),
+      (7.0, "Bordie", "Altham", "baltham6@hud.gov", "Male", "234.202.91.240"),
+      (8.0, "Dom", "Greson", "dgreson7@somehting.com", "Male", "103.7.243.71"),
+      (9.0,
+       "Alphard",
+       "Meardon",
+       "ameardon8@comsenz.com",
+       "Male",
+       "37.31.17.200"),
+      (10.0,
+       "Reynold",
+       "Neighbour",
+       "rneighbour9@gravatar.com",
+       "Male",
+       "215.57.123.52")
+    ).toDF("id", "first_name", "last_name", "email", "gender", "ip_address")
+  }
   lazy val spark: SparkSession = {
     SparkSession
       .builder()
@@ -56,142 +80,76 @@ class CsvSinkSpec
       })
   }
 
-  "CsvSink.saveCsvAsParquet" should "save a parquet as a csv file" in {
-    import spark.implicits._
-
+  "CsvSink.saveParquetAsCsv" should "save a parquet as a csv file" in {
     CsvSink
-      .saveParquetAsCsv(folderParquetToCsvData + "input/mock-data-2",
-                        folderParquetToCsvData + "output/mock-data-2",
-                        SaveMode.Overwrite,
-                        sparkConfig)
+      .convertToCsv(folderParquetToCsvData + "input/mock-data-2",
+                    folderParquetToCsvData + "output/mock-data-2",
+                    SaveMode.Overwrite,
+                    PARQUET,
+                    sparkConfig)
     val actual =
-      CsvSink.readParquet(folderParquetToCsvData + "output/mock-data-2",
-                          sparkConfig)
+      DataFrameUtils(sparkConfig)
+        .loadDataFrame(folderParquetToCsvData + "output/mock-data-2", CSV)
+        .right
+        .get
+        .orderBy("id")
+        .select("id",
+                "first_name",
+                "last_name",
+                "email",
+                "gender",
+                "ip_address")
 
-    val expected = List(
-      (6.0,
-       "Marquita",
-       "Jarrad",
-       "mjarrad5@rakuten.co.jp",
-       "Female",
-       "247.246.40.151"),
-      (7.0, "Bordie", "Altham", "baltham6@hud.gov", "Male", "234.202.91.240"),
-      (8.0, "Dom", "Greson", "dgreson7@somehting.com", "Male", "103.7.243.71"),
-      (9.0,
-       "Alphard",
-       "Meardon",
-       "ameardon8@comsenz.com",
-       "Male",
-       "37.31.17.200"),
-      (10.0,
-       "Reynold",
-       "Neighbour",
-       "rneighbour9@gravatar.com",
-       "Male",
-       "215.57.123.52")
-    ).toDF("id", "first_name", "last_name", "email", "gender", "ip_address")
-
-    assertSmallDatasetEquality(actual.right.get.orderBy("id"),
-                               expected,
-                               ignoreNullable = true)
+    assertSmallDatasetEquality(actual, getExpected, ignoreNullable = true)
   }
 
   "CsvSink.saveJsonAsCsv" should "save a json as a csv file" in {
-    import spark.implicits._
-
     CsvSink
-      .saveJsonAsCsv(folderJsonToCsvData + "input/mock-data-2",
-                     folderJsonToCsvData + "output/mock-data-2",
-                     SaveMode.Overwrite,
-                     sparkConfig)
+      .convertToCsv(folderJsonToCsvData + "input/mock-data-2",
+                    folderJsonToCsvData + "output/mock-data-2",
+                    SaveMode.Overwrite,
+                    JSON,
+                    sparkConfig)
     val actual =
-      CsvSink.readParquet(folderJsonToCsvData + "output/mock-data-2",
-                          sparkConfig)
+      DataFrameUtils(sparkConfig)
+        .loadDataFrame(folderJsonToCsvData + "output/mock-data-2", CSV)
+        .right
+        .get
+        .orderBy("id")
+        .select("id",
+                "first_name",
+                "last_name",
+                "email",
+                "gender",
+                "ip_address")
 
-    val expected = List(
-      (6.0,
-       "Marquita",
-       "Jarrad",
-       "mjarrad5@rakuten.co.jp",
-       "Female",
-       "247.246.40.151"),
-      (7.0, "Bordie", "Altham", "baltham6@hud.gov", "Male", "234.202.91.240"),
-      (8.0, "Dom", "Greson", "dgreson7@somehting.com", "Male", "103.7.243.71"),
-      (9.0,
-       "Alphard",
-       "Meardon",
-       "ameardon8@comsenz.com",
-       "Male",
-       "37.31.17.200"),
-      (10.0,
-       "Reynold",
-       "Neighbour",
-       "rneighbour9@gravatar.com",
-       "Male",
-       "215.57.123.52")
-    ).toDF("id", "first_name", "last_name", "email", "gender", "ip_address")
-
-    assertSmallDatasetEquality(actual.right.get
-                                 .orderBy("id")
-                                 .select("id",
-                                         "first_name",
-                                         "last_name",
-                                         "email",
-                                         "gender",
-                                         "ip_address"),
-                               expected,
-                               ignoreNullable = true)
+    assertSmallDatasetEquality(actual, getExpected, ignoreNullable = true)
   }
 
   "CsvSink.saveAvroAsCsv" should "save a avro as a csv file" in {
-    import spark.implicits._
-
     CsvSink
-      .saveAvroAsCsv(folderAvroToCsvData + "input/mock-data-2",
-                     folderAvroToCsvData + "output/mock-data-2",
-                     SaveMode.Overwrite,
-                     sparkConfig)
+      .convertToCsv(folderAvroToCsvData + "input/mock-data-2",
+                    folderAvroToCsvData + "output/mock-data-2",
+                    SaveMode.Overwrite,
+                    AVRO,
+                    sparkConfig)
     val actual =
-      CsvSink.readParquet(folderAvroToCsvData + "output/mock-data-2",
-                          sparkConfig)
+      DataFrameUtils(sparkConfig)
+        .loadDataFrame(folderAvroToCsvData + "output/mock-data-2", CSV)
+        .right
+        .get
+        .orderBy("id")
+        .select("id",
+                "first_name",
+                "last_name",
+                "email",
+                "gender",
+                "ip_address")
 
-    val expected = List(
-      (6.0,
-       "Marquita",
-       "Jarrad",
-       "mjarrad5@rakuten.co.jp",
-       "Female",
-       "247.246.40.151"),
-      (7.0, "Bordie", "Altham", "baltham6@hud.gov", "Male", "234.202.91.240"),
-      (8.0, "Dom", "Greson", "dgreson7@somehting.com", "Male", "103.7.243.71"),
-      (9.0,
-       "Alphard",
-       "Meardon",
-       "ameardon8@comsenz.com",
-       "Male",
-       "37.31.17.200"),
-      (10.0,
-       "Reynold",
-       "Neighbour",
-       "rneighbour9@gravatar.com",
-       "Male",
-       "215.57.123.52")
-    ).toDF("id", "first_name", "last_name", "email", "gender", "ip_address")
-
-    assertSmallDatasetEquality(actual.right.get
-                                 .orderBy("id")
-                                 .select("id",
-                                         "first_name",
-                                         "last_name",
-                                         "email",
-                                         "gender",
-                                         "ip_address"),
-                               expected,
-                               ignoreNullable = true)
+    assertSmallDatasetEquality(actual, getExpected, ignoreNullable = true)
   }
 
   "CsvSink.convertXlsxFileToCsvFile" should "convert xlsx sheet to a csv file" in {
-
     CsvSink
       .convertXlsxSheetToCsvFile("something",
                                  MockSheetCreator.createXlsxSheet("new-sheet"),
@@ -207,7 +165,6 @@ class CsvSinkSpec
   }
 
   "CsvSink.convertXlsxFileToCsvFiles" should "convert xlsx file to multiple csv files" in {
-
     val inputStream =
       new FileInputStream(folderXlsxCsvData + "input/mock-xlsx-data-1.xlsx")
     CsvSink.convertXlsxFileToCsvFiles("mock-xlsx-data-1",
@@ -226,12 +183,9 @@ class CsvSinkSpec
   }
 
   "CsvSink.apply" should "convert xlsx files to multiple csv files" in {
-
-    CsvSink.apply(folderXlsxCsvData + "input/",
-                  folderXlsxCsvData + "output/",
-                  XlsxCsv,
-                  SaveMode.Overwrite,
-                  sparkConfig)
+    CsvSink.handleXlsxCsvChannel(folderXlsxCsvData + "input/",
+                                 folderXlsxCsvData + "output/",
+                                 Seq(XLSX_EXTENSION, XLS_EXTENSION))
     val list1 = List(
       "data1.csv",
       "data2.csv",
