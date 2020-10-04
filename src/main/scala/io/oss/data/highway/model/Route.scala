@@ -1,65 +1,35 @@
 package io.oss.data.highway.model
 
-sealed trait Route {
-  // TODO channel to be removed
-  val channel: Channel
-}
+sealed trait Route
 
-case class XlsxToCsv(in: String, out: String) extends Route {
-  override val channel: Channel = XlsxCsv
-}
+case class XlsxToCsv(in: String, out: String) extends Route
 
-case class CsvToParquet(in: String, out: String) extends Route {
-  override val channel: Channel = CsvParquet
-}
+case class CsvToParquet(in: String, out: String) extends Route
 
-case class JsonToParquet(in: String, out: String) extends Route {
-  override val channel: Channel = JsonParquet
-}
+case class JsonToParquet(in: String, out: String) extends Route
 
-case class AvroToParquet(in: String, out: String) extends Route {
-  override val channel: Channel = AvroParquet
-}
+case class AvroToParquet(in: String, out: String) extends Route
 
-case class ParquetToCsv(in: String, out: String) extends Route {
-  override val channel: Channel = ParquetCsv
-}
+case class ParquetToCsv(in: String, out: String) extends Route
 
-case class AvroToCsv(in: String, out: String) extends Route {
-  override val channel: Channel = AvroCsv
-}
+case class AvroToCsv(in: String, out: String) extends Route
 
-case class JsonToCsv(in: String, out: String) extends Route {
-  override val channel: Channel = JsonCsv
-}
+case class JsonToCsv(in: String, out: String) extends Route
 
-case class ParquetToJson(in: String, out: String) extends Route {
-  override val channel: Channel = ParquetJson
-}
+case class ParquetToJson(in: String, out: String) extends Route
 
-case class AvroToJson(in: String, out: String) extends Route {
-  override val channel: Channel = AvroJson
-}
+case class AvroToJson(in: String, out: String) extends Route
 
-case class CsvToJson(in: String, out: String) extends Route {
-  override val channel: Channel = CsvJson
-}
+case class CsvToJson(in: String, out: String) extends Route
+
 case class JsonToKafka(in: String,
                        out: String,
                        brokerUrls: String,
                        kafkaMode: KafkaMode)
-    extends Route {
-  override val channel: Channel = JsonKafka
-}
+    extends Route
 
-case class ParquetToAvro(in: String, out: String) extends Route {
-  override val channel: Channel = ParquetAvro
-}
+case class ParquetToAvro(in: String, out: String) extends Route
 
-case class JsonToAvro(in: String, out: String) extends Route {
-  override val channel: Channel = JsonAvro
-}
+case class JsonToAvro(in: String, out: String) extends Route
 
-case class CsvToAvro(in: String, out: String) extends Route {
-  override val channel: Channel = CsvAvro
-}
+case class CsvToAvro(in: String, out: String) extends Route
