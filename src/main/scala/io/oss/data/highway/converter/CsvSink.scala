@@ -46,7 +46,7 @@ object CsvSink {
   }
 
   /**
-    * Converts parquet files to csv files
+    * Converts files to csv
     *
     * @param in The input data path
     * @param out The generated csv file path
