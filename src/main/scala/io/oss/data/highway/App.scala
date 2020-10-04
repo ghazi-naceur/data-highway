@@ -23,12 +23,20 @@ object App {
       conf <- ConfigLoader().loadConf()
       sparkConfig <- ConfigLoader().loadSparkConf()
       _ <- conf match {
-        case route @ CsvToParquet(in, out) =>
-          ParquetSink.apply(in, out, route.channel, Overwrite, sparkConfig)
-        case route @ JsonToParquet(in, out) =>
-          ParquetSink.apply(in, out, route.channel, Overwrite, sparkConfig)
-        case route @ AvroToParquet(in, out) =>
-          ParquetSink.apply(in, out, route.channel, Overwrite, sparkConfig)
+        case CsvToParquet(in, out) =>
+          ParquetSink.handleParquetChannel(in, out, Overwrite, CSV, sparkConfig)
+        case JsonToParquet(in, out) =>
+          ParquetSink.handleParquetChannel(in,
+                                           out,
+                                           Overwrite,
+                                           JSON,
+                                           sparkConfig)
+        case AvroToParquet(in, out) =>
+          ParquetSink.handleParquetChannel(in,
+                                           out,
+                                           Overwrite,
+                                           PARQUET,
+                                           sparkConfig)
         case XlsxToCsv(in, out) =>
           CsvSink.handleXlsxCsvChannel(in,
                                        out,

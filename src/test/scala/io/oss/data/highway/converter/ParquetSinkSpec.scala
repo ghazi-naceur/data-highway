@@ -5,8 +5,9 @@ import java.nio.file.{Files, Paths}
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
 import io.oss.data.highway.configuration.SparkConfig
-import io.oss.data.highway.model.WARN
-import org.apache.spark.sql.{SaveMode, SparkSession}
+import io.oss.data.highway.model.{AVRO, CSV, JSON, PARQUET, WARN}
+import io.oss.data.highway.utils.DataFrameUtils
+import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -24,7 +25,31 @@ class ParquetSinkSpec
   val folderAvroToParquet = "src/test/resources/avro_to_parquet-data/"
   val sparkConfig: SparkConfig =
     SparkConfig("handler-app-test", "local[*]", WARN)
-
+  val getExpected: DataFrame = {
+    import spark.implicits._
+    List(
+      (6.0,
+       "Marquita",
+       "Jarrad",
+       "mjarrad5@rakuten.co.jp",
+       "Female",
+       "247.246.40.151"),
+      (7.0, "Bordie", "Altham", "baltham6@hud.gov", "Male", "234.202.91.240"),
+      (8.0, "Dom", "Greson", "dgreson7@somehting.com", "Male", "103.7.243.71"),
+      (9.0,
+       "Alphard",
+       "Meardon",
+       "ameardon8@comsenz.com",
+       "Male",
+       "37.31.17.200"),
+      (10.0,
+       "Reynold",
+       "Neighbour",
+       "rneighbour9@gravatar.com",
+       "Male",
+       "215.57.123.52")
+    ).toDF("id", "first_name", "last_name", "email", "gender", "ip_address")
+  }
   lazy val spark: SparkSession = {
     SparkSession
       .builder()
@@ -52,129 +77,59 @@ class ParquetSinkSpec
   }
 
   "ParquetSink.saveCsvAsParquet" should "save a csv as a parquet file" in {
-    import spark.implicits._
-
     ParquetSink
-      .saveCsvAsParquet(folderCsvToParquet + "input/mock-data-2",
+      .convertToParquet(folderCsvToParquet + "input/mock-data-2",
                         folderCsvToParquet + "output/mock-data-2",
                         SaveMode.Overwrite,
+                        CSV,
                         sparkConfig)
     val actual =
-      ParquetSink.readParquet(folderCsvToParquet + "output/mock-data-2",
-                              sparkConfig)
+      DataFrameUtils(sparkConfig)
+        .loadDataFrame(folderCsvToParquet + "output/mock-data-2", PARQUET)
+        .right
+        .get
+        .orderBy("id")
 
-    val expected = List(
-      (6.0,
-       "Marquita",
-       "Jarrad",
-       "mjarrad5@rakuten.co.jp",
-       "Female",
-       "247.246.40.151"),
-      (7.0, "Bordie", "Altham", "baltham6@hud.gov", "Male", "234.202.91.240"),
-      (8.0, "Dom", "Greson", "dgreson7@somehting.com", "Male", "103.7.243.71"),
-      (9.0,
-       "Alphard",
-       "Meardon",
-       "ameardon8@comsenz.com",
-       "Male",
-       "37.31.17.200"),
-      (10.0,
-       "Reynold",
-       "Neighbour",
-       "rneighbour9@gravatar.com",
-       "Male",
-       "215.57.123.52")
-    ).toDF("id", "first_name", "last_name", "email", "gender", "ip_address")
-
-    assertSmallDatasetEquality(actual.right.get.orderBy("id"),
-                               expected,
-                               ignoreNullable = true)
+    assertSmallDatasetEquality(actual, getExpected, ignoreNullable = true)
   }
 
   "ParquetSink.saveAvroAsParquet" should "save a avro as a parquet file" in {
-    import spark.implicits._
-
     ParquetSink
-      .saveAvroAsParquet(folderAvroToParquet + "input/mock-data-2",
-                         folderAvroToParquet + "output/mock-data-2",
-                         SaveMode.Overwrite,
-                         sparkConfig)
+      .convertToParquet(folderAvroToParquet + "input/mock-data-2",
+                        folderAvroToParquet + "output/mock-data-2",
+                        SaveMode.Overwrite,
+                        AVRO,
+                        sparkConfig)
     val actual =
-      ParquetSink.readParquet(folderAvroToParquet + "output/mock-data-2",
-                              sparkConfig)
+      DataFrameUtils(sparkConfig)
+        .loadDataFrame(folderAvroToParquet + "output/mock-data-2", PARQUET)
+        .right
+        .get
+        .orderBy("id")
 
-    val expected = List(
-      (6.0,
-       "Marquita",
-       "Jarrad",
-       "mjarrad5@rakuten.co.jp",
-       "Female",
-       "247.246.40.151"),
-      (7.0, "Bordie", "Altham", "baltham6@hud.gov", "Male", "234.202.91.240"),
-      (8.0, "Dom", "Greson", "dgreson7@somehting.com", "Male", "103.7.243.71"),
-      (9.0,
-       "Alphard",
-       "Meardon",
-       "ameardon8@comsenz.com",
-       "Male",
-       "37.31.17.200"),
-      (10.0,
-       "Reynold",
-       "Neighbour",
-       "rneighbour9@gravatar.com",
-       "Male",
-       "215.57.123.52")
-    ).toDF("id", "first_name", "last_name", "email", "gender", "ip_address")
-
-    assertSmallDatasetEquality(actual.right.get.orderBy("id"),
-                               expected,
-                               ignoreNullable = true)
+    assertSmallDatasetEquality(actual, getExpected, ignoreNullable = true)
   }
 
   "ParquetSink.saveJsonAsParquet" should "save a json as a parquet file" in {
-    import spark.implicits._
-
     ParquetSink
-      .saveJsonAsParquet(folderJsonToParquet + "input/mock-data-2",
-                         folderJsonToParquet + "output/mock-data-2",
-                         SaveMode.Overwrite,
-                         sparkConfig)
+      .convertToParquet(folderJsonToParquet + "input/mock-data-2",
+                        folderJsonToParquet + "output/mock-data-2",
+                        SaveMode.Overwrite,
+                        JSON,
+                        sparkConfig)
     val actual =
-      ParquetSink.readParquet(folderJsonToParquet + "output/mock-data-2",
-                              sparkConfig)
+      DataFrameUtils(sparkConfig)
+        .loadDataFrame(folderJsonToParquet + "output/mock-data-2", PARQUET)
+        .right
+        .get
+        .orderBy("id")
+        .select("id",
+                "first_name",
+                "last_name",
+                "email",
+                "gender",
+                "ip_address")
 
-    val expected = List(
-      (6.0,
-       "Marquita",
-       "Jarrad",
-       "mjarrad5@rakuten.co.jp",
-       "Female",
-       "247.246.40.151"),
-      (7.0, "Bordie", "Altham", "baltham6@hud.gov", "Male", "234.202.91.240"),
-      (8.0, "Dom", "Greson", "dgreson7@somehting.com", "Male", "103.7.243.71"),
-      (9.0,
-       "Alphard",
-       "Meardon",
-       "ameardon8@comsenz.com",
-       "Male",
-       "37.31.17.200"),
-      (10.0,
-       "Reynold",
-       "Neighbour",
-       "rneighbour9@gravatar.com",
-       "Male",
-       "215.57.123.52")
-    ).toDF("id", "first_name", "last_name", "email", "gender", "ip_address")
-
-    assertSmallDatasetEquality(actual.right.get
-                                 .orderBy("id")
-                                 .select("id",
-                                         "first_name",
-                                         "last_name",
-                                         "email",
-                                         "gender",
-                                         "ip_address"),
-                               expected,
-                               ignoreNullable = true)
+    assertSmallDatasetEquality(actual, getExpected, ignoreNullable = true)
   }
 }
