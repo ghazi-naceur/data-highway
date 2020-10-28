@@ -6,6 +6,11 @@ scalaVersion := "2.12.12"
 
 resolvers += "Spark Packages Repo" at "http://dl.bintray.com/spark-packages/maven"
 
+assemblyMergeStrategy in assembly := {
+  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+  case x => MergeStrategy.first
+}
+
 libraryDependencies ++= Seq("com.github.pureconfig" %% "pureconfig" % "0.13.0",
   "org.apache.poi" % "poi" % "4.1.2",
   "org.apache.poi" % "poi-ooxml" % "4.1.2",
