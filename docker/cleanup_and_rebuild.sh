@@ -8,7 +8,8 @@ docker run -tid \
   --name bungee-gum data-highway:v1.0
 docker ps -a
 docker images
-docker exec -ti bungee-gum spark-submit  --packages org.apache.spark:spark-avro_2.12:2.4.0 \
+docker exec -ti bungee-gum spark-submit  \
+      --packages org.apache.spark:spark-avro_2.12:2.4.0 \
       --class "io.oss.data.highway.App" --master local[*] \
       --conf "spark.driver.extraJavaOptions=-Dconfig.file=/application/data-highway/docker/application.conf" \
       --conf "spark.executor.extraJavaOptions=-Dconfig.file=/application/data-highway/docker/application.conf" \
