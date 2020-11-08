@@ -1,8 +1,21 @@
 package io.oss.data.highway.model
 
-sealed trait DataType
+sealed trait DataType {
+  val extension: String
+}
 
-case object JSON extends DataType
-case object CSV extends DataType
-case object PARQUET extends DataType
-case object AVRO extends DataType
+case object JSON extends DataType {
+  override val extension: String = ".json"
+}
+case object CSV extends DataType {
+  override val extension: String = ".csv"
+}
+case object PARQUET extends DataType {
+  override val extension: String = ".parquet"
+}
+case object AVRO extends DataType {
+  override val extension: String = ".avro"
+}
+case object KAFKA extends DataType {
+  override val extension: String = ".txt"
+}

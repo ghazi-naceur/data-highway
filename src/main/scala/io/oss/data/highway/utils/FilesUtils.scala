@@ -1,9 +1,11 @@
 package io.oss.data.highway.utils
 
-import java.io.File
+import java.io.{File, FileWriter}
 
 import io.oss.data.highway.model.DataHighwayError.ReadFileError
 import cats.syntax.either._
+
+import scala.util.Try
 
 object FilesUtils {
 
@@ -91,4 +93,24 @@ object FilesUtils {
     */
   def reversePathSeparator(path: String): String =
     path.replace("\\", "/")
+
+  /**
+    * Saves content in the provided path
+    * @param path The path
+    * @param fileName The file name
+    * @param content The file's content
+    * @return Unit, otherwise Error
+    */
+  def save(path: String,
+           fileName: String,
+           content: String): Either[Throwable, Unit] = {
+    Try {
+      new File(path).mkdirs()
+      val fileWriter = new FileWriter(new File(s"$path/$fileName"))
+      fileWriter.write(content)
+      fileWriter.close()
+    }.toEither
+      .leftMap(thr =>
+        ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+  }
 }

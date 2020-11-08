@@ -1,11 +1,20 @@
 package io.oss.data.highway.converter
 
+import java.time.Duration
+
 import io.oss.data.highway.model.DataHighwayError.JsonError
-import io.oss.data.highway.model.{DataHighwayError, DataType}
-import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
+import io.oss.data.highway.model.{DataHighwayError, DataType, KAFKA, Offset}
+import io.oss.data.highway.utils.{
+  DataFrameUtils,
+  FilesUtils,
+  KafkaTopicConsumer
+}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
 import io.oss.data.highway.configuration.SparkConfig
+import io.oss.data.highway.utils.KafkaTopicConsumer.logger
+
+import scala.jdk.CollectionConverters._
 
 object JsonSink {
 
@@ -36,6 +45,37 @@ object JsonSink {
         JsonError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
+  def store(
+      in: String,
+      out: String,
+      dataType: Option[DataType],
+      brokerUrls: String,
+      offset: Offset,
+      consumerGroup: String): Either[DataHighwayError.KafkaError, Unit] = {
+    for {
+      consumed <- KafkaTopicConsumer.consume(in,
+                                             brokerUrls,
+                                             offset,
+                                             consumerGroup)
+      _ = while (true) {
+        val record = consumed.poll(Duration.ofSeconds(5)).asScala
+        logger.info("=======> Consumer :")
+        for (data <- record.iterator) {
+          logger.info(
+            s"Topic: ${data.topic()}, Key: ${data.key()}, Value: ${data.value()}, " +
+              s"Offset: ${data.offset()}, Partition: ${data.partition()}")
+          val extension = dataType match {
+            case Some(dataType) => dataType.`extension`
+            case None           => KAFKA.`extension`
+          }
+          FilesUtils.save(out,
+                          s"file-${System.currentTimeMillis()}.${extension}",
+                          data.value())
+        }
+      }
+    } yield ()
+  }
+
   /**
     * Converts files to json
     *
@@ -51,7 +91,8 @@ object JsonSink {
       out: String,
       saveMode: SaveMode,
       inputDataType: DataType,
-      sparkConfig: SparkConfig): Either[DataHighwayError, List[Unit]] = {
+      sparkConfig: SparkConfig
+  ): Either[DataHighwayError, List[Unit]] = {
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
       list <- folders

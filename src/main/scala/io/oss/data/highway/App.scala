@@ -53,6 +53,14 @@ object App {
           JsonSink.handleJsonChannel(in, out, Overwrite, JSON, sparkConfig)
         case CsvToJson(in, out) =>
           JsonSink.handleJsonChannel(in, out, Overwrite, CSV, sparkConfig)
+        case KafkaToFile(in,
+                         out,
+                         dataType,
+                         brokerUrl,
+                         kafkaMode,
+                         offset,
+                         consumerGroup) =>
+          JsonSink.store(in, out, dataType, brokerUrl, offset, consumerGroup)
         case JsonToKafka(in, out, brokerUrl, kafkaMode) =>
           new KafkaSink().sendToTopic(in,
                                       out,

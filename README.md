@@ -182,3 +182,25 @@ route {
   }
 }
 ````
+
+**6- Consume data from Kafka** :
+---
+
+**a- Simple Kafka Consumer** :
+````hocon
+route {
+  type = kafka-to-file
+  in = "topic-name"
+  out = "your-output-folder-that-will-contain-your-generated-json-files"
+  data-type = {
+    type = "the-desired-datatype-of-the-generated-files" // Optional field : accepted values are json, avro and kafka (default value, if not set). 
+             // kafka value refer to "txt" extension set for the generated files.
+  }
+  broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas"  // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
+  kafka-mode = {
+      type = simple-consumer
+  }
+  offset = "offset-to-consume-from" // accepted values : earliest, latest, none
+  consumer-group = "your-consumer-group-name"
+}
+````

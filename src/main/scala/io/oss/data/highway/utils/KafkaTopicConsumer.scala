@@ -21,28 +21,40 @@ object KafkaTopicConsumer {
                        brokerUrls: String,
                        offset: Offset,
                        consumerGroup: String): Either[KafkaError, Unit] = {
+    for {
+      consumer <- consume(topic, brokerUrls, offset, consumerGroup)
+      _ = while (true) {
+        val record = consumer.poll(Duration.ofSeconds(5)).asScala
+        logger.info("=======> Consumer :")
+        for (data <- record.iterator)
+          logger.info(
+            "Topic: " + data.topic() +
+              ",Key: " + data.key() +
+              ",Value: " + data.value() +
+              ", Offset: " + data.offset() +
+              ", Partition: " + data.partition())
+      }
+    } yield ()
+
+  }
+
+  def consume(topic: String,
+              brokerUrls: String,
+              offset: Offset,
+              consumerGroup: String)
+    : Either[KafkaError, KafkaConsumer[String, String]] = {
+    val props = new Properties()
+    props.put("bootstrap.servers", brokerUrls)
+    props.put("key.deserializer", classOf[StringDeserializer].getName)
+    props.put("value.deserializer", classOf[StringDeserializer].getName)
+    props.put("auto.offset.reset", offset.value)
+    props.put("group.id", consumerGroup)
     Either
       .catchNonFatal {
-        val props = new Properties()
-        props.put("bootstrap.servers", brokerUrls)
-        props.put("key.deserializer", classOf[StringDeserializer].getName)
-        props.put("value.deserializer", classOf[StringDeserializer].getName)
-        props.put("auto.offset.reset", offset.value)
-        props.put("group.id", consumerGroup)
         val consumer: KafkaConsumer[String, String] =
           new KafkaConsumer[String, String](props)
         consumer.subscribe(util.Arrays.asList(topic))
-        while (true) {
-          val record = consumer.poll(Duration.ofSeconds(5)).asScala // TODO Duration to be adjusted
-          logger.info("=======> Consumer :")
-          for (data <- record.iterator)
-            logger.info(
-              "Topic: " + data.topic() +
-                ",Key: " + data.key() +
-                ",Value: " + data.value() +
-                ", Offset: " + data.offset() +
-                ", Partition: " + data.partition())
-        }
+        consumer
       }
       .leftMap(thr =>
         KafkaError(thr.getMessage, thr.getCause, thr.getStackTrace))
