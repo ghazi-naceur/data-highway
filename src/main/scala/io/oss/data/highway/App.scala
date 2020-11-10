@@ -15,7 +15,7 @@ import org.apache.log4j.{BasicConfigurator, Logger}
 
 object App {
 
-  val logger: Logger = Logger.getLogger(classOf[App].getName)
+  val logger: Logger = Logger.getLogger(App.getClass)
 
   def main(args: Array[String]): Unit = {
     BasicConfigurator.configure()
@@ -60,7 +60,13 @@ object App {
                          kafkaMode,
                          offset,
                          consumerGroup) =>
-          JsonSink.store(in, out, dataType, brokerUrl, offset, consumerGroup)
+          JsonSink.store(in,
+                         out,
+                         dataType,
+                         kafkaMode,
+                         brokerUrl,
+                         offset,
+                         consumerGroup)
         case JsonToKafka(in, out, brokerUrl, kafkaMode) =>
           new KafkaSink().sendToTopic(in,
                                       out,

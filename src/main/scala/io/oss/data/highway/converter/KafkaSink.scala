@@ -197,6 +197,7 @@ class KafkaSink {
 
   /**
     * Sends message to Kafka topic
+    *
     * @param jsonPath The path that contains json data to be send
     * @param topic The output Kafka topic
     * @param producer The Kafka producer
