@@ -5,7 +5,7 @@ import io.oss.data.highway.converter.KafkaSink
 import io.oss.data.highway.model.{KafkaStreaming, WARN}
 import org.apache.log4j.BasicConfigurator
 
-object KafkaStreamingTest {
+object KafkaStreamingProducerTest {
 
   val sparkConfig: SparkConfig =
     SparkConfig("handler-app-test", "local[*]", WARN)

@@ -5,6 +5,7 @@ import io.oss.data.highway.converter.{
   AvroSink,
   CsvSink,
   JsonSink,
+  KafkaSampler,
   KafkaSink,
   ParquetSink
 }
@@ -60,14 +61,14 @@ object App {
                          kafkaMode,
                          offset,
                          consumerGroup) =>
-          JsonSink.store(in,
-                         out,
-                         dataType,
-                         kafkaMode,
-                         brokerUrl,
-                         offset,
-                         consumerGroup,
-                         sparkConfig)
+          KafkaSampler.peek(in,
+                            out,
+                            dataType,
+                            kafkaMode,
+                            brokerUrl,
+                            offset,
+                            consumerGroup,
+                            sparkConfig)
         case JsonToKafka(in, out, brokerUrl, kafkaMode) =>
           new KafkaSink().sendToTopic(in,
                                       out,

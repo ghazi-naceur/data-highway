@@ -5,7 +5,7 @@ import io.oss.data.highway.converter.KafkaSink
 import io.oss.data.highway.model.{SparkKafkaProducerPlugin, WARN}
 import org.apache.log4j.BasicConfigurator
 
-object SparkKafkaPluginTest {
+object SparkKafkaProducerPluginTest {
 
   val sparkConfig: SparkConfig =
     SparkConfig("handler-app-test", "local[*]", WARN)
