@@ -46,7 +46,11 @@ java -jar -Dconfig.file=/the/path/to/application.conf /the/path/to/data-highway-
 **2- Run data-highway using Docker** :
 ---
 
-You can find a `Dockerfile` sample under `docker` folder.
+ps: The current `Dockerfile` does not contain the installation of 
+kafka, but I'm using a separate sample provided by Confluent company : Take a look on the `data-highway/docker/docker-compose-confluent.sh`.
+
+You can find a `Dockerfile` sample under `data-highway/docker` folder.
+
 In order to run your Data-Highway container, specify your params in the following commands :
 
 1- The `/the/path/to/your/mounted/input/volume/` folder that will contain your input data.
@@ -338,7 +342,7 @@ route {
   consumer-group = "your-consumer-group-name"
 }
 ````
-**3- Scheduling :** : 
+**3- Scheduling :**
 ---
 
 Under the `data-highway/airflow/dag` folder, you will find an Airflow DAG sample, that runs your data-highway application with Airflow. 
