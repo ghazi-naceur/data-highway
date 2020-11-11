@@ -167,7 +167,7 @@ route {
 }
 ````
 
-**c- Spark Kafka Plugin** : (Experimental feature)
+**c- Spark Kafka Producer Plugin** : (Experimental feature)
 ````hocon
 route {
   type = json-to-kafka
@@ -175,7 +175,7 @@ route {
   out = "your-output-kafka-topic"
   broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas", // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
   kafka-mode = {
-      type = "spark-kafka-plugin"
+      type = "spark-kafka-producer-plugin"
       use-stream = false
       intermediate-topic = "your-intermediate-topic" // Must be set once `use-stream = true`
       checkpoint-folder = "your-checkpoint-folder-related-to-the-intermediate-topic" // Must be set once `use-stream = true`. You must change its value everytime you change the `intermediate-topic`
@@ -205,6 +205,8 @@ route {
 }
 ````
 
+**b- Kafka Streaming** : 
+
 ````hocon
 route {
   type = kafka-to-file
@@ -218,6 +220,26 @@ route {
   kafka-mode = {
       type = "kafka-streaming"
       stream-app-id = "your-stream-app-name"
+  }
+  offset = "offset-to-consume-from" // accepted values : earliest, latest, none
+  consumer-group = "your-consumer-group-name"
+}
+````
+
+**c- Spark Kafka Consumer Plugin** : (Experimental feature)
+````hocon
+route {
+  type = kafka-to-file
+  in = "topic-name"
+  out = "your-output-folder-that-will-contain-your-generated-json-files"
+  data-type = {
+    type = "the-desired-datatype-of-the-generated-files" // Optional field : accepted values are json, avro and kafka (default value, if not set). 
+             // kafka value refer to "txt" extension set for the generated files.
+  }
+  broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas"  // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
+  kafka-mode = {
+      type = "spark-kafka-consumer-plugin"
+      use-stream = "true/false"
   }
   offset = "offset-to-consume-from" // accepted values : earliest, latest, none
   consumer-group = "your-consumer-group-name"

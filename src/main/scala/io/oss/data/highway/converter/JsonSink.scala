@@ -11,18 +11,21 @@ import io.oss.data.highway.model.{
   KafkaMode,
   KafkaStreaming,
   Offset,
-  SimpleConsumer
+  SimpleConsumer,
+  SparkKafkaConsumerPlugin
 }
 import io.oss.data.highway.utils.{
   DataFrameUtils,
   FilesUtils,
   KafkaTopicConsumer
 }
+import org.apache.spark.sql.functions.to_json
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
 import io.oss.data.highway.configuration.SparkConfig
 import org.apache.kafka.streams.KafkaStreams
 import org.apache.log4j.Logger
+import org.apache.spark.sql.functions.struct
 
 import scala.jdk.CollectionConverters._
 import scala.util.Try
@@ -75,7 +78,8 @@ object JsonSink {
             kafkaMode: KafkaMode,
             brokerUrls: String,
             offset: Offset,
-            consumerGroup: String): Either[Throwable, Unit] = {
+            consumerGroup: String,
+            sparkConfig: SparkConfig): Either[Throwable, Unit] = {
     val extension = dataType match {
       case Some(dataType) => dataType.`extension`
       case None           => KAFKA.`extension`
@@ -118,6 +122,44 @@ object JsonSink {
                                          kafkaStreamEntity.props)
 
           streams.start()
+        }.toEither
+      case SparkKafkaConsumerPlugin(useStream) =>
+        val session = DataFrameUtils(sparkConfig).sparkSession
+        import session.implicits._
+        Try {
+          if (useStream) {
+            DataFrameUtils(sparkConfig).sparkSession.readStream
+              .format("kafka")
+              .option("kafka.bootstrap.servers", brokerUrls)
+              .option("startingOffsets", offset.value)
+              .option("subscribe", in)
+              .load()
+              .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
+              .as[(String, String)]
+              .select("value")
+              .writeStream
+              .format(extension.substring(1)) // todo : Hideous ! Remove "." from the extension
+              .option("path", s"$out/file-${System.currentTimeMillis()}")
+              .option("checkpointLocation",
+                      s"/tmp/checkpoint/${System.currentTimeMillis()}")
+              .start()
+              .awaitTermination()
+          } else {
+            DataFrameUtils(sparkConfig).sparkSession.read
+              .format("kafka")
+              .option("kafka.bootstrap.servers", brokerUrls)
+              .option("startingOffsets", offset.value)
+              .option("subscribe", in)
+              .load()
+              .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
+              .as[(String, String)]
+              .select(to_json(struct("value")))
+              .toJavaRDD
+              .foreach(data =>
+                FilesUtils.save(out,
+                                s"file-${System.currentTimeMillis()}$extension",
+                                data.toString()))
+          }
         }.toEither
       case _ =>
         throw new RuntimeException(

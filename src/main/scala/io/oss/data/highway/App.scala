@@ -66,7 +66,8 @@ object App {
                          kafkaMode,
                          brokerUrl,
                          offset,
-                         consumerGroup)
+                         consumerGroup,
+                         sparkConfig)
         case JsonToKafka(in, out, brokerUrl, kafkaMode) =>
           new KafkaSink().sendToTopic(in,
                                       out,
