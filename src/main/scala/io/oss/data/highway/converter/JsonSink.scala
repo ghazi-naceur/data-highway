@@ -6,8 +6,11 @@ import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
 import io.oss.data.highway.configuration.SparkConfig
+import org.apache.log4j.Logger
 
 object JsonSink {
+
+  val logger: Logger = Logger.getLogger(JsonSink.getClass)
 
   /**
     * Converts file to json
@@ -51,7 +54,8 @@ object JsonSink {
       out: String,
       saveMode: SaveMode,
       inputDataType: DataType,
-      sparkConfig: SparkConfig): Either[DataHighwayError, List[Unit]] = {
+      sparkConfig: SparkConfig
+  ): Either[DataHighwayError, List[Unit]] = {
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
       list <- folders

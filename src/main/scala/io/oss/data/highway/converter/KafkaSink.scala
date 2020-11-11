@@ -12,7 +12,7 @@ import io.oss.data.highway.model.{
   Latest,
   Offset,
   SimpleProducer,
-  SparkKafkaPlugin
+  SparkKafkaProducerPlugin
 }
 import io.oss.data.highway.utils.{DataFrameUtils, KafkaTopicConsumer}
 import org.apache.kafka.common.serialization.{Serdes, StringSerializer}
@@ -59,7 +59,9 @@ class KafkaSink {
       case KafkaStreaming(streamAppId) =>
         send(jsonPath, intermediateTopic, producer)
         runStream(streamAppId, intermediateTopic, bootstrapServers, topic)
-      case SparkKafkaPlugin(useStream, intermediateTopic, checkpointFolder) =>
+      case SparkKafkaProducerPlugin(useStream,
+                                    intermediateTopic,
+                                    checkpointFolder) =>
         if (useStream) {
           sendUsingStreamSparkKafkaPlugin(jsonPath,
                                           producer,
@@ -90,6 +92,7 @@ class KafkaSink {
       bootstrapServers: String,
       topic: String,
       sparkConfig: SparkConfig): Either[Throwable, Unit] = {
+    //todo specify explicitly your imports
     import org.apache.spark.sql.functions._
     DataFrameUtils(sparkConfig)
       .loadDataFrame(jsonPath, JSON)
@@ -197,6 +200,7 @@ class KafkaSink {
 
   /**
     * Sends message to Kafka topic
+    *
     * @param jsonPath The path that contains json data to be send
     * @param topic The output Kafka topic
     * @param producer The Kafka producer

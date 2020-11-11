@@ -5,6 +5,7 @@ import io.oss.data.highway.converter.{
   AvroSink,
   CsvSink,
   JsonSink,
+  KafkaSampler,
   KafkaSink,
   ParquetSink
 }
@@ -15,7 +16,7 @@ import org.apache.log4j.{BasicConfigurator, Logger}
 
 object App {
 
-  val logger: Logger = Logger.getLogger(classOf[App].getName)
+  val logger: Logger = Logger.getLogger(App.getClass)
 
   def main(args: Array[String]): Unit = {
     BasicConfigurator.configure()
@@ -53,6 +54,21 @@ object App {
           JsonSink.handleJsonChannel(in, out, Overwrite, JSON, sparkConfig)
         case CsvToJson(in, out) =>
           JsonSink.handleJsonChannel(in, out, Overwrite, CSV, sparkConfig)
+        case KafkaToFile(in,
+                         out,
+                         dataType,
+                         brokerUrl,
+                         kafkaMode,
+                         offset,
+                         consumerGroup) =>
+          KafkaSampler.peek(in,
+                            out,
+                            dataType,
+                            kafkaMode,
+                            brokerUrl,
+                            offset,
+                            consumerGroup,
+                            sparkConfig)
         case JsonToKafka(in, out, brokerUrl, kafkaMode) =>
           new KafkaSink().sendToTopic(in,
                                       out,

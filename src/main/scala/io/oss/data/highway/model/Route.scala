@@ -33,3 +33,12 @@ case class ParquetToAvro(in: String, out: String) extends Route
 case class JsonToAvro(in: String, out: String) extends Route
 
 case class CsvToAvro(in: String, out: String) extends Route
+
+case class KafkaToFile(in: String,
+                       out: String,
+                       dataType: Option[DataType],
+                       brokerUrls: String,
+                       kafkaMode: KafkaMode,
+                       offset: Offset,
+                       consumerGroup: String)
+    extends Route
