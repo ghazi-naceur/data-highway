@@ -68,12 +68,12 @@ docker run -tid \
 docker ps -a
 docker images
 docker exec -ti bungee-gum spark-submit  \
-      --packages org.apache.spark:spark-avro_2.12:2.4.0 \
-      --class "io.oss.data.highway.App" --master local[*] \
-      --conf "spark.driver.extraJavaOptions=-Dconfig.file=/app/config/application.conf" \
-      --conf "spark.executor.extraJavaOptions=-Dconfig.file=/app/config/application.conf" \
-      --files "/app/config/application.conf" \
-      /app/jar/data-highway-assembly-0.1.jar
+       --packages org.apache.spark:spark-avro_2.12:2.4.0 \
+       --class "io.oss.data.highway.App" --master local[*] \
+       --conf "spark.driver.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlog4j2.configuration=/app/config/log4j2.properties" \
+       --conf "spark.executor.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlog4j2.configuration=/app/config/log4j2.properties" \
+       --files "/app/config/application.conf,/app/config/log4j2.properties" \
+       /app/jar/data-highway-assembly-0.1.jar
 ````
 
 In order to change the configuration of the `application.conf` file, you can enter your `data-highway-container`, through the following command :
@@ -90,12 +90,12 @@ vim application.conf
 Then, you can rerun your container using the same command : 
 ````shell script
 docker exec -ti data-highway-container spark-submit  \
-      --packages org.apache.spark:spark-avro_2.12:2.4.0 \
-      --class "io.oss.data.highway.App" --master local[*] \
-      --conf "spark.driver.extraJavaOptions=-Dconfig.file=/app/config/application.conf" \
-      --conf "spark.executor.extraJavaOptions=-Dconfig.file=/app/config/application.conf" \
-      --files "/app/config/application.conf" \
-      /app/jar/data-highway-assembly-0.1.jar
+         --packages org.apache.spark:spark-avro_2.12:2.4.0 \
+         --class "io.oss.data.highway.App" --master local[*] \
+         --conf "spark.driver.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlog4j2.configuration=/app/config/log4j2.properties" \
+         --conf "spark.executor.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlog4j2.configuration=/app/config/log4j2.properties" \
+         --files "/app/config/application.conf,/app/config/log4j2.properties" \
+         /app/jar/data-highway-assembly-0.1.jar
 ````
 
 **B- Conversions** : 
