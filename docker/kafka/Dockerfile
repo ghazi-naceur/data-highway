@@ -7,41 +7,19 @@ RUN apt install -y openjdk-8-jdk openjdk-8-jre
 RUN apt-get -y install git
 RUN apt install -y wget
 RUN apt install -y curl
-
-# Installing scala 2.12.12
-RUN wget www.scala-lang.org/files/archive/scala-2.12.12.deb
-RUN dpkg --install scala-2.12.12.deb
-
-# Cloning data-highway project
-RUN git clone https://github.com/ghazi-naceur/data-highway.git
-RUN mkdir /application/ && cp -R data-highway /application/
-
-# Installing sbt and compiling data-highway project
-ARG SBT_VERSION=1.4.1
-RUN \
-  mkdir /working/ && \
-  cd /working/ && \
-  curl -L -o sbt-$SBT_VERSION.deb https://dl.bintray.com/sbt/debian/sbt-$SBT_VERSION.deb && \
-  dpkg -i sbt-$SBT_VERSION.deb && \
-  rm sbt-$SBT_VERSION.deb && \
-  apt-get update && \
-  apt-get install sbt && \
-  cd && \
-  rm -r /working/ && \
-  cd /application/data-highway && \
-  sbt sbtVersion && \
-  sbt clean && \
-  sbt compile && \
-  sbt assembly
-
-# Cleanup data-highway project
-RUN mkdir -p /app/config && \
-  mkdir /app/jar && \
-  mkdir -p /app/data/input && \
-  mkdir -p /app/data/output && \
-  mv /application/data-highway/target/scala-2.12/data-highway-assembly-0.1.jar /app/jar && \
-  mv /application/data-highway/src/main/resources/application.conf /app/config && \
-  mv /application/data-highway/src/main/resources/log4j2.properties /app/config && \
-  mv /application/data-highway/src/test/resources/csv_to_avro-data/input/* /app/data/input && \
-  mv /application/data-highway/src/test/resources/csv_to_avro-data/output/* /app/data/output && \
-  rm -R /application
+RUN apt install -y zip
+RUN curl -O http://packages.confluent.io/archive/6.0/confluent-community-6.0.0.zip
+RUN unzip confluent-community-6.0.0.zip
+RUN cd confluent-6.0.0
+RUN curl -O http://client.hub.confluent.io/confluent-hub-client-latest.tar.gz
+#RUN tar -xvf confluent-hub-client-latest.tar.gz
+RUN mkdir -p /confluent-hub-client
+RUN tar -C /confluent-hub-client -xzf confluent-hub-client-latest.tar.gz
+RUN pwd
+RUN ls
+RUN ls /confluent-hub-client
+RUN export CONFLUENT_HUB=/confluent-hub-client
+RUN export PATH=$PATH:$CONFLUENT_HUB/bin
+RUN export CONFLUENT_HOME=/confluent-6.0.0
+RUN export PATH="${CONFLUENT_HOME}/bin:$PATH"
+RUN confluent local services start
