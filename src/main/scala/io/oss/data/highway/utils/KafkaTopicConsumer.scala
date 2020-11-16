@@ -1,21 +1,20 @@
 package io.oss.data.highway.utils
 
-import java.time.Duration
 import java.util
 import java.util.Properties
 
 import io.oss.data.highway.model.{KafkaStreamEntity, Offset}
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.serialization.{Serdes, StringDeserializer}
-
-import scala.jdk.CollectionConverters._
-import org.apache.log4j.Logger
 import cats.syntax.either._
 import io.oss.data.highway.model.DataHighwayError.KafkaError
 import org.apache.kafka.streams.StreamsConfig
 import org.apache.kafka.streams.scala.StreamsBuilder
+import org.apache.log4j.Logger
 
 object KafkaTopicConsumer {
+
+  val logger: Logger = Logger.getLogger(KafkaTopicConsumer.getClass.getName)
 
   /**
     * Consumes from a kafka topic using a simple kafka consumer
@@ -41,6 +40,7 @@ object KafkaTopicConsumer {
         val consumer: KafkaConsumer[String, String] =
           new KafkaConsumer[String, String](props)
         consumer.subscribe(util.Arrays.asList(topic))
+        logger.info(s"Successfully subscribing to '$topic' topic.")
         consumer
       }
       .leftMap(thr =>
@@ -74,6 +74,7 @@ object KafkaTopicConsumer {
     val builder = new StreamsBuilder
 
     val dataKStream = builder.stream[String, String](topic)
+    logger.info(s"Successfully creating KStream for '$topic' topic.")
     KafkaStreamEntity(props, builder, dataKStream)
   }
 }

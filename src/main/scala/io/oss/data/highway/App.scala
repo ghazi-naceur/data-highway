@@ -16,13 +16,14 @@ import org.apache.log4j.{BasicConfigurator, Logger}
 
 object App {
 
-  val logger: Logger = Logger.getLogger(App.getClass)
+  val logger: Logger = Logger.getLogger(App.getClass.getName)
 
   def main(args: Array[String]): Unit = {
     BasicConfigurator.configure()
     val result = for {
       conf <- ConfigLoader().loadConf()
       sparkConfig <- ConfigLoader().loadSparkConf()
+      _ = logger.info("Successfully loading configurations")
       _ <- conf match {
         case CsvToParquet(in, out) =>
           ParquetSink.handleParquetChannel(in, out, Overwrite, CSV, sparkConfig)
@@ -83,7 +84,7 @@ object App {
           AvroSink.handleAvroChannel(in, out, Overwrite, CSV, sparkConfig)
         case _ =>
           throw new RuntimeException(
-            s"The provided route '$conf' is ont supported.")
+            s"The provided route '$conf' is not supported.")
       }
     } yield ()
     result match {

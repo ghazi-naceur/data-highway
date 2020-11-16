@@ -10,7 +10,7 @@ import org.apache.log4j.Logger
 
 object JsonSink {
 
-  val logger: Logger = Logger.getLogger(JsonSink.getClass)
+  val logger: Logger = Logger.getLogger(JsonSink.getClass.getName)
 
   /**
     * Converts file to json
@@ -34,6 +34,8 @@ object JsonSink {
           .write
           .mode(saveMode)
           .json(out)
+        logger.info(
+          s"Successfully converting '$inputDataType' data from input folder '$in' to 'JSON' and store it under output folder '$out'.")
       })
       .leftMap(thr =>
         JsonError(thr.getMessage, thr.getCause, thr.getStackTrace))
