@@ -3,7 +3,6 @@ docker rm -f $(docker ps -aq)
 # Delete all images
 docker rmi -f $(docker images -a -q)
 docker build -t data-highway-spark:v1.0 .
-#docker run -tid --name bungee-gum data-highway:v1.0
 docker run -tid \
   -v /home/ghazi/playgroud/data-highway/shell/csv_to_parquet-data/input/:/app/data/input \
   -v /home/ghazi/playgroud/data-highway/shell/csv_to_parquet-data/output/:/app/data/output \
