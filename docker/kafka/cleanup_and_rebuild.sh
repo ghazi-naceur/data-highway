@@ -2,6 +2,7 @@
 docker rm -f $(docker ps -aq)
 # Delete all images
 docker rmi -f $(docker images -a -q)
+docker-compose up -d
 #docker build -t data-highway-kafka:v1.0 .
 #docker run -tid \
 #  -v /home/ghazi/playgroud/data-highway/shell/csv_to_parquet-data/input/:/app/data/input \

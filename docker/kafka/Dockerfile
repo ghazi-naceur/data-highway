@@ -40,7 +40,6 @@ RUN mkdir -p /app/config && \
   mkdir -p /app/data/input && \
   mkdir -p /app/data/output && \
   mv /application/data-highway/target/scala-2.12/data-highway-assembly-0.1.jar /app/jar && \
-  mv /application/data-highway/src/main/resources/application.conf /app/config && \
   mv /application/data-highway/src/main/resources/log4j2.properties /app/config && \
   mv /application/data-highway/src/test/resources/csv_to_avro-data/input/* /app/data/input && \
   mv /application/data-highway/src/test/resources/csv_to_avro-data/output/* /app/data/output && \

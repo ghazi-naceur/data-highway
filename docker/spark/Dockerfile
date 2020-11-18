@@ -70,3 +70,6 @@ RUN curl -sL --retry 3 \
   | tar x -C /usr/ \
  && mv /usr/$SPARK_PACKAGE $SPARK_HOME \
  && chown -R root:root $SPARK_HOME
+
+RUN wget "https://repo1.maven.org/maven2/org/apache/spark/spark-avro_2.12/2.4.0/spark-avro_2.12-2.4.0.jar" \
+    && mv spark-avro_2.12-2.4.0.jar $SPARK_HOME/jars
