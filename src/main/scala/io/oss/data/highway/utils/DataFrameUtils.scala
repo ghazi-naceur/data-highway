@@ -44,6 +44,10 @@ case class DataFrameUtils(sparkConf: SparkConfig) {
           sparkSession.read
             .format(AVRO_TYPE)
             .load(in)
+        case _ =>
+          throw new RuntimeException(
+            "This mode is not supported when defining input data types. The supported Kafka Consume Mode are " +
+              ": 'JSON', 'CSV', 'PARQUET' and 'AVRO'.")
       }
     }
   }

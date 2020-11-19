@@ -55,8 +55,8 @@ object KafkaSampler {
            consumerGroup: String,
            sparkConfig: SparkConfig): Either[Throwable, Unit] = {
     val extension = dataType match {
-      case Some(dataType) => dataType.`extension`
-      case None           => KAFKA.`extension`
+      case Some(dataType) => dataType.extension
+      case None           => KAFKA.extension
     }
     kafkaMode match {
       case SimpleConsumer =>
@@ -120,6 +120,8 @@ object KafkaSampler {
           out,
           s"spark-kafka-plugin-${System.currentTimeMillis()}$extension",
           data.toString()))
+    logger.info(
+      s"Successfully sinking '$extension' data provided by the input topic '$in' in the output folder '$out/spark-kafka-plugin-*****$extension'")
   }
 
   private def sinkWithSparkKafkaStreamingPlugin(session: SparkSession,
@@ -147,6 +149,8 @@ object KafkaSampler {
               s"/tmp/checkpoint/${System.currentTimeMillis()}")
       .start()
       .awaitTermination()
+    logger.info(
+      s"Successfully sinking '$extension' data provided by the input topic '$in' in the output folder '$out/spark-kafka-streaming-plugin-*****$extension'")
   }
 
   private def sinkWithKafkaStreams(
@@ -164,14 +168,17 @@ object KafkaSampler {
                                              offset,
                                              brokerUrls)
       kafkaStreamEntity.dataKStream.mapValues(
-        data =>
+        data => {
           FilesUtils
             .save(out,
                   s"kafka-streams-${System.currentTimeMillis()}$extension",
-                  data))
+                  data)
+          logger.info(
+            s"Successfully sinking '$extension' data provided by the input topic '$in' in the output folder '$out/kafka-streams-*****$extension'")
+        }
+      )
       val streams = new KafkaStreams(kafkaStreamEntity.builder.build(),
                                      kafkaStreamEntity.props)
-
       streams.start()
     }.toEither
   }
@@ -200,6 +207,8 @@ object KafkaSampler {
             out,
             s"simple-consumer-${System.currentTimeMillis()}$extension",
             data.value())
+          logger.info(
+            s"Successfully sinking '$extension' data provided by the input topic '$in' in the output folder '$out/simple-consumer-*****$extension'")
         }
       }
     } yield ()

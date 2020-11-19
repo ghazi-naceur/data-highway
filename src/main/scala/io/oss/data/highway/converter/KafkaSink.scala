@@ -14,7 +14,7 @@ import io.oss.data.highway.model.{
   SimpleProducer,
   SparkKafkaProducerPlugin
 }
-import io.oss.data.highway.utils.{DataFrameUtils, KafkaTopicConsumer}
+import io.oss.data.highway.utils.DataFrameUtils
 import org.apache.kafka.common.serialization.{Serdes, StringSerializer}
 import org.apache.kafka.streams.scala.StreamsBuilder
 import org.apache.kafka.streams.{KafkaStreams, StreamsConfig}
@@ -24,6 +24,7 @@ import scala.util.Try
 import org.apache.log4j.Logger
 import cats.syntax.either._
 import io.oss.data.highway.configuration.SparkConfig
+import io.oss.data.highway.model.DataHighwayError.KafkaError
 import org.apache.spark.sql.functions.lit
 
 import scala.sys.ShutdownHookThread
@@ -57,6 +58,7 @@ class KafkaSink {
       case SimpleProducer =>
         send(jsonPath, topic, producer)
       case KafkaStreaming(streamAppId) =>
+        // todo 'intermediateTopic' topic should be pre-created
         send(jsonPath, intermediateTopic, producer)
         runStream(streamAppId, intermediateTopic, bootstrapServers, topic)
       case SparkKafkaProducerPlugin(useStream,
@@ -76,6 +78,9 @@ class KafkaSink {
                                     topic,
                                     sparkConfig)
         }
+      case _ =>
+        throw new RuntimeException("This mode is not supported while producing data. The supported Kafka Consume Mode are " +
+          ": 'SimpleProducer', 'KafkaStreaming' and 'SparkKafkaProducerPlugin'.")
     }
   }
 
@@ -107,6 +112,7 @@ class KafkaSink {
           .option("kafka.bootstrap.servers", bootstrapServers)
           .option("topic", topic)
           .save()
+        logger.info(s"Sending data through Spark Kafka Plugin to '$topic'.")
       })
   }
 
@@ -146,6 +152,8 @@ class KafkaSink {
       val intermediateDf =
         kafkaStream.withColumn("technical_uuid",
                                lit(UUID.randomUUID().toString))
+      logger.info(
+        s"Sending data through Spark Kafka Streaming Plugin to '$intermediateTopic'.")
       intermediateDf
         .selectExpr("CAST(value AS STRING)")
         .writeStream
@@ -189,6 +197,8 @@ class KafkaSink {
       dataKStream.to(streamsOutputTopic)
 
       val streams = new KafkaStreams(builder.build(), props)
+      logger.info(
+        s"Sending data through Kafka streams to '$intermediateTopic' topic - Sent data: '$streamsOutputTopic'")
 
       streams.start()
 
@@ -209,17 +219,19 @@ class KafkaSink {
   private def send(
       jsonPath: String,
       topic: String,
-      producer: KafkaProducer[String, String]): Either[Throwable, Any] = {
+      producer: KafkaProducer[String, String]): Either[KafkaError, Any] = {
     Try {
       for (line <- getJsonLines(jsonPath)) {
         val uuid = UUID.randomUUID().toString
         val data =
           new ProducerRecord[String, String](topic, uuid, line)
         producer.send(data)
-        logger.info(line)
+        logger.info(s"Topic: '$topic' - Sent data: '$line'")
       }
       producer.close()
     }.toEither
+      .leftMap(thr =>
+        KafkaError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   /**

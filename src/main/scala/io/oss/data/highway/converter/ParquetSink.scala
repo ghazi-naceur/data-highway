@@ -6,8 +6,11 @@ import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
 import io.oss.data.highway.configuration.SparkConfig
+import org.apache.log4j.Logger
 
 object ParquetSink {
+
+  val logger: Logger = Logger.getLogger(ParquetSink.getClass.getName)
 
   /**
     * Converts file to parquet
@@ -30,6 +33,8 @@ object ParquetSink {
         df.write
           .mode(saveMode)
           .parquet(out)
+        logger.info(
+          s"Successfully converting '$inputDataType' data from input folder '$in' to 'PARQUET' and store it under output folder '$out'.")
       })
       .leftMap(thr =>
         ParquetError(thr.getMessage, thr.getCause, thr.getStackTrace))
