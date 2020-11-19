@@ -11,10 +11,13 @@ import org.apache.poi.ss.usermodel.{CellType, Sheet, WorkbookFactory}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
 import io.oss.data.highway.configuration.SparkConfig
+import org.apache.log4j.Logger
 
 import scala.annotation.tailrec
 
 object CsvSink {
+
+  val logger: Logger = Logger.getLogger(CsvSink.getClass.getName)
 
   /**
     * Converts file to csv
@@ -41,6 +44,8 @@ object CsvSink {
           .option("header", "true")
           .option("sep", SEPARATOR)
           .csv(out)
+        logger.info(
+          s"Successfully converting '$inputDataType' data from input folder '$in' to 'CSV' and store it under output folder '$out'.")
       })
       .leftMap(thr => CsvError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
@@ -120,6 +125,8 @@ object CsvSink {
 
         val fName = fileRelativePath.replaceFirst(PATH_WITHOUT_EXTENSION, EMPTY)
         createPathRecursively(s"$csvOutputFolder/$fName")
+        logger.info(
+          s"Successfully creating the path '$csvOutputFolder/$fName'.")
         Files.write(
           Paths.get(
             s"$csvOutputFolder/$fName/${sheet.getSheetName}.$CSV_EXTENSION"),
@@ -131,7 +138,7 @@ object CsvSink {
   }
 
   /**
-    * Creates a path recusuvely
+    * Creates a path recursively
     *
     * @param path The provided path to be created
     * @return the created path
@@ -177,6 +184,8 @@ object CsvSink {
           convertXlsxSheetToCsvFile(fileRelativePath,
                                     wb.getSheetAt(i),
                                     csvOutputPath)
+          logger.info(
+            s"Successfully converting 'XLSX/XLS' data from input folder '$fileRelativePath' to 'CSV' and store it under output folder '$csvOutputPath'.")
         }
         if (inputExcelPath != null) inputExcelPath.close()
       }

@@ -1,0 +1,36 @@
+FROM ubuntu:latest
+# Install tzdata to set timezone when installing jdk-8
+RUN apt-get update && apt-get install -y tzdata
+
+# Installing jdk-8
+RUN apt install -y openjdk-8-jdk openjdk-8-jre
+RUN apt-get -y install git && apt install -y wget && apt install -y curl && apt install -y zip && apt install -y vim \
+    && apt install -y tree
+RUN mkdir -p /app/tools/confluent-6.0.0
+RUN curl -O http://packages.confluent.io/archive/6.0/confluent-community-6.0.0.zip
+RUN unzip confluent-community-6.0.0.zip -d /app/tools
+RUN curl -sL https://cnfl.io/cli | sh -s -- v1.19.1 -b /usr/local/bin
+#RUN cd confluent-6.0.0
+RUN curl -O http://client.hub.confluent.io/confluent-hub-client-latest.tar.gz
+#RUN tar -xvf confluent-hub-client-latest.tar.gz
+RUN mkdir -p /app/tools/confluent-hub-client
+RUN tar -C /app/tools/confluent-hub-client -xzf confluent-hub-client-latest.tar.gz
+RUN pwd
+RUN ls
+#RUN ls /confluent-hub-client
+ENV CONFLUENT_HUB=/app/tools/confluent-hub-client
+ENV CONFLUENT_HOME=/app/tools/confluent-6.0.0
+RUN echo 'export PATH=$PATH:$CONFLUENT_HUB/bin'  >> ~/.bashrc
+RUN echo 'export PATH="${CONFLUENT_HOME}/bin:$PATH"'  >> ~/.bashrc
+
+#RUN echo 'export CONFLUENT_HUB=/app/tools/confluent-hub-client'  >> ~/.bashrc && \
+#  echo 'export PATH=$PATH:$CONFLUENT_HUB/bin'  >> ~/.bashrc && \
+#  echo 'export CONFLUENT_HOME=/app/tools/confluent-6.0.0'  >> ~/.bashrc && \
+#  echo 'export PATH="${CONFLUENT_HOME}/bin:$PATH"'  >> ~/.bashrc && \
+RUN  /bin/bash -c "source ~/.bashrc"
+#CMD confluent local services start
+#CMD /bin/bash -c "source /root/.bashrc"
+#ENV PATH "$PATH:/confluent-hub-client/bin"
+#ENV PATH "/confluent-6.0.0/bin:$PATH"
+
+#RUN confluent local services start

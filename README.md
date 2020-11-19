@@ -2,6 +2,16 @@ Yet another data converter.
 
 You can convert your data to multiple data types.
 
+**Environment :**
+
+- Docker 19.03.13
+- Docker compose 1.25.0
+- JDK 1.8
+- sbt 2.12.x
+- Spark 2.4.7
+- Hadoop 3.1.3
+- Confluent community 6.0.0
+
 **A- Getting started** : 
 ---
 
@@ -37,7 +47,7 @@ spark-submit  \
       --files "/the/path/to/application.conf" \
       /the/path/to/data-highway-assembly-0.1.jar
 ````
-If you are using pure Kafka (not the spark-kafka-plugin feature), run the following command :
+If you are using pure Kafka (not the spark-kafka-plugin feature), run instead the following command :
 ````shell script
 java -jar -Dconfig.file=/the/path/to/application.conf /the/path/to/data-highway-assembly-0.1.jar
 
@@ -45,58 +55,60 @@ java -jar -Dconfig.file=/the/path/to/application.conf /the/path/to/data-highway-
 
 **2- Run data-highway using Docker** :
 ---
+a- Spark application:
+-
+**Note** : The supported Spark applications are all routes for : (See **B- Conversions** section to configure the module)
+ - JSON Conversion
+ - CSV Conversion
+ - Parquet Conversion
+ - Avro Conversion
+ - Sending data to Kafka though **Spark Kafka Producer Plugin** (with and without streaming) **Simple Kafka Producer** and **Kafka Streaming**
+ - Consuming data from Kafka though **Spark Kafka Consumer Plugin** (with and without streaming) **Simple Kafka Consumer** and **Kafka Streaming**
+ 
+1- Set the input/output mounted volumes and the path to your configuration file by modifying the `docker-compose.yml` file located under `data-highway/docker/spark`:
+```yaml
+app:
+    build: .
+    image: data-highway-spark:v1.0
+    container_name: bungee-gum-spark
+    volumes:
+      - /the-path-to-input-data-lacated-in-your-host-machine/:/app/data/input
+      - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/output
+      - /the-path-to-your-config-file/application.conf:/app/config/application.conf
+    entrypoint: ["spark-submit",
+                  "--packages", "org.apache.spark:spark-avro_2.12:2.4.0",
+                  "--class", "io.oss.data.highway.App",
+                  "--master", "local[*]",
+                  "--conf", "spark.driver.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlog4j2.configuration=/app/config/log4j2.properties",
+                  "--conf", "spark.executor.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlog4j2.configuration=/app/config/log4j2.properties",
+                  "--files", "/app/config/application.conf,/app/config/log4j2.properties",
+                  "/app/jar/data-highway-assembly-0.1.jar"]
+```
+2- Run the script `start.sh` under the path `data-highway/docker/spark`
 
-ps: The current `Dockerfile` does not contain the installation of 
-kafka, but I'm using a separate sample provided by Confluent company : Take a look on the `data-highway/docker/docker-compose-confluent.sh`.
+ps: You can find some input data samples under the test package, which you can use to as an input for the input mounted volume.
 
-You can find a `Dockerfile` sample under `data-highway/docker` folder.
+b- Kafka application :
+-
 
-In order to run your Data-Highway container, specify your params in the following commands :
+**Note** : The supported Kafka applications are all routes for : (See **B- Conversions** section to configure the module)
+ - Sending data to Kafka though **Simple Kafka Producer** and **Kafka Streaming**
+ - Consuming data from Kafka though **Simple Kafka Consumer** and **Kafka Streaming**
+ 
+1- Set the input/output mounted volumes and the path to your configuration file by modifying the `docker-compose.yml` file located under `data-highway/docker/kafka`:
+```yaml
+app:
+    build: .
+    image: data-highway-kafka:v1.0
+    container_name: bungee-gum-kafka
+    volumes:
+      - /the-path-to-input-data-lacated-in-your-host-machine/:/app/data/input
+      - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/output
+      - /the-path-to-your-config-file/application.conf:/app/config/application.conf
+    entrypoint: ["java", "-jar", "-Dconfig.file=/app/config/application.conf", "-Dlog4j2.configuration=/app/config/log4j2.properties", "/app/jar/data-highway-assembly-0.1.jar"]
+```
 
-1- The `/the/path/to/your/mounted/input/volume/` folder that will contain your input data.
-
-2- The `/the/path/to/your/mounted/output/volume/` folder that will contain the generated files issued after the conversion.
-
-3- Run the following commands in the `docker` folder (the location of the Dockerfile) :
-````shell script
-cd docker
-docker build -t data-highway:v1.0 .
-docker run -tid \
-  -v /the/path/to/your/mounted/input/volume/:/app/data/input \
-  -v /the/path/to/your/mounted/output/volume/:/app/data/output \
-  --name data-highway-container data-highway:v1.0
-docker ps -a
-docker images
-docker exec -ti bungee-gum spark-submit  \
-       --packages org.apache.spark:spark-avro_2.12:2.4.0 \
-       --class "io.oss.data.highway.App" --master local[*] \
-       --conf "spark.driver.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlog4j2.configuration=/app/config/log4j2.properties" \
-       --conf "spark.executor.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlog4j2.configuration=/app/config/log4j2.properties" \
-       --files "/app/config/application.conf,/app/config/log4j2.properties" \
-       /app/jar/data-highway-assembly-0.1.jar
-````
-
-In order to change the configuration of the `application.conf` file, you can enter your `data-highway-container`, through the following command :
-````shell script
-docker exec -ti data-highway-container sh
-```` 
-Your `application.conf` file will be under `/app/config/application.conf` path, and you will be able to change configurations using the **B- Conversions** section from this `readme` file.
-
-````shell script
-# After entering your container
-cd /app/config/
-vim application.conf
-````
-Then, you can rerun your container using the same command : 
-````shell script
-docker exec -ti data-highway-container spark-submit  \
-         --packages org.apache.spark:spark-avro_2.12:2.4.0 \
-         --class "io.oss.data.highway.App" --master local[*] \
-         --conf "spark.driver.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlog4j2.configuration=/app/config/log4j2.properties" \
-         --conf "spark.executor.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlog4j2.configuration=/app/config/log4j2.properties" \
-         --files "/app/config/application.conf,/app/config/log4j2.properties" \
-         /app/jar/data-highway-assembly-0.1.jar
-````
+2- Run the script `start.sh` under the path `data-highway/docker/kafka`
 
 **B- Conversions** : 
 ---

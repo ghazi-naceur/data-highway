@@ -7,8 +7,11 @@ import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
 import io.oss.data.highway.utils.Constants.AVRO_TYPE
+import org.apache.log4j.Logger
 
 object AvroSink {
+
+  val logger: Logger = Logger.getLogger(AvroSink.getClass.getName)
 
   /**
     * Converts file to avro
@@ -32,6 +35,8 @@ object AvroSink {
           .format(AVRO_TYPE)
           .mode(saveMode)
           .save(out)
+        logger.info(
+          s"Successfully converting '$inputDataType' data from input folder '$in' to 'AVRO' and store it under output folder '$out'.")
       })
       .leftMap(thr =>
         AvroError(thr.getMessage, thr.getCause, thr.getStackTrace))
