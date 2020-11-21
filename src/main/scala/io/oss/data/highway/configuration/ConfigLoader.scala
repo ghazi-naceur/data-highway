@@ -20,7 +20,7 @@ case class ConfigLoader() {
       .leftMap(thrs => BulkErrorAccumulator(thrs))
   }
 
-  def loadSparkConf(): Either[BulkErrorAccumulator, SparkConfig] = {
+  def loadSparkConf(): Either[BulkErrorAccumulator, SparkConfigs] = {
     import pureconfig._
     import pureconfig.generic.auto._ // To be kept, even though intellij didn't recognize its usage
 
@@ -29,7 +29,20 @@ case class ConfigLoader() {
 
     ConfigSource.default
       .at("spark")
-      .load[SparkConfig]
+      .load[SparkConfigs]
+      .leftMap(thrs => BulkErrorAccumulator(thrs))
+  }
+
+  def loadKafkaConf(): Either[BulkErrorAccumulator, KafkaConfigs] = {
+    import pureconfig._
+    import pureconfig.generic.auto._ // To be kept, even though intellij didn't recognize its usage
+
+    implicit val offsetConvert: ConfigReader[LogLevel] =
+      deriveEnumerationReader[LogLevel]
+
+    ConfigSource.default
+      .at("kafka")
+      .load[KafkaConfigs]
       .leftMap(thrs => BulkErrorAccumulator(thrs))
   }
 }

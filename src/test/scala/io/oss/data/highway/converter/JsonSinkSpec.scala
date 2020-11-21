@@ -4,7 +4,7 @@ import java.io.File
 import java.nio.file.{Files, Paths}
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
-import io.oss.data.highway.configuration.SparkConfig
+import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.model.{AVRO, CSV, JSON, PARQUET, WARN}
 import io.oss.data.highway.utils.DataFrameUtils
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
@@ -23,8 +23,8 @@ class JsonSinkSpec
   val folderParquetToJson = "src/test/resources/parquet_to_json-data/"
   val folderCsvToJson = "src/test/resources/csv_to_json-data/"
   val folderAvroToJson = "src/test/resources/avro_to_json-data/"
-  val sparkConfig: SparkConfig =
-    SparkConfig("handler-app-test", "local[*]", WARN)
+  val sparkConfig: SparkConfigs =
+    SparkConfigs("handler-app-test", "local[*]", WARN)
   val getExpected: DataFrame = {
     import spark.implicits._
     List(

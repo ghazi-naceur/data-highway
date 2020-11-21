@@ -1,6 +1,6 @@
 package io.oss.data.highway.converter
 
-import io.oss.data.highway.configuration.SparkConfig
+import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.model.DataHighwayError.AvroError
 import io.oss.data.highway.model.{DataHighwayError, DataType}
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
@@ -27,7 +27,7 @@ object AvroSink {
                     out: String,
                     saveMode: SaveMode,
                     inputDataType: DataType,
-                    sparkConfig: SparkConfig): Either[AvroError, Unit] = {
+                    sparkConfig: SparkConfigs): Either[AvroError, Unit] = {
     DataFrameUtils(sparkConfig)
       .loadDataFrame(in, inputDataType)
       .map(df => {
@@ -57,7 +57,7 @@ object AvroSink {
       out: String,
       saveMode: SaveMode,
       inputDataType: DataType,
-      sparkConfig: SparkConfig): Either[DataHighwayError, List[Unit]] = {
+      sparkConfig: SparkConfigs): Either[DataHighwayError, List[Unit]] = {
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
       list <- folders

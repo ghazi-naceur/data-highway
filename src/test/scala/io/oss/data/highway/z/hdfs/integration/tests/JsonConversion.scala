@@ -1,7 +1,7 @@
 package io.oss.data.highway.z.hdfs.integration.tests
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
-import io.oss.data.highway.configuration.SparkConfig
+import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.converter.JsonSink
 import io.oss.data.highway.model.{AVRO, CSV, JSON, PARQUET, WARN}
 import io.oss.data.highway.utils.Constants.SEPARATOR
@@ -21,8 +21,8 @@ object JsonConversion extends DatasetComparer {
   val hdfsParquetToJson =
     "hdfs://localhost:9000/data-highway/parquet_to_json-data/"
 
-  val sparkConfig: SparkConfig =
-    SparkConfig("handler-app-test", "local[*]", WARN)
+  val sparkConfig: SparkConfigs =
+    SparkConfigs("handler-app-test", "local[*]", WARN)
 
   lazy val spark: SparkSession = {
     SparkSession

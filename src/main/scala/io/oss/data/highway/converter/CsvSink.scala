@@ -10,7 +10,7 @@ import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
 import org.apache.poi.ss.usermodel.{CellType, Sheet, WorkbookFactory}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
-import io.oss.data.highway.configuration.SparkConfig
+import io.oss.data.highway.configuration.SparkConfigs
 import org.apache.log4j.Logger
 
 import scala.annotation.tailrec
@@ -33,7 +33,7 @@ object CsvSink {
                    out: String,
                    saveMode: SaveMode,
                    inputDataType: DataType,
-                   sparkConfig: SparkConfig): Either[CsvError, Unit] = {
+                   sparkConfig: SparkConfigs): Either[CsvError, Unit] = {
     DataFrameUtils(sparkConfig)
       .loadDataFrame(in, inputDataType)
       .map(df => {
@@ -65,7 +65,7 @@ object CsvSink {
       out: String,
       saveMode: SaveMode,
       inputDataType: DataType,
-      sparkConfig: SparkConfig): Either[DataHighwayError, List[Unit]] = {
+      sparkConfig: SparkConfigs): Either[DataHighwayError, List[Unit]] = {
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
       list <- folders

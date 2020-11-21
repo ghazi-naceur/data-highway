@@ -1,0 +1,14 @@
+---
+version: '3.2'
+
+services:
+
+  app:
+    build: .
+    image: data-highway-app:v1.0
+    container_name: bungee-gum-app
+    volumes:
+      - /home/ghazi/playgroud/data-highway/shell/csv_to_parquet-data/input/:/app/data/input
+      - /home/ghazi/playgroud/data-highway/shell/csv_to_parquet-data/output/:/app/data/output
+      - /home/ghazi/workspace/data-highway/docker/data-highway/application.conf:/app/config/application.conf
+    entrypoint: ["java", "-jar", "-Dconfig.file=/app/config/application.conf", "-Dlog4j2.configuration=/app/config/log4j2.properties", "/app/jar/data-highway-assembly-0.1.jar"]

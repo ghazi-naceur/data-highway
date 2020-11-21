@@ -1,14 +1,15 @@
 package io.oss.data.highway.z.kafka.integration.tests
 
-import io.oss.data.highway.configuration.SparkConfig
+import io.oss.data.highway.configuration.{KafkaConfigs, SparkConfigs}
 import io.oss.data.highway.converter.KafkaSink
 import io.oss.data.highway.model.{KafkaStreaming, WARN}
 import org.apache.log4j.BasicConfigurator
 
 object KafkaStreamingProducerTest {
 
-  val sparkConfig: SparkConfig =
-    SparkConfig("handler-app-test", "local[*]", WARN)
+  val sparkConfig: SparkConfigs =
+    SparkConfigs("handler-app-test", "local[*]", WARN)
+  val kafkaConfig: KafkaConfigs = KafkaConfigs("localhost:2181")
 
   def main(args: Array[String]): Unit = {
     BasicConfigurator.configure()
@@ -20,6 +21,7 @@ object KafkaStreamingProducerTest {
                                 out,
                                 brokerUrl,
                                 KafkaStreaming("stream-app"),
-                                sparkConfig)
+                                sparkConfig,
+                                kafkaConfig)
   }
 }

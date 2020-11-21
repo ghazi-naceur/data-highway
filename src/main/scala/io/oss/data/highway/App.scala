@@ -22,39 +22,44 @@ object App {
     BasicConfigurator.configure()
     val result = for {
       conf <- ConfigLoader().loadConf()
-      sparkConfig <- ConfigLoader().loadSparkConf()
+      sparkConfigs <- ConfigLoader().loadSparkConf()
+      kafkaConfigs <- ConfigLoader().loadKafkaConf()
       _ = logger.info("Successfully loading configurations")
       _ <- conf match {
         case CsvToParquet(in, out) =>
-          ParquetSink.handleParquetChannel(in, out, Overwrite, CSV, sparkConfig)
+          ParquetSink.handleParquetChannel(in,
+                                           out,
+                                           Overwrite,
+                                           CSV,
+                                           sparkConfigs)
         case JsonToParquet(in, out) =>
           ParquetSink.handleParquetChannel(in,
                                            out,
                                            Overwrite,
                                            JSON,
-                                           sparkConfig)
+                                           sparkConfigs)
         case AvroToParquet(in, out) =>
           ParquetSink.handleParquetChannel(in,
                                            out,
                                            Overwrite,
                                            PARQUET,
-                                           sparkConfig)
+                                           sparkConfigs)
         case XlsxToCsv(in, out) =>
           CsvSink.handleXlsxCsvChannel(in,
                                        out,
                                        Seq(XLSX_EXTENSION, XLS_EXTENSION))
         case ParquetToCsv(in, out) =>
-          CsvSink.handleCsvChannel(in, out, Overwrite, PARQUET, sparkConfig)
+          CsvSink.handleCsvChannel(in, out, Overwrite, PARQUET, sparkConfigs)
         case AvroToCsv(in, out) =>
-          CsvSink.handleCsvChannel(in, out, Overwrite, AVRO, sparkConfig)
+          CsvSink.handleCsvChannel(in, out, Overwrite, AVRO, sparkConfigs)
         case JsonToCsv(in, out) =>
-          CsvSink.handleCsvChannel(in, out, Overwrite, JSON, sparkConfig)
+          CsvSink.handleCsvChannel(in, out, Overwrite, JSON, sparkConfigs)
         case ParquetToJson(in, out) =>
-          JsonSink.handleJsonChannel(in, out, Overwrite, PARQUET, sparkConfig)
+          JsonSink.handleJsonChannel(in, out, Overwrite, PARQUET, sparkConfigs)
         case AvroToJson(in, out) =>
-          JsonSink.handleJsonChannel(in, out, Overwrite, JSON, sparkConfig)
+          JsonSink.handleJsonChannel(in, out, Overwrite, JSON, sparkConfigs)
         case CsvToJson(in, out) =>
-          JsonSink.handleJsonChannel(in, out, Overwrite, CSV, sparkConfig)
+          JsonSink.handleJsonChannel(in, out, Overwrite, CSV, sparkConfigs)
         case KafkaToFile(in,
                          out,
                          dataType,
@@ -69,19 +74,21 @@ object App {
                             brokerUrl,
                             offset,
                             consumerGroup,
-                            sparkConfig)
+                            sparkConfigs,
+                            kafkaConfigs)
         case JsonToKafka(in, out, brokerUrl, kafkaMode) =>
           new KafkaSink().sendToTopic(in,
                                       out,
                                       brokerUrl,
                                       kafkaMode,
-                                      sparkConfig)
+                                      sparkConfigs,
+                                      kafkaConfigs)
         case ParquetToAvro(in, out) =>
-          AvroSink.handleAvroChannel(in, out, Overwrite, PARQUET, sparkConfig)
+          AvroSink.handleAvroChannel(in, out, Overwrite, PARQUET, sparkConfigs)
         case JsonToAvro(in, out) =>
-          AvroSink.handleAvroChannel(in, out, Overwrite, JSON, sparkConfig)
+          AvroSink.handleAvroChannel(in, out, Overwrite, JSON, sparkConfigs)
         case CsvToAvro(in, out) =>
-          AvroSink.handleAvroChannel(in, out, Overwrite, CSV, sparkConfig)
+          AvroSink.handleAvroChannel(in, out, Overwrite, CSV, sparkConfigs)
         case _ =>
           throw new RuntimeException(
             s"The provided route '$conf' is not supported.")
