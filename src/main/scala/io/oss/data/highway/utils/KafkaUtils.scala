@@ -1,10 +1,12 @@
 package io.oss.data.highway.utils
 
+import java.util
 import java.util.{Collections, Properties}
 
 import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig, NewTopic}
+import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.apache.kafka.common.PartitionInfo
 import org.apache.log4j.Logger
-import org.apache.zookeeper.{WatchedEvent, Watcher, ZooKeeper}
 
 import scala.jdk.CollectionConverters._
 import scala.util.Try
@@ -15,16 +17,21 @@ object KafkaUtils {
 
   /**
     * Lists the available kafka topics
-    * @param zookeeperUrls The zookeeper urls
+    * @param brokerUrls The brokers urls
     * @return a List of Kafka topic names
     */
-  def listTopics(zookeeperUrls: String): List[String] = {
-    val watcher = new Watcher {
-      override def process(event: WatchedEvent): Unit = {}
-    }
+  def listTopics(
+      brokerUrls: String): List[(String, util.List[PartitionInfo])] = {
+    val props = new Properties()
+    props.put("bootstrap.servers", brokerUrls);
+    props.put("group.id", "list-topics-consumer-group");
+    props.put("key.deserializer",
+              "org.apache.kafka.common.serialization.StringDeserializer");
+    props.put("value.deserializer",
+              "org.apache.kafka.common.serialization.StringDeserializer");
 
-    val zk: ZooKeeper = new ZooKeeper(zookeeperUrls, 100000, watcher)
-    zk.getChildren("/brokers/topics", watcher).asScala.toList
+    val consumer = new KafkaConsumer[String, String](props)
+    consumer.listTopics().asScala.toList
   }
 
   /**
@@ -61,7 +68,9 @@ object KafkaUtils {
                            zookeeperUrls: String,
                            brokerUrls: String,
                            enableTopicCreation: Boolean): Any = {
-    if (!listTopics(zookeeperUrls).contains(topic)) {
+    val strings = listTopics(brokerUrls).map(_._1)
+    println(strings)
+    if (!strings.contains(topic)) {
       if (enableTopicCreation) {
         createTopic(topic, brokerUrls)
       } else {
