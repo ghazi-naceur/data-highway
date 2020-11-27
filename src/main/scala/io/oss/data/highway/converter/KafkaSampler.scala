@@ -20,7 +20,7 @@ import io.oss.data.highway.utils.{
   KafkaUtils
 }
 import org.apache.spark.sql.functions.to_json
-import io.oss.data.highway.configuration.{KafkaConfigs, SparkConfigs}
+import io.oss.data.highway.configuration.SparkConfigs
 import org.apache.kafka.streams.KafkaStreams
 import org.apache.log4j.Logger
 import org.apache.spark.sql.SparkSession
@@ -54,12 +54,8 @@ object KafkaSampler {
            brokerUrls: String,
            offset: Offset,
            consumerGroup: String,
-           sparkConfig: SparkConfigs,
-           kafkaConfigs: KafkaConfigs): Either[Throwable, Unit] = {
-    KafkaUtils.verifyTopicExistence(in,
-                                    kafkaConfigs.zookeeperUrls,
-                                    brokerUrls,
-                                    enableTopicCreation = false)
+           sparkConfig: SparkConfigs): Either[Throwable, Unit] = {
+    KafkaUtils.verifyTopicExistence(in, brokerUrls, enableTopicCreation = false)
     val extension = dataType match {
       case Some(dataType) => dataType.extension
       case None           => KAFKA.extension

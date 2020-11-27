@@ -23,7 +23,6 @@ object App {
     val result = for {
       conf <- ConfigLoader().loadConf()
       sparkConfigs <- ConfigLoader().loadSparkConf()
-      kafkaConfigs <- ConfigLoader().loadKafkaConf()
       _ = logger.info("Successfully loading configurations")
       _ <- conf match {
         case CsvToParquet(in, out) =>
@@ -74,15 +73,13 @@ object App {
                             brokerUrl,
                             offset,
                             consumerGroup,
-                            sparkConfigs,
-                            kafkaConfigs)
+                            sparkConfigs)
         case JsonToKafka(in, out, brokerUrl, kafkaMode) =>
           new KafkaSink().sendToTopic(in,
                                       out,
                                       brokerUrl,
                                       kafkaMode,
-                                      sparkConfigs,
-                                      kafkaConfigs)
+                                      sparkConfigs)
         case ParquetToAvro(in, out) =>
           AvroSink.handleAvroChannel(in, out, Overwrite, PARQUET, sparkConfigs)
         case JsonToAvro(in, out) =>

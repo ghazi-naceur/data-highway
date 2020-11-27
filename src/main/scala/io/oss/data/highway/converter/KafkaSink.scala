@@ -23,7 +23,7 @@ import scala.io.Source
 import scala.util.Try
 import org.apache.log4j.Logger
 import cats.syntax.either._
-import io.oss.data.highway.configuration.{KafkaConfigs, SparkConfigs}
+import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.model.DataHighwayError.KafkaError
 import org.apache.spark.sql.functions.lit
 
@@ -48,15 +48,13 @@ class KafkaSink {
                   topic: String,
                   bootstrapServers: String,
                   kafkaMode: KafkaMode,
-                  sparkConfig: SparkConfigs,
-                  kafkaConfigs: KafkaConfigs): Either[Throwable, Any] = {
+                  sparkConfig: SparkConfigs): Either[Throwable, Any] = {
     val props = new Properties()
     props.put("bootstrap.servers", bootstrapServers)
     props.put("key.serializer", classOf[StringSerializer].getName)
     props.put("value.serializer", classOf[StringSerializer].getName)
     val producer = new KafkaProducer[String, String](props)
     KafkaUtils.verifyTopicExistence(topic,
-                                    kafkaConfigs.zookeeperUrls,
                                     bootstrapServers,
                                     enableTopicCreation = true)
     kafkaMode match {
@@ -64,7 +62,6 @@ class KafkaSink {
         send(jsonPath, topic, producer)
       case KafkaStreaming(streamAppId) =>
         KafkaUtils.verifyTopicExistence(intermediateTopic,
-                                        kafkaConfigs.zookeeperUrls,
                                         bootstrapServers,
                                         enableTopicCreation = true)
         send(jsonPath, intermediateTopic, producer)

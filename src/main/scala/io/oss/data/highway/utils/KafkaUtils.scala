@@ -59,17 +59,14 @@ object KafkaUtils {
     * the activation of the 'enableTopicCreation' flag (Producing in a kafka topic), it will create the topic.
     * But in the other case where the flag is deactivated (Consuming from a kafka topic), it will throw an Exception.
     * @param topic The provided topic
-    * @param zookeeperUrls The zookeeper urls
     * @param brokerUrls The Kafka brokers urls
     * @param enableTopicCreation The topic creation flag
     * @return Any
     */
   def verifyTopicExistence(topic: String,
-                           zookeeperUrls: String,
                            brokerUrls: String,
                            enableTopicCreation: Boolean): Any = {
     val strings = listTopics(brokerUrls).map(_._1)
-    println(strings)
     if (!strings.contains(topic)) {
       if (enableTopicCreation) {
         createTopic(topic, brokerUrls)
