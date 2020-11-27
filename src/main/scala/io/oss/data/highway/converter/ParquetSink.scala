@@ -5,7 +5,7 @@ import io.oss.data.highway.model.{DataHighwayError, DataType}
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
-import io.oss.data.highway.configuration.SparkConfig
+import io.oss.data.highway.configuration.SparkConfigs
 import org.apache.log4j.Logger
 
 object ParquetSink {
@@ -22,11 +22,12 @@ object ParquetSink {
     * @param sparkConfig The Spark Configuration
     * @return Unit if successful, otherwise Error
     */
-  def convertToParquet(in: String,
-                       out: String,
-                       saveMode: SaveMode,
-                       inputDataType: DataType,
-                       sparkConfig: SparkConfig): Either[ParquetError, Unit] = {
+  def convertToParquet(
+      in: String,
+      out: String,
+      saveMode: SaveMode,
+      inputDataType: DataType,
+      sparkConfig: SparkConfigs): Either[ParquetError, Unit] = {
     DataFrameUtils(sparkConfig)
       .loadDataFrame(in, inputDataType)
       .map(df => {
@@ -55,7 +56,7 @@ object ParquetSink {
       out: String,
       saveMode: SaveMode,
       inputDataType: DataType,
-      sparkConfig: SparkConfig): Either[DataHighwayError, List[Unit]] = {
+      sparkConfig: SparkConfigs): Either[DataHighwayError, List[Unit]] = {
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
       list <- folders

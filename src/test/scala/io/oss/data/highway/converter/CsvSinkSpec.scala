@@ -4,7 +4,7 @@ import java.io.{File, FileInputStream}
 import java.nio.file.{Files, Paths}
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
-import io.oss.data.highway.configuration.SparkConfig
+import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.model.{AVRO, CSV, JSON, PARQUET, WARN}
 import io.oss.data.highway.utils.Constants.{XLSX_EXTENSION, XLS_EXTENSION}
 import io.oss.data.highway.utils.{Constants, DataFrameUtils, MockSheetCreator}
@@ -26,8 +26,8 @@ class CsvSinkSpec
   val folderAvroToCsvData = "src/test/resources/avro_to_csv-data/"
   val folderXlsxCsvData = "src/test/resources/xlsx_to_csv-data/"
   val extensions = Seq(XLSX_EXTENSION, Constants.XLS_EXTENSION)
-  val sparkConfig: SparkConfig =
-    SparkConfig("handler-app-test", "local[*]", WARN)
+  val sparkConfig: SparkConfigs =
+    SparkConfigs("handler-app-test", "local[*]", WARN)
   val getExpected: DataFrame = {
     import spark.implicits._
     List(

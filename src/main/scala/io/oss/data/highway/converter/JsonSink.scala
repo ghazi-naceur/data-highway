@@ -5,7 +5,7 @@ import io.oss.data.highway.model.{DataHighwayError, DataType}
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
-import io.oss.data.highway.configuration.SparkConfig
+import io.oss.data.highway.configuration.SparkConfigs
 import org.apache.log4j.Logger
 
 object JsonSink {
@@ -26,7 +26,7 @@ object JsonSink {
                     out: String,
                     saveMode: SaveMode,
                     inputDataType: DataType,
-                    sparkConfig: SparkConfig): Either[JsonError, Unit] = {
+                    sparkConfig: SparkConfigs): Either[JsonError, Unit] = {
     DataFrameUtils(sparkConfig)
       .loadDataFrame(in, inputDataType)
       .map(df => {
@@ -56,7 +56,7 @@ object JsonSink {
       out: String,
       saveMode: SaveMode,
       inputDataType: DataType,
-      sparkConfig: SparkConfig
+      sparkConfig: SparkConfigs
   ): Either[DataHighwayError, List[Unit]] = {
     for {
       folders <- FilesUtils.listFoldersRecursively(in)

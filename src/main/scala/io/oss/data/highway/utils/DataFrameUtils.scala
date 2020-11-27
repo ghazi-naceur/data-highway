@@ -2,11 +2,11 @@ package io.oss.data.highway.utils
 
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import cats.syntax.either._
-import io.oss.data.highway.configuration.SparkConfig
+import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.model.{AVRO, CSV, DataType, JSON, PARQUET}
 import io.oss.data.highway.utils.Constants.{AVRO_TYPE, SEPARATOR}
 
-case class DataFrameUtils(sparkConf: SparkConfig) {
+case class DataFrameUtils(sparkConf: SparkConfigs) {
 
   val sparkSession: SparkSession = {
     val ss = SparkSession

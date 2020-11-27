@@ -1,7 +1,7 @@
 package io.oss.data.highway.z.hdfs.integration.tests
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
-import io.oss.data.highway.configuration.SparkConfig
+import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.converter.AvroSink
 import io.oss.data.highway.model.{AVRO, CSV, JSON, PARQUET, WARN}
 import io.oss.data.highway.utils.Constants.SEPARATOR
@@ -19,8 +19,8 @@ object AvroConversion extends DatasetComparer {
   val hdfsJsonToAvro = "hdfs://localhost:9000/data-highway/json_to_avro-data/"
   val hdfsCsvToAvro = "hdfs://localhost:9000/data-highway/csv_to_avro-data/"
 
-  val sparkConfig: SparkConfig =
-    SparkConfig("handler-app-test", "local[*]", WARN)
+  val sparkConfig: SparkConfigs =
+    SparkConfigs("handler-app-test", "local[*]", WARN)
 
   lazy val spark: SparkSession = {
     SparkSession

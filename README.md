@@ -88,7 +88,30 @@ app:
 
 ps: You can find some input data samples under the test package, which you can use as an input for the input to be mounted volume.
 
-b- Kafka application :
+b- Kafka application without Confluent Cluster:
+-
+
+**Note** : The supported Kafka applications are all routes for : (See **B- Conversions** section to configure the module)
+ - Sending data to Kafka though **Simple Kafka Producer** and **Kafka Streaming**
+ - Consuming data from Kafka though **Simple Kafka Consumer** and **Kafka Streaming**
+ 
+1- Set the input/output to be mounted volumes and the path to your configuration file by modifying the `docker-compose.yml` file located under `data-highway/docker/data-highway`:
+```yaml
+  app:
+    build: .
+    image: data-highway-app:v1.0
+    container_name: bungee-gum-app
+    volumes:
+      - /home/ghazi/playgroud/data-highway/shell/csv_to_parquet-data/input/:/app/data/input
+      - /home/ghazi/playgroud/data-highway/shell/csv_to_parquet-data/output/:/app/data/output
+      - /home/ghazi/workspace/data-highway/docker/data-highway/application.conf:/app/config/application.conf
+    entrypoint: [ "java", "-jar", "-Dconfig.file=/app/config/application.conf", "-Dlog4j2.configuration=/app/config/log4j2.properties", "/app/jar/data-highway-assembly-0.1.jar" ]
+    network_mode: "host"
+```
+
+2- Run the script `start.sh` under the path `data-highway/docker/data-highway`
+
+c- Kafka application with Confluent Cluster:
 -
 
 **Note** : The supported Kafka applications are all routes for : (See **B- Conversions** section to configure the module)
