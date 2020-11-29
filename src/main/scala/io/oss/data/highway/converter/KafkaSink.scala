@@ -33,7 +33,7 @@ class KafkaSink {
 
   val logger: Logger = Logger.getLogger(classOf[KafkaSink].getName)
   val intermediateTopic: String =
-    s"intermediate-topic-${UUID.randomUUID().toString}"
+    s"intermediate-topic-${UUID.randomUUID().toString.replace("-", "")}"
 
   /**
     * Sends message to Kafka topic
@@ -70,6 +70,9 @@ class KafkaSink {
                                     intermediateTopic,
                                     checkpointFolder) =>
         if (useStream) {
+          KafkaUtils.verifyTopicExistence(intermediateTopic,
+                                          bootstrapServers,
+                                          enableTopicCreation = true)
           sendUsingStreamSparkKafkaPlugin(jsonPath,
                                           producer,
                                           bootstrapServers,
@@ -102,8 +105,7 @@ class KafkaSink {
       bootstrapServers: String,
       topic: String,
       sparkConfig: SparkConfigs): Either[Throwable, Unit] = {
-    //todo specify explicitly your imports
-    import org.apache.spark.sql.functions._
+    import org.apache.spark.sql.functions.{col, to_json, struct}
     DataFrameUtils(sparkConfig)
       .loadDataFrame(jsonPath, JSON)
       .map(df => {
