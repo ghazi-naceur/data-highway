@@ -13,8 +13,7 @@ object SparkKafkaConsumerPluginTest {
 
   def main(args: Array[String]): Unit = {
 
-    // todo It doesn't consume all data when "useStream = false"
-    val in = "kafka-to-json-topic-2"
+    val in = "kafka-to-json-topic-3"
     val out =
       "/home/ghazi/workspace/data-highway/src/test/resources/output/files"
     val sparkConfig = SparkConfigs("app-name", "local[*]", INFO)
@@ -22,7 +21,7 @@ object SparkKafkaConsumerPluginTest {
     KafkaSampler.peek(in,
                       out,
                       Some(JSON),
-                      SparkKafkaConsumerPlugin(useStream = true),
+                      SparkKafkaConsumerPlugin(useStream = false),
                       "localhost:9092",
                       Earliest,
                       "consumer-group",

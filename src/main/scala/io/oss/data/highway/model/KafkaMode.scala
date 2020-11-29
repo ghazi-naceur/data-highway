@@ -10,7 +10,7 @@ case class KafkaStreaming(streamAppId: String) extends KafkaMode
 
 case class SparkKafkaConsumerPlugin(useStream: Boolean) extends KafkaMode
 
-// todo The intermediateTopic must be pre-created !!!
+// todo Make intermediateTopic and checkpoint automatic
 case class SparkKafkaProducerPlugin(useStream: Boolean,
                                     intermediateTopic: String,
                                     checkpointFolder: String)

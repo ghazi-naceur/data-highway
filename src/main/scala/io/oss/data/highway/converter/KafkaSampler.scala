@@ -2,6 +2,7 @@ package io.oss.data.highway.converter
 
 import java.io.File
 import java.time.Duration
+import java.util.UUID
 
 import io.oss.data.highway.model.{
   DataHighwayError,
@@ -120,7 +121,7 @@ object KafkaSampler {
       .foreach(data =>
         FilesUtils.save(
           out,
-          s"spark-kafka-plugin-${System.currentTimeMillis()}$extension",
+          s"spark-kafka-plugin-${UUID.randomUUID()}-${System.currentTimeMillis()}$extension",
           data.toString()))
     logger.info(
       s"Successfully sinking '$extension' data provided by the input topic '$in' in the output folder '$out/spark-kafka-plugin-*****$extension'")
@@ -147,8 +148,9 @@ object KafkaSampler {
       .option(
         "path",
         s"$out/spark-kafka-streaming-plugin-${System.currentTimeMillis()}")
-      .option("checkpointLocation",
-              s"/tmp/checkpoint/${System.currentTimeMillis()}")
+      .option(
+        "checkpointLocation",
+        s"/tmp/checkpoint/${UUID.randomUUID()}-${System.currentTimeMillis()}")
       .start()
       .awaitTermination()
     logger.info(
@@ -171,10 +173,10 @@ object KafkaSampler {
                                              brokerUrls)
       kafkaStreamEntity.dataKStream.mapValues(
         data => {
+          val uuid: String =
+            s"${UUID.randomUUID()}-${System.currentTimeMillis()}"
           FilesUtils
-            .save(out,
-                  s"kafka-streams-${System.currentTimeMillis()}$extension",
-                  data)
+            .save(out, s"kafka-streams-$uuid$extension", data)
           logger.info(
             s"Successfully sinking '$extension' data provided by the input topic '$in' in the output folder '$out/kafka-streams-*****$extension'")
         }
@@ -204,11 +206,9 @@ object KafkaSampler {
           logger.info(
             s"Topic: ${data.topic()}, Key: ${data.key()}, Value: ${data.value()}, " +
               s"Offset: ${data.offset()}, Partition: ${data.partition()}")
-
-          FilesUtils.save(
-            out,
-            s"simple-consumer-${System.currentTimeMillis()}$extension",
-            data.value())
+          val uuid: String =
+            s"${UUID.randomUUID()}-${System.currentTimeMillis()}"
+          FilesUtils.save(out, s"simple-consumer-$uuid$extension", data.value())
           logger.info(
             s"Successfully sinking '$extension' data provided by the input topic '$in' in the output folder '$out/simple-consumer-*****$extension'")
         }
