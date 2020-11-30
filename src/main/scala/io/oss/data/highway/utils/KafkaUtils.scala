@@ -55,6 +55,25 @@ object KafkaUtils {
   }
 
   /**
+    * Deletes a Kafka topic
+    * @param topic The topic to be created
+    * @param brokerUrls The kafka brokers urls
+    * @return Unit, otherwise a Throwable
+    */
+  def deleteTopic(topic: String,
+                  brokerUrls: String): Either[Throwable, Unit] = {
+    val props = new Properties()
+    props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, brokerUrls)
+    Try {
+      val adminClient = AdminClient.create(props)
+      val deleteTopicsResult =
+        adminClient.deleteTopics(Collections.singleton(topic))
+      deleteTopicsResult.values().get(topic).get()
+      logger.info(s"The topic '$topic' was successfully deleted")
+    }.toEither
+  }
+
+  /**
     * Verifies the topic existence. If it already exists, the function will do nothing. Otherwise, in the case of
     * the activation of the 'enableTopicCreation' flag (Producing in a kafka topic), it will create the topic.
     * But in the other case where the flag is deactivated (Consuming from a kafka topic), it will throw an Exception.

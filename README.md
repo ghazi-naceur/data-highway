@@ -309,8 +309,6 @@ route {
   kafka-mode = {
       type = "spark-kafka-producer-plugin"
       use-stream = false
-      intermediate-topic = "your-intermediate-topic" // Must be set once `use-stream = true`
-      checkpoint-folder = "your-checkpoint-folder-related-to-the-intermediate-topic" // Must be set once `use-stream = true`. You must change its value everytime you change the `intermediate-topic`
   }
 }
 ````

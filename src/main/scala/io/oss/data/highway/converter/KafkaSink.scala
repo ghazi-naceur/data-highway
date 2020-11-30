@@ -32,8 +32,12 @@ import scala.sys.ShutdownHookThread
 class KafkaSink {
 
   val logger: Logger = Logger.getLogger(classOf[KafkaSink].getName)
+  val generated =
+    s"${UUID.randomUUID()}-${System.currentTimeMillis().toString}"
   val intermediateTopic: String =
-    s"intermediate-topic-${UUID.randomUUID().toString}"
+    s"intermediate-topic-$generated"
+  val checkpointFolder: String =
+    s"/tmp/data-highway/checkpoint-$generated"
 
   /**
     * Sends message to Kafka topic
@@ -66,9 +70,7 @@ class KafkaSink {
                                         enableTopicCreation = true)
         send(jsonPath, intermediateTopic, producer)
         runStream(streamAppId, intermediateTopic, bootstrapServers, topic)
-      case SparkKafkaProducerPlugin(useStream,
-                                    intermediateTopic,
-                                    checkpointFolder) =>
+      case SparkKafkaProducerPlugin(useStream) =>
         if (useStream) {
           sendUsingStreamSparkKafkaPlugin(jsonPath,
                                           producer,
@@ -102,8 +104,7 @@ class KafkaSink {
       bootstrapServers: String,
       topic: String,
       sparkConfig: SparkConfigs): Either[Throwable, Unit] = {
-    //todo specify explicitly your imports
-    import org.apache.spark.sql.functions._
+    import org.apache.spark.sql.functions.{col, to_json, struct}
     DataFrameUtils(sparkConfig)
       .loadDataFrame(jsonPath, JSON)
       .map(df => {
@@ -144,22 +145,17 @@ class KafkaSink {
       offset: Offset = Latest): Either[Throwable, Unit] = {
     //TODO offset has a default value that could be externalized
     Either.catchNonFatal {
-
+      KafkaUtils.verifyTopicExistence(intermediateTopic,
+                                      bootstrapServers,
+                                      enableTopicCreation = true)
       send(jsonPath, intermediateTopic, producer)
 
-      val kafkaStream = DataFrameUtils(sparkConfig).sparkSession.readStream
+      DataFrameUtils(sparkConfig).sparkSession.readStream
         .format("kafka")
         .option("kafka.bootstrap.servers", bootstrapServers)
-        .option("startingOffsets", offset.value)
+        .option("startingOffsets", "earliest")
         .option("subscribe", intermediateTopic)
         .load()
-
-      val intermediateDf =
-        kafkaStream.withColumn("technical_uuid",
-                               lit(UUID.randomUUID().toString))
-      logger.info(
-        s"Sending data through Spark Kafka Streaming Plugin to '$intermediateTopic'.")
-      intermediateDf
         .selectExpr("CAST(value AS STRING)")
         .writeStream
         .format("kafka") // console

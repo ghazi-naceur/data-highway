@@ -28,6 +28,7 @@ libraryDependencies ++= Seq("com.github.pureconfig" %% "pureconfig" % "0.13.0",
   "org.apache.kafka" %% "kafka" % "2.4.0",
   "org.apache.kafka" %% "kafka-streams-scala" % "2.4.0",
   "org.apache.spark" %% "spark-sql-kafka-0-10" % "2.4.0",
+  "net.manub" %% "scalatest-embedded-kafka" % "2.0.0" % "test",
   "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.8.2",
   "org.apache.logging.log4j" % "log4j-api"        % "2.8.2",
   "org.apache.logging.log4j" % "log4j-core"       % "2.8.2"

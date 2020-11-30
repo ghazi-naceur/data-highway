@@ -113,4 +113,16 @@ object FilesUtils {
       .leftMap(thr =>
         ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
+
+  /**
+    * Deletes path
+    * @param path The path to be deleted
+    */
+  def deleteFolder(path: String): Either[ReadFileError, Boolean] = {
+    Try {
+      new File(path).delete()
+    }.toEither
+      .leftMap(thr =>
+        ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+  }
 }
