@@ -16,13 +16,10 @@ object SparkKafkaProducerPluginTest {
     val out = "kafka-to-json-topic-3"
     val brokerUrl = "localhost:9092"
 
-    new KafkaSink().sendToTopic(
-      in,
-      out,
-      brokerUrl,
-      SparkKafkaProducerPlugin(useStream = false,
-                               "intermediate-skp-1",
-                               "/tmp/data-highway/checkpoint-1"),
-      sparkConfig)
+    new KafkaSink().sendToTopic(in,
+                                out,
+                                brokerUrl,
+                                SparkKafkaProducerPlugin(useStream = false),
+                                sparkConfig)
   }
 }

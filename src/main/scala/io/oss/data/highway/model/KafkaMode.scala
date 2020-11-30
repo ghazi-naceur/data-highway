@@ -10,10 +10,4 @@ case class KafkaStreaming(streamAppId: String) extends KafkaMode
 
 case class SparkKafkaConsumerPlugin(useStream: Boolean) extends KafkaMode
 
-// todo Make intermediateTopic and checkpoint automatic
-case class SparkKafkaProducerPlugin(useStream: Boolean,
-                                    intermediateTopic: String,
-                                    checkpointFolder: String)
-    extends KafkaMode
-// TODO It is recommended that intermediateTopic and checkpointFolder should be changed together :
-//  see : https://stackoverflow.com/questions/57030933/spark-streaming-failing-due-to-error-on-a-different-kafka-topic-than-the-one-bei
+case class SparkKafkaProducerPlugin(useStream: Boolean) extends KafkaMode

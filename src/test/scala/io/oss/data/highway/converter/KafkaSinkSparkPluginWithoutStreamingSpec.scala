@@ -23,9 +23,7 @@ class KafkaSinkSparkPluginWithoutStreamingSpec
         kafkaSink.sendToTopic(in,
                               out3,
                               brokerUrl,
-                              SparkKafkaProducerPlugin(useStream = false,
-                                                       "intermediate-1",
-                                                       "checkpoint-1"),
+                              SparkKafkaProducerPlugin(useStream = false),
                               sparkConfig)
         assert(!consumeFirstStringMessageFrom(out3).isEmpty)
       }
