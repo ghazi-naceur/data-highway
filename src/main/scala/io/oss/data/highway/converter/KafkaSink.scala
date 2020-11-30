@@ -32,8 +32,12 @@ import scala.sys.ShutdownHookThread
 class KafkaSink {
 
   val logger: Logger = Logger.getLogger(classOf[KafkaSink].getName)
+  val generated =
+    s"${UUID.randomUUID()}-${System.currentTimeMillis().toString}"
   val intermediateTopic: String =
-    s"intermediate-topic-${UUID.randomUUID().toString.replace("-", "")}"
+    s"intermediate-topic-$generated"
+  val checkpointFolder: String =
+    s"/tmp/data-highway/checkpoint-$generated"
 
   /**
     * Sends message to Kafka topic
@@ -68,15 +72,6 @@ class KafkaSink {
         runStream(streamAppId, intermediateTopic, bootstrapServers, topic)
       case SparkKafkaProducerPlugin(useStream) =>
         if (useStream) {
-
-          // todo Generify this
-          val intermediateTopic: String =
-            s"intermediate-topic-20-$topic"
-          val checkpointFolder: String =
-            s"/tmp/data-highway/checkpoint-folder-20-$topic"
-          // TODO It is recommended that intermediateTopic and checkpointFolder should be changed together :
-          //  see : https://stackoverflow.com/questions/57030933/spark-streaming-failing-due-to-error-on-a-different-kafka-topic-than-the-one-bei
-
           sendUsingStreamSparkKafkaPlugin(jsonPath,
                                           producer,
                                           bootstrapServers,
