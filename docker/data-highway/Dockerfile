@@ -29,9 +29,6 @@ RUN \
   cd && \
   rm -r /working/ && \
   cd /application/data-highway && \
-  git fetch --all && \
-  git branch -v -a  && \
-  git checkout topic-creation-issue && \
   sbt sbtVersion && \
   sbt clean && \
   sbt compile && \

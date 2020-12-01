@@ -150,7 +150,7 @@ services:
     image: data-highway-kafka:v1.0
     container_name: bungee-gum-kafka
     volumes:
-      - /the-path-to-input-data-located-in-your-host-machine/:/app/data/input
-      - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/output
-      - /the-path-to-your-config-file/application.conf:/app/config/application.conf
+      - /home/ghazi/playgroud/data-highway/shell/csv_to_parquet-data/input/:/app/data/input
+      - /home/ghazi/playgroud/data-highway/shell/csv_to_parquet-data/output/:/app/data/output
+      - /home/ghazi/workspace/data-highway/docker/kafka/application.conf:/app/config/application.conf
     entrypoint: ["java", "-jar", "-Dconfig.file=/app/config/application.conf", "-Dlog4j2.configuration=/app/config/log4j2.properties", "/app/jar/data-highway-assembly-0.1.jar"]
