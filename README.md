@@ -124,6 +124,7 @@ app:
       - /the-path-to-input-data-located-in-your-host-machine/:/app/data/input
       - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/output
       - /the-path-to-your-config-file/application.conf:/app/config/application.conf
+      - /the-path-to-your-log-file/log4j2.properties:/app/config/log4j2.properties
     entrypoint: ["spark-submit",
                   "--packages", "org.apache.spark:spark-avro_2.12:2.4.0",
                   "--class", "io.oss.data.highway.App",
@@ -161,6 +162,7 @@ In the section "B-5-c" case, data will be published to the output topic.
       - /the-path-to-input-data-located-in-your-host-machine/:/app/data/input # Used for sections "B-5-a" and "B-5-b"
       - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/output # Used for sections "B-6-a" and "B-6-b"
       - /the-path-to-your-config-file/application.conf:/app/config/application.conf
+      - /the-path-to-your-log-file/log4j2.properties:/app/config/log4j2.properties
     entrypoint: [ "java", "-jar", "-Dconfig.file=/app/config/application.conf", "-Dlog4j2.configuration=/app/config/log4j2.properties", "/app/jar/data-highway-assembly-0.1.jar" ]
     network_mode: "host"
 ```
@@ -191,6 +193,7 @@ app:
       - /the-path-to-input-data-located-in-your-host-machine/:/app/data/input # Used for sections "B-5-a" and "B-5-b"
       - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/output # Used for sections "B-6-a" and "B-6-b"
       - /the-path-to-your-config-file/application.conf:/app/config/application.conf
+      - /the-path-to-your-log-file/log4j2.properties:/app/config/log4j2.properties
     entrypoint: ["java", "-jar", "-Dconfig.file=/app/config/application.conf", "-Dlog4j2.configuration=/app/config/log4j2.properties", "/app/jar/data-highway-assembly-0.1.jar"]
 ```
 
