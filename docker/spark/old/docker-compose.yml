@@ -4,13 +4,16 @@ version: '3.2'
 services:
 
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: /home/ghazi/workspace/data-highway/docker/spark/Dockerfile
     image: data-highway-spark:v1.0
     container_name: bungee-gum-spark
     volumes:
       - /home/ghazi/playgroud/data-highway/shell/csv_to_parquet-data/input/:/app/data/input
       - /home/ghazi/playgroud/data-highway/shell/csv_to_parquet-data/output/:/app/data/output
       - /home/ghazi/workspace/data-highway/docker/spark/application.conf:/app/config/application.conf
+      - /home/ghazi/workspace/data-highway/src/main/resources/log4j2.properties:/app/config/log4j2.properties
     entrypoint: ["spark-submit",
                   "--packages", "org.apache.spark:spark-avro_2.12:2.4.0",
                   "--class", "io.oss.data.highway.App",
