@@ -11,6 +11,7 @@ services:
       - /the-path-to-input-data-located-in-your-host-machine/:/app/data/input
       - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/output
       - /the-path-to-your-config-file/application.conf:/app/config/application.conf
+      - /the-path-to-your-log-file/log4j2.properties:/app/config/log4j2.properties
     entrypoint: ["spark-submit",
                   "--packages", "org.apache.spark:spark-avro_2.12:2.4.0",
                   "--class", "io.oss.data.highway.App",
