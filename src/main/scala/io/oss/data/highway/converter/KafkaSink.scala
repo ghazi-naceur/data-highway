@@ -1,10 +1,8 @@
 package io.oss.data.highway.converter
 
 import java.time.Duration
-
 import org.apache.kafka.clients.producer._
 import java.util.{Properties, UUID}
-
 import io.oss.data.highway.model.{
   JSON,
   KafkaMode,
@@ -14,19 +12,19 @@ import io.oss.data.highway.model.{
   SimpleProducer,
   SparkKafkaProducerPlugin
 }
-import io.oss.data.highway.utils.{DataFrameUtils, KafkaUtils}
+import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils, KafkaUtils}
 import org.apache.kafka.common.serialization.{Serdes, StringSerializer}
 import org.apache.kafka.streams.scala.StreamsBuilder
 import org.apache.kafka.streams.{KafkaStreams, StreamsConfig}
 
 import scala.io.Source
-import scala.util.Try
 import org.apache.log4j.Logger
-import cats.syntax.either._
+import cats.implicits._
 import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.model.DataHighwayError.KafkaError
 import org.apache.spark.sql.functions.lit
 
+import java.io.File
 import scala.sys.ShutdownHookThread
 
 class KafkaSink {
@@ -221,22 +219,50 @@ class KafkaSink {
       jsonPath: String,
       topic: String,
       producer: KafkaProducer[String, String]): Either[KafkaError, Any] = {
-    Try {
-      for (line <- getJsonLines(jsonPath)) {
-        val uuid = UUID.randomUUID().toString
-        val data =
-          new ProducerRecord[String, String](topic, uuid, line)
-        producer.send(data)
-        logger.info(s"Topic: '$topic' - Sent data: '$line'")
+    Either
+      .catchNonFatal {
+        if (new File(jsonPath).isFile) {
+          publishFileContent(new File(jsonPath), topic, producer)
+        } else {
+          FilesUtils
+            .listFilesRecursively(new File(jsonPath), Seq("json"))
+            .foreach(file => {
+              publishFileContent(file, topic, producer)
+            })
+        }
+        producer.close()
       }
-      producer.close()
-    }.toEither
+      .leftMap(thr =>
+        KafkaError(thr.getMessage, thr.getCause, thr.getStackTrace))
+  }
+
+  /**
+    * Publishes the content of the json file
+    * @param jsonPath a json file or a folder or folders that contain json files
+    * @param topic The destination topic
+    * @param producer The Kafka producer
+    */
+  private def publishFileContent(jsonPath: File,
+                                 topic: String,
+                                 producer: KafkaProducer[String, String]) = {
+    logger.info(s"Sending data of '${jsonPath.getAbsolutePath}'")
+    Either
+      .catchNonFatal {
+        for (line <- getJsonLines(jsonPath.getAbsolutePath)) {
+          val uuid = UUID.randomUUID().toString
+          val data =
+            new ProducerRecord[String, String](topic, uuid, line)
+          producer.send(data)
+          logger.info(s"Topic: '$topic' - Sent data: '$line'")
+        }
+      }
       .leftMap(thr =>
         KafkaError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   /**
     * Get lines from json file
+    *
     * @param jsonPath The path that contains json data to be send
     * @return an Iterator of String
     */
