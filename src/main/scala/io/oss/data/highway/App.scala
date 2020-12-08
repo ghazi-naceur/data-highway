@@ -41,7 +41,7 @@ object App {
           ParquetSink.handleParquetChannel(in,
                                            out,
                                            Overwrite,
-                                           PARQUET,
+                                           AVRO,
                                            sparkConfigs)
         case XlsxToCsv(in, out) =>
           CsvSink.handleXlsxCsvChannel(in,
@@ -56,7 +56,7 @@ object App {
         case ParquetToJson(in, out) =>
           JsonSink.handleJsonChannel(in, out, Overwrite, PARQUET, sparkConfigs)
         case AvroToJson(in, out) =>
-          JsonSink.handleJsonChannel(in, out, Overwrite, JSON, sparkConfigs)
+          JsonSink.handleJsonChannel(in, out, Overwrite, AVRO, sparkConfigs)
         case CsvToJson(in, out) =>
           JsonSink.handleJsonChannel(in, out, Overwrite, CSV, sparkConfigs)
         case KafkaToFile(in,
