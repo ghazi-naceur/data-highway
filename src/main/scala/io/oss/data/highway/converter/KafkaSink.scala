@@ -73,7 +73,6 @@ class KafkaSink {
               throw new RuntimeException(
                 "At this stage, 'stream-app-id' is set and Streaming producer is activated. 'stream-app-id' cannot be set to None.")
           }
-
         } else {
           send(jsonPath, topic, producer)
         }
@@ -115,11 +114,7 @@ class KafkaSink {
     DataFrameUtils(sparkConfig)
       .loadDataFrame(jsonPath, JSON)
       .map(df => {
-        val intermediateData =
-          df.withColumn("technical_uuid", lit(UUID.randomUUID().toString))
-        intermediateData
-          .select(col("technical_uuid").cast("string").as("key"),
-                  to_json(struct("*")).as("value"))
+        df.select(to_json(struct("*")).as("value"))
           .write
           .format("kafka")
           .option("kafka.bootstrap.servers", bootstrapServers)
