@@ -2,7 +2,7 @@ package io.oss.data.highway.converter
 
 import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.model.DataHighwayError.AvroError
-import io.oss.data.highway.model.{DataHighwayError, DataType}
+import io.oss.data.highway.model.{AVRO, DataHighwayError, DataType}
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
@@ -36,7 +36,7 @@ object AvroSink {
           .mode(saveMode)
           .save(out)
         logger.info(
-          s"Successfully converting '$inputDataType' data from input folder '$in' to 'AVRO' and store it under output folder '$out'.")
+          s"Successfully converting '$inputDataType' data from input folder '$in' to '${AVRO.getClass}' and store it under output folder '$out'.")
       })
       .leftMap(thr =>
         AvroError(thr.getMessage, thr.getCause, thr.getStackTrace))

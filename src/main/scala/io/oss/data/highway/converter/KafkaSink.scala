@@ -92,8 +92,9 @@ class KafkaSink {
                                     sparkConfig)
         }
       case _ =>
-        throw new RuntimeException("This mode is not supported while producing data. The supported Kafka Consume Mode are " +
-          ": 'SimpleProducer', 'KafkaStreaming' and 'SparkKafkaProducerPlugin'.")
+        throw new RuntimeException(
+          "This mode is not supported while producing data. The supported Kafka Consume Mode are " +
+            ": 'PureKafkaProducer' and 'SparkKafkaProducerPlugin'.")
     }
   }
 

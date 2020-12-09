@@ -45,7 +45,7 @@ object CsvSink {
           .option("sep", SEPARATOR)
           .csv(out)
         logger.info(
-          s"Successfully converting '$inputDataType' data from input folder '$in' to 'CSV' and store it under output folder '$out'.")
+          s"Successfully converting '$inputDataType' data from input folder '$in' to '${CSV_EXTENSION.toUpperCase}' and store it under output folder '$out'.")
       })
       .leftMap(thr => CsvError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
@@ -185,7 +185,8 @@ object CsvSink {
                                     wb.getSheetAt(i),
                                     csvOutputPath)
           logger.info(
-            s"Successfully converting 'XLSX/XLS' data from input folder '$fileRelativePath' to 'CSV' and store it under output folder '$csvOutputPath'.")
+            s"Successfully converting '${XLSX_EXTENSION.toUpperCase}/${XLS_EXTENSION.toUpperCase}' data from input folder " +
+              s"'$fileRelativePath' to '${CSV_EXTENSION.toUpperCase}' and store it under output folder '$csvOutputPath'.")
         }
         if (inputExcelPath != null) inputExcelPath.close()
       }

@@ -462,4 +462,4 @@ route {
 
 # C- Scheduling :
 
-Under the `data-highway/airflow/dag` folder, you will find an Airflow DAG sample, that runs your data-highway application with Airflow. 
+Under the `data-highway/airflow/dag` folder, you will find some Airflow DAG samples, that can help you to automate your data-highway application with Airflow. 

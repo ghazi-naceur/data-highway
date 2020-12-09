@@ -97,8 +97,9 @@ object KafkaSampler {
           }
         }.toEither
       case _ =>
-        throw new RuntimeException("This mode is not supported while reading data. The supported Kafka Consume Mode are " +
-          ": 'SimpleConsumer', 'KafkaStreaming' and 'SparkKafkaConsumerPlugin'.")
+        throw new RuntimeException(
+          "This mode is not supported while reading data. The supported Kafka Consume Mode are " +
+            ": 'PureKafkaConsumer' and 'SparkKafkaConsumerPlugin'.")
     }
   }
 
@@ -195,12 +196,9 @@ object KafkaSampler {
       offset: Offset,
       consumerGroup: String,
       extension: String): Either[DataHighwayError.KafkaError, Unit] = {
-    for {
-      consumed <- KafkaTopicConsumer.consume(in,
-                                             brokerUrls,
-                                             offset,
-                                             consumerGroup)
-      _ = while (true) {
+    KafkaTopicConsumer
+      .consume(in, brokerUrls, offset, consumerGroup)
+      .map(consumed => {
         val record = consumed.poll(Duration.ofSeconds(5)).asScala
         logger.info("=======> Consumer :")
         for (data <- record.iterator) {
@@ -213,7 +211,6 @@ object KafkaSampler {
           logger.info(
             s"Successfully sinking '$extension' data provided by the input topic '$in' in the output folder '$out/simple-consumer-*****$extension'")
         }
-      }
-    } yield ()
+      })
   }
 }

@@ -21,7 +21,7 @@ case class DataFrameUtils(sparkConf: SparkConfigs) {
   /**
     * Loads a dataframe
     * @param in The input path
-    * @param dataType a datatype to be load : CSV, JSON or PARQUET
+    * @param dataType a datatype to be load : CSV, JSON, PARQUET or AVRO
     * @return A DataFrame, otherwise an Error
     */
   def loadDataFrame(in: String,
