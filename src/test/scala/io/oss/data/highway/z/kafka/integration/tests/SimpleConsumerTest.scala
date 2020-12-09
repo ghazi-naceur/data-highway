@@ -2,7 +2,7 @@ package io.oss.data.highway.z.kafka.integration.tests
 
 import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.converter.KafkaSampler
-import io.oss.data.highway.model.{Earliest, INFO, JSON, SimpleConsumer}
+import io.oss.data.highway.model.{Earliest, INFO, JSON, PureKafkaConsumer}
 
 object SimpleConsumerTest {
 
@@ -16,7 +16,7 @@ object SimpleConsumerTest {
     KafkaSampler.peek(in,
                       out,
                       Some(JSON),
-                      SimpleConsumer,
+                      PureKafkaConsumer(useStream = false, None),
                       "localhost:9092",
                       Earliest,
                       "consumer-group",

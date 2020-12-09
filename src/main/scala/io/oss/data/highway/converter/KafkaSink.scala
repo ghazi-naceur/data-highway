@@ -2,14 +2,14 @@ package io.oss.data.highway.converter
 
 import java.time.Duration
 import org.apache.kafka.clients.producer._
+
 import java.util.{Properties, UUID}
 import io.oss.data.highway.model.{
   JSON,
   KafkaMode,
-  KafkaStreaming,
   Latest,
   Offset,
-  SimpleProducer,
+  PureKafkaProducer,
   SparkKafkaProducerPlugin
 }
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils, KafkaUtils}
@@ -60,14 +60,23 @@ class KafkaSink {
                                     bootstrapServers,
                                     enableTopicCreation = true)
     kafkaMode match {
-      case SimpleProducer =>
-        send(jsonPath, topic, producer)
-      case KafkaStreaming(streamAppId) =>
-        KafkaUtils.verifyTopicExistence(intermediateTopic,
-                                        bootstrapServers,
-                                        enableTopicCreation = true)
-        send(jsonPath, intermediateTopic, producer)
-        runStream(streamAppId, intermediateTopic, bootstrapServers, topic)
+      case PureKafkaProducer(useStream, streamAppId) =>
+        if (useStream) {
+          KafkaUtils.verifyTopicExistence(intermediateTopic,
+                                          bootstrapServers,
+                                          enableTopicCreation = true)
+          send(jsonPath, intermediateTopic, producer)
+          streamAppId match {
+            case Some(id) =>
+              runStream(id, intermediateTopic, bootstrapServers, topic)
+            case None =>
+              throw new RuntimeException(
+                "At this stage, 'stream-app-id' is set and Streaming producer is activated. 'stream-app-id' cannot be set to None.")
+          }
+
+        } else {
+          send(jsonPath, topic, producer)
+        }
       case SparkKafkaProducerPlugin(useStream) =>
         if (useStream) {
           sendUsingStreamSparkKafkaPlugin(jsonPath,

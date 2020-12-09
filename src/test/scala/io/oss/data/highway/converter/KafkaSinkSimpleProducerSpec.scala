@@ -1,7 +1,7 @@
 package io.oss.data.highway.converter
 
 import io.oss.data.highway.configuration.SparkConfigs
-import io.oss.data.highway.model.{INFO, SimpleProducer}
+import io.oss.data.highway.model.{INFO, PureKafkaProducer}
 import net.manub.embeddedkafka.EmbeddedKafka
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -18,8 +18,13 @@ class KafkaSinkSimpleProducerSpec extends AnyWordSpec with EmbeddedKafka {
   "runs with embedded kafka" should {
     "work using a simple producer" in {
       withRunningKafka {
-        kafkaSink.sendToTopic(in, out1, brokerUrl, SimpleProducer, sparkConfig)
-        assert(!consumeFirstStringMessageFrom(out1).isEmpty)
+        kafkaSink.sendToTopic(in,
+                              out1,
+                              brokerUrl,
+                              PureKafkaProducer(useStream = false,
+                                                Some("stream-app-id")),
+                              sparkConfig)
+        assert(consumeFirstStringMessageFrom(out1).nonEmpty)
       }
     }
   }

@@ -1,7 +1,7 @@
 package io.oss.data.highway.converter
 
 import io.oss.data.highway.configuration.SparkConfigs
-import io.oss.data.highway.model.{INFO, KafkaStreaming}
+import io.oss.data.highway.model.{INFO, PureKafkaProducer}
 import net.manub.embeddedkafka.EmbeddedKafka
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -21,9 +21,10 @@ class KafkaSinkKafkaStreamingSpec extends AnyWordSpec with EmbeddedKafka {
         kafkaSink.sendToTopic(in,
                               out2,
                               brokerUrl,
-                              KafkaStreaming("app"),
+                              PureKafkaProducer(useStream = true,
+                                                Some("stream-app-id")),
                               sparkConfig)
-        assert(!consumeFirstStringMessageFrom(out2).isEmpty)
+        assert(consumeFirstStringMessageFrom(out2).nonEmpty)
       }
     }
   }

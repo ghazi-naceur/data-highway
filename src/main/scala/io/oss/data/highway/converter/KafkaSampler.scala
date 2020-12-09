@@ -3,15 +3,13 @@ package io.oss.data.highway.converter
 import java.io.File
 import java.time.Duration
 import java.util.UUID
-
 import io.oss.data.highway.model.{
   DataHighwayError,
   DataType,
   KAFKA,
   KafkaMode,
-  KafkaStreaming,
   Offset,
-  SimpleConsumer,
+  PureKafkaConsumer,
   SparkKafkaConsumerPlugin
 }
 import io.oss.data.highway.utils.{
@@ -62,20 +60,23 @@ object KafkaSampler {
       case None           => KAFKA.extension
     }
     kafkaMode match {
-      case SimpleConsumer =>
-        sinkWithSimpleConsumer(in,
-                               out,
-                               brokerUrls,
-                               offset,
-                               consumerGroup,
-                               extension)
-      case KafkaStreaming(streamAppId) =>
-        sinkWithKafkaStreams(in,
-                             out,
-                             brokerUrls,
-                             offset,
-                             extension,
-                             streamAppId)
+      case PureKafkaConsumer(useStream, streamAppId) =>
+        if (useStream) {
+          streamAppId match {
+            case Some(id) =>
+              sinkWithKafkaStreams(in, out, brokerUrls, offset, extension, id)
+            case None =>
+              throw new RuntimeException(
+                "At this stage, 'stream-app-id' is set and Streaming consumer is activated. 'stream-app-id' cannot be set to None.")
+          }
+        } else {
+          sinkWithSimpleConsumer(in,
+                                 out,
+                                 brokerUrls,
+                                 offset,
+                                 consumerGroup,
+                                 extension)
+        }
       case SparkKafkaConsumerPlugin(useStream) =>
         val session = DataFrameUtils(sparkConfig).sparkSession
         Try {
