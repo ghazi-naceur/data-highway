@@ -2,9 +2,8 @@ package io.oss.data.highway.utils
 
 import java.util
 import java.util.Properties
-
 import io.oss.data.highway.model.{KafkaStreamEntity, Offset}
-import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.apache.kafka.clients.consumer.{ConsumerConfig, KafkaConsumer}
 import org.apache.kafka.common.serialization.{Serdes, StringDeserializer}
 import cats.syntax.either._
 import io.oss.data.highway.model.DataHighwayError.KafkaError
@@ -69,7 +68,7 @@ object KafkaTopicConsumer {
               Serdes.String().getClass)
     props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG,
               Serdes.String().getClass)
-    props.put("auto.offset.reset", offset.value)
+    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, offset.value)
 
     val builder = new StreamsBuilder
 

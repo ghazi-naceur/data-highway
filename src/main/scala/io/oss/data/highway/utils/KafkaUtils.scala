@@ -2,10 +2,11 @@ package io.oss.data.highway.utils
 
 import java.util
 import java.util.{Collections, Properties}
-
 import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig, NewTopic}
-import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.apache.kafka.clients.consumer.{ConsumerConfig, KafkaConsumer}
+import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.PartitionInfo
+import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.log4j.Logger
 
 import scala.jdk.CollectionConverters._
@@ -23,12 +24,12 @@ object KafkaUtils {
   def listTopics(
       brokerUrls: String): List[(String, util.List[PartitionInfo])] = {
     val props = new Properties()
-    props.put("bootstrap.servers", brokerUrls);
-    props.put("group.id", "list-topics-consumer-group");
-    props.put("key.deserializer",
-              "org.apache.kafka.common.serialization.StringDeserializer");
-    props.put("value.deserializer",
-              "org.apache.kafka.common.serialization.StringDeserializer");
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerUrls)
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, "list-topics-consumer-group")
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
+              classOf[StringDeserializer].getName)
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+              classOf[StringDeserializer].getName)
 
     val consumer = new KafkaConsumer[String, String](props)
     consumer.listTopics().asScala.toList
@@ -50,7 +51,7 @@ object KafkaUtils {
       val createTopicsResult =
         adminClient.createTopics(Collections.singleton(newTopic))
       createTopicsResult.values().get(topic).get()
-      logger.info(s"The topic '$topic' was successfully created")
+      logger.info(s"The topic '$topic' was successfully created.")
     }.toEither
   }
 
@@ -90,7 +91,7 @@ object KafkaUtils {
       if (enableTopicCreation) {
         createTopic(topic, brokerUrls)
       } else {
-        throw new RuntimeException(s"The topic '$topic' does not exist")
+        throw new RuntimeException(s"The topic '$topic' does not exist.")
       }
     }
   }

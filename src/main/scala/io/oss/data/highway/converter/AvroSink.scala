@@ -6,7 +6,6 @@ import io.oss.data.highway.model.{AVRO, DataHighwayError, DataType}
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
-import io.oss.data.highway.utils.Constants.AVRO_TYPE
 import org.apache.log4j.Logger
 
 object AvroSink {
@@ -32,11 +31,11 @@ object AvroSink {
       .loadDataFrame(in, inputDataType)
       .map(df => {
         df.write
-          .format(AVRO_TYPE)
+          .format(AVRO.extension.substring(1))
           .mode(saveMode)
           .save(out)
         logger.info(
-          s"Successfully converting '$inputDataType' data from input folder '$in' to '${AVRO.getClass}' and store it under output folder '$out'.")
+          s"Successfully converting '$inputDataType' data from input folder '$in' to '${AVRO.getClass.getName}' and store it under output folder '$out'.")
       })
       .leftMap(thr =>
         AvroError(thr.getMessage, thr.getCause, thr.getStackTrace))

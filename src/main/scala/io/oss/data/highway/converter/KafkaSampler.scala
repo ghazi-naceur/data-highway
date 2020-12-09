@@ -98,8 +98,7 @@ object KafkaSampler {
         }.toEither
       case _ =>
         throw new RuntimeException(
-          "This mode is not supported while reading data. The supported Kafka Consume Mode are " +
-            ": 'PureKafkaConsumer' and 'SparkKafkaConsumerPlugin'.")
+          s"This mode is not supported while reading data. The supported Kafka Consume Mode are : '${PureKafkaConsumer.getClass.getName}' and '${SparkKafkaConsumerPlugin.getClass.getName}'.")
     }
   }
 
@@ -200,7 +199,6 @@ object KafkaSampler {
       .consume(in, brokerUrls, offset, consumerGroup)
       .map(consumed => {
         val record = consumed.poll(Duration.ofSeconds(5)).asScala
-        logger.info("=======> Consumer :")
         for (data <- record.iterator) {
           logger.info(
             s"Topic: ${data.topic()}, Key: ${data.key()}, Value: ${data.value()}, " +

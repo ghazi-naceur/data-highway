@@ -10,7 +10,6 @@ import io.oss.data.highway.converter.{
   ParquetSink
 }
 import io.oss.data.highway.model._
-import io.oss.data.highway.utils.Constants.{XLSX_EXTENSION, XLS_EXTENSION}
 import org.apache.spark.sql.SaveMode.Overwrite
 import org.apache.log4j.{BasicConfigurator, Logger}
 
@@ -44,9 +43,10 @@ object App {
                                            AVRO,
                                            sparkConfigs)
         case XlsxToCsv(in, out) =>
-          CsvSink.handleXlsxCsvChannel(in,
-                                       out,
-                                       Seq(XLSX_EXTENSION, XLS_EXTENSION))
+          CsvSink.handleXlsxCsvChannel(
+            in,
+            out,
+            Seq(XLSX.extension.substring(1), XLS.extension.substring(1)))
         case ParquetToCsv(in, out) =>
           CsvSink.handleCsvChannel(in, out, Overwrite, PARQUET, sparkConfigs)
         case AvroToCsv(in, out) =>
@@ -93,8 +93,8 @@ object App {
     } yield ()
     result match {
       case Left(thr) =>
-        logger.error("Error : " + thr.toString)
-      case Right(_) => logger.info("Success")
+        logger.error(s"Error : ${thr.toString}")
+      case Right(_) => logger.info("Started successful")
     }
   }
 }

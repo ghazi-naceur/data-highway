@@ -22,7 +22,6 @@ import org.apache.log4j.Logger
 import cats.implicits._
 import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.model.DataHighwayError.KafkaError
-import org.apache.spark.sql.functions.lit
 
 import java.io.File
 import scala.sys.ShutdownHookThread
@@ -93,8 +92,7 @@ class KafkaSink {
         }
       case _ =>
         throw new RuntimeException(
-          "This mode is not supported while producing data. The supported Kafka Consume Mode are " +
-            ": 'PureKafkaProducer' and 'SparkKafkaProducerPlugin'.")
+          s"This mode is not supported while producing data. The supported Kafka Consume Mode are : '${PureKafkaProducer.getClass.getName}' and '${SparkKafkaProducerPlugin.getClass.getName}'.")
     }
   }
 
@@ -202,7 +200,7 @@ class KafkaSink {
 
       val streams = new KafkaStreams(builder.build(), props)
       logger.info(
-        s"Sending data through Kafka streams to '$intermediateTopic' topic - Sent data: '$streamsOutputTopic'")
+        s"Sending data through Kafka streams to '$intermediateTopic' topic - Sent data: '$streamsOutputTopic'.")
 
       streams.start()
 
@@ -230,7 +228,8 @@ class KafkaSink {
           publishFileContent(new File(jsonPath), topic, producer)
         } else {
           FilesUtils
-            .listFilesRecursively(new File(jsonPath), Seq("json"))
+            .listFilesRecursively(new File(jsonPath),
+                                  Seq(JSON.extension.substring(1)))
             .foreach(file => {
               publishFileContent(file, topic, producer)
             })

@@ -1,8 +1,7 @@
 package io.oss.data.highway.converter
 
-import java.io.FileInputStream
+import java.io.{File, FileInputStream}
 import java.nio.file.{Files, Path, Paths}
-
 import io.oss.data.highway.model.DataHighwayError.{CsvError, ReadFileError}
 import io.oss.data.highway.model._
 import io.oss.data.highway.utils.Constants._
@@ -45,7 +44,7 @@ object CsvSink {
           .option("sep", SEPARATOR)
           .csv(out)
         logger.info(
-          s"Successfully converting '$inputDataType' data from input folder '$in' to '${CSV_EXTENSION.toUpperCase}' and store it under output folder '$out'.")
+          s"Successfully converting '$inputDataType' data from input folder '$in' to '${CSV.getClass.getName}' and store it under output folder '$out'.")
       })
       .leftMap(thr => CsvError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
@@ -123,13 +122,14 @@ object CsvSink {
           data.deleteCharAt(data.length() - 1).append("\n")
         }
 
-        val fName = fileRelativePath.replaceFirst(PATH_WITHOUT_EXTENSION, EMPTY)
+        val fName =
+          fileRelativePath.replaceFirst(PATH_WITHOUT_EXTENSION_REGEX, EMPTY)
         createPathRecursively(s"$csvOutputFolder/$fName")
         logger.info(
           s"Successfully creating the path '$csvOutputFolder/$fName'.")
         Files.write(
           Paths.get(
-            s"$csvOutputFolder/$fName/${sheet.getSheetName}.$CSV_EXTENSION"),
+            s"$csvOutputFolder/$fName/${sheet.getSheetName}${CSV.extension}"),
           data.toString.getBytes(FORMAT)
         )
       }
@@ -185,8 +185,8 @@ object CsvSink {
                                     wb.getSheetAt(i),
                                     csvOutputPath)
           logger.info(
-            s"Successfully converting '${XLSX_EXTENSION.toUpperCase}/${XLS_EXTENSION.toUpperCase}' data from input folder " +
-              s"'$fileRelativePath' to '${CSV_EXTENSION.toUpperCase}' and store it under output folder '$csvOutputPath'.")
+            s"Successfully converting '${XLSX.getClass.getName}/${XLS.getClass.getName}' data from input folder " +
+              s"'$fileRelativePath' to '${CSV.getClass.getName}' and store it under output folder '$csvOutputPath'.")
         }
         if (inputExcelPath != null) inputExcelPath.close()
       }

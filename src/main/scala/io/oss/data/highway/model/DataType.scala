@@ -19,3 +19,9 @@ case object AVRO extends DataType {
 case object KAFKA extends DataType {
   override val extension: String = ".txt"
 }
+case object XLSX extends DataType {
+  override val extension: String = ".xls"
+}
+case object XLS extends DataType {
+  override val extension: String = ".xlsx"
+}
