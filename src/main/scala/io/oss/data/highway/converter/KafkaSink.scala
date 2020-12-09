@@ -228,8 +228,7 @@ class KafkaSink {
           publishFileContent(new File(jsonPath), topic, producer)
         } else {
           FilesUtils
-            .listFilesRecursively(new File(jsonPath),
-                                  Seq(JSON.extension.substring(1)))
+            .listFilesRecursively(new File(jsonPath), Seq(JSON.extension))
             .foreach(file => {
               publishFileContent(file, topic, producer)
             })

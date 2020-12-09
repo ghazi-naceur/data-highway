@@ -122,7 +122,7 @@ object KafkaSampler {
       .foreach(data =>
         FilesUtils.save(
           out,
-          s"spark-kafka-plugin-${UUID.randomUUID()}-${System.currentTimeMillis()}$extension",
+          s"spark-kafka-plugin-${UUID.randomUUID()}-${System.currentTimeMillis()}.$extension",
           data.toString()))
     logger.info(
       s"Successfully sinking '$extension' data provided by the input topic '$in' in the output folder '$out/spark-kafka-plugin-*****$extension'")
@@ -145,7 +145,7 @@ object KafkaSampler {
       .as[(String, String)]
       .select("value")
       .writeStream
-      .format(extension.substring(1)) // todo : Hideous ! Remove "." from the extension
+      .format(extension)
       .option(
         "path",
         s"$out/spark-kafka-streaming-plugin-${System.currentTimeMillis()}")
@@ -177,7 +177,7 @@ object KafkaSampler {
           val uuid: String =
             s"${UUID.randomUUID()}-${System.currentTimeMillis()}"
           FilesUtils
-            .save(out, s"kafka-streams-$uuid$extension", data)
+            .save(out, s"kafka-streams-$uuid.$extension", data)
           logger.info(
             s"Successfully sinking '$extension' data provided by the input topic '$in' in the output folder '$out/kafka-streams-*****$extension'")
         }
@@ -205,7 +205,8 @@ object KafkaSampler {
               s"Offset: ${data.offset()}, Partition: ${data.partition()}")
           val uuid: String =
             s"${UUID.randomUUID()}-${System.currentTimeMillis()}"
-          FilesUtils.save(out, s"simple-consumer-$uuid$extension", data.value())
+          FilesUtils
+            .save(out, s"simple-consumer-$uuid.$extension", data.value())
           logger.info(
             s"Successfully sinking '$extension' data provided by the input topic '$in' in the output folder '$out/simple-consumer-*****$extension'")
         }

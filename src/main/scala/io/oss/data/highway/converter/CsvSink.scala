@@ -1,6 +1,6 @@
 package io.oss.data.highway.converter
 
-import java.io.{File, FileInputStream}
+import java.io.FileInputStream
 import java.nio.file.{Files, Path, Paths}
 import io.oss.data.highway.model.DataHighwayError.{CsvError, ReadFileError}
 import io.oss.data.highway.model._
@@ -129,7 +129,7 @@ object CsvSink {
           s"Successfully creating the path '$csvOutputFolder/$fName'.")
         Files.write(
           Paths.get(
-            s"$csvOutputFolder/$fName/${sheet.getSheetName}${CSV.extension}"),
+            s"$csvOutputFolder/$fName/${sheet.getSheetName}.${CSV.extension}"),
           data.toString.getBytes(FORMAT)
         )
       }

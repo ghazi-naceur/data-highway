@@ -31,7 +31,7 @@ object AvroSink {
       .loadDataFrame(in, inputDataType)
       .map(df => {
         df.write
-          .format(AVRO.extension.substring(1))
+          .format(AVRO.extension)
           .mode(saveMode)
           .save(out)
         logger.info(

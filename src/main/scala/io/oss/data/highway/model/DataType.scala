@@ -5,23 +5,23 @@ sealed trait DataType {
 }
 
 case object JSON extends DataType {
-  override val extension: String = ".json"
+  override val extension: String = "json"
 }
 case object CSV extends DataType {
-  override val extension: String = ".csv"
+  override val extension: String = "csv"
 }
 case object PARQUET extends DataType {
-  override val extension: String = ".parquet"
+  override val extension: String = "parquet"
 }
 case object AVRO extends DataType {
-  override val extension: String = ".avro"
+  override val extension: String = "avro"
 }
 case object KAFKA extends DataType {
-  override val extension: String = ".txt"
+  override val extension: String = "txt"
 }
 case object XLSX extends DataType {
-  override val extension: String = ".xls"
+  override val extension: String = "xls"
 }
 case object XLS extends DataType {
-  override val extension: String = ".xlsx"
+  override val extension: String = "xlsx"
 }

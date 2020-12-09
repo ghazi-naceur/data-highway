@@ -43,10 +43,9 @@ object App {
                                            AVRO,
                                            sparkConfigs)
         case XlsxToCsv(in, out) =>
-          CsvSink.handleXlsxCsvChannel(
-            in,
-            out,
-            Seq(XLSX.extension.substring(1), XLS.extension.substring(1)))
+          CsvSink.handleXlsxCsvChannel(in,
+                                       out,
+                                       Seq(XLSX.extension, XLS.extension))
         case ParquetToCsv(in, out) =>
           CsvSink.handleCsvChannel(in, out, Overwrite, PARQUET, sparkConfigs)
         case AvroToCsv(in, out) =>

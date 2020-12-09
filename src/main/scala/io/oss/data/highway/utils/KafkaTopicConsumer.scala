@@ -29,11 +29,13 @@ object KafkaTopicConsumer {
               consumerGroup: String)
     : Either[KafkaError, KafkaConsumer[String, String]] = {
     val props = new Properties()
-    props.put("bootstrap.servers", brokerUrls)
-    props.put("key.deserializer", classOf[StringDeserializer].getName)
-    props.put("value.deserializer", classOf[StringDeserializer].getName)
-    props.put("auto.offset.reset", offset.value)
-    props.put("group.id", consumerGroup)
+    props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, brokerUrls)
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
+              classOf[StringDeserializer].getName)
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+              classOf[StringDeserializer].getName)
+    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, offset.value)
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, consumerGroup)
     Either
       .catchNonFatal {
         val consumer: KafkaConsumer[String, String] =
