@@ -16,9 +16,6 @@ case object PARQUET extends DataType {
 case object AVRO extends DataType {
   override val extension: String = "avro"
 }
-case object KAFKA extends DataType {
-  override val extension: String = "txt"
-}
 case object XLSX extends DataType {
   override val extension: String = "xls"
 }

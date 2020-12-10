@@ -7,8 +7,6 @@ import java.util.{Properties, UUID}
 import io.oss.data.highway.model.{
   JSON,
   KafkaMode,
-  Latest,
-  Offset,
   PureKafkaProducer,
   SparkKafkaProducerPlugin
 }
@@ -109,7 +107,7 @@ class KafkaSink {
       bootstrapServers: String,
       topic: String,
       sparkConfig: SparkConfigs): Either[Throwable, Unit] = {
-    import org.apache.spark.sql.functions.{col, to_json, struct}
+    import org.apache.spark.sql.functions.{to_json, struct}
     DataFrameUtils(sparkConfig)
       .loadDataFrame(jsonPath, JSON)
       .map(df => {
@@ -132,7 +130,6 @@ class KafkaSink {
     * @param intermediateTopic The intermediate kafka topic
     * @param checkpointFolder The checkpoint folder
     * @param sparkConfig The Spark configuration
-    * @param offset The Kafka consumer offset
     * @return Unit, otherwise an Error
     */
   private def sendUsingStreamSparkKafkaPlugin(
@@ -142,9 +139,7 @@ class KafkaSink {
       outputTopic: String,
       intermediateTopic: String,
       checkpointFolder: String,
-      sparkConfig: SparkConfigs,
-      offset: Offset = Latest): Either[Throwable, Unit] = {
-    //TODO offset has a default value that could be externalized
+      sparkConfig: SparkConfigs): Either[Throwable, Unit] = {
     Either.catchNonFatal {
       KafkaUtils.verifyTopicExistence(intermediateTopic,
                                       bootstrapServers,

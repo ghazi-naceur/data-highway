@@ -425,8 +425,8 @@ route {
   in = "topic-name"
   out = "your-output-folder-that-will-contain-your-generated-json-files"
   data-type = {
-    type = "the-desired-datatype-of-the-generated-files" // Optional field : accepted values are json, avro and kafka (default value, if not set). 
-             // kafka value refer to "txt" extension, that will be set as an extension for the generated files.
+    type = "the-desired-datatype-of-the-generated-files" // Optional field : accepted values are json and avro (json is the default value, if not set). 
+             // It will be set as an extension for the generated output files.
   }
   broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas"  // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
   kafka-mode = {
@@ -447,8 +447,8 @@ route {
   in = "topic-name"
   out = "your-output-folder-that-will-contain-your-generated-json-files"
   data-type = {
-    type = "the-desired-datatype-of-the-generated-files" // Optional field : accepted values are json, avro and kafka (default value, if not set). 
-             // kafka value refer to "txt" extension, that will be set as an extension for the generated files.
+    type = "the-desired-datatype-of-the-generated-files" // Optional field : accepted values are json and avro (json is the default value, if not set). 
+    // It will be set as an extension for the generated output files.
   }
   broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas"  // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
   kafka-mode = {
