@@ -16,7 +16,7 @@ object SimpleProducerTest {
     val out = "kafka-to-json-topic-2"
     val brokerUrl = "localhost:9092"
 
-    new KafkaSink().sendToTopic(
+    new KafkaSink().publishToTopic(
       in,
       out,
       brokerUrl,

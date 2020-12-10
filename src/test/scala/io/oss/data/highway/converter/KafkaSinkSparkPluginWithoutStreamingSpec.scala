@@ -20,11 +20,11 @@ class KafkaSinkSparkPluginWithoutStreamingSpec
   "runs with embedded kafka" should {
     "work using Spark Kafka plugin without streaming" in {
       withRunningKafka {
-        kafkaSink.sendToTopic(in,
-                              out3,
-                              brokerUrl,
-                              SparkKafkaProducerPlugin(useStream = false),
-                              sparkConfig)
+        kafkaSink.publishToTopic(in,
+                                 out3,
+                                 brokerUrl,
+                                 SparkKafkaProducerPlugin(useStream = false),
+                                 sparkConfig)
         assert(consumeFirstStringMessageFrom(out3).nonEmpty)
       }
     }

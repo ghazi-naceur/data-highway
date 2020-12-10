@@ -35,7 +35,7 @@ class KafkaSink {
     s"/tmp/data-highway/checkpoint-$generated"
 
   /**
-    * Sends message to Kafka topic
+    * Publishes message to Kafka topic
     * @param path The path that contains json data to be send
     * @param topic The output topic
     * @param brokers The kafka brokers urls
@@ -43,11 +43,11 @@ class KafkaSink {
     * @param sparkConfig The Spark configuration
     * @return Any, otherwise an Error
     */
-  def sendToTopic(path: String,
-                  topic: String,
-                  brokers: String,
-                  kafkaMode: KafkaMode,
-                  sparkConfig: SparkConfigs): Either[Throwable, Any] = {
+  def publishToTopic(path: String,
+                     topic: String,
+                     brokers: String,
+                     kafkaMode: KafkaMode,
+                     sparkConfig: SparkConfigs): Either[Throwable, Any] = {
     val props = new Properties()
     props.put("bootstrap.servers", brokers)
     props.put("key.serializer", classOf[StringSerializer].getName)
@@ -60,7 +60,7 @@ class KafkaSink {
           KafkaUtils.verifyTopicExistence(intermediateTopic,
                                           brokers,
                                           enableTopicCreation = true)
-          send(path, intermediateTopic, prod)
+          publishPathContent(path, intermediateTopic, prod)
           streamAppId match {
             case Some(id) =>
               runStream(id, intermediateTopic, brokers, topic)
@@ -69,19 +69,19 @@ class KafkaSink {
                 "At this stage, 'stream-app-id' is set and Streaming producer is activated. 'stream-app-id' cannot be set to None.")
           }
         } else {
-          send(path, topic, prod)
+          publishPathContent(path, topic, prod)
         }
       case SparkKafkaProducerPlugin(useStream) =>
         if (useStream) {
-          sendWithSparkKafkaStreamsPlugin(path,
-                                          prod,
-                                          brokers,
-                                          topic,
-                                          intermediateTopic,
-                                          checkpointFolder,
-                                          sparkConfig)
+          publishWithSparkKafkaStreamsPlugin(path,
+                                             prod,
+                                             brokers,
+                                             topic,
+                                             intermediateTopic,
+                                             checkpointFolder,
+                                             sparkConfig)
         } else {
-          sendWithSparkKafkaPlugin(path, brokers, topic, sparkConfig)
+          publishWithSparkKafkaPlugin(path, brokers, topic, sparkConfig)
         }
       case _ =>
         throw new RuntimeException(
@@ -90,35 +90,41 @@ class KafkaSink {
   }
 
   /**
-    * Sends message via Spark Kafka-Plugin
+    * Publishes message via Spark Kafka-Plugin
     * @param jsonPath The path that contains json data to be send
-    * @param bootstrapServers The kafka brokers urls
+    * @param brokers The kafka brokers urls
     * @param topic The output topic
-    * @param sparkConfig The spark configuration
+    * @param sparkConf The spark configuration
     * @return Unit, otherwise an Error
     */
-  private def sendWithSparkKafkaPlugin(
+  private def publishWithSparkKafkaPlugin(
       jsonPath: String,
-      bootstrapServers: String,
+      brokers: String,
       topic: String,
-      sparkConfig: SparkConfigs): Either[Throwable, Unit] = {
+      sparkConf: SparkConfigs): Either[Throwable, Unit] = {
     import org.apache.spark.sql.functions.{to_json, struct}
-    // todo jsonPath => path loading is not recursive (only file1) => Make it recursive for sub-folders
-    DataFrameUtils(sparkConfig)
-      .loadDataFrame(jsonPath, JSON)
-      .map(df => {
-        df.select(to_json(struct("*")).as("value"))
-          .write
-          .format("kafka")
-          .option("kafka.bootstrap.servers", bootstrapServers)
-          .option("topic", topic)
-          .save()
-        logger.info(s"Sending data through Spark Kafka Plugin to '$topic'.")
+    FilesUtils
+      .listFoldersRecursively(jsonPath)
+      .map(paths => {
+        paths.map(path => {
+          DataFrameUtils(sparkConf)
+            .loadDataFrame(path, JSON)
+            .map(df => {
+              df.select(to_json(struct("*")).as("value"))
+                .write
+                .format("kafka")
+                .option("kafka.bootstrap.servers", brokers)
+                .option("topic", topic)
+                .save()
+              logger.info(
+                s"Sending data through Spark Kafka Plugin to '$topic'.")
+            })
+        })
       })
   }
 
   /**
-    * Sends message via Spark Kafka-Stream-Plugin
+    * Publishes a message via Spark Kafka-Stream-Plugin
     * @param jsonPath The path that contains json data to be send
     * @param producer The Kafka Producer
     * @param bootstrapServers The kafka brokers urls
@@ -128,7 +134,7 @@ class KafkaSink {
     * @param sparkConfig The Spark configuration
     * @return Unit, otherwise an Error
     */
-  private def sendWithSparkKafkaStreamsPlugin(
+  private def publishWithSparkKafkaStreamsPlugin(
       jsonPath: String,
       producer: KafkaProducer[String, String],
       bootstrapServers: String,
@@ -140,7 +146,7 @@ class KafkaSink {
       KafkaUtils.verifyTopicExistence(intermediateTopic,
                                       bootstrapServers,
                                       enableTopicCreation = true)
-      send(jsonPath, intermediateTopic, producer)
+      publishPathContent(jsonPath, intermediateTopic, producer)
 
       DataFrameUtils(sparkConfig).sparkSession.readStream
         .format("kafka")
@@ -202,14 +208,14 @@ class KafkaSink {
   }
 
   /**
-    * Sends message to Kafka topic
+    * Publishes json files located under a provided path to Kafka topic.
     *
-    * @param jsonPath The path that contains json data to be send
+    * @param jsonPath The path that may be a file or a folder containing multiples sub-folders and files.
     * @param topic The output Kafka topic
     * @param producer The Kafka producer
     * @return Any, otherwise an Error
     */
-  private def send(
+  private def publishPathContent(
       jsonPath: String,
       topic: String,
       producer: KafkaProducer[String, String]): Either[KafkaError, Any] = {

@@ -18,12 +18,12 @@ class KafkaSinkSimpleProducerSpec extends AnyWordSpec with EmbeddedKafka {
   "runs with embedded kafka" should {
     "work using a Pure Kakfa producer" in {
       withRunningKafka {
-        kafkaSink.sendToTopic(in,
-                              out1,
-                              brokerUrl,
-                              PureKafkaProducer(useStream = false,
-                                                Some("stream-app-id")),
-                              sparkConfig)
+        kafkaSink.publishToTopic(in,
+                                 out1,
+                                 brokerUrl,
+                                 PureKafkaProducer(useStream = false,
+                                                   Some("stream-app-id")),
+                                 sparkConfig)
         assert(consumeFirstStringMessageFrom(out1).nonEmpty)
       }
     }

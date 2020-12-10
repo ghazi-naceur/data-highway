@@ -68,7 +68,11 @@ object App {
                             consGroup,
                             sparkConf)
         case JsonToKafka(in, out, brokerUrl, kafkaMode) =>
-          new KafkaSink().sendToTopic(in, out, brokerUrl, kafkaMode, sparkConf)
+          new KafkaSink().publishToTopic(in,
+                                         out,
+                                         brokerUrl,
+                                         kafkaMode,
+                                         sparkConf)
         case _ =>
           throw new RuntimeException(
             s"The provided route '$conf' is not supported.")
