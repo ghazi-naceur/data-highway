@@ -38,13 +38,11 @@ You can convert your data to multiple data types.
         * [b- From Json to Avro](#b--from-json-to-avro-)
         * [c- From Csv to Avro](#c--from-csv-to-avro-)
     * [5- Send data to Kafka](#5--send-data-to-kafka-)
-        * [a- Simple Kafka Producer](#a--simple-kafka-producer-)
-        * [b- Kafka Streaming](#b--kafka-streaming-)
-        * [c- Spark Kafka Producer Plugin](#c--spark-kafka-producer-plugin-)
+        * [a- Pure Kafka Producer](#a--pure-kafka-producer-)
+        * [b- Spark Kafka Producer Plugin](#b--spark-kafka-producer-plugin-)
     * [6- Consume data from Kafka](#6--consume-data-from-kafka-)
-        * [a- Simple Kafka Consumer](#a--simple-kafka-consumer-)
-        * [b- Kafka Streaming](#b--kafka-streaming-)
-        * [c- Spark Kafka Consumer Plugin](#c--spark-kafka-consumer-plugin-)
+        * [a- Pure Kafka Consumer](#a--pure-kafka-consumer-)
+        * [b- Spark Kafka Consumer Plugin](#b--spark-kafka-consumer-plugin-)
 * [C- Scheduling](#C--scheduling-)
 
 # A- Getting started :
@@ -366,14 +364,15 @@ route {
 This mode consists of publishing json files content into an output topic.
 
 It is available using 4 types of routes :
-   * a- Simple Kafka Producer 
-   * b- Kafka Streaming 
-   * c- Spark Kafka Producer Plugin :
-        - without streaming
+   * a- Pure Kafka Producer :
+       - without streaming (one-shot)
+       - with streaming
+   * b- Spark Kafka Producer Plugin :
+        - without streaming (one-shot)
         - with streaming
 
 
-#### a- Simple Kafka Producer :
+#### a- Pure Kafka Producer :
 
 ````hocon
 route {
@@ -382,27 +381,14 @@ route {
   out = "your-output-kafka-topic"
   broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas", // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
   kafka-mode = {
-      type = simple-producer
+     type = "pure-kafka-producer"
+     use-stream = true // if set to 'false', there is no need to set 'stream-app-id' field
+     stream-app-id = "your-streaming-app-name" // eg: "first-stream-app"
   }
 }
 ````
 
-#### b- Kafka Streaming :
-
-````hocon
-route {
-  type = json-to-kafka
-  in = "your-input-folder-containing-json-files"
-  out = "your-output-kafka-topic"
-  broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas", // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
-  kafka-mode = {
-      type = "kafka-streaming"
-      stream-app-id = "your-streaming-app-name" // eg: "first-stream-app"
-  }
-}
-````
-
-#### c- Spark Kafka Producer Plugin :
+#### b- Spark Kafka Producer Plugin :
 
 ````hocon
 route {
@@ -424,13 +410,14 @@ ps: This feature is experimental. Its main goal is to get some data samples from
 This mode consists of consuming and input topic and saving its content in files.
 
 It is available using 4 types of routes :
-   * a- Simple Kafka Consumer 
-   * b- Kafka Streaming 
-   * c- Spark Kafka Consumer Plugin :
-        - without streaming
+   * a- Pure Kafka Consumer :
+        - without streaming (one-shot)
+        - with streaming
+   * b- Spark Kafka Consumer Plugin :
+        - without streaming (one-shot)
         - with streaming
 
-#### a- Simple Kafka Consumer :
+#### a- Pure Kafka Consumer :
 
 ````hocon
 route {
@@ -438,19 +425,21 @@ route {
   in = "topic-name"
   out = "your-output-folder-that-will-contain-your-generated-json-files"
   data-type = {
-    type = "the-desired-datatype-of-the-generated-files" // Optional field : accepted values are json, avro and kafka (default value, if not set). 
-             // kafka value refer to "txt" extension, that will be set as an extension for the generated files.
+    type = "the-desired-datatype-of-the-generated-files" // Optional field : accepted values are json and avro (json is the default value, if not set). 
+             // It will be set as an extension for the generated output files.
   }
   broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas"  // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
   kafka-mode = {
-      type = simple-consumer
+    type = "pure-kafka-consumer"
+    use-stream = true // if set to 'false', there is no need to set 'stream-app-id' field
+    stream-app-id = "your-stream-app-name"
   }
   offset = "offset-to-consume-from" // accepted values : earliest, latest, none
   consumer-group = "your-consumer-group-name"
 }
 ````
 
-#### b- Kafka Streaming :
+#### b- Spark Kafka Consumer Plugin :
 
 ````hocon
 route {
@@ -458,29 +447,8 @@ route {
   in = "topic-name"
   out = "your-output-folder-that-will-contain-your-generated-json-files"
   data-type = {
-    type = "the-desired-datatype-of-the-generated-files" // Optional field : accepted values are json, avro and kafka (default value, if not set). 
-             // kafka value refer to "txt" extension, that will be set as an extension for the generated files.
-  }
-  broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas"  // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
-  kafka-mode = {
-      type = "kafka-streaming"
-      stream-app-id = "your-stream-app-name"
-  }
-  offset = "offset-to-consume-from" // accepted values : earliest, latest, none
-  consumer-group = "your-consumer-group-name"
-}
-````
-
-#### c- Spark Kafka Consumer Plugin :
-
-````hocon
-route {
-  type = kafka-to-file
-  in = "topic-name"
-  out = "your-output-folder-that-will-contain-your-generated-json-files"
-  data-type = {
-    type = "the-desired-datatype-of-the-generated-files" // Optional field : accepted values are json, avro and kafka (default value, if not set). 
-             // kafka value refer to "txt" extension, that will be set as an extension for the generated files.
+    type = "the-desired-datatype-of-the-generated-files" // Optional field : accepted values are json and avro (json is the default value, if not set). 
+    // It will be set as an extension for the generated output files.
   }
   broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas"  // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
   kafka-mode = {
@@ -494,4 +462,4 @@ route {
 
 # C- Scheduling :
 
-Under the `data-highway/airflow/dag` folder, you will find an Airflow DAG sample, that runs your data-highway application with Airflow. 
+Under the `data-highway/airflow/dag` folder, you will find some Airflow DAG samples, that can help you to automate your data-highway application with Airflow. 

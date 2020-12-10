@@ -2,7 +2,7 @@ package io.oss.data.highway.z.kafka.integration.tests
 
 import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.converter.KafkaSampler
-import io.oss.data.highway.model.{Earliest, INFO, JSON, SimpleConsumer}
+import io.oss.data.highway.model.{Earliest, INFO, JSON, PureKafkaConsumer}
 
 object SimpleConsumerTest {
 
@@ -13,13 +13,13 @@ object SimpleConsumerTest {
       "/home/ghazi/workspace/data-highway/src/test/resources/output/files"
     val sparkConfig = SparkConfigs("app-name", "local[*]", INFO)
 
-    KafkaSampler.peek(in,
-                      out,
-                      Some(JSON),
-                      SimpleConsumer,
-                      "localhost:9092",
-                      Earliest,
-                      "consumer-group",
-                      sparkConfig)
+    KafkaSampler.consumeFromTopic(in,
+                                  out,
+                                  Some(JSON),
+                                  PureKafkaConsumer(useStream = false, None),
+                                  "localhost:9092",
+                                  Earliest,
+                                  "consumer-group",
+                                  sparkConfig)
   }
 }

@@ -9,7 +9,7 @@ import org.scalatest.matchers.should.Matchers
 class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach {
 
   val folder = "src/test/resources/xlsx_to_csv-data/"
-  val extensions = Seq(Constants.XLSX_EXTENSION, Constants.XLS_EXTENSION)
+  val extensions = Seq("xlsx", "xls")
 
   "FilesUtils.getFilesFromPath" should "list all files in folderXlsxCsvData" in {
 

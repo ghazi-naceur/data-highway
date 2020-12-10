@@ -1,7 +1,7 @@
 package io.oss.data.highway.converter
 
 import io.oss.data.highway.model.DataHighwayError.JsonError
-import io.oss.data.highway.model.{DataHighwayError, DataType}
+import io.oss.data.highway.model.{DataHighwayError, DataType, JSON}
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
@@ -35,7 +35,7 @@ object JsonSink {
           .mode(saveMode)
           .json(out)
         logger.info(
-          s"Successfully converting '$inputDataType' data from input folder '$in' to 'JSON' and store it under output folder '$out'.")
+          s"Successfully converting '$inputDataType' data from input folder '$in' to '${JSON.getClass.getName}' and store it under output folder '$out'.")
       })
       .leftMap(thr =>
         JsonError(thr.getMessage, thr.getCause, thr.getStackTrace))

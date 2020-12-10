@@ -6,7 +6,6 @@ import java.nio.file.{Files, Paths}
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
 import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.model.{AVRO, CSV, JSON, PARQUET, WARN}
-import io.oss.data.highway.utils.Constants.{XLSX_EXTENSION, XLS_EXTENSION}
 import io.oss.data.highway.utils.{Constants, DataFrameUtils, MockSheetCreator}
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import org.scalatest.BeforeAndAfterEach
@@ -25,7 +24,7 @@ class CsvSinkSpec
   val folderJsonToCsvData = "src/test/resources/json_to_csv-data/"
   val folderAvroToCsvData = "src/test/resources/avro_to_csv-data/"
   val folderXlsxCsvData = "src/test/resources/xlsx_to_csv-data/"
-  val extensions = Seq(XLSX_EXTENSION, Constants.XLS_EXTENSION)
+  val extensions = Seq("xlsx", "xls")
   val sparkConfig: SparkConfigs =
     SparkConfigs("handler-app-test", "local[*]", WARN)
   val getExpected: DataFrame = {
@@ -185,7 +184,7 @@ class CsvSinkSpec
   "CsvSink.apply" should "convert xlsx files to multiple csv files" in {
     CsvSink.handleXlsxCsvChannel(folderXlsxCsvData + "input/",
                                  folderXlsxCsvData + "output/",
-                                 Seq(XLSX_EXTENSION, XLS_EXTENSION))
+                                 Seq("xlsx", "xls"))
     val list1 = List(
       "data1.csv",
       "data2.csv",

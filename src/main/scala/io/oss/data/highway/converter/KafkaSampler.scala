@@ -3,15 +3,15 @@ package io.oss.data.highway.converter
 import java.io.File
 import java.time.Duration
 import java.util.UUID
-
 import io.oss.data.highway.model.{
+  AVRO,
   DataHighwayError,
   DataType,
-  KAFKA,
+  Earliest,
+  JSON,
   KafkaMode,
-  KafkaStreaming,
   Offset,
-  SimpleConsumer,
+  PureKafkaConsumer,
   SparkKafkaConsumerPlugin
 }
 import io.oss.data.highway.utils.{
@@ -38,69 +38,79 @@ object KafkaSampler {
   val logger: Logger = Logger.getLogger(KafkaSampler.getClass)
 
   /**
-    * Peeks data from a topic
+    * Consumes data from a topic
     * @param in The input source topic
     * @param out The generated file
     * @param dataType The desired data type for the generated file (the extension)
     * @param kafkaMode The Kafka Mode
-    * @param brokerUrls The kafka brokers urls
+    * @param brokers The kafka brokers urls
     * @param offset The consumer offset : Latest, Earliest, None
-    * @param consumerGroup The consumer
+    * @param consGroup The consumer group
     * @return a Unit, otherwise a Throwable
     */
-  def peek(in: String,
-           out: String,
-           dataType: Option[DataType],
-           kafkaMode: KafkaMode,
-           brokerUrls: String,
-           offset: Offset,
-           consumerGroup: String,
-           sparkConfig: SparkConfigs): Either[Throwable, Unit] = {
-    KafkaUtils.verifyTopicExistence(in, brokerUrls, enableTopicCreation = false)
-    val extension = dataType match {
-      case Some(dataType) => dataType.extension
-      case None           => KAFKA.extension
-    }
+  def consumeFromTopic(in: String,
+                       out: String,
+                       dataType: Option[DataType],
+                       kafkaMode: KafkaMode,
+                       brokers: String,
+                       offset: Offset,
+                       consGroup: String,
+                       sparkConfig: SparkConfigs): Either[Throwable, Unit] = {
+    KafkaUtils.verifyTopicExistence(in, brokers, enableTopicCreation = false)
+    val ext = computeOutputExtension(dataType)
     kafkaMode match {
-      case SimpleConsumer =>
-        sinkWithSimpleConsumer(in,
-                               out,
-                               brokerUrls,
-                               offset,
-                               consumerGroup,
-                               extension)
-      case KafkaStreaming(streamAppId) =>
-        sinkWithKafkaStreams(in,
-                             out,
-                             brokerUrls,
-                             offset,
-                             extension,
-                             streamAppId)
+      case PureKafkaConsumer(useStream, streamAppId) =>
+        if (useStream) {
+          streamAppId match {
+            case Some(id) =>
+              sinkWithPureKafkaStreams(in, out, brokers, offset, ext, id)
+            case None =>
+              throw new RuntimeException(
+                "At this stage, 'stream-app-id' is set and Streaming consumer is activated. 'stream-app-id' cannot be set to None.")
+          }
+        } else {
+          sinkWithPureKafka(in, out, brokers, offset, consGroup, ext)
+        }
       case SparkKafkaConsumerPlugin(useStream) =>
-        val session = DataFrameUtils(sparkConfig).sparkSession
+        val sess = DataFrameUtils(sparkConfig).sparkSession
         Try {
           if (useStream) {
-            sinkWithSparkKafkaStreamingPlugin(session,
-                                              in,
-                                              out,
-                                              brokerUrls,
-                                              offset,
-                                              extension)
+            sinkWithSparkKafkaStreamsPlugin(sess, in, out, brokers, offset, ext)
           } else {
-            sinkWithSparkKafkaPlugin(session,
-                                     in,
-                                     out,
-                                     brokerUrls,
-                                     offset,
-                                     extension)
+            sinkWithSparkKafkaPlugin(sess, in, out, brokers, offset, ext)
           }
         }.toEither
       case _ =>
-        throw new RuntimeException("This mode is not supported while reading data. The supported Kafka Consume Mode are " +
-          ": 'SimpleConsumer', 'KafkaStreaming' and 'SparkKafkaConsumerPlugin'.")
+        throw new RuntimeException(
+          s"This mode is not supported while reading data. The supported Kafka Consume Mode are : '${PureKafkaConsumer.getClass.getName}' and '${SparkKafkaConsumerPlugin.getClass.getName}'.")
     }
   }
 
+  /**
+    * Computes the generated output files extension based on the output DataType
+    * @param dataType The output files DataType
+    * @return The output extension
+    */
+  private def computeOutputExtension(dataType: Option[DataType]): String = {
+    dataType match {
+      case optDataType @ Some(dataType)
+          if optDataType.contains(JSON) || optDataType.contains(AVRO) =>
+        dataType.extension
+      case None => JSON.extension
+      case _    => JSON.extension
+    }
+  }
+
+  /**
+    * Sinks topic content into files using a Spark-Kafka-Plugin Consumer
+    *
+    * @param session The Spark session
+    * @param in The input kafka topic
+    * @param out The output folder
+    * @param brokerUrls The kafka brokers urls
+    * @param offset The kafka consumer offset
+    * @param extension The output files extension
+    */
   private def sinkWithSparkKafkaPlugin(session: SparkSession,
                                        in: String,
                                        out: String,
@@ -108,10 +118,18 @@ object KafkaSampler {
                                        offset: Offset,
                                        extension: String): Unit = {
     import session.implicits._
+    var mutableOffset = offset
+    if (mutableOffset != Earliest) {
+      logger.warn(
+        s"Starting offset can't be ${mutableOffset.value} for batch queries on Kafka. So, we'll set it at 'Earliest'.")
+      mutableOffset = Earliest
+    }
+    logger.info(
+      s"Starting to sink '$extension' data provided by the input topic '$in' in the output folder pattern '$out/spark-kafka-plugin-*****$extension'")
     session.read
       .format("kafka")
       .option("kafka.bootstrap.servers", brokerUrls)
-      .option("startingOffsets", offset.value)
+      .option("startingOffsets", mutableOffset.value)
       .option("subscribe", in)
       .load()
       .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
@@ -121,19 +139,29 @@ object KafkaSampler {
       .foreach(data =>
         FilesUtils.save(
           out,
-          s"spark-kafka-plugin-${UUID.randomUUID()}-${System.currentTimeMillis()}$extension",
+          s"spark-kafka-plugin-${UUID.randomUUID()}-${System.currentTimeMillis()}.$extension",
           data.toString()))
-    logger.info(
-      s"Successfully sinking '$extension' data provided by the input topic '$in' in the output folder '$out/spark-kafka-plugin-*****$extension'")
   }
 
-  private def sinkWithSparkKafkaStreamingPlugin(session: SparkSession,
-                                                in: String,
-                                                out: String,
-                                                brokerUrls: String,
-                                                offset: Offset,
-                                                extension: String): Unit = {
+  /**
+    * Sinks topic content into files using a Spark-Kafka-Plugin Streaming Consumer
+    *
+    * @param session The Spark session
+    * @param in The input kafka topic
+    * @param out The output folder
+    * @param brokerUrls The kafka brokers urls
+    * @param offset The kafka consumer offset
+    * @param extension The output files extension
+    */
+  private def sinkWithSparkKafkaStreamsPlugin(session: SparkSession,
+                                              in: String,
+                                              out: String,
+                                              brokerUrls: String,
+                                              offset: Offset,
+                                              extension: String): Unit = {
     import session.implicits._
+    logger.info(
+      s"Starting to sink '$extension' data provided by the input topic '$in' in the output folder pattern '$out/spark-kafka-streaming-plugin-*****$extension'")
     session.readStream
       .format("kafka")
       .option("kafka.bootstrap.servers", brokerUrls)
@@ -144,7 +172,7 @@ object KafkaSampler {
       .as[(String, String)]
       .select("value")
       .writeStream
-      .format(extension.substring(1)) // todo : Hideous ! Remove "." from the extension
+      .format(extension)
       .option(
         "path",
         s"$out/spark-kafka-streaming-plugin-${System.currentTimeMillis()}")
@@ -153,11 +181,19 @@ object KafkaSampler {
         s"/tmp/checkpoint/${UUID.randomUUID()}-${System.currentTimeMillis()}")
       .start()
       .awaitTermination()
-    logger.info(
-      s"Successfully sinking '$extension' data provided by the input topic '$in' in the output folder '$out/spark-kafka-streaming-plugin-*****$extension'")
   }
 
-  private def sinkWithKafkaStreams(
+  /**
+    * Sinks topic content into files using a Pure Kafka Streaming Consumer
+    *
+    * @param in The input kafka topic
+    * @param out The output folder
+    * @param brokerUrls The kafka brokers urls
+    * @param offset The kafka consumer offset
+    * @param extension The output files extension
+    * @param streamAppId The identifier of the streaming application
+    */
+  private def sinkWithPureKafkaStreams(
       in: String,
       out: String,
       brokerUrls: String,
@@ -176,9 +212,9 @@ object KafkaSampler {
           val uuid: String =
             s"${UUID.randomUUID()}-${System.currentTimeMillis()}"
           FilesUtils
-            .save(out, s"kafka-streams-$uuid$extension", data)
+            .save(out, s"kafka-streams-$uuid.$extension", data)
           logger.info(
-            s"Successfully sinking '$extension' data provided by the input topic '$in' in the output folder '$out/kafka-streams-*****$extension'")
+            s"Successfully sinking '$extension' data provided by the input topic '$in' in the output folder pattern '$out/kafka-streams-*****$extension'")
         }
       )
       val streams = new KafkaStreams(kafkaStreamEntity.builder.build(),
@@ -187,32 +223,39 @@ object KafkaSampler {
     }.toEither
   }
 
-  private def sinkWithSimpleConsumer(
+  /**
+    * Sinks topic content into files using Pure Kafka Consumer
+    *
+    * @param in The input kafka topic
+    * @param out The output folder
+    * @param brokerUrls The kafka brokers urls
+    * @param offset The kafka consumer offset
+    * @param consumerGroup The consumer group
+    * @param extension The output files extension
+    */
+  private def sinkWithPureKafka(
       in: String,
       out: String,
       brokerUrls: String,
       offset: Offset,
       consumerGroup: String,
       extension: String): Either[DataHighwayError.KafkaError, Unit] = {
-    for {
-      consumed <- KafkaTopicConsumer.consume(in,
-                                             brokerUrls,
-                                             offset,
-                                             consumerGroup)
-      _ = while (true) {
+    // todo offset == none => Undefined offset with no reset policy for partitions:
+    KafkaTopicConsumer
+      .consume(in, brokerUrls, offset, consumerGroup)
+      .map(consumed => {
         val record = consumed.poll(Duration.ofSeconds(5)).asScala
-        logger.info("=======> Consumer :")
         for (data <- record.iterator) {
           logger.info(
             s"Topic: ${data.topic()}, Key: ${data.key()}, Value: ${data.value()}, " +
               s"Offset: ${data.offset()}, Partition: ${data.partition()}")
           val uuid: String =
             s"${UUID.randomUUID()}-${System.currentTimeMillis()}"
-          FilesUtils.save(out, s"simple-consumer-$uuid$extension", data.value())
+          FilesUtils
+            .save(out, s"simple-consumer-$uuid.$extension", data.value())
           logger.info(
-            s"Successfully sinking '$extension' data provided by the input topic '$in' in the output folder '$out/simple-consumer-*****$extension'")
+            s"Successfully sinking '$extension' data provided by the input topic '$in' in the output folder pattern '$out/simple-consumer-*****$extension'")
         }
-      }
-    } yield ()
+      })
   }
 }

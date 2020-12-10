@@ -1,7 +1,7 @@
 package io.oss.data.highway.converter
 
 import io.oss.data.highway.model.DataHighwayError.ParquetError
-import io.oss.data.highway.model.{DataHighwayError, DataType}
+import io.oss.data.highway.model.{DataHighwayError, DataType, PARQUET}
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
@@ -35,7 +35,7 @@ object ParquetSink {
           .mode(saveMode)
           .parquet(out)
         logger.info(
-          s"Successfully converting '$inputDataType' data from input folder '$in' to 'PARQUET' and store it under output folder '$out'.")
+          s"Successfully converting '$inputDataType' data from input folder '$in' to '${PARQUET.getClass.getName}' and store it under output folder '$out'.")
       })
       .leftMap(thr =>
         ParquetError(thr.getMessage, thr.getCause, thr.getStackTrace))

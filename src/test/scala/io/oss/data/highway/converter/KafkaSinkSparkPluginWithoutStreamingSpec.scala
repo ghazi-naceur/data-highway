@@ -10,7 +10,7 @@ class KafkaSinkSparkPluginWithoutStreamingSpec
     with EmbeddedKafka {
 //  In-memory Zookeeper and Kafka will be instantiated respectively on port 6000 and 6001 and automatically shutdown at the end of the test.
   val kafkaSink = new KafkaSink()
-  val in = "src/test/resources/json_to_kafka-data/input/data.json"
+  val in = "src/test/resources/json_to_kafka-data/input"
   val out3 = "kafka-to-json-topic-3"
   val brokerUrl = "localhost:6001"
   val storagePath =
@@ -20,12 +20,12 @@ class KafkaSinkSparkPluginWithoutStreamingSpec
   "runs with embedded kafka" should {
     "work using Spark Kafka plugin without streaming" in {
       withRunningKafka {
-        kafkaSink.sendToTopic(in,
-                              out3,
-                              brokerUrl,
-                              SparkKafkaProducerPlugin(useStream = false),
-                              sparkConfig)
-        assert(!consumeFirstStringMessageFrom(out3).isEmpty)
+        kafkaSink.publishToTopic(in,
+                                 out3,
+                                 brokerUrl,
+                                 SparkKafkaProducerPlugin(useStream = false),
+                                 sparkConfig)
+        assert(consumeFirstStringMessageFrom(out3).nonEmpty)
       }
     }
   }
