@@ -365,10 +365,10 @@ This mode consists of publishing json files content into an output topic.
 
 It is available using 4 types of routes :
    * a- Pure Kafka Producer :
-       - without streaming
+       - without streaming (one-shot)
        - with streaming
    * b- Spark Kafka Producer Plugin :
-        - without streaming
+        - without streaming (one-shot)
         - with streaming
 
 
@@ -411,10 +411,10 @@ This mode consists of consuming and input topic and saving its content in files.
 
 It is available using 4 types of routes :
    * a- Pure Kafka Consumer :
-        - without streaming
+        - without streaming (one-shot)
         - with streaming
    * b- Spark Kafka Consumer Plugin :
-        - without streaming
+        - without streaming (one-shot)
         - with streaming
 
 #### a- Pure Kafka Consumer :

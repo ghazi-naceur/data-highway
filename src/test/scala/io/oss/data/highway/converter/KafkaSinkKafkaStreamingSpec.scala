@@ -16,7 +16,7 @@ class KafkaSinkKafkaStreamingSpec extends AnyWordSpec with EmbeddedKafka {
   val sparkConfig: SparkConfigs = SparkConfigs("app-name", "local[*]", INFO)
 
   "runs with embedded kafka" should {
-    "work using Kafka streams " in {
+    "work using Pure Kafka Producer with streaming" in {
       withRunningKafka {
         kafkaSink.sendToTopic(in,
                               out2,

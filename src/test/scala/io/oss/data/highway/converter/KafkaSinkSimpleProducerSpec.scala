@@ -16,7 +16,7 @@ class KafkaSinkSimpleProducerSpec extends AnyWordSpec with EmbeddedKafka {
   val sparkConfig: SparkConfigs = SparkConfigs("app-name", "local[*]", INFO)
 
   "runs with embedded kafka" should {
-    "work using a simple producer" in {
+    "work using a Pure Kakfa producer" in {
       withRunningKafka {
         kafkaSink.sendToTopic(in,
                               out1,

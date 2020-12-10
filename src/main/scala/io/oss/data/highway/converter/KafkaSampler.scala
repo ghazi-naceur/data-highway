@@ -42,61 +42,41 @@ object KafkaSampler {
     * @param out The generated file
     * @param dataType The desired data type for the generated file (the extension)
     * @param kafkaMode The Kafka Mode
-    * @param brokerUrls The kafka brokers urls
+    * @param brokers The kafka brokers urls
     * @param offset The consumer offset : Latest, Earliest, None
-    * @param consumerGroup The consumer
+    * @param consGroup The consumer group
     * @return a Unit, otherwise a Throwable
     */
   def peek(in: String,
            out: String,
            dataType: Option[DataType],
            kafkaMode: KafkaMode,
-           brokerUrls: String,
+           brokers: String,
            offset: Offset,
-           consumerGroup: String,
+           consGroup: String,
            sparkConfig: SparkConfigs): Either[Throwable, Unit] = {
-    KafkaUtils.verifyTopicExistence(in, brokerUrls, enableTopicCreation = false)
-    val extension = computeOutputExtension(dataType)
+    KafkaUtils.verifyTopicExistence(in, brokers, enableTopicCreation = false)
+    val ext = computeOutputExtension(dataType)
     kafkaMode match {
       case PureKafkaConsumer(useStream, streamAppId) =>
         if (useStream) {
           streamAppId match {
             case Some(id) =>
-              sinkWithPureKafkaConsumerUsingStreams(in,
-                                                    out,
-                                                    brokerUrls,
-                                                    offset,
-                                                    extension,
-                                                    id)
+              sinkWithPureKafkaStreams(in, out, brokers, offset, ext, id)
             case None =>
               throw new RuntimeException(
                 "At this stage, 'stream-app-id' is set and Streaming consumer is activated. 'stream-app-id' cannot be set to None.")
           }
         } else {
-          sinkWithPureKafkaConsumer(in,
-                                    out,
-                                    brokerUrls,
-                                    offset,
-                                    consumerGroup,
-                                    extension)
+          sinkWithPureKafka(in, out, brokers, offset, consGroup, ext)
         }
       case SparkKafkaConsumerPlugin(useStream) =>
-        val session = DataFrameUtils(sparkConfig).sparkSession
+        val sess = DataFrameUtils(sparkConfig).sparkSession
         Try {
           if (useStream) {
-            sinkWithSparkKafkaStreamingPlugin(session,
-                                              in,
-                                              out,
-                                              brokerUrls,
-                                              offset,
-                                              extension)
+            sinkWithSparkKafkaStreamsPlugin(sess, in, out, brokers, offset, ext)
           } else {
-            sinkWithSparkKafkaPlugin(session,
-                                     in,
-                                     out,
-                                     brokerUrls,
-                                     offset,
-                                     extension)
+            sinkWithSparkKafkaPlugin(sess, in, out, brokers, offset, ext)
           }
         }.toEither
       case _ =>
@@ -137,6 +117,8 @@ object KafkaSampler {
                                        offset: Offset,
                                        extension: String): Unit = {
     import session.implicits._
+    // todo java.lang.IllegalArgumentException: starting offset can't be latest for batch queries on Kafka
+    //    The offset accepted value is only earliest => Find replacement otherwise set by default as earliest and remove from conf
     logger.info(
       s"Starting to sink '$extension' data provided by the input topic '$in' in the output folder pattern '$out/spark-kafka-plugin-*****$extension'")
     session.read
@@ -166,12 +148,12 @@ object KafkaSampler {
     * @param offset The kafka consumer offset
     * @param extension The output files extension
     */
-  private def sinkWithSparkKafkaStreamingPlugin(session: SparkSession,
-                                                in: String,
-                                                out: String,
-                                                brokerUrls: String,
-                                                offset: Offset,
-                                                extension: String): Unit = {
+  private def sinkWithSparkKafkaStreamsPlugin(session: SparkSession,
+                                              in: String,
+                                              out: String,
+                                              brokerUrls: String,
+                                              offset: Offset,
+                                              extension: String): Unit = {
     import session.implicits._
     logger.info(
       s"Starting to sink '$extension' data provided by the input topic '$in' in the output folder pattern '$out/spark-kafka-streaming-plugin-*****$extension'")
@@ -206,7 +188,7 @@ object KafkaSampler {
     * @param extension The output files extension
     * @param streamAppId The identifier of the streaming application
     */
-  private def sinkWithPureKafkaConsumerUsingStreams(
+  private def sinkWithPureKafkaStreams(
       in: String,
       out: String,
       brokerUrls: String,
@@ -246,13 +228,14 @@ object KafkaSampler {
     * @param consumerGroup The consumer group
     * @param extension The output files extension
     */
-  private def sinkWithPureKafkaConsumer(
+  private def sinkWithPureKafka(
       in: String,
       out: String,
       brokerUrls: String,
       offset: Offset,
       consumerGroup: String,
       extension: String): Either[DataHighwayError.KafkaError, Unit] = {
+    // todo offset == none => Undefined offset with no reset policy for partitions:
     KafkaTopicConsumer
       .consume(in, brokerUrls, offset, consumerGroup)
       .map(consumed => {

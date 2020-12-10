@@ -36,57 +36,52 @@ class KafkaSink {
 
   /**
     * Sends message to Kafka topic
-    * @param jsonPath The path that contains json data to be send
+    * @param path The path that contains json data to be send
     * @param topic The output topic
-    * @param bootstrapServers The kafka brokers urls
+    * @param brokers The kafka brokers urls
     * @param kafkaMode The Kafka launch mode : SimpleProducer, KafkaStreaming or SparkKafkaPlugin
     * @param sparkConfig The Spark configuration
     * @return Any, otherwise an Error
     */
-  def sendToTopic(jsonPath: String,
+  def sendToTopic(path: String,
                   topic: String,
-                  bootstrapServers: String,
+                  brokers: String,
                   kafkaMode: KafkaMode,
                   sparkConfig: SparkConfigs): Either[Throwable, Any] = {
     val props = new Properties()
-    props.put("bootstrap.servers", bootstrapServers)
+    props.put("bootstrap.servers", brokers)
     props.put("key.serializer", classOf[StringSerializer].getName)
     props.put("value.serializer", classOf[StringSerializer].getName)
-    val producer = new KafkaProducer[String, String](props)
-    KafkaUtils.verifyTopicExistence(topic,
-                                    bootstrapServers,
-                                    enableTopicCreation = true)
+    val prod = new KafkaProducer[String, String](props)
+    KafkaUtils.verifyTopicExistence(topic, brokers, enableTopicCreation = true)
     kafkaMode match {
       case PureKafkaProducer(useStream, streamAppId) =>
         if (useStream) {
           KafkaUtils.verifyTopicExistence(intermediateTopic,
-                                          bootstrapServers,
+                                          brokers,
                                           enableTopicCreation = true)
-          send(jsonPath, intermediateTopic, producer)
+          send(path, intermediateTopic, prod)
           streamAppId match {
             case Some(id) =>
-              runStream(id, intermediateTopic, bootstrapServers, topic)
+              runStream(id, intermediateTopic, brokers, topic)
             case None =>
               throw new RuntimeException(
                 "At this stage, 'stream-app-id' is set and Streaming producer is activated. 'stream-app-id' cannot be set to None.")
           }
         } else {
-          send(jsonPath, topic, producer)
+          send(path, topic, prod)
         }
       case SparkKafkaProducerPlugin(useStream) =>
         if (useStream) {
-          sendUsingStreamSparkKafkaPlugin(jsonPath,
-                                          producer,
-                                          bootstrapServers,
+          sendWithSparkKafkaStreamsPlugin(path,
+                                          prod,
+                                          brokers,
                                           topic,
                                           intermediateTopic,
                                           checkpointFolder,
                                           sparkConfig)
         } else {
-          sendUsingSparkKafkaPlugin(jsonPath,
-                                    bootstrapServers,
-                                    topic,
-                                    sparkConfig)
+          sendWithSparkKafkaPlugin(path, brokers, topic, sparkConfig)
         }
       case _ =>
         throw new RuntimeException(
@@ -102,12 +97,13 @@ class KafkaSink {
     * @param sparkConfig The spark configuration
     * @return Unit, otherwise an Error
     */
-  private def sendUsingSparkKafkaPlugin(
+  private def sendWithSparkKafkaPlugin(
       jsonPath: String,
       bootstrapServers: String,
       topic: String,
       sparkConfig: SparkConfigs): Either[Throwable, Unit] = {
     import org.apache.spark.sql.functions.{to_json, struct}
+    // todo jsonPath => path loading is not recursive (only file1) => Make it recursive for sub-folders
     DataFrameUtils(sparkConfig)
       .loadDataFrame(jsonPath, JSON)
       .map(df => {
@@ -132,7 +128,7 @@ class KafkaSink {
     * @param sparkConfig The Spark configuration
     * @return Unit, otherwise an Error
     */
-  private def sendUsingStreamSparkKafkaPlugin(
+  private def sendWithSparkKafkaStreamsPlugin(
       jsonPath: String,
       producer: KafkaProducer[String, String],
       bootstrapServers: String,

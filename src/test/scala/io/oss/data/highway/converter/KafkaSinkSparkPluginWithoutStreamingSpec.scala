@@ -25,7 +25,7 @@ class KafkaSinkSparkPluginWithoutStreamingSpec
                               brokerUrl,
                               SparkKafkaProducerPlugin(useStream = false),
                               sparkConfig)
-        assert(!consumeFirstStringMessageFrom(out3).isEmpty)
+        assert(consumeFirstStringMessageFrom(out3).nonEmpty)
       }
     }
   }
