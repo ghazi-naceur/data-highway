@@ -7,6 +7,7 @@ import io.oss.data.highway.model.{
   AVRO,
   DataHighwayError,
   DataType,
+  Earliest,
   JSON,
   KafkaMode,
   Offset,
@@ -37,7 +38,7 @@ object KafkaSampler {
   val logger: Logger = Logger.getLogger(KafkaSampler.getClass)
 
   /**
-    * Peeks data from a topic
+    * Consumes data from a topic
     * @param in The input source topic
     * @param out The generated file
     * @param dataType The desired data type for the generated file (the extension)
@@ -47,14 +48,14 @@ object KafkaSampler {
     * @param consGroup The consumer group
     * @return a Unit, otherwise a Throwable
     */
-  def peek(in: String,
-           out: String,
-           dataType: Option[DataType],
-           kafkaMode: KafkaMode,
-           brokers: String,
-           offset: Offset,
-           consGroup: String,
-           sparkConfig: SparkConfigs): Either[Throwable, Unit] = {
+  def consumeFromTopic(in: String,
+                       out: String,
+                       dataType: Option[DataType],
+                       kafkaMode: KafkaMode,
+                       brokers: String,
+                       offset: Offset,
+                       consGroup: String,
+                       sparkConfig: SparkConfigs): Either[Throwable, Unit] = {
     KafkaUtils.verifyTopicExistence(in, brokers, enableTopicCreation = false)
     val ext = computeOutputExtension(dataType)
     kafkaMode match {
@@ -95,8 +96,8 @@ object KafkaSampler {
       case optDataType @ Some(dataType)
           if optDataType.contains(JSON) || optDataType.contains(AVRO) =>
         dataType.extension
-      case _    => JSON.extension
       case None => JSON.extension
+      case _    => JSON.extension
     }
   }
 
@@ -117,14 +118,18 @@ object KafkaSampler {
                                        offset: Offset,
                                        extension: String): Unit = {
     import session.implicits._
-    // todo java.lang.IllegalArgumentException: starting offset can't be latest for batch queries on Kafka
-    //    The offset accepted value is only earliest => Find replacement otherwise set by default as earliest and remove from conf
+    var mutableOffset = offset
+    if (mutableOffset != Earliest) {
+      logger.warn(
+        s"Starting offset can't be ${mutableOffset.value} for batch queries on Kafka. So, we'll set it at 'Earliest'.")
+      mutableOffset = Earliest
+    }
     logger.info(
       s"Starting to sink '$extension' data provided by the input topic '$in' in the output folder pattern '$out/spark-kafka-plugin-*****$extension'")
     session.read
       .format("kafka")
       .option("kafka.bootstrap.servers", brokerUrls)
-      .option("startingOffsets", offset.value)
+      .option("startingOffsets", mutableOffset.value)
       .option("subscribe", in)
       .load()
       .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")

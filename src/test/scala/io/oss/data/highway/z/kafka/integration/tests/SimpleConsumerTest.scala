@@ -13,13 +13,13 @@ object SimpleConsumerTest {
       "/home/ghazi/workspace/data-highway/src/test/resources/output/files"
     val sparkConfig = SparkConfigs("app-name", "local[*]", INFO)
 
-    KafkaSampler.peek(in,
-                      out,
-                      Some(JSON),
-                      PureKafkaConsumer(useStream = false, None),
-                      "localhost:9092",
-                      Earliest,
-                      "consumer-group",
-                      sparkConfig)
+    KafkaSampler.consumeFromTopic(in,
+                                  out,
+                                  Some(JSON),
+                                  PureKafkaConsumer(useStream = false, None),
+                                  "localhost:9092",
+                                  Earliest,
+                                  "consumer-group",
+                                  sparkConfig)
   }
 }

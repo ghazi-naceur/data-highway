@@ -59,14 +59,14 @@ object App {
                          kafkaMode,
                          offset,
                          consGroup) =>
-          KafkaSampler.peek(in,
-                            out,
-                            dataType,
-                            kafkaMode,
-                            brokers,
-                            offset,
-                            consGroup,
-                            sparkConf)
+          KafkaSampler.consumeFromTopic(in,
+                                        out,
+                                        dataType,
+                                        kafkaMode,
+                                        brokers,
+                                        offset,
+                                        consGroup,
+                                        sparkConf)
         case JsonToKafka(in, out, brokerUrl, kafkaMode) =>
           new KafkaSink().publishToTopic(in,
                                          out,

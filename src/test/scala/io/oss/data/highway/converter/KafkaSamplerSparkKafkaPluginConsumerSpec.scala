@@ -38,14 +38,15 @@ class KafkaSamplerSparkKafkaPluginConsumerSpec
       withRunningKafka {
         publishStringMessageToKafka("topic1",
                                     "{\"something\": \"something else\"}")
-        KafkaSampler.peek("topic1",
-                          out,
-                          Some(JSON),
-                          SparkKafkaConsumerPlugin(useStream = false),
-                          brokerUrl,
-                          Earliest,
-                          "cons",
-                          sparkConfig)
+        KafkaSampler.consumeFromTopic(
+          "topic1",
+          out,
+          Some(JSON),
+          SparkKafkaConsumerPlugin(useStream = false),
+          brokerUrl,
+          Earliest,
+          "cons",
+          sparkConfig)
         val generatedFile = new File(out).listFiles().head
         val buffer = Source.fromFile(generatedFile)
         val content = buffer.getLines.toList.head

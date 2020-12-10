@@ -31,15 +31,15 @@ class KafkaSamplerPureKafkaConsumerSpec extends AnyWordSpec with EmbeddedKafka {
       withRunningKafka {
         publishStringMessageToKafka("topic1",
                                     "{\"something\": \"something else\"}")
-        KafkaSampler.peek("topic1",
-                          out,
-                          Some(JSON),
-                          PureKafkaConsumer(useStream = false,
-                                            Some("stream-app-id")),
-                          brokerUrl,
-                          Earliest,
-                          "cons",
-                          sparkConfig)
+        KafkaSampler.consumeFromTopic("topic1",
+                                      out,
+                                      Some(JSON),
+                                      PureKafkaConsumer(useStream = false,
+                                                        Some("stream-app-id")),
+                                      brokerUrl,
+                                      Earliest,
+                                      "cons",
+                                      sparkConfig)
         val generatedFile = new File(out).listFiles().head
         val buffer = Source.fromFile(generatedFile)
         val content = buffer.getLines.toList.head

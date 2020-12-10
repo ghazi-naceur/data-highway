@@ -12,7 +12,7 @@ object KafkaStreamingConsumerTest {
       "/home/ghazi/workspace/data-highway/src/test/resources/output/files"
     val sparkConfig = SparkConfigs("app-name", "local[*]", INFO)
 
-    KafkaSampler.peek(
+    KafkaSampler.consumeFromTopic(
       in,
       out,
       Some(JSON),
