@@ -4,8 +4,8 @@ import cats.data.Kleisli
 import cats.effect._
 import io.circe.Json
 import org.http4s.implicits._
-import io.circe.generic.auto._
 import io.circe.syntax._
+import io.oss.data.highway.Main
 import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.model.Route
 import org.http4s._
@@ -23,16 +23,17 @@ object ConversionController {
       case req @ POST -> Root / "conversion" / "route" =>
         for {
           ioJson <- req.asJson
-          decodedRoute = parseRouteBody(ioJson, "route")
-          decodedConf = parseSparkConfBody(ioJson, "spark")
-          _ = println(decodedRoute)
-          _ = println(decodedConf)
-          resp <- Ok(decodedRoute)
+          decodedRoute = parseRouteBody(ioJson)
+          decodedConf = parseSparkConfBody(ioJson)
+          _ = Main.apply(decodedConf, decodedRoute)
+          resp <- Ok(200)
         } yield resp
     }
     .orNotFound
 
-  private def parseRouteBody(ioJson: Json, jsonElement: String): Route = {
+  // todo to be generalized, but there is an issue when loading Generic types
+  private def parseRouteBody(ioJson: Json,
+                             jsonElement: String = "route"): Route = {
     ConfigSource
       .string(ioJson.asJson.toString())
       .at(jsonElement)
@@ -44,8 +45,9 @@ object ConversionController {
     }
   }
 
-  private def parseSparkConfBody(ioJson: Json,
-                                 jsonElement: String): SparkConfigs = {
+  private def parseSparkConfBody(
+      ioJson: Json,
+      jsonElement: String = "spark"): SparkConfigs = {
     ConfigSource
       .string(ioJson.asJson.toString())
       .at(jsonElement)
