@@ -1,0 +1,15 @@
+// POST http://localhost:5555/conversion/route
+{
+  "spark" : {
+    "app-name": "handler",
+    "master-url": "local[*]",
+    "log-level" : {
+      "type": "warn"
+    }
+  },
+  "route": {
+    "type" : "avro-to-json",
+    "in": "/home/ghazi/workspace/data-highway/src/test/resources/avro_to_json-data/input",
+    "out": "/home/ghazi/workspace/data-highway/src/test/resources/avro_to_json-data/output"
+  }
+}

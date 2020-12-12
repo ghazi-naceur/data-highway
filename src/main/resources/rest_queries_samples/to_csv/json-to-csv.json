@@ -1,0 +1,14 @@
+{
+  "spark" : {
+    "app-name": "handler",
+    "master-url": "local[*]",
+    "log-level" : {
+      "type": "warn"
+    }
+  },
+  "route": {
+    "type" : "json-to-csv",
+    "in": "/home/ghazi/workspace/data-highway/src/test/resources/json_to_csv-data/input",
+    "out": "/home/ghazi/workspace/data-highway/src/test/resources/json_to_csv-data/output"
+  }
+}
