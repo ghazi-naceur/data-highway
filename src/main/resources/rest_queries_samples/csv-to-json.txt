@@ -1,7 +1,0 @@
-POST http://localhost:5555/conversion/route
-{
-    "CsvToJson": {
-        "in": "src/test/resources/csv_to_json-data/input",
-        "out": "src/test/resources/csv_to_json-data/output"
-    }
-}
