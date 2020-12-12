@@ -49,12 +49,7 @@ libraryDependencies ++= Seq("com.github.pureconfig" %% "pureconfig" % "0.13.0",
   "org.http4s" %% "http4s-blaze-server" % http4sVersion,
   "org.http4s" %% "http4s-blaze-client" % http4sVersion,
   "org.http4s" %% "http4s-circe" % http4sVersion,
-  // Optional for auto-derivation of JSON codecs
-  "io.circe" %% "circe-core" % circeVersion,
-  "io.circe" %% "circe-generic" % circeVersion,
-  "io.circe" %% "circe-parser" % circeVersion,
-  // Optional for string interpolation to JSON model
-  "io.circe" %% "circe-literal" % circeVersion
+  "io.circe" %% "circe-generic" % circeVersion
 )
 
 scalacOptions += "-Ypartial-unification"
