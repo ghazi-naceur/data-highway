@@ -1,0 +1,20 @@
+// POST http://localhost:5555/conversion/route
+{
+  "spark" : {
+    "app-name": "handler",
+    "master-url": "local[*]",
+    "log-level" : {
+      "type": "warn"
+    }
+  },
+  "route": {
+    "type": "json-to-kafka",
+    "in": "/home/ghazi/workspace/data-highway/src/test/resources/json_to_kafka-data/input/",
+    "out": "pure-kafka-producer-1",
+    "broker-urls": "localhost:9092",
+    "kafka-mode": {
+      "type": "pure-kafka-producer",
+      "use-stream": "false"
+    }
+  }
+}

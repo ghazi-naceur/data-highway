@@ -1,0 +1,27 @@
+// POST http://localhost:5555/conversion/route
+{
+  "spark" : {
+    "app-name": "handler",
+    "master-url": "local[*]",
+    "log-level" : {
+      "type": "warn"
+    }
+  },
+  "route": {
+    "type" : "kafka-to-file",
+    "in" : "spark-plugin-topic-2",
+    "out" : "/home/ghazi/workspace/data-highway/src/test/resources/output/files2",
+    "data-type" : {
+      "type" : "json"
+    },
+    "broker-urls" : "localhost:9092",
+    "kafka-mode" : {
+      "type" : "spark-kafka-consumer-plugin",
+      "use-stream" : "false"
+    },
+    "offset" : {
+      "type": "earliest"
+    },
+    "consumer-group" : "consumer-kj"
+  }
+}
