@@ -21,7 +21,6 @@ val scalatestVersion = "3.2.0"
 val catsVersion = "2.1.1"
 val sparkVersion = "2.4.6"
 val kafkaVersion = "2.4.0"
-val log4jVersion = "2.8.2"
 val circeVersion = "0.13.0"
 
 libraryDependencies ++= Seq("com.github.pureconfig" %% "pureconfig" % "0.13.0",
@@ -42,9 +41,9 @@ libraryDependencies ++= Seq("com.github.pureconfig" %% "pureconfig" % "0.13.0",
   "org.apache.kafka" %% "kafka-streams-scala" % kafkaVersion,
   "org.apache.spark" %% "spark-sql-kafka-0-10" % kafkaVersion,
   "net.manub" %% "scalatest-embedded-kafka" % "2.0.0" % "test",
-  "org.apache.logging.log4j" % "log4j-slf4j-impl" % log4jVersion,
-  "org.apache.logging.log4j" % "log4j-api"        % log4jVersion,
-  "org.apache.logging.log4j" % "log4j-core"       % log4jVersion,
+  "log4j" % "log4j" % "1.2.17",
+  "org.slf4j" % "slf4j-log4j12" % "1.7.25",
+  "commons-logging" % "commons-logging" % "1.2",
   "org.http4s" %% "http4s-dsl" % http4sVersion,
   "org.http4s" %% "http4s-blaze-server" % http4sVersion,
   "org.http4s" %% "http4s-blaze-client" % http4sVersion,
