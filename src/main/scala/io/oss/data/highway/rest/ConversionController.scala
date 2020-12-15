@@ -27,13 +27,15 @@ object ConversionController {
         Ok(s"Data Highway REST API.")
       case req @ POST -> Root / "conversion" / "route" =>
         logger.info("POST Request received : " + req.toString())
-        for {
-          ioJson <- req.asJson
-          decodedRoute = parseRouteBody(ioJson)
-          decodedConf = parseSparkConfBody(ioJson)
-          _ = Main.apply(decodedConf, decodedRoute)
-          resp <- Ok(200)
-        } yield resp
+        val ioResponse = req.asJson.map(request => {
+          val decodedRoute = parseRouteBody(request)
+          val decodedConf = parseSparkConfBody(request)
+          Main.apply(decodedConf, decodedRoute)
+        })
+        ioResponse.flatMap {
+          case Right(_)        => Ok(200)
+          case Left(exception) => throw new RuntimeException(exception)
+        }
     }
     .orNotFound
 
