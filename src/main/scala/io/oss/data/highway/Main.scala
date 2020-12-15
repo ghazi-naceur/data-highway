@@ -33,6 +33,7 @@ object Main {
   }
 
   def apply(sparkConf: SparkConfigs, route: Route): Either[Throwable, Any] = {
+    logger.info(s"${route.toString} route is activated ...")
     route match {
       case CsvToParquet(in, out) =>
         ParquetSink.handleParquetChannel(in, out, Overwrite, CSV, sparkConf)

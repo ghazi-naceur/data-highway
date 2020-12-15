@@ -8,6 +8,7 @@ import io.circe.syntax._
 import io.oss.data.highway.Main
 import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.model.Route
+import org.apache.log4j.Logger
 import org.http4s._
 import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
 import org.http4s.circe._
@@ -15,12 +16,17 @@ import org.http4s.dsl.io._
 import pureconfig.ConfigSource
 
 object ConversionController {
+
+  val logger: Logger = Logger.getLogger(ConversionController.getClass.getName)
+
   import pureconfig.generic.auto._ // To be kept, even though intellij didn't recognize its usage
   val httpRequests: Kleisli[IO, Request[IO], Response[IO]] = HttpRoutes
     .of[IO] {
-      case GET -> Root / "conversion" =>
+      case req @ GET -> Root / "conversion" =>
+        logger.info("GET Request received : " + req.toString())
         Ok(s"Data Highway REST API.")
       case req @ POST -> Root / "conversion" / "route" =>
+        logger.info("POST Request received : " + req.toString())
         for {
           ioJson <- req.asJson
           decodedRoute = parseRouteBody(ioJson)
