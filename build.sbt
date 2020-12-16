@@ -7,8 +7,10 @@ scalaVersion := "2.12.12"
 resolvers += "Spark Packages Repo" at "http://dl.bintray.com/spark-packages/maven"
 
 assemblyMergeStrategy in assembly := {
-  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
-  case x => MergeStrategy.first
+  case PathList("META-INF","services",xs @ _*) => MergeStrategy.filterDistinctLines // To add Spark datasources : org.apache.spark.sql.sources.DataSourceRegister
+    // See : https://stackoverflow.com/questions/62232209/classnotfoundexception-caused-by-java-lang-classnotfoundexception-csv-default
+  case PathList("META-INF",xs @ _*) => MergeStrategy.discard
+  case _ => MergeStrategy.first
 }
 
 addCompilerPlugin(
