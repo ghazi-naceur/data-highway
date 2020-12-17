@@ -80,7 +80,7 @@ If you are using Spark, run the following command with these routes : (See the *
 ````shell script
 spark-submit  \
       --packages org.apache.spark:spark-avro_2.12:2.4.0 \
-      --class "io.oss.data.highway.App" --master local[*] \
+      --class "io.oss.data.highway.Main" --master local[*] \
       --conf "spark.driver.extraJavaOptions=-Dconfig.file=/the/path/to/application.conf" \
       --conf "spark.executor.extraJavaOptions=-Dconfig.file=/the/path/to/application.conf" \
       --files "/the/path/to/application.conf" \
@@ -94,7 +94,7 @@ If you are using 'pure' Kafka (not the spark-kafka-plugin feature), run instead 
  * B-6-b- Consuming data from Kafka though **Kafka Streaming**
  
 ````shell script
-java -jar -Dconfig.file=/the/path/to/application.conf -Dlog4j2.configuration=/the/path/to/log4j2.properties /the/path/to/data-highway-assembly-0.1.jar
+java -jar -Dconfig.file=/the/path/to/application.conf -Dlog4j2.configuration=/the/path/to/log4j.properties /the/path/to/data-highway-assembly-0.1.jar
 
 ````
 
@@ -122,14 +122,14 @@ app:
       - /the-path-to-input-data-located-in-your-host-machine/:/app/data/input
       - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/output
       - /the-path-to-your-config-file/application.conf:/app/config/application.conf
-      - /the-path-to-your-log-file/log4j2.properties:/app/config/log4j2.properties
+      - /the-path-to-your-log-file/log4j.properties:/app/config/log4j.properties
     entrypoint: ["spark-submit",
                   "--packages", "org.apache.spark:spark-avro_2.12:2.4.0",
-                  "--class", "io.oss.data.highway.App",
+                  "--class", "io.oss.data.highway.Main",
                   "--master", "local[*]",
-                  "--conf", "spark.driver.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlog4j2.configuration=/app/config/log4j2.properties",
-                  "--conf", "spark.executor.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlog4j2.configuration=/app/config/log4j2.properties",
-                  "--files", "/app/config/application.conf,/app/config/log4j2.properties",
+                  "--conf", "spark.driver.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlog4j2.configuration=/app/config/log4j.properties",
+                  "--conf", "spark.executor.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlog4j2.configuration=/app/config/log4j.properties",
+                  "--files", "/app/config/application.conf,/app/config/log4j.properties",
                   "/app/jar/data-highway-assembly-0.1.jar"]
 ```
 3- Run the script `start.sh` located under the path `data-highway/docker/spark`
@@ -160,8 +160,8 @@ In the section "B-5-c" case, data will be published to the output topic.
       - /the-path-to-input-data-located-in-your-host-machine/:/app/data/input # Used for sections "B-5-a" and "B-5-b"
       - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/output # Used for sections "B-6-a" and "B-6-b"
       - /the-path-to-your-config-file/application.conf:/app/config/application.conf
-      - /the-path-to-your-log-file/log4j2.properties:/app/config/log4j2.properties
-    entrypoint: [ "java", "-jar", "-Dconfig.file=/app/config/application.conf", "-Dlog4j2.configuration=/app/config/log4j2.properties", "/app/jar/data-highway-assembly-0.1.jar" ]
+      - /the-path-to-your-log-file/log4j.properties:/app/config/log4j.properties
+    entrypoint: [ "java", "-jar", "-Dconfig.file=/app/config/application.conf", "-Dlog4j2.configuration=/app/config/log4j.properties", "/app/jar/data-highway-assembly-0.1.jar" ]
     network_mode: "host"
 ```
 
@@ -191,8 +191,8 @@ app:
       - /the-path-to-input-data-located-in-your-host-machine/:/app/data/input # Used for sections "B-5-a" and "B-5-b"
       - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/output # Used for sections "B-6-a" and "B-6-b"
       - /the-path-to-your-config-file/application.conf:/app/config/application.conf
-      - /the-path-to-your-log-file/log4j2.properties:/app/config/log4j2.properties
-    entrypoint: ["java", "-jar", "-Dconfig.file=/app/config/application.conf", "-Dlog4j2.configuration=/app/config/log4j2.properties", "/app/jar/data-highway-assembly-0.1.jar"]
+      - /the-path-to-your-log-file/log4j.properties:/app/config/log4j.properties
+    entrypoint: ["java", "-jar", "-Dconfig.file=/app/config/application.conf", "-Dlog4j2.configuration=/app/config/log4j.properties", "/app/jar/data-highway-assembly-0.1.jar"]
 ```
 
 3- Run the script `start.sh` located under the path `data-highway/docker/kafka`
