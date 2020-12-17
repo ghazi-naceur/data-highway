@@ -5,7 +5,7 @@ services:
 
   app:
     build:
-      context: .
+      context: ""
       dockerfile: /home/ghazi/workspace/data-highway/docker/data-highway/Dockerfile
     image: data-highway-app:v1.0
     container_name: bungee-gum-app

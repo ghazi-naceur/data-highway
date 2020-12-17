@@ -112,7 +112,7 @@ java -jar -Dconfig.file=/the/path/to/application.conf -Dlog4j2.configuration=/th
  
 1- Clone the data-highway project
 
-2- Set the input/output volumes and the path to your configuration file by modifying the `docker-compose.yml` file located under `data-highway/docker/spark`:
+2- Set the input/output volumes and the path to your configuration file by modifying the `docker-compose.yml` file located under `data-highway/docker/cli/spark`:
 ```yaml
 app:
     build: .
@@ -132,7 +132,7 @@ app:
                   "--files", "/app/config/application.conf,/app/config/log4j.properties",
                   "/app/jar/data-highway-assembly-0.1.jar"]
 ```
-3- Run the script `start.sh` located under the path `data-highway/docker/spark`
+3- Run the script `start.sh` located under the path `data-highway/docker/cli/spark`
 
 ps: You can find some input data samples under the test package, which you can use as an input for the input docker volume.
 
@@ -150,7 +150,7 @@ In the section "B-5-c" case, data will be published to the output topic.
  
 1- Clone the data-highway project
 
-2- Set the input/output volumes and the path to your configuration file by modifying the `docker-compose.yml` file located under `data-highway/docker/data-highway`:
+2- Set the input/output volumes and the path to your configuration file by modifying the `docker-compose.yml` file located under `data-highway/docker/cli/data-highway`:
 ```yaml
   app:
     build: .
@@ -165,7 +165,7 @@ In the section "B-5-c" case, data will be published to the output topic.
     network_mode: "host"
 ```
 
-3- Run the script `start.sh` located under the path `data-highway/docker/data-highway`
+3- Run the script `start.sh` located under the path `data-highway/docker/cli/data-highway`
 
 4- In the case of sections "B-5-a" and "B-5-b", data will be published to the output topic.
 
@@ -181,7 +181,7 @@ In the case of sections "B-6-a" and "B-6-b", data will be saved in the provided 
  
 1- Clone the data-highway project
 
-2- Set the input/output volumes and the path to your configuration file by modifying the `docker-compose.yml` file located under `data-highway/docker/kafka`:
+2- Set the input/output volumes and the path to your configuration file by modifying the `docker-compose.yml` file located under `data-highway/docker/cli/kafka`:
 ```yaml
 app:
     build: .
@@ -195,7 +195,7 @@ app:
     entrypoint: ["java", "-jar", "-Dconfig.file=/app/config/application.conf", "-Dlog4j2.configuration=/app/config/log4j.properties", "/app/jar/data-highway-assembly-0.1.jar"]
 ```
 
-3- Run the script `start.sh` located under the path `data-highway/docker/kafka`
+3- Run the script `start.sh` located under the path `data-highway/docker/cli/kafka`
 
 4- In the case of sections "B-5-a" and "B-5-b", data will be published to the output topic.
 

@@ -4,7 +4,7 @@ version: '3.2'
 services:
 
   app:
-    build: .
+    build: ""
     image: data-highway-app:v1.0
     container_name: bungee-gum-app
     volumes:

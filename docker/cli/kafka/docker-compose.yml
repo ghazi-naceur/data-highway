@@ -146,7 +146,7 @@ services:
       KAFKA_REST_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
 
   app:
-    build: .
+    build: ""
     image: data-highway-kafka:v1.0
     container_name: bungee-gum-kafka
     volumes:

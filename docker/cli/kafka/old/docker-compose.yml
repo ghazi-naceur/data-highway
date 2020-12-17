@@ -147,7 +147,7 @@ services:
 
   app:
     build:
-      context: .
+      context: ""
       dockerfile: /home/ghazi/workspace/data-highway/docker/kafka/Dockerfile
     image: data-highway-kafka:v1.0
     container_name: bungee-gum-kafka
