@@ -9,7 +9,7 @@
   },
   "route": {
     "type" : "parquet-to-csv",
-    "in": "/home/ghazi/workspace/data-highway/src/test/resources/parquet_to_csv-data/input",
-    "out": "/home/ghazi/workspace/data-highway/src/test/resources/parquet_to_csv-data/output"
+    "in": "/app/data/input",
+    "out": "/app/data/output"
   }
 }

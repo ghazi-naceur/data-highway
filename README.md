@@ -15,7 +15,10 @@ You can convert your data to multiple data types.
 ## Table of contents :
 * [A- Getting started](#A--getting-started-)
     * [1- Run data-highway locally](#1--run-data-highway-locally-)
-    * [2- Run data-highway using Docker](#2--run-data-highway-using-docker-)
+    * [2- Run data-highway using REST API](#2--run-data-highway-using-rest-api-)
+        * [a- Locally](#a--locally-)
+        * [b- With Docker](#b--with-docker-)
+    * [3- Run data-highway using Docker](#3--run-data-highway-using-docker-)
         * [a- Spark application](#a--spark-application)
         * [b- Kafka application without Confluent Cluster](#b--kafka-application-without-confluent-cluster)
         * [c- Kafka application with Confluent Cluster](#c--kafka-application-with-confluent-cluster)
@@ -63,7 +66,7 @@ sbt clean; sbt compile; sbt assembly;
 ````
 
 3- Move your generated jar file which will be under the folder : `data-highway/target/scala-2.12/data-highway-assembly-0.1.jar`
-to your delivery folder, along with the `application.conf` and `log4j2.properties` files (which are located under the `resources` folder).
+to your delivery folder, along with the `application.conf` and `log4j.properties` files (which are located under the `resources` folder).
 
 4- Modify the `application.conf` file using the **B- Conversions** section of this `readme` file.
 
@@ -83,7 +86,7 @@ spark-submit  \
       --class "io.oss.data.highway.Main" --master local[*] \
       --conf "spark.driver.extraJavaOptions=-Dconfig.file=/the/path/to/application.conf" \
       --conf "spark.executor.extraJavaOptions=-Dconfig.file=/the/path/to/application.conf" \
-      --files "/the/path/to/application.conf" \
+      --files "/the/path/to/application.conf,/the/path/to/log/file/log4j.properties" \
       /the/path/to/data-highway-assembly-0.1.jar
 ````
 
@@ -94,11 +97,68 @@ If you are using 'pure' Kafka (not the spark-kafka-plugin feature), run instead 
  * B-6-b- Consuming data from Kafka though **Kafka Streaming**
  
 ````shell script
-java -jar -Dconfig.file=/the/path/to/application.conf -Dlog4j2.configuration=/the/path/to/log4j.properties /the/path/to/data-highway-assembly-0.1.jar
+java -jar -Dconfig.file=/the/path/to/application.conf -Dlog4j.configuration=/the/path/to/log4j.properties /the/path/to/data-highway-assembly-0.1.jar
 
 ````
 
-## 2- Run data-highway using Docker :
+## 2- Run data-highway using REST API :
+
+## a- Locally :
+
+1- Compile **data-highway** project :
+````shell
+sbt clean; sbt compile; sbt assembly
+````
+
+2- Run the command :
+````shell
+java -cp /path/to/jar/file/data-highway-assembly-0.1.jar io.oss.data.highway.IOMain -Dlog4j.configuration=/path/to/log/file/log4j.properties
+````
+
+**Note :** For `in` out `out` HTTP request body fields, you need to provide the mounted volumes in the Host side (left side).
+
+Example :
+
+For the following mounted volumes, you need to provide in your HTTP body request : `in = /the-path-to-input-data-located-in-your-host-machine/` and `out = /the-path-to-the-generated-output-in-your-host-machine/`
+````yaml
+volumes:
+      - /the-path-to-input-data-located-in-your-host-machine/:/app/data/input
+      - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/output
+````
+
+## b- With Docker :
+
+1- Specify your mounted volumes in the `docker-compose.yml` under `data-highway/docker/rest/data-highway` :
+````yaml
+  app:
+    build: .
+    image: data-highway-app:v1.0
+    ports:
+      - "5555:5555"
+    container_name: bungee-gum-app
+    volumes:
+      - /the-path-to-input-data-located-in-your-host-machine/:/app/data/input
+      - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/output
+      - /the-path-to-your-log-file/log4j.properties:/app/config/log4j.properties
+    entrypoint: ["java", "-cp", "/app/jar/data-highway-assembly-0.1.jar", "io.oss.data.highway.IOMain", "-Dlog4j.configuration=/app/config/log4j.properties"]
+    network_mode: "host"
+````
+2- Run the `start.sh` script under `data-highway/docker/rest/data-highway`
+
+3- Run your HTTP request. You can find HTTP requests samples under `data-highway/src/main/resources/rest_queries_samples`
+
+**Note :** For `in` out `out` HTTP request body fields, you need to provide the mounted volumes Docker side (right side).
+
+Example : 
+
+For the following mounted volumes, you need to provide in your HTTP body request : `in = /app/data/input` and `out = /app/data/output` 
+````yaml
+volumes:
+      - /the-path-to-input-data-located-in-your-host-machine/:/app/data/input
+      - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/output
+````
+
+## 3- Run data-highway using Docker :
 
 ### a- Spark application:
 
@@ -127,8 +187,8 @@ app:
                   "--packages", "org.apache.spark:spark-avro_2.12:2.4.0",
                   "--class", "io.oss.data.highway.Main",
                   "--master", "local[*]",
-                  "--conf", "spark.driver.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlog4j2.configuration=/app/config/log4j.properties",
-                  "--conf", "spark.executor.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlog4j2.configuration=/app/config/log4j.properties",
+                  "--conf", "spark.driver.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlog4j.configuration=/app/config/log4j.properties",
+                  "--conf", "spark.executor.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlog4j.configuration=/app/config/log4j.properties",
                   "--files", "/app/config/application.conf,/app/config/log4j.properties",
                   "/app/jar/data-highway-assembly-0.1.jar"]
 ```
@@ -161,7 +221,7 @@ In the section "B-5-c" case, data will be published to the output topic.
       - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/output # Used for sections "B-6-a" and "B-6-b"
       - /the-path-to-your-config-file/application.conf:/app/config/application.conf
       - /the-path-to-your-log-file/log4j.properties:/app/config/log4j.properties
-    entrypoint: [ "java", "-jar", "-Dconfig.file=/app/config/application.conf", "-Dlog4j2.configuration=/app/config/log4j.properties", "/app/jar/data-highway-assembly-0.1.jar" ]
+    entrypoint: [ "java", "-jar", "-Dconfig.file=/app/config/application.conf", "-Dlog4j.configuration=/app/config/log4j.properties", "/app/jar/data-highway-assembly-0.1.jar" ]
     network_mode: "host"
 ```
 
@@ -192,7 +252,7 @@ app:
       - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/output # Used for sections "B-6-a" and "B-6-b"
       - /the-path-to-your-config-file/application.conf:/app/config/application.conf
       - /the-path-to-your-log-file/log4j.properties:/app/config/log4j.properties
-    entrypoint: ["java", "-jar", "-Dconfig.file=/app/config/application.conf", "-Dlog4j2.configuration=/app/config/log4j.properties", "/app/jar/data-highway-assembly-0.1.jar"]
+    entrypoint: ["java", "-jar", "-Dconfig.file=/app/config/application.conf", "-Dlog4j.configuration=/app/config/log4j.properties", "/app/jar/data-highway-assembly-0.1.jar"]
 ```
 
 3- Run the script `start.sh` located under the path `data-highway/docker/cli/kafka`

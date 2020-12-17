@@ -9,8 +9,8 @@
   },
   "route": {
     "type": "json-to-kafka",
-    "in": "src/test/resources/json_to_kafka-data/input",
-    "out": "spark-plugin-topic-2",
+    "in": "/app/data/input",
+    "out": "topic-name",
     "broker-urls": "localhost:9092",
     "kafka-mode": {
       "type": "spark-kafka-producer-plugin",

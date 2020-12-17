@@ -9,7 +9,7 @@
   },
   "route": {
     "type" : "avro-to-parquet",
-    "in": "/home/ghazi/workspace/data-highway/src/test/resources/avro_to_parquet-data/input",
-    "out": "/home/ghazi/workspace/data-highway/src/test/resources/avro_to_parquet-data/output"
+    "in": "/app/data/input",
+    "out": "/app/data/output"
   }
 }

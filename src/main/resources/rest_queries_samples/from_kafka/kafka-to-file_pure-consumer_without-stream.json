@@ -9,8 +9,8 @@
   },
   "route": {
     "type" : "kafka-to-file",
-    "in" : "pure-kafka-producer-2",
-    "out" : "/home/ghazi/workspace/data-highway/src/test/resources/output/files2",
+    "in" : "topic-name",
+    "out" : "/app/data/output",
     "data-type" : {
       "type" : "json"
     },
@@ -23,6 +23,6 @@
     "offset" : {
       "type": "earliest"
     },
-    "consumer-group" : "consumer-kj"
+    "consumer-group" : "consumer-group"
   }
 }
