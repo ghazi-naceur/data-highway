@@ -29,6 +29,9 @@ RUN \
   cd && \
   rm -r /working/ && \
   cd /application/data-highway && \
+  git fetch --all && \
+  git branch -v -a  && \
+  git checkout json-route-rest-api && \
   sbt sbtVersion && \
   sbt clean && \
   sbt compile && \

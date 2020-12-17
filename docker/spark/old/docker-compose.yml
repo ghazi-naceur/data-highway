@@ -4,9 +4,7 @@ version: '3.2'
 services:
 
   app:
-    build:
-      context: .
-      dockerfile: /home/ghazi/workspace/data-highway/docker/spark/Dockerfile
+    build: .
     image: data-highway-spark:v1.0
     ports:
       - 5555:5555
@@ -17,12 +15,11 @@ services:
       - /home/ghazi/workspace/data-highway/docker/spark/application.conf:/app/config/application.conf
       - /home/ghazi/workspace/data-highway/src/main/resources/log4j.properties:/app/config/log4j.properties
     network_mode: "host"
-    entrypoint: ["java", "-cp", "/app/jar/data-highway-assembly-0.1.jar", "io.oss.data.highway.IOMain", "-Dconfig.file=/app/config/application.conf", "-Dlog4j.configuration=/app/config/log4j.properties"]
-#    entrypoint: ["spark-submit",
-#                  "--packages", "org.apache.spark:spark-avro_2.12:2.4.0",
-#                  "--class", "io.oss.data.highway.IOMain",
-#                  "--master", "local[*]",
-#                  "--conf", "spark.driver.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlog4j.configuration=/app/config/log4j.properties",
-#                  "--conf", "spark.executor.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlog4j.configuration=/app/config/log4j.properties",
-#                  "--files", "/app/config/application.conf,/app/config/log4j.properties",
-#                  "/app/jar/data-highway-assembly-0.1.jar"]
+    entrypoint: ["spark-submit",
+                  "--packages", "org.apache.spark:spark-avro_2.12:2.4.0",
+                  "--class", "io.oss.data.highway.Main",
+                  "--master", "local[*]",
+                  "--conf", "spark.driver.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlog4j.configuration=/app/config/log4j.properties",
+                  "--conf", "spark.executor.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlog4j.configuration=/app/config/log4j.properties",
+                  "--files", "/app/config/application.conf,/app/config/log4j.properties",
+                  "/app/jar/data-highway-assembly-0.1.jar"]
