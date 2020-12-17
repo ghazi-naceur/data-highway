@@ -1,0 +1,28 @@
+// POST http://localhost:5555/conversion/route
+{
+  "spark" : {
+    "app-name": "handler",
+    "master-url": "local[*]",
+    "log-level" : {
+      "type": "warn"
+    }
+  },
+  "route": {
+    "type" : "kafka-to-file",
+    "in" : "topic-name",
+    "out" : "/app/data/output",
+    "data-type" : {
+      "type" : "json"
+    },
+    "broker-urls" : "localhost:9092",
+    "kafka-mode" : {
+      "type" : "pure-kafka-consumer",
+      "use-stream" : "true",
+      "stream-app-id" : "stream-app"
+    },
+    "offset" : {
+      "type": "earliest"
+    },
+    "consumer-group" : "consumer-group"
+  }
+}

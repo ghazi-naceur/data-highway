@@ -65,24 +65,21 @@ object FilesUtils {
     */
   def listFoldersRecursively(
       path: String): Either[ReadFileError, List[String]] = {
-    @scala.annotation.tailrec
-    def getFolders(path: List[File], results: List[File]): Seq[File] =
-      path match {
-        case head :: tail =>
-          val files = head.listFiles
-          val directories = files.filter(_.isDirectory)
-          val updated =
-            if (files.size == directories.length) results else head :: results
-          getFolders(tail ++ directories, updated)
-        case _ => results
-      }
-
     Either
       .catchNonFatal {
-        getFolders(new File(path) :: Nil, Nil).map(_.getPath).reverse.toList
+        getRecursiveListOfFiles(new File(path)).map(_.getPath)
       }
       .leftMap(thr =>
         ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+  }
+
+  private def getRecursiveListOfFiles(path: File): List[File] = {
+    if (path.isDirectory) {
+      List(path) ++ path
+        .listFiles()
+        .filter(_.isDirectory)
+        .flatMap(getRecursiveListOfFiles)
+    } else List(path)
   }
 
   /**
