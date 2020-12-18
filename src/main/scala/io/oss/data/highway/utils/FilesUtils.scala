@@ -1,10 +1,10 @@
 package io.oss.data.highway.utils
 
 import java.io.{File, FileWriter}
-
 import io.oss.data.highway.model.DataHighwayError.ReadFileError
 import cats.syntax.either._
 
+import scala.annotation.tailrec
 import scala.util.Try
 
 object FilesUtils {
@@ -65,21 +65,24 @@ object FilesUtils {
     */
   def listFoldersRecursively(
       path: String): Either[ReadFileError, List[String]] = {
+    @tailrec
+    def getFolders(path: List[File], results: List[File]): Seq[File] =
+      path match {
+        case head :: tail =>
+          val files = head.listFiles
+          val directories = files.filter(_.isDirectory)
+          val updated =
+            if (files.size == directories.length) results else head :: results
+          getFolders(tail ++ directories, updated)
+        case _ => results
+      }
+
     Either
       .catchNonFatal {
-        getRecursiveListOfFiles(new File(path)).map(_.getPath)
+        getFolders(new File(path) :: Nil, Nil).map(_.getPath).reverse.toList
       }
       .leftMap(thr =>
         ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
-  }
-
-  private def getRecursiveListOfFiles(path: File): List[File] = {
-    if (path.isDirectory) {
-      List(path) ++ path
-        .listFiles()
-        .filter(_.isDirectory)
-        .flatMap(getRecursiveListOfFiles)
-    } else List(path)
   }
 
   /**
