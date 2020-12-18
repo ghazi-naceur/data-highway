@@ -1,6 +1,6 @@
 package io.oss.data.highway.converter
 
-import java.io.FileInputStream
+import java.io.{File, FileInputStream}
 import java.nio.file.{Files, Path, Paths}
 import io.oss.data.highway.model.DataHighwayError.{CsvError, ReadFileError}
 import io.oss.data.highway.model._
@@ -68,6 +68,8 @@ object CsvSink {
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
       list <- folders
+        .filterNot(path =>
+          new File(path).listFiles.filter(_.isFile).toList.isEmpty)
         .traverse(folder => {
           val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
           convertToCsv(folder,

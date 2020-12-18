@@ -103,23 +103,25 @@ class KafkaSink {
       topic: String,
       sparkConf: SparkConfigs): Either[Throwable, Unit] = {
     import org.apache.spark.sql.functions.{to_json, struct}
+    logger.info(s"Sending data through Spark Kafka Plugin to '$topic'.")
     FilesUtils
       .listFoldersRecursively(jsonPath)
       .map(paths => {
-        paths.map(path => {
-          DataFrameUtils(sparkConf)
-            .loadDataFrame(path, JSON)
-            .map(df => {
-              df.select(to_json(struct("*")).as("value"))
-                .write
-                .format("kafka")
-                .option("kafka.bootstrap.servers", brokers)
-                .option("topic", topic)
-                .save()
-              logger.info(
-                s"Sending data through Spark Kafka Plugin to '$topic'.")
-            })
-        })
+        paths
+          .filterNot(path =>
+            new File(path).listFiles.filter(_.isFile).toList.isEmpty)
+          .map(path => {
+            DataFrameUtils(sparkConf)
+              .loadDataFrame(path, JSON)
+              .map(df => {
+                df.select(to_json(struct("*")).as("value"))
+                  .write
+                  .format("kafka")
+                  .option("kafka.bootstrap.servers", brokers)
+                  .option("topic", topic)
+                  .save()
+              })
+          })
       })
   }
 

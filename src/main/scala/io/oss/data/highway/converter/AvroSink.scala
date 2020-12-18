@@ -8,6 +8,8 @@ import org.apache.spark.sql.SaveMode
 import cats.implicits._
 import org.apache.log4j.Logger
 
+import java.io.File
+
 object AvroSink {
 
   val logger: Logger = Logger.getLogger(AvroSink.getClass.getName)
@@ -60,6 +62,8 @@ object AvroSink {
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
       list <- folders
+        .filterNot(path =>
+          new File(path).listFiles.filter(_.isFile).toList.isEmpty)
         .traverse(folder => {
           val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
           convertToAvro(folder,

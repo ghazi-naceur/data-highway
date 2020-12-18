@@ -8,6 +8,8 @@ import cats.implicits._
 import io.oss.data.highway.configuration.SparkConfigs
 import org.apache.log4j.Logger
 
+import java.io.File
+
 object ParquetSink {
 
   val logger: Logger = Logger.getLogger(ParquetSink.getClass.getName)
@@ -60,6 +62,8 @@ object ParquetSink {
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
       list <- folders
+        .filterNot(path =>
+          new File(path).listFiles.filter(_.isFile).toList.isEmpty)
         .traverse(folder => {
           val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
           convertToParquet(folder,
