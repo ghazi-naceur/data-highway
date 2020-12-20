@@ -2,11 +2,10 @@ package io.oss.data.highway.converter
 
 import java.io.{File, FileInputStream}
 import java.nio.file.{Files, Paths}
-
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
 import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.model.{AVRO, CSV, JSON, PARQUET, WARN}
-import io.oss.data.highway.utils.{Constants, DataFrameUtils, MockSheetCreator}
+import io.oss.data.highway.utils.{DataFrameUtils, MockSheetCreator}
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
@@ -81,11 +80,14 @@ class CsvSinkSpec
 
   "CsvSink.saveParquetAsCsv" should "save a parquet as a csv file" in {
     CsvSink
-      .convertToCsv(folderParquetToCsvData + "input/mock-data-2",
-                    folderParquetToCsvData + "output/mock-data-2",
-                    SaveMode.Overwrite,
-                    PARQUET,
-                    sparkConfig)
+      .convertToCsv(
+        folderParquetToCsvData + "input/mock-data-2",
+        folderParquetToCsvData + "output/mock-data-2",
+        folderJsonToCsvData + "processed",
+        SaveMode.Overwrite,
+        PARQUET,
+        sparkConfig
+      )
     val actual =
       DataFrameUtils(sparkConfig)
         .loadDataFrame(folderParquetToCsvData + "output/mock-data-2", CSV)
@@ -106,6 +108,7 @@ class CsvSinkSpec
     CsvSink
       .convertToCsv(folderJsonToCsvData + "input/mock-data-2",
                     folderJsonToCsvData + "output/mock-data-2",
+                    folderJsonToCsvData + "processed",
                     SaveMode.Overwrite,
                     JSON,
                     sparkConfig)
@@ -129,6 +132,7 @@ class CsvSinkSpec
     CsvSink
       .convertToCsv(folderAvroToCsvData + "input/mock-data-2",
                     folderAvroToCsvData + "output/mock-data-2",
+                    folderAvroToCsvData + "processed",
                     SaveMode.Overwrite,
                     AVRO,
                     sparkConfig)

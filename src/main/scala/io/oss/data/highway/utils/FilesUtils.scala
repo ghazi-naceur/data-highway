@@ -4,6 +4,8 @@ import java.io.{File, FileWriter}
 import io.oss.data.highway.model.DataHighwayError.ReadFileError
 import cats.syntax.either._
 
+import java.nio.file
+import java.nio.file.{Files, StandardCopyOption}
 import scala.annotation.tailrec
 import scala.util.Try
 
@@ -110,6 +112,27 @@ object FilesUtils {
       fileWriter.write(content)
       fileWriter.close()
     }.toEither
+      .leftMap(thr =>
+        ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+  }
+
+  def moveToProcessed(
+      src: String,
+      basePath: String): Either[ReadFileError, List[file.Path]] = {
+    Either
+      .catchNonFatal {
+        val srcPath = new File(src)
+        val subDestFolder = s"$basePath/processed/${srcPath.getName}"
+        new File(subDestFolder).mkdirs()
+        val files = srcPath.listFiles().filter(_.isFile)
+        files
+          .map(file => {
+            Files.move(file.toPath,
+                       new File(s"$subDestFolder/${file.getName}").toPath,
+                       StandardCopyOption.ATOMIC_MOVE)
+          })
+          .toList
+      }
       .leftMap(thr =>
         ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }

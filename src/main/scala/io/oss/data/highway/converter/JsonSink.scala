@@ -9,7 +9,6 @@ import io.oss.data.highway.configuration.SparkConfigs
 import org.apache.log4j.Logger
 
 import java.io.File
-import java.nio.file.{Files, Paths}
 
 object JsonSink {
 
@@ -59,8 +58,7 @@ object JsonSink {
       out: String,
       saveMode: SaveMode,
       inputDataType: DataType,
-      sparkConfig: SparkConfigs
-  ): Either[DataHighwayError, List[Unit]] = {
+      sparkConfig: SparkConfigs): Either[DataHighwayError, List[Unit]] = {
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
       list <- folders
