@@ -103,7 +103,7 @@ java -jar -Dconfig.file=/the/path/to/application.conf -Dlog4j.configuration=/the
 
 ## 2- Run data-highway using REST API :
 
-## a- Locally :
+#### a- Locally :
 
 1- Compile **data-highway** project :
 ````shell
@@ -126,7 +126,7 @@ volumes:
       - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/output
 ````
 
-## b- With Docker :
+#### b- With Docker :
 
 1- Specify your mounted volumes in the `docker-compose.yml` under `data-highway/docker/rest/data-highway` :
 ````yaml
@@ -436,7 +436,7 @@ It is available using 4 types of routes :
 
 ````hocon
 route {
-  type = json-to-kafka
+  type = file-to-kafka
   in = "your-input-folder-containing-json-files"
   out = "your-output-kafka-topic"
   broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas", // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
@@ -452,7 +452,7 @@ route {
 
 ````hocon
 route {
-  type = json-to-kafka
+  type = file-to-kafka
   in = "your-input-folder-containing-json-files"
   out = "your-output-kafka-topic"
   broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas", // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"

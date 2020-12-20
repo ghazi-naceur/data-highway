@@ -78,7 +78,7 @@ object Main {
                                       offset,
                                       consGroup,
                                       sparkConf)
-      case JsonToKafka(in, out, brokerUrl, kafkaMode) =>
+      case FileToKafka(in, out, brokerUrl, kafkaMode) =>
         new KafkaSink().publishToTopic(in, out, brokerUrl, kafkaMode, sparkConf)
       case _ =>
         throw new RuntimeException(
