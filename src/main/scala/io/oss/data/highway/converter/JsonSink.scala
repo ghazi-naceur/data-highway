@@ -1,7 +1,7 @@
 package io.oss.data.highway.converter
 
 import io.oss.data.highway.model.DataHighwayError.JsonError
-import io.oss.data.highway.model.{DataHighwayError, DataType, JSON}
+import io.oss.data.highway.model.{DataType, JSON}
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
@@ -9,6 +9,7 @@ import io.oss.data.highway.configuration.SparkConfigs
 import org.apache.log4j.Logger
 
 import java.io.File
+import java.nio.file.Path
 
 object JsonSink {
 
@@ -24,11 +25,13 @@ object JsonSink {
     * @param sparkConfig The Spark Configuration
     * @return Unit if successful, otherwise Error
     */
-  def convertToJson(in: String,
-                    out: String,
-                    saveMode: SaveMode,
-                    inputDataType: DataType,
-                    sparkConfig: SparkConfigs): Either[JsonError, Unit] = {
+  def convertToJson(
+      in: String,
+      out: String,
+      basePath: String,
+      saveMode: SaveMode,
+      inputDataType: DataType,
+      sparkConfig: SparkConfigs): Either[JsonError, List[Path]] = {
     DataFrameUtils(sparkConfig)
       .loadDataFrame(in, inputDataType)
       .map(df => {
@@ -39,6 +42,7 @@ object JsonSink {
         logger.info(
           s"Successfully converting '$inputDataType' data from input folder '$in' to '${JSON.getClass.getName}' and store it under output folder '$out'.")
       })
+      .flatMap(_ => FilesUtils.movePathContent(in, basePath))
       .leftMap(thr =>
         JsonError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
@@ -53,12 +57,12 @@ object JsonSink {
     * @param sparkConfig The Spark Configuration
     * @return List[Unit], otherwise Error
     */
-  def handleJsonChannel(
-      in: String,
-      out: String,
-      saveMode: SaveMode,
-      inputDataType: DataType,
-      sparkConfig: SparkConfigs): Either[DataHighwayError, List[Unit]] = {
+  def handleJsonChannel(in: String,
+                        out: String,
+                        saveMode: SaveMode,
+                        inputDataType: DataType,
+                        sparkConfig: SparkConfigs) = {
+    val basePath = new File(in).getParent
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
       list <- folders
@@ -69,12 +73,14 @@ object JsonSink {
             FilesUtils.reversePathSeparator(folder).split("/").last
           convertToJson(folder,
                         s"$out/$suffix",
+                        basePath,
                         saveMode,
                         inputDataType,
                         sparkConfig)
         })
         .leftMap(error =>
           JsonError(error.message, error.cause, error.stacktrace))
+      _ = FilesUtils.deleteFolder(in)
     } yield list
   }
 }

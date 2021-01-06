@@ -10,7 +10,6 @@ import org.apache.poi.ss.usermodel.{CellType, Sheet, WorkbookFactory}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
 import io.oss.data.highway.configuration.SparkConfigs
-import org.apache.commons.io.FileUtils
 import org.apache.log4j.Logger
 
 import scala.annotation.tailrec
@@ -84,10 +83,7 @@ object CsvSink {
         })
         .leftMap(error =>
           CsvError(error.message, error.cause, error.stacktrace))
-      _ = new File(in)
-        .listFiles()
-        .filter(_.isDirectory)
-        .map(folder => FileUtils.forceDelete(folder))
+      _ = FilesUtils.deleteFolder(in)
     } yield list
   }
 

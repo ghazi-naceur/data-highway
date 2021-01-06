@@ -3,6 +3,7 @@ package io.oss.data.highway.utils
 import java.io.{File, FileWriter}
 import io.oss.data.highway.model.DataHighwayError.ReadFileError
 import cats.syntax.either._
+import org.apache.commons.io.FileUtils
 
 import java.nio.file.{Files, Path, StandardCopyOption}
 import scala.annotation.tailrec
@@ -142,5 +143,17 @@ object FilesUtils {
       }
       .leftMap(thr =>
         ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+  }
+
+  /**
+    * Deletes folder
+    * @param in The folder to be deleted
+    * @return Array of Unit
+    */
+  def deleteFolder(in: String): Array[Unit] = {
+    new File(in)
+      .listFiles()
+      .filter(_.isDirectory)
+      .map(folder => FileUtils.forceDelete(folder))
   }
 }
