@@ -99,6 +99,7 @@ object AvroConversion extends DatasetComparer {
     AvroSink
       .convertToAvro(hdfsParquetToAvro + "input/mock-data-2",
                      hdfsParquetToAvro + "output/mock-data-2",
+                     hdfsParquetToAvro + "processed",
                      SaveMode.Overwrite,
                      PARQUET,
                      sparkConfig)
@@ -116,6 +117,7 @@ object AvroConversion extends DatasetComparer {
     AvroSink
       .convertToAvro(hdfsJsonToAvro + "input/mock-data-2",
                      hdfsJsonToAvro + "output/mock-data-2",
+                     hdfsJsonToAvro + "processed",
                      SaveMode.Overwrite,
                      JSON,
                      sparkConfig)
@@ -133,6 +135,7 @@ object AvroConversion extends DatasetComparer {
     AvroSink
       .convertToAvro(hdfsCsvToAvro + "input/mock-data-2",
                      hdfsCsvToAvro + "output/mock-data-2",
+                     hdfsCsvToAvro + "processed",
                      SaveMode.Overwrite,
                      CSV,
                      sparkConfig)
