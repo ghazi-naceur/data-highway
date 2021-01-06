@@ -4,8 +4,7 @@ import java.io.{File, FileWriter}
 import io.oss.data.highway.model.DataHighwayError.ReadFileError
 import cats.syntax.either._
 
-import java.nio.file
-import java.nio.file.{Files, StandardCopyOption}
+import java.nio.file.{Files, Path, StandardCopyOption}
 import scala.annotation.tailrec
 import scala.util.Try
 
@@ -116,13 +115,21 @@ object FilesUtils {
         ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
-  def moveToProcessed(
+  /**
+    * Moves only files from a path
+    * @param src The input path
+    * @param basePath The base path
+    * @param zone The destination zone name
+    * @return List of Path, otherwise an Error
+    */
+  def movePathContent(
       src: String,
-      basePath: String): Either[ReadFileError, List[file.Path]] = {
+      basePath: String,
+      zone: String = "processed"): Either[ReadFileError, List[Path]] = {
     Either
       .catchNonFatal {
         val srcPath = new File(src)
-        val subDestFolder = s"$basePath/processed/${srcPath.getName}"
+        val subDestFolder = s"$basePath/$zone/${srcPath.getName}"
         new File(subDestFolder).mkdirs()
         val files = srcPath.listFiles().filter(_.isFile)
         files

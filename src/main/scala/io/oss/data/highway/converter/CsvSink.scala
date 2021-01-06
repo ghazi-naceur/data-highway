@@ -34,7 +34,7 @@ object CsvSink {
                    basePath: String,
                    saveMode: SaveMode,
                    inputDataType: DataType,
-                   sparkConfig: SparkConfigs) = {
+                   sparkConfig: SparkConfigs): Either[CsvError, List[Path]] = {
     DataFrameUtils(sparkConfig)
       .loadDataFrame(in, inputDataType)
       .map(df => {
@@ -48,7 +48,7 @@ object CsvSink {
         logger.info(
           s"Successfully converting '$inputDataType' data from input folder '$in' to '${CSV.getClass.getName}' and store it under output folder '$out'.")
       })
-      .flatMap(_ => FilesUtils.moveToProcessed(in, basePath))
+      .flatMap(_ => FilesUtils.movePathContent(in, basePath))
       .leftMap(thr => CsvError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
