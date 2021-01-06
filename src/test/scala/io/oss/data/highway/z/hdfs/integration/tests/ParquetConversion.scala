@@ -101,6 +101,7 @@ object ParquetConversion extends DatasetComparer {
     ParquetSink
       .convertToParquet(hdfsAvroToParquet + "input/mock-data-2",
                         hdfsAvroToParquet + "output/mock-data-2",
+                        hdfsAvroToParquet + "processed",
                         SaveMode.Overwrite,
                         AVRO,
                         sparkConfig)
@@ -118,6 +119,7 @@ object ParquetConversion extends DatasetComparer {
     ParquetSink
       .convertToParquet(hdfsJsonToParquet + "input/mock-data-2",
                         hdfsJsonToParquet + "output/mock-data-2",
+                        hdfsJsonToParquet + "processed",
                         SaveMode.Overwrite,
                         JSON,
                         sparkConfig)
@@ -135,6 +137,7 @@ object ParquetConversion extends DatasetComparer {
     ParquetSink
       .convertToParquet(hdfsCsvToParquet + "input/mock-data-2",
                         hdfsCsvToParquet + "output/mock-data-2",
+                        hdfsCsvToParquet + "processed",
                         SaveMode.Overwrite,
                         CSV,
                         sparkConfig)
