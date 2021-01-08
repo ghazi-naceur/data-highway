@@ -226,11 +226,13 @@ class KafkaSink {
         if (new File(jsonPath).isFile) {
           publishFileContent(new File(jsonPath), topic, producer)
         } else {
-          FilesUtils
-            .listFilesRecursively(new File(jsonPath), Seq(JSON.extension))
-            .foreach(file => {
-              publishFileContent(file, topic, producer)
-            })
+          if (new File(jsonPath).listFiles.filter(_.isFile).toList.nonEmpty) {
+            FilesUtils
+              .listFilesRecursively(new File(jsonPath), Seq(JSON.extension))
+              .foreach(file => {
+                publishFileContent(file, topic, producer)
+              })
+          }
         }
         producer.close()
       }
