@@ -4,12 +4,15 @@ import java.io.{File, FileWriter}
 import io.oss.data.highway.model.DataHighwayError.ReadFileError
 import cats.syntax.either._
 import org.apache.commons.io.FileUtils
+import org.apache.log4j.Logger
 
 import java.nio.file.{Files, Path, StandardCopyOption}
 import scala.annotation.tailrec
 import scala.util.Try
 
 object FilesUtils {
+
+  val logger: Logger = Logger.getLogger(FilesUtils.getClass)
 
   /**
     * Gets files' names located in a provided path
@@ -135,6 +138,8 @@ object FilesUtils {
         val files = srcPath.listFiles().filter(_.isFile)
         files
           .map(file => {
+            logger.info(
+              s"Moving '${file.toPath}' to '$subDestFolder/${file.getName}'")
             Files.move(file.toPath,
                        new File(s"$subDestFolder/${file.getName}").toPath,
                        StandardCopyOption.ATOMIC_MOVE)

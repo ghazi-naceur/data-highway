@@ -50,7 +50,8 @@ libraryDependencies ++= Seq("com.github.pureconfig" %% "pureconfig" % "0.13.0",
   "org.http4s" %% "http4s-blaze-server" % http4sVersion,
   "org.http4s" %% "http4s-blaze-client" % http4sVersion,
   "org.http4s" %% "http4s-circe" % http4sVersion,
-  "io.circe" %% "circe-generic" % circeVersion
+  "io.circe" %% "circe-generic" % circeVersion,
+  "io.monix" %% "monix" % "3.3.0"
 )
 
 scalacOptions += "-Ypartial-unification"
