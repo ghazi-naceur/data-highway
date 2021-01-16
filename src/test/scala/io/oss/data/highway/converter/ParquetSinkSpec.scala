@@ -80,6 +80,7 @@ class ParquetSinkSpec
     ParquetSink
       .convertToParquet(folderCsvToParquet + "input/mock-data-2",
                         folderCsvToParquet + "output/mock-data-2",
+                        folderCsvToParquet + "processed",
                         SaveMode.Overwrite,
                         CSV,
                         sparkConfig)
@@ -97,6 +98,7 @@ class ParquetSinkSpec
     ParquetSink
       .convertToParquet(folderAvroToParquet + "input/mock-data-2",
                         folderAvroToParquet + "output/mock-data-2",
+                        folderAvroToParquet + "processed",
                         SaveMode.Overwrite,
                         AVRO,
                         sparkConfig)
@@ -114,6 +116,7 @@ class ParquetSinkSpec
     ParquetSink
       .convertToParquet(folderJsonToParquet + "input/mock-data-2",
                         folderJsonToParquet + "output/mock-data-2",
+                        folderJsonToParquet + "processed",
                         SaveMode.Overwrite,
                         JSON,
                         sparkConfig)

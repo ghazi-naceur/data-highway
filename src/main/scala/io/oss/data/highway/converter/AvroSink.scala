@@ -2,11 +2,14 @@ package io.oss.data.highway.converter
 
 import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.model.DataHighwayError.AvroError
-import io.oss.data.highway.model.{AVRO, DataHighwayError, DataType}
+import io.oss.data.highway.model.{AVRO, DataType}
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
 import org.apache.log4j.Logger
+
+import java.io.File
+import java.nio.file.Path
 
 object AvroSink {
 
@@ -22,11 +25,13 @@ object AvroSink {
     * @param sparkConfig The Spark Configuration
     * @return Unit if successful, otherwise Error
     */
-  def convertToAvro(in: String,
-                    out: String,
-                    saveMode: SaveMode,
-                    inputDataType: DataType,
-                    sparkConfig: SparkConfigs): Either[AvroError, Unit] = {
+  def convertToAvro(
+      in: String,
+      out: String,
+      basePath: String,
+      saveMode: SaveMode,
+      inputDataType: DataType,
+      sparkConfig: SparkConfigs): Either[AvroError, List[Path]] = {
     DataFrameUtils(sparkConfig)
       .loadDataFrame(in, inputDataType)
       .map(df => {
@@ -37,6 +42,7 @@ object AvroSink {
         logger.info(
           s"Successfully converting '$inputDataType' data from input folder '$in' to '${AVRO.getClass.getName}' and store it under output folder '$out'.")
       })
+      .flatMap(_ => FilesUtils.movePathContent(in, basePath))
       .leftMap(thr =>
         AvroError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
@@ -51,25 +57,29 @@ object AvroSink {
     * @param sparkConfig The Spark Configuration
     * @return List[Unit], otherwise Error
     */
-  def handleAvroChannel(
-      in: String,
-      out: String,
-      saveMode: SaveMode,
-      inputDataType: DataType,
-      sparkConfig: SparkConfigs): Either[DataHighwayError, List[Unit]] = {
+  def handleAvroChannel(in: String,
+                        out: String,
+                        saveMode: SaveMode,
+                        inputDataType: DataType,
+                        sparkConfig: SparkConfigs) = {
+    val basePath = new File(in).getParent
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
       list <- folders
+        .filterNot(path =>
+          new File(path).listFiles.filter(_.isFile).toList.isEmpty)
         .traverse(folder => {
           val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
           convertToAvro(folder,
                         s"$out/$suffix",
+                        basePath,
                         saveMode,
                         inputDataType,
                         sparkConfig)
         })
         .leftMap(error =>
           AvroError(error.message, error.cause, error.stacktrace))
+      _ = FilesUtils.deleteFolder(in)
     } yield list
   }
 }

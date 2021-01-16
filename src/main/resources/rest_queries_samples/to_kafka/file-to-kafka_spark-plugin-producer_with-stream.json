@@ -8,7 +8,7 @@
     }
   },
   "route": {
-    "type": "json-to-kafka",
+    "type": "file-to-kafka",
     "in": "/app/data/input",
     "out": "topic-name",
     "broker-urls": "localhost:9092",

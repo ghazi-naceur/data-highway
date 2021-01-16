@@ -22,7 +22,7 @@ case class AvroToJson(in: String, out: String) extends Route
 
 case class CsvToJson(in: String, out: String) extends Route
 
-case class JsonToKafka(in: String,
+case class FileToKafka(in: String,
                        out: String,
                        brokerUrls: String,
                        kafkaMode: KafkaMode)

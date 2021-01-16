@@ -1,13 +1,18 @@
 package io.oss.data.highway.utils
 
 import java.io.{File, FileWriter}
-
 import io.oss.data.highway.model.DataHighwayError.ReadFileError
 import cats.syntax.either._
+import org.apache.commons.io.FileUtils
+import org.apache.log4j.Logger
 
+import java.nio.file.{Files, Path, StandardCopyOption}
+import scala.annotation.tailrec
 import scala.util.Try
 
 object FilesUtils {
+
+  val logger: Logger = Logger.getLogger(FilesUtils.getClass)
 
   /**
     * Gets files' names located in a provided path
@@ -65,21 +70,24 @@ object FilesUtils {
     */
   def listFoldersRecursively(
       path: String): Either[ReadFileError, List[String]] = {
+    @tailrec
+    def getFolders(path: List[File], results: List[File]): Seq[File] =
+      path match {
+        case head :: tail =>
+          val files = head.listFiles
+          val directories = files.filter(_.isDirectory)
+          val updated =
+            if (files.size == directories.length) results else head :: results
+          getFolders(tail ++ directories, updated)
+        case _ => results
+      }
+
     Either
       .catchNonFatal {
-        getRecursiveListOfFiles(new File(path)).map(_.getPath)
+        getFolders(new File(path) :: Nil, Nil).map(_.getPath).reverse.toList
       }
       .leftMap(thr =>
         ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
-  }
-
-  private def getRecursiveListOfFiles(path: File): List[File] = {
-    if (path.isDirectory) {
-      List(path) ++ path
-        .listFiles()
-        .filter(_.isDirectory)
-        .flatMap(getRecursiveListOfFiles)
-    } else List(path)
   }
 
   /**
@@ -109,5 +117,48 @@ object FilesUtils {
     }.toEither
       .leftMap(thr =>
         ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+  }
+
+  /**
+    * Moves only files from a path
+    * @param src The input path
+    * @param basePath The base path
+    * @param zone The destination zone name
+    * @return List of Path, otherwise an Error
+    */
+  def movePathContent(
+      src: String,
+      basePath: String,
+      zone: String = "processed"): Either[ReadFileError, List[Path]] = {
+    Either
+      .catchNonFatal {
+        val srcPath = new File(src)
+        val subDestFolder = s"$basePath/$zone/${srcPath.getName}"
+        new File(subDestFolder).mkdirs()
+        val files = srcPath.listFiles().filter(_.isFile)
+        files
+          .map(file => {
+            logger.info(
+              s"Moving '${file.toPath}' to '$subDestFolder/${file.getName}'")
+            Files.move(file.toPath,
+                       new File(s"$subDestFolder/${file.getName}").toPath,
+                       StandardCopyOption.ATOMIC_MOVE)
+          })
+          .toList
+      }
+      .leftMap(thr =>
+        ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+  }
+
+  /**
+    * Deletes folder
+    * @param in The folder to be deleted
+    * @return Array of Unit
+    */
+  def deleteFolder(in: String): Array[Unit] = {
+    new File(in)
+      .listFiles()
+      .filter(_.isDirectory)
+      .map(folder => FileUtils.forceDelete(folder))
   }
 }

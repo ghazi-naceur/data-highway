@@ -1,6 +1,6 @@
 package io.oss.data.highway.converter
 
-import java.io.FileInputStream
+import java.io.{File, FileInputStream}
 import java.nio.file.{Files, Path, Paths}
 import io.oss.data.highway.model.DataHighwayError.{CsvError, ReadFileError}
 import io.oss.data.highway.model._
@@ -30,9 +30,10 @@ object CsvSink {
     */
   def convertToCsv(in: String,
                    out: String,
+                   basePath: String,
                    saveMode: SaveMode,
                    inputDataType: DataType,
-                   sparkConfig: SparkConfigs): Either[CsvError, Unit] = {
+                   sparkConfig: SparkConfigs): Either[CsvError, List[Path]] = {
     DataFrameUtils(sparkConfig)
       .loadDataFrame(in, inputDataType)
       .map(df => {
@@ -46,6 +47,7 @@ object CsvSink {
         logger.info(
           s"Successfully converting '$inputDataType' data from input folder '$in' to '${CSV.getClass.getName}' and store it under output folder '$out'.")
       })
+      .flatMap(_ => FilesUtils.movePathContent(in, basePath))
       .leftMap(thr => CsvError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
@@ -59,25 +61,29 @@ object CsvSink {
     * @param sparkConfig The Spark Configuration
     * @return List[Unit], otherwise Error
     */
-  def handleCsvChannel(
-      in: String,
-      out: String,
-      saveMode: SaveMode,
-      inputDataType: DataType,
-      sparkConfig: SparkConfigs): Either[DataHighwayError, List[Unit]] = {
+  def handleCsvChannel(in: String,
+                       out: String,
+                       saveMode: SaveMode,
+                       inputDataType: DataType,
+                       sparkConfig: SparkConfigs) = {
+    val basePath = new File(in).getParent
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
       list <- folders
+        .filterNot(path =>
+          new File(path).listFiles.filter(_.isFile).toList.isEmpty)
         .traverse(folder => {
           val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
           convertToCsv(folder,
                        s"$out/$suffix",
+                       basePath,
                        saveMode,
                        inputDataType,
                        sparkConfig)
         })
         .leftMap(error =>
           CsvError(error.message, error.cause, error.stacktrace))
+      _ = FilesUtils.deleteFolder(in)
     } yield list
   }
 

@@ -78,11 +78,14 @@ class JsonSinkSpec
 
   "JsonSink.saveParquetAsJson" should "save a parquet as a json file" in {
     JsonSink
-      .convertToJson(folderParquetToJson + "input/mock-data-2",
-                     folderParquetToJson + "output/mock-data-2",
-                     SaveMode.Overwrite,
-                     PARQUET,
-                     sparkConfig)
+      .convertToJson(
+        folderParquetToJson + "input/mock-data-2",
+        folderParquetToJson + "output/mock-data-2",
+        folderParquetToJson + "processed",
+        SaveMode.Overwrite,
+        PARQUET,
+        sparkConfig
+      )
     val actual =
       DataFrameUtils(sparkConfig)
         .loadDataFrame(folderParquetToJson + "output/mock-data-2", JSON)
@@ -103,6 +106,7 @@ class JsonSinkSpec
     JsonSink
       .convertToJson(folderAvroToJson + "input/mock-data-2",
                      folderAvroToJson + "output/mock-data-2",
+                     folderAvroToJson + "processed",
                      SaveMode.Overwrite,
                      AVRO,
                      sparkConfig)
@@ -126,6 +130,7 @@ class JsonSinkSpec
     JsonSink
       .convertToJson(folderCsvToJson + "input/mock-data-2",
                      folderCsvToJson + "output/mock-data-2",
+                     folderCsvToJson + "processed",
                      SaveMode.Overwrite,
                      CSV,
                      sparkConfig)

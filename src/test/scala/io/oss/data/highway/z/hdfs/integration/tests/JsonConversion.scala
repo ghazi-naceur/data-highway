@@ -101,6 +101,7 @@ object JsonConversion extends DatasetComparer {
     JsonSink
       .convertToJson(hdfsAvroToJson + "input/mock-data-2",
                      hdfsAvroToJson + "output/mock-data-2",
+                     hdfsAvroToJson + "processed",
                      SaveMode.Overwrite,
                      AVRO,
                      sparkConfig)
@@ -118,6 +119,7 @@ object JsonConversion extends DatasetComparer {
     JsonSink
       .convertToJson(hdfsCsvToJson + "input/mock-data-2",
                      hdfsCsvToJson + "output/mock-data-2",
+                     hdfsCsvToJson + "processed",
                      SaveMode.Overwrite,
                      CSV,
                      sparkConfig)
@@ -135,6 +137,7 @@ object JsonConversion extends DatasetComparer {
     JsonSink
       .convertToJson(hdfsParquetToJson + "input/mock-data-2",
                      hdfsParquetToJson + "output/mock-data-2",
+                     hdfsParquetToJson + "processed",
                      SaveMode.Overwrite,
                      PARQUET,
                      sparkConfig)

@@ -80,11 +80,14 @@ class AvroSinkSpec
 
   "AvroSink.saveParquetAsAvro" should "save a parquet as an avro file" in {
     AvroSink
-      .convertToAvro(folderParquetToAvro + "input/mock-data-2",
-                     folderParquetToAvro + "output/mock-data-2",
-                     SaveMode.Overwrite,
-                     PARQUET,
-                     sparkConfig)
+      .convertToAvro(
+        folderParquetToAvro + "input/mock-data-2",
+        folderParquetToAvro + "output/mock-data-2",
+        folderParquetToAvro + "processed",
+        SaveMode.Overwrite,
+        PARQUET,
+        sparkConfig
+      )
     val actual = DataFrameUtils(sparkConfig)
       .loadDataFrame(folderParquetToAvro + "output/mock-data-2", AVRO)
       .right
@@ -99,6 +102,7 @@ class AvroSinkSpec
     AvroSink
       .convertToAvro(folderJsonToAvro + "input/mock-data-2",
                      folderJsonToAvro + "output/mock-data-2",
+                     folderJsonToAvro + "processed",
                      SaveMode.Overwrite,
                      JSON,
                      sparkConfig)
@@ -122,6 +126,7 @@ class AvroSinkSpec
     AvroSink
       .convertToAvro(folderCsvToAvro + "input/mock-data-2",
                      folderCsvToAvro + "output/mock-data-2",
+                     folderCsvToAvro + "processed",
                      SaveMode.Overwrite,
                      CSV,
                      sparkConfig)

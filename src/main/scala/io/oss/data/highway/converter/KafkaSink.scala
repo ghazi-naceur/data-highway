@@ -21,6 +21,9 @@ import cats.implicits._
 import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.model.DataHighwayError.KafkaError
 
+import monix.execution.Scheduler.{global => scheduler}
+import scala.concurrent.duration._
+
 import java.io.File
 import scala.sys.ShutdownHookThread
 
@@ -69,7 +72,11 @@ class KafkaSink {
                 "At this stage, 'stream-app-id' is set and Streaming producer is activated. 'stream-app-id' cannot be set to None.")
           }
         } else {
-          publishPathContent(path, topic, prod)
+          Either.catchNonFatal(
+            scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
+              publishPathContent(path, topic, prod)
+              FilesUtils.deleteFolder(path)
+            })
         }
       case SparkKafkaProducerPlugin(useStream) =>
         if (useStream) {
@@ -81,7 +88,11 @@ class KafkaSink {
                                              checkpointFolder,
                                              sparkConfig)
         } else {
-          publishWithSparkKafkaPlugin(path, brokers, topic, sparkConfig)
+          Either.catchNonFatal(
+            scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
+              publishWithSparkKafkaPlugin(path, brokers, topic, sparkConfig)
+              FilesUtils.deleteFolder(path)
+            })
         }
       case _ =>
         throw new RuntimeException(
@@ -103,23 +114,27 @@ class KafkaSink {
       topic: String,
       sparkConf: SparkConfigs): Either[Throwable, Unit] = {
     import org.apache.spark.sql.functions.{to_json, struct}
+    logger.info(s"Sending data through Spark Kafka Plugin to '$topic'.")
+    val basePath = new File(jsonPath).getParent
     FilesUtils
       .listFoldersRecursively(jsonPath)
       .map(paths => {
-        paths.map(path => {
-          DataFrameUtils(sparkConf)
-            .loadDataFrame(path, JSON)
-            .map(df => {
-              df.select(to_json(struct("*")).as("value"))
-                .write
-                .format("kafka")
-                .option("kafka.bootstrap.servers", brokers)
-                .option("topic", topic)
-                .save()
-              logger.info(
-                s"Sending data through Spark Kafka Plugin to '$topic'.")
-            })
-        })
+        paths
+          .filterNot(path =>
+            new File(path).listFiles.filter(_.isFile).toList.isEmpty)
+          .map(path => {
+            DataFrameUtils(sparkConf)
+              .loadDataFrame(path, JSON)
+              .map(df => {
+                df.select(to_json(struct("*")).as("value"))
+                  .write
+                  .format("kafka")
+                  .option("kafka.bootstrap.servers", brokers)
+                  .option("topic", topic)
+                  .save()
+              })
+            FilesUtils.movePathContent(new File(path).getAbsolutePath, basePath)
+          })
       })
   }
 
@@ -219,18 +234,20 @@ class KafkaSink {
       jsonPath: String,
       topic: String,
       producer: KafkaProducer[String, String]): Either[KafkaError, Any] = {
+    val basePath = new File(jsonPath).getParent
     Either
       .catchNonFatal {
         if (new File(jsonPath).isFile) {
-          publishFileContent(new File(jsonPath), topic, producer)
+          publishFileContent(new File(jsonPath), basePath, topic, producer)
         } else {
-          FilesUtils
-            .listFilesRecursively(new File(jsonPath), Seq(JSON.extension))
-            .foreach(file => {
-              publishFileContent(file, topic, producer)
-            })
+          if (new File(jsonPath).listFiles.filter(_.isFile).toList.nonEmpty) {
+            FilesUtils
+              .listFilesRecursively(new File(jsonPath), Seq(JSON.extension))
+              .foreach(file => {
+                publishFileContent(file, basePath, topic, producer)
+              })
+          }
         }
-        producer.close()
       }
       .leftMap(thr =>
         KafkaError(thr.getMessage, thr.getCause, thr.getStackTrace))
@@ -243,6 +260,7 @@ class KafkaSink {
     * @param producer The Kafka producer
     */
   private def publishFileContent(jsonPath: File,
+                                 basePath: String,
                                  topic: String,
                                  producer: KafkaProducer[String, String]) = {
     logger.info(s"Sending data of '${jsonPath.getAbsolutePath}'")
@@ -254,6 +272,9 @@ class KafkaSink {
             new ProducerRecord[String, String](topic, uuid, line)
           producer.send(data)
           logger.info(s"Topic: '$topic' - Sent data: '$line'")
+          FilesUtils.movePathContent(
+            new File(jsonPath.getAbsolutePath).getParent,
+            basePath)
         }
       }
       .leftMap(thr =>

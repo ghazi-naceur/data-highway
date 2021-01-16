@@ -95,6 +95,7 @@ object CsvConversion extends DatasetComparer {
     CsvSink
       .convertToCsv(hdfsAvroToCsv + "input/mock-data-2",
                     hdfsAvroToCsv + "output/mock-data-2",
+                    hdfsAvroToCsv + "processed",
                     SaveMode.Overwrite,
                     AVRO,
                     sparkConfig)
@@ -112,6 +113,7 @@ object CsvConversion extends DatasetComparer {
     CsvSink
       .convertToCsv(hdfsJsonToCsv + "input/mock-data-2",
                     hdfsJsonToCsv + "output/mock-data-2",
+                    hdfsAvroToCsv + "processed",
                     SaveMode.Overwrite,
                     JSON,
                     sparkConfig)
@@ -129,6 +131,7 @@ object CsvConversion extends DatasetComparer {
     CsvSink
       .convertToCsv(hdfsParquetToCsv + "input/mock-data-2",
                     hdfsParquetToCsv + "output/mock-data-2",
+                    hdfsAvroToCsv + "processed",
                     SaveMode.Overwrite,
                     PARQUET,
                     sparkConfig)
