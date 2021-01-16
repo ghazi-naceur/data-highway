@@ -27,6 +27,10 @@ import org.apache.log4j.Logger
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions.struct
 
+import monix.execution.Scheduler.{global => scheduler}
+import scala.concurrent.duration._
+import cats.implicits._
+
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
@@ -69,7 +73,10 @@ object KafkaSampler {
                 "At this stage, 'stream-app-id' is set and Streaming consumer is activated. 'stream-app-id' cannot be set to None.")
           }
         } else {
-          sinkWithPureKafka(in, out, brokers, offset, consGroup, ext)
+          Either.catchNonFatal(
+            scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
+              sinkWithPureKafka(in, out, brokers, offset, consGroup, ext)
+            })
         }
       case SparkKafkaConsumerPlugin(useStream) =>
         val sess = DataFrameUtils(sparkConfig).sparkSession
@@ -256,6 +263,7 @@ object KafkaSampler {
           logger.info(
             s"Successfully sinking '$extension' data provided by the input topic '$in' in the output folder pattern '$out/simple-consumer-*****$extension'")
         }
+        consumed.close() // Close it to rejoin again while rescheduling
       })
   }
 }
