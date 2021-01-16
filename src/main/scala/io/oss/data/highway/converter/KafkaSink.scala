@@ -88,7 +88,11 @@ class KafkaSink {
                                              checkpointFolder,
                                              sparkConfig)
         } else {
-          publishWithSparkKafkaPlugin(path, brokers, topic, sparkConfig)
+          Either.catchNonFatal(
+            scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
+              publishWithSparkKafkaPlugin(path, brokers, topic, sparkConfig)
+              FilesUtils.deleteFolder(path)
+            })
         }
       case _ =>
         throw new RuntimeException(
@@ -111,6 +115,7 @@ class KafkaSink {
       sparkConf: SparkConfigs): Either[Throwable, Unit] = {
     import org.apache.spark.sql.functions.{to_json, struct}
     logger.info(s"Sending data through Spark Kafka Plugin to '$topic'.")
+    val basePath = new File(jsonPath).getParent
     FilesUtils
       .listFoldersRecursively(jsonPath)
       .map(paths => {
@@ -128,6 +133,7 @@ class KafkaSink {
                   .option("topic", topic)
                   .save()
               })
+            FilesUtils.movePathContent(new File(path).getAbsolutePath, basePath)
           })
       })
   }
