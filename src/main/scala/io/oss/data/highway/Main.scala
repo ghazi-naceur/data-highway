@@ -80,6 +80,8 @@ object Main {
                                       sparkConf)
       case FileToKafka(in, out, brokerUrl, kafkaMode) =>
         new KafkaSink().publishToTopic(in, out, brokerUrl, kafkaMode, sparkConf)
+      case KafkaToKafka(in, out, brokerUrl, kafkaMode) =>
+        new KafkaSink().publishToTopic(in, out, brokerUrl, kafkaMode, sparkConf)
       case _ =>
         throw new RuntimeException(
           s"The provided route '$route' is not supported.")

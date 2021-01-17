@@ -1,7 +1,11 @@
 package io.oss.data.highway.converter
 
 import io.oss.data.highway.configuration.SparkConfigs
-import io.oss.data.highway.model.{INFO, PureKafkaProducer}
+import io.oss.data.highway.model.{
+  INFO,
+  PureKafkaProducer,
+  PureKafkaStreamsProducer
+}
 import net.manub.embeddedkafka.EmbeddedKafka
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -21,8 +25,7 @@ class KafkaSinkKafkaStreamingSpec extends AnyWordSpec with EmbeddedKafka {
         kafkaSink.publishToTopic(in,
                                  out2,
                                  brokerUrl,
-                                 PureKafkaProducer(useStream = true,
-                                                   Some("stream-app-id")),
+                                 PureKafkaStreamsProducer("stream-app-id"),
                                  sparkConfig)
         assert(consumeFirstStringMessageFrom(out2).nonEmpty)
       }

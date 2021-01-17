@@ -8,6 +8,7 @@ import io.oss.data.highway.model.{
   JSON,
   KafkaMode,
   PureKafkaProducer,
+  PureKafkaStreamsProducer,
   SparkKafkaProducerPlugin
 }
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils, KafkaUtils}
@@ -20,10 +21,9 @@ import org.apache.log4j.Logger
 import cats.implicits._
 import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.model.DataHighwayError.KafkaError
-
 import monix.execution.Scheduler.{global => scheduler}
-import scala.concurrent.duration._
 
+import scala.concurrent.duration._
 import java.io.File
 import scala.sys.ShutdownHookThread
 
@@ -39,14 +39,14 @@ class KafkaSink {
 
   /**
     * Publishes message to Kafka topic
-    * @param path The path that contains json data to be send
+    * @param input The path that contains json data to be send
     * @param topic The output topic
     * @param brokers The kafka brokers urls
     * @param kafkaMode The Kafka launch mode : SimpleProducer, KafkaStreaming or SparkKafkaPlugin
     * @param sparkConfig The Spark configuration
     * @return Any, otherwise an Error
     */
-  def publishToTopic(path: String,
+  def publishToTopic(input: String,
                      topic: String,
                      brokers: String,
                      kafkaMode: KafkaMode,
@@ -58,29 +58,19 @@ class KafkaSink {
     val prod = new KafkaProducer[String, String](props)
     KafkaUtils.verifyTopicExistence(topic, brokers, enableTopicCreation = true)
     kafkaMode match {
-      case PureKafkaProducer(useStream, streamAppId) =>
-        if (useStream) {
-          KafkaUtils.verifyTopicExistence(intermediateTopic,
-                                          brokers,
-                                          enableTopicCreation = true)
-          publishPathContent(path, intermediateTopic, prod)
-          streamAppId match {
-            case Some(id) =>
-              runStream(id, intermediateTopic, brokers, topic)
-            case None =>
-              throw new RuntimeException(
-                "At this stage, 'stream-app-id' is set and Streaming producer is activated. 'stream-app-id' cannot be set to None.")
-          }
-        } else {
-          Either.catchNonFatal(
-            scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
-              publishPathContent(path, topic, prod)
-              FilesUtils.deleteFolder(path)
-            })
-        }
+      case PureKafkaStreamsProducer(streamAppId) =>
+        runStream(streamAppId, input, brokers, topic)
+
+      case PureKafkaProducer =>
+        Either.catchNonFatal(
+          scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
+            publishPathContent(input, topic, prod)
+            FilesUtils.deleteFolder(input)
+          })
+
       case SparkKafkaProducerPlugin(useStream) =>
         if (useStream) {
-          publishWithSparkKafkaStreamsPlugin(path,
+          publishWithSparkKafkaStreamsPlugin(input,
                                              prod,
                                              brokers,
                                              topic,
@@ -90,8 +80,8 @@ class KafkaSink {
         } else {
           Either.catchNonFatal(
             scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
-              publishWithSparkKafkaPlugin(path, brokers, topic, sparkConfig)
-              FilesUtils.deleteFolder(path)
+              publishWithSparkKafkaPlugin(input, brokers, topic, sparkConfig)
+              FilesUtils.deleteFolder(input)
             })
         }
       case _ =>
