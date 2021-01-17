@@ -16,7 +16,7 @@ object SimpleConsumerTest {
     KafkaSampler.consumeFromTopic(in,
                                   out,
                                   Some(JSON),
-                                  PureKafkaConsumer(useStream = false, None),
+                                  PureKafkaConsumer,
                                   "localhost:9092",
                                   Earliest,
                                   "consumer-group",

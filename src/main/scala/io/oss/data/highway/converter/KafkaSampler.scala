@@ -12,6 +12,7 @@ import io.oss.data.highway.model.{
   KafkaMode,
   Offset,
   PureKafkaConsumer,
+  PureKafkaStreamsConsumer,
   SparkKafkaConsumerPlugin
 }
 import io.oss.data.highway.utils.{
@@ -26,8 +27,8 @@ import org.apache.kafka.streams.KafkaStreams
 import org.apache.log4j.Logger
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions.struct
-
 import monix.execution.Scheduler.{global => scheduler}
+
 import scala.concurrent.duration._
 import cats.implicits._
 
@@ -63,21 +64,15 @@ object KafkaSampler {
     KafkaUtils.verifyTopicExistence(in, brokers, enableTopicCreation = false)
     val ext = computeOutputExtension(dataType)
     kafkaMode match {
-      case PureKafkaConsumer(useStream, streamAppId) =>
-        if (useStream) {
-          streamAppId match {
-            case Some(id) =>
-              sinkWithPureKafkaStreams(in, out, brokers, offset, ext, id)
-            case None =>
-              throw new RuntimeException(
-                "At this stage, 'stream-app-id' is set and Streaming consumer is activated. 'stream-app-id' cannot be set to None.")
-          }
-        } else {
-          Either.catchNonFatal(
-            scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
-              sinkWithPureKafka(in, out, brokers, offset, consGroup, ext)
-            })
-        }
+      case PureKafkaStreamsConsumer(streamAppId) =>
+        sinkWithPureKafkaStreams(in, out, brokers, offset, ext, streamAppId)
+
+      case PureKafkaConsumer =>
+        Either.catchNonFatal(
+          scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
+            sinkWithPureKafka(in, out, brokers, offset, consGroup, ext)
+          })
+
       case SparkKafkaConsumerPlugin(useStream) =>
         val sess = DataFrameUtils(sparkConfig).sparkSession
         Try {

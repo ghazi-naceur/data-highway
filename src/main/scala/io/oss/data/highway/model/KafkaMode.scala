@@ -6,20 +6,9 @@ case class SparkKafkaConsumerPlugin(useStream: Boolean) extends KafkaMode
 
 case object SparkKafkaPluginProducer extends KafkaMode
 
-case class PureKafkaConsumer(useStream: Boolean, streamAppId: Option[String])
-    extends KafkaMode
-object PureKafkaConsumer {
-  def apply(useStream: Boolean,
-            streamAppId: Option[String]): PureKafkaConsumer =
-    if (useStream) {
-      if (streamAppId.isEmpty)
-        throw new RuntimeException(
-          "Must set 'stream-app-id' field when using streaming mode for pure kafka consumer.")
-      else new PureKafkaConsumer(useStream, streamAppId)
-    } else {
-      new PureKafkaConsumer(useStream, streamAppId)
-    }
-}
+case object PureKafkaConsumer extends KafkaMode
+
+case class PureKafkaStreamsConsumer(streamAppId: String) extends KafkaMode
 
 case object PureKafkaProducer extends KafkaMode
 
