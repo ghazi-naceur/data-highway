@@ -13,7 +13,8 @@ import io.oss.data.highway.model.{
   Offset,
   PureKafkaConsumer,
   PureKafkaStreamsConsumer,
-  SparkKafkaConsumerPlugin
+  SparkKafkaPluginConsumer,
+  SparkKafkaPluginStreamsConsumer
 }
 import io.oss.data.highway.utils.{
   DataFrameUtils,
@@ -61,6 +62,8 @@ object KafkaSampler {
                        offset: Offset,
                        consGroup: String,
                        sparkConfig: SparkConfigs): Either[Throwable, Unit] = {
+    val session = DataFrameUtils(sparkConfig).sparkSession
+
     KafkaUtils.verifyTopicExistence(in, brokers, enableTopicCreation = false)
     val ext = computeOutputExtension(dataType)
     kafkaMode match {
@@ -72,19 +75,17 @@ object KafkaSampler {
           scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
             sinkWithPureKafka(in, out, brokers, offset, consGroup, ext)
           })
-
-      case SparkKafkaConsumerPlugin(useStream) =>
-        val sess = DataFrameUtils(sparkConfig).sparkSession
-        Try {
-          if (useStream) {
-            sinkWithSparkKafkaStreamsPlugin(sess, in, out, brokers, offset, ext)
-          } else {
-            sinkWithSparkKafkaPlugin(sess, in, out, brokers, offset, ext)
-          }
-        }.toEither
+      case SparkKafkaPluginStreamsConsumer =>
+        Either.catchNonFatal(
+          sinkViaSparkKafkaStreamsPlugin(session, in, out, brokers, offset, ext)
+        )
+      case SparkKafkaPluginConsumer =>
+        Either.catchNonFatal(
+          sinkViaSparkKafkaPlugin(session, in, out, brokers, offset, ext)
+        )
       case _ =>
         throw new RuntimeException(
-          s"This mode is not supported while reading data. The supported Kafka Consume Mode are : '${PureKafkaConsumer.getClass.getName}' and '${SparkKafkaConsumerPlugin.getClass.getName}'.")
+          s"This mode is not supported while reading data. The supported Kafka Consume Mode are : '${PureKafkaConsumer.getClass.getName}' and '${SparkKafkaPluginConsumer.getClass.getName}'.")
     }
   }
 
@@ -113,12 +114,12 @@ object KafkaSampler {
     * @param offset The kafka consumer offset
     * @param extension The output files extension
     */
-  private def sinkWithSparkKafkaPlugin(session: SparkSession,
-                                       in: String,
-                                       out: String,
-                                       brokerUrls: String,
-                                       offset: Offset,
-                                       extension: String): Unit = {
+  private def sinkViaSparkKafkaPlugin(session: SparkSession,
+                                      in: String,
+                                      out: String,
+                                      brokerUrls: String,
+                                      offset: Offset,
+                                      extension: String): Unit = {
     import session.implicits._
     var mutableOffset = offset
     if (mutableOffset != Earliest) {
@@ -155,12 +156,12 @@ object KafkaSampler {
     * @param offset The kafka consumer offset
     * @param extension The output files extension
     */
-  private def sinkWithSparkKafkaStreamsPlugin(session: SparkSession,
-                                              in: String,
-                                              out: String,
-                                              brokerUrls: String,
-                                              offset: Offset,
-                                              extension: String): Unit = {
+  private def sinkViaSparkKafkaStreamsPlugin(session: SparkSession,
+                                             in: String,
+                                             out: String,
+                                             brokerUrls: String,
+                                             offset: Offset,
+                                             extension: String): Unit = {
     import session.implicits._
     logger.info(
       s"Starting to sink '$extension' data provided by the input topic '$in' in the output folder pattern '$out/spark-kafka-streaming-plugin-*****$extension'")

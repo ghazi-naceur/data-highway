@@ -5,7 +5,7 @@ import io.oss.data.highway.model.{
   Earliest,
   INFO,
   JSON,
-  SparkKafkaConsumerPlugin
+  SparkKafkaPluginConsumer
 }
 import net.manub.embeddedkafka.EmbeddedKafka
 import org.scalatest.wordspec.AnyWordSpec
@@ -38,15 +38,14 @@ class KafkaSamplerSparkKafkaPluginConsumerSpec
       withRunningKafka {
         publishStringMessageToKafka("topic1",
                                     "{\"something\": \"something else\"}")
-        KafkaSampler.consumeFromTopic(
-          "topic1",
-          out,
-          Some(JSON),
-          SparkKafkaConsumerPlugin(useStream = false),
-          brokerUrl,
-          Earliest,
-          "cons",
-          sparkConfig)
+        KafkaSampler.consumeFromTopic("topic1",
+                                      out,
+                                      Some(JSON),
+                                      SparkKafkaPluginConsumer,
+                                      brokerUrl,
+                                      Earliest,
+                                      "cons",
+                                      sparkConfig)
         val generatedFile = new File(out).listFiles().head
         val buffer = Source.fromFile(generatedFile)
         val content = buffer.getLines.toList.head

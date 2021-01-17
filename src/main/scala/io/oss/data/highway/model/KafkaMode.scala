@@ -2,7 +2,9 @@ package io.oss.data.highway.model
 
 sealed trait KafkaMode
 
-case class SparkKafkaConsumerPlugin(useStream: Boolean) extends KafkaMode
+case object SparkKafkaPluginConsumer extends KafkaMode // one-shot, because of earliest restriction
+
+case object SparkKafkaPluginStreamsConsumer extends KafkaMode
 
 case object SparkKafkaPluginProducer extends KafkaMode
 

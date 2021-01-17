@@ -6,7 +6,7 @@ import io.oss.data.highway.model.{
   Earliest,
   INFO,
   JSON,
-  SparkKafkaConsumerPlugin
+  SparkKafkaPluginConsumer
 }
 
 object SparkKafkaConsumerPluginTest {
@@ -21,7 +21,7 @@ object SparkKafkaConsumerPluginTest {
     KafkaSampler.consumeFromTopic(in,
                                   out,
                                   Some(JSON),
-                                  SparkKafkaConsumerPlugin(useStream = false),
+                                  SparkKafkaPluginConsumer,
                                   "localhost:9092",
                                   Earliest,
                                   "consumer-group",
