@@ -9,12 +9,11 @@
   },
   "route": {
     "type": "file-to-kafka",
-    "in": "/app/data/input",
-    "out": "topic-name",
+    "in": "/home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/input/",
+    "out": "file_to_kafka_skp_without_stream",
     "broker-urls": "localhost:9092",
     "kafka-mode": {
-      "type": "spark-kafka-producer-plugin",
-      "use-stream": false
+      "type": "spark-kafka-plugin-producer"
     }
   }
 }
