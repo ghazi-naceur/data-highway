@@ -9,7 +9,8 @@ import io.oss.data.highway.model.{
   KafkaMode,
   PureKafkaProducer,
   PureKafkaStreamsProducer,
-  SparkKafkaProducerPlugin
+  SparkKafkaPluginStreamsProducer,
+  SparkKafkaPluginProducer
 }
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils, KafkaUtils}
 import org.apache.kafka.common.serialization.{Serdes, StringSerializer}
@@ -39,7 +40,7 @@ class KafkaSink {
 
   /**
     * Publishes message to Kafka topic
-    * @param input The path that contains json data to be send
+    * @param input The input topic or the input path that contains json data to be send
     * @param topic The output topic
     * @param brokers The kafka brokers urls
     * @param kafkaMode The Kafka launch mode : SimpleProducer, KafkaStreaming or SparkKafkaPlugin
@@ -68,25 +69,22 @@ class KafkaSink {
             FilesUtils.deleteFolder(input)
           })
 
-      case SparkKafkaProducerPlugin(useStream) =>
-        if (useStream) {
-          publishWithSparkKafkaStreamsPlugin(input,
-                                             prod,
-                                             brokers,
-                                             topic,
-                                             intermediateTopic,
-                                             checkpointFolder,
-                                             sparkConfig)
-        } else {
-          Either.catchNonFatal(
-            scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
-              publishWithSparkKafkaPlugin(input, brokers, topic, sparkConfig)
-              FilesUtils.deleteFolder(input)
-            })
-        }
+      case SparkKafkaPluginStreamsProducer => // todo IOTimeOut
+        publishWithSparkKafkaStreamsPlugin(input,
+                                           prod,
+                                           brokers,
+                                           topic,
+                                           checkpointFolder,
+                                           sparkConfig)
+      case SparkKafkaPluginProducer =>
+        Either.catchNonFatal(
+          scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
+            publishWithSparkKafkaPlugin(input, brokers, topic, sparkConfig)
+            FilesUtils.deleteFolder(input)
+          })
       case _ =>
         throw new RuntimeException(
-          s"This mode is not supported while producing data. The supported Kafka Consume Mode are : '${PureKafkaProducer.getClass.getName}' and '${SparkKafkaProducerPlugin.getClass.getName}'.")
+          s"This mode is not supported while producing data. The supported Kafka Consume Mode are : '${PureKafkaProducer.getClass.getName}' and '${SparkKafkaPluginProducer.getClass.getName}'.")
     }
   }
 
@@ -130,7 +128,7 @@ class KafkaSink {
 
   /**
     * Publishes a message via Spark Kafka-Stream-Plugin
-    * @param jsonPath The path that contains json data to be send
+    * @param input The path that contains json data to be send
     * @param producer The Kafka Producer
     * @param bootstrapServers The kafka brokers urls
     * @param outputTopic The output topic
@@ -140,24 +138,18 @@ class KafkaSink {
     * @return Unit, otherwise an Error
     */
   private def publishWithSparkKafkaStreamsPlugin(
-      jsonPath: String,
+      input: String,
       producer: KafkaProducer[String, String],
       bootstrapServers: String,
       outputTopic: String,
-      intermediateTopic: String,
       checkpointFolder: String,
       sparkConfig: SparkConfigs): Either[Throwable, Unit] = {
     Either.catchNonFatal {
-      KafkaUtils.verifyTopicExistence(intermediateTopic,
-                                      bootstrapServers,
-                                      enableTopicCreation = true)
-      publishPathContent(jsonPath, intermediateTopic, producer)
-
       DataFrameUtils(sparkConfig).sparkSession.readStream
         .format("kafka")
         .option("kafka.bootstrap.servers", bootstrapServers)
-        .option("startingOffsets", "earliest")
-        .option("subscribe", intermediateTopic)
+        .option("startingOffsets", "latest")
+        .option("subscribe", input)
         .load()
         .selectExpr("CAST(value AS STRING)")
         .writeStream

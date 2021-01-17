@@ -2,7 +2,7 @@ package io.oss.data.highway.z.kafka.integration.tests
 
 import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.converter.KafkaSink
-import io.oss.data.highway.model.{SparkKafkaProducerPlugin, WARN}
+import io.oss.data.highway.model.{SparkKafkaPluginProducer, WARN}
 import org.apache.log4j.BasicConfigurator
 
 object SparkKafkaProducerPluginTest {
@@ -19,7 +19,7 @@ object SparkKafkaProducerPluginTest {
     new KafkaSink().publishToTopic(in,
                                    out,
                                    brokerUrl,
-                                   SparkKafkaProducerPlugin(useStream = false),
+                                   SparkKafkaPluginProducer,
                                    sparkConfig)
   }
 }

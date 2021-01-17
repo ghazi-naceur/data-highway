@@ -4,7 +4,7 @@ sealed trait KafkaMode
 
 case class SparkKafkaConsumerPlugin(useStream: Boolean) extends KafkaMode
 
-case class SparkKafkaProducerPlugin(useStream: Boolean) extends KafkaMode
+case object SparkKafkaPluginProducer extends KafkaMode
 
 case class PureKafkaConsumer(useStream: Boolean, streamAppId: Option[String])
     extends KafkaMode
@@ -22,5 +22,7 @@ object PureKafkaConsumer {
 }
 
 case object PureKafkaProducer extends KafkaMode
+
+case object SparkKafkaPluginStreamsProducer extends KafkaMode
 
 case class PureKafkaStreamsProducer(streamAppId: String) extends KafkaMode
