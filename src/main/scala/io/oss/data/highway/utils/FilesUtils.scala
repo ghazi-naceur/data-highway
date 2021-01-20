@@ -135,16 +135,15 @@ object FilesUtils {
         val srcPath = new File(src)
         val subDestFolder = s"$basePath/$zone/${srcPath.getName}"
         new File(subDestFolder).mkdirs()
-        val files = srcPath.listFiles().filter(_.isFile)
+        val files = srcPath.listFiles().filter(_.isFile).toList
         files
           .map(file => {
             logger.info(
               s"Moving '${file.toPath}' to '$subDestFolder/${file.getName}'")
-            Files.move(file.toPath,
-                       new File(s"$subDestFolder/${file.getName}").toPath,
-                       StandardCopyOption.ATOMIC_MOVE)
+            FileUtils.moveFile(file,
+                               new File(s"$subDestFolder/${file.getName}"))
+            new File(s"$subDestFolder/${file.getName}").toPath
           })
-          .toList
       }
       .leftMap(thr =>
         ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))

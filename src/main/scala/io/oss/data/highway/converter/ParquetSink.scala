@@ -26,9 +26,9 @@ object ParquetSink {
     * @return Unit if successful, otherwise Error
     */
   def convertToParquet(
-      in: String,
-      out: String,
-      basePath: String,
+      in: String, //app/data/input/mock-data-2
+      out: String, //app/data/output/mock-data-2
+      basePath: String, //app/data
       saveMode: SaveMode,
       inputDataType: DataType,
       sparkConfig: SparkConfigs): Either[ParquetError, List[Path]] = {
@@ -41,7 +41,9 @@ object ParquetSink {
         logger.info(
           s"Successfully converting '$inputDataType' data from input folder '$in' to '${PARQUET.getClass.getName}' and store it under output folder '$out'.")
       })
-      .flatMap(_ => FilesUtils.movePathContent(in, basePath))
+      .flatMap(_ => {
+        FilesUtils.movePathContent(in, basePath)
+      })
       .leftMap(thr =>
         ParquetError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
@@ -64,6 +66,7 @@ object ParquetSink {
     val basePath = new File(in).getParent
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
+      _ = logger.info("folders : " + folders)
       list <- folders
         .filterNot(path =>
           new File(path).listFiles.filter(_.isFile).toList.isEmpty)

@@ -10,8 +10,9 @@ services:
       - 5555:5555
     container_name: bungee-gum-spark
     volumes:
-      - /home/ghazi/playgroud/data-highway/shell/csv_to_parquet-data/input/mock-data-1:/app/data/input
-      - /home/ghazi/playgroud/data-highway/shell/csv_to_parquet-data/output/:/app/data/output
+      - /home/ghazi/workspace/data-highway/src/test/resources/csv_to_parquet-data/input:/app/data/input
+      - /home/ghazi/workspace/data-highway/src/test/resources/csv_to_parquet-data/output:/app/data/output
+      - /home/ghazi/workspace/data-highway/src/test/resources/csv_to_parquet-data/processed:/app/data/processed
       - /home/ghazi/workspace/data-highway/src/main/resources/log4j.properties:/app/config/log4j.properties
     network_mode: "host"
     entrypoint: ["java", "-cp", "/app/jar/data-highway-assembly-0.1.jar", "io.oss.data.highway.IOMain", "-Dlog4j.configuration=/app/config/log4j.properties"]

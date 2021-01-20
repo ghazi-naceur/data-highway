@@ -42,6 +42,7 @@ RUN mkdir -p /app/config && \
   mkdir /app/jar && \
   mkdir -p /app/data/input && \
   mkdir -p /app/data/output && \
+  mkdir -p /app/data/processed && \
   mv /application/data-highway/target/scala-2.12/data-highway-assembly-0.1.jar /app/jar && \
   rm -R /application
 
