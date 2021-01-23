@@ -37,8 +37,12 @@ RUN \
 # Cleanup data-highway project
 RUN mkdir -p /app/config && \
   mkdir /app/jar && \
-  mkdir -p /app/data/input && \
-  mkdir -p /app/data/output && \
+  mkdir -p /app/data/spark/input && \
+  mkdir -p /app/data/spark/output && \
+  mkdir -p /app/data/spark/processed && \
+  mkdir -p /app/data/kafka/input && \
+  mkdir -p /app/data/kafka/output && \
+  mkdir -p /app/data/kafka/processed && \
   mv /application/data-highway/target/scala-2.12/data-highway-assembly-0.1.jar /app/jar && \
   rm -R /application
 

@@ -2,36 +2,18 @@ package io.oss.data.highway.model
 
 sealed trait KafkaMode
 
-case class SparkKafkaConsumerPlugin(useStream: Boolean) extends KafkaMode
+case object SparkKafkaPluginConsumer extends KafkaMode // one-shot, because of earliest restriction
 
-case class SparkKafkaProducerPlugin(useStream: Boolean) extends KafkaMode
+case object SparkKafkaPluginStreamsConsumer extends KafkaMode
 
-case class PureKafkaConsumer(useStream: Boolean, streamAppId: Option[String])
-    extends KafkaMode
-object PureKafkaConsumer {
-  def apply(useStream: Boolean,
-            streamAppId: Option[String]): PureKafkaConsumer =
-    if (useStream) {
-      if (streamAppId.isEmpty)
-        throw new RuntimeException(
-          "Must set 'stream-app-id' field when using streaming mode for pure kafka consumer.")
-      else new PureKafkaConsumer(useStream, streamAppId)
-    } else {
-      new PureKafkaConsumer(useStream, streamAppId)
-    }
-}
+case object SparkKafkaPluginProducer extends KafkaMode
 
-case class PureKafkaProducer(useStream: Boolean, streamAppId: Option[String])
-    extends KafkaMode
-object PureKafkaProducer {
-  def apply(useStream: Boolean,
-            streamAppId: Option[String]): PureKafkaProducer =
-    if (useStream) {
-      if (streamAppId.isEmpty)
-        throw new RuntimeException(
-          "Must set 'stream-app-id' field when using streaming mode for pure kafka producer.")
-      else new PureKafkaProducer(useStream, streamAppId)
-    } else {
-      new PureKafkaProducer(useStream, streamAppId)
-    }
-}
+case object PureKafkaConsumer extends KafkaMode
+
+case class PureKafkaStreamsConsumer(streamAppId: String) extends KafkaMode
+
+case object PureKafkaProducer extends KafkaMode
+
+case object SparkKafkaPluginStreamsProducer extends KafkaMode
+
+case class PureKafkaStreamsProducer(streamAppId: String) extends KafkaMode

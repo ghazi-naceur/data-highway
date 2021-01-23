@@ -8,7 +8,9 @@ import io.oss.data.highway.model.{
   JSON,
   KafkaMode,
   PureKafkaProducer,
-  SparkKafkaProducerPlugin
+  PureKafkaStreamsProducer,
+  SparkKafkaPluginStreamsProducer,
+  SparkKafkaPluginProducer
 }
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils, KafkaUtils}
 import org.apache.kafka.common.serialization.{Serdes, StringSerializer}
@@ -20,10 +22,9 @@ import org.apache.log4j.Logger
 import cats.implicits._
 import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.model.DataHighwayError.KafkaError
-
 import monix.execution.Scheduler.{global => scheduler}
-import scala.concurrent.duration._
 
+import scala.concurrent.duration._
 import java.io.File
 import scala.sys.ShutdownHookThread
 
@@ -39,14 +40,14 @@ class KafkaSink {
 
   /**
     * Publishes message to Kafka topic
-    * @param path The path that contains json data to be send
+    * @param input The input topic or the input path that contains json data to be send
     * @param topic The output topic
     * @param brokers The kafka brokers urls
     * @param kafkaMode The Kafka launch mode : SimpleProducer, KafkaStreaming or SparkKafkaPlugin
     * @param sparkConfig The Spark configuration
     * @return Any, otherwise an Error
     */
-  def publishToTopic(path: String,
+  def publishToTopic(input: String,
                      topic: String,
                      brokers: String,
                      kafkaMode: KafkaMode,
@@ -58,45 +59,32 @@ class KafkaSink {
     val prod = new KafkaProducer[String, String](props)
     KafkaUtils.verifyTopicExistence(topic, brokers, enableTopicCreation = true)
     kafkaMode match {
-      case PureKafkaProducer(useStream, streamAppId) =>
-        if (useStream) {
-          KafkaUtils.verifyTopicExistence(intermediateTopic,
-                                          brokers,
-                                          enableTopicCreation = true)
-          publishPathContent(path, intermediateTopic, prod)
-          streamAppId match {
-            case Some(id) =>
-              runStream(id, intermediateTopic, brokers, topic)
-            case None =>
-              throw new RuntimeException(
-                "At this stage, 'stream-app-id' is set and Streaming producer is activated. 'stream-app-id' cannot be set to None.")
-          }
-        } else {
-          Either.catchNonFatal(
-            scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
-              publishPathContent(path, topic, prod)
-              FilesUtils.deleteFolder(path)
-            })
-        }
-      case SparkKafkaProducerPlugin(useStream) =>
-        if (useStream) {
-          publishWithSparkKafkaStreamsPlugin(path,
-                                             prod,
-                                             brokers,
-                                             topic,
-                                             intermediateTopic,
-                                             checkpointFolder,
-                                             sparkConfig)
-        } else {
-          Either.catchNonFatal(
-            scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
-              publishWithSparkKafkaPlugin(path, brokers, topic, sparkConfig)
-              FilesUtils.deleteFolder(path)
-            })
-        }
+      case PureKafkaStreamsProducer(streamAppId) =>
+        runStream(streamAppId, input, brokers, topic)
+
+      case PureKafkaProducer =>
+        Either.catchNonFatal(
+          scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
+            publishPathContent(input, topic, prod)
+            FilesUtils.deleteFolder(input)
+          })
+
+      case SparkKafkaPluginStreamsProducer => // todo IOTimeOut
+        publishWithSparkKafkaStreamsPlugin(input,
+                                           prod,
+                                           brokers,
+                                           topic,
+                                           checkpointFolder,
+                                           sparkConfig)
+      case SparkKafkaPluginProducer =>
+        Either.catchNonFatal(
+          scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
+            publishWithSparkKafkaPlugin(input, brokers, topic, sparkConfig)
+            FilesUtils.deleteFolder(input)
+          })
       case _ =>
         throw new RuntimeException(
-          s"This mode is not supported while producing data. The supported Kafka Consume Mode are : '${PureKafkaProducer.getClass.getName}' and '${SparkKafkaProducerPlugin.getClass.getName}'.")
+          s"This mode is not supported while producing data. The supported Kafka Consume Mode are : '${PureKafkaProducer.getClass.getName}' and '${SparkKafkaPluginProducer.getClass.getName}'.")
     }
   }
 
@@ -140,7 +128,7 @@ class KafkaSink {
 
   /**
     * Publishes a message via Spark Kafka-Stream-Plugin
-    * @param jsonPath The path that contains json data to be send
+    * @param input The path that contains json data to be send
     * @param producer The Kafka Producer
     * @param bootstrapServers The kafka brokers urls
     * @param outputTopic The output topic
@@ -150,24 +138,18 @@ class KafkaSink {
     * @return Unit, otherwise an Error
     */
   private def publishWithSparkKafkaStreamsPlugin(
-      jsonPath: String,
+      input: String,
       producer: KafkaProducer[String, String],
       bootstrapServers: String,
       outputTopic: String,
-      intermediateTopic: String,
       checkpointFolder: String,
       sparkConfig: SparkConfigs): Either[Throwable, Unit] = {
     Either.catchNonFatal {
-      KafkaUtils.verifyTopicExistence(intermediateTopic,
-                                      bootstrapServers,
-                                      enableTopicCreation = true)
-      publishPathContent(jsonPath, intermediateTopic, producer)
-
       DataFrameUtils(sparkConfig).sparkSession.readStream
         .format("kafka")
         .option("kafka.bootstrap.servers", bootstrapServers)
-        .option("startingOffsets", "earliest")
-        .option("subscribe", intermediateTopic)
+        .option("startingOffsets", "latest")
+        .option("subscribe", input)
         .load()
         .selectExpr("CAST(value AS STRING)")
         .writeStream

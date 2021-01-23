@@ -42,3 +42,9 @@ case class KafkaToFile(in: String,
                        offset: Offset,
                        consumerGroup: String)
     extends Route
+
+case class KafkaToKafka(in: String,
+                        out: String,
+                        brokerUrls: String,
+                        kafkaMode: KafkaMode)
+    extends Route

@@ -8,13 +8,12 @@
     }
   },
   "route": {
-    "type": "file-to-kafka",
-    "in": "/app/data/input",
-    "out": "topic-name",
+    "type": "kafka-to-kafka",
+    "in": "file_to_kafka_pure_without_stream",
+    "out": "file_to_kafka_pure_with_stream",
     "broker-urls": "localhost:9092",
     "kafka-mode": {
-      "type": "pure-kafka-producer",
-      "use-stream": "true",
+      "type": "pure-kafka-streams-producer",
       "stream-app-id": "stream-app"
     }
   }

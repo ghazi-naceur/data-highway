@@ -12,14 +12,13 @@ object KafkaStreamingConsumerTest {
       "/home/ghazi/workspace/data-highway/src/test/resources/output/files"
     val sparkConfig = SparkConfigs("app-name", "local[*]", INFO)
 
-    KafkaSampler.consumeFromTopic(
-      in,
-      out,
-      Some(JSON),
-      PureKafkaConsumer(useStream = true, Some("stream-app-id")),
-      "localhost:9092",
-      Earliest,
-      "consumer-group",
-      sparkConfig)
+    KafkaSampler.consumeFromTopic(in,
+                                  out,
+                                  Some(JSON),
+                                  PureKafkaConsumer,
+                                  "localhost:9092",
+                                  Earliest,
+                                  "consumer-group",
+                                  sparkConfig)
   }
 }

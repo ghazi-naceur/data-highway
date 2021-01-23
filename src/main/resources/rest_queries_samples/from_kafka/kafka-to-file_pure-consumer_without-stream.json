@@ -9,20 +9,18 @@
   },
   "route": {
     "type" : "kafka-to-file",
-    "in" : "topic-name",
-    "out" : "/app/data/output",
+    "in" : "file_to_kafka_pure_without_stream",
+    "out" : "/home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/output",
     "data-type" : {
       "type" : "json"
     },
     "broker-urls" : "localhost:9092",
     "kafka-mode" : {
-      "type" : "pure-kafka-consumer",
-      "use-stream" : "false",
-      "stream-app-id" : "stream-app"
+      "type" : "pure-kafka-consumer"
     },
     "offset" : {
-      "type": "earliest"
+      "type": "latest"
     },
-    "consumer-group" : "consumer-group"
+    "consumer-group" : "consumer-kj3"
   }
 }

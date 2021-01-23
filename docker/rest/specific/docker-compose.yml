@@ -1,0 +1,21 @@
+---
+version: '3.2'
+
+services:
+
+  app:
+    build: .
+    image: data-highway-app:v1.0
+    ports:
+      - 5555:5555
+    container_name: bungee-gum
+    volumes:
+      - /home/ghazi/workspace/data-highway/src/test/resources/csv_to_parquet-data/input:/app/data/spark/input
+      - /home/ghazi/workspace/data-highway/src/test/resources/csv_to_parquet-data/output:/app/data/spark/output
+      - /home/ghazi/workspace/data-highway/src/test/resources/csv_to_parquet-data/processed:/app/data/spark/processed
+      - /home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/input:/app/data/kafka/input
+      - /home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/output:/app/data/kafka/output
+      - /home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/processed:/app/data/kafka/processed
+      - /home/ghazi/workspace/data-highway/src/main/resources/log4j.properties:/app/config/log4j.properties
+    network_mode: "host"
+    entrypoint: ["java", "-cp", "/app/jar/data-highway-assembly-0.1.jar", "io.oss.data.highway.IOMain", "-Dlog4j.configuration=/app/config/log4j.properties"]
