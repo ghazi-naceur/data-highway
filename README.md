@@ -21,7 +21,6 @@ You can convert your data to multiple data types.
     * [3- Run data-highway using Docker](#3--run-data-highway-using-docker-)
         * [a- Spark application](#a--spark-application)
         * [b- Kafka application without Confluent Cluster](#b--kafka-application-without-confluent-cluster)
-        * [c- Kafka application with Confluent Cluster](#c--kafka-application-with-confluent-cluster)
 * [B- Conversions](#B--conversions-)
     * [1- JSON conversion](#1--json-conversion-)
         * [a- From Parquet to JSON](#a--from-parquet-to-json-)
@@ -42,7 +41,7 @@ You can convert your data to multiple data types.
         * [c- From Csv to Avro](#c--from-csv-to-avro-)
     * [5- Send data to Kafka](#5--send-data-to-kafka-)
         * [a- Pure Kafka Producer](#a--pure-kafka-producer-)
-        * [b- Spark Kafka Producer Plugin](#b--spark-kafka-producer-plugin-)
+        * [b- Spark Kafka Plugin Producer](#b--spark-kafka-plugin-producer-)
     * [6- Consume data from Kafka](#6--consume-data-from-kafka-)
         * [a- Pure Kafka Consumer](#a--pure-kafka-consumer-)
         * [b- Spark Kafka Consumer Plugin](#b--spark-kafka-consumer-plugin-)
@@ -103,6 +102,8 @@ java -jar -Dconfig.file=/the/path/to/application.conf -Dlog4j.configuration=/the
 
 ## 2- Run data-highway using REST API :
 
+**Note** : You can find some REST queries samples inside the folder `data-highway/src/main/resources/rest_queries_samples`
+
 #### a- Locally :
 
 1- Compile **data-highway** project :
@@ -115,20 +116,9 @@ sbt clean; sbt compile; sbt assembly
 java -cp /path/to/jar/file/data-highway-assembly-0.1.jar io.oss.data.highway.IOMain -Dlog4j.configuration=/path/to/log/file/log4j.properties
 ````
 
-**Note :** For `in` out `out` HTTP request body fields, you need to provide the mounted volumes in the Host side (left side).
-
-Example :
-
-For the following mounted volumes, you need to provide in your HTTP body request : `in = /the-path-to-input-data-located-in-your-host-machine/` and `out = /the-path-to-the-generated-output-in-your-host-machine/`
-````yaml
-volumes:
-      - /the-path-to-input-data-located-in-your-host-machine/:/app/data/input
-      - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/output
-````
-
 #### b- With Docker :
 
-1- Specify your mounted volumes in the `docker-compose.yml` under `data-highway/docker/rest/data-highway` :
+1- Specify your mounted volumes in the `docker-compose.yml` under `data-highway/docker/rest/generic` :
 ````yaml
   app:
     build: .
@@ -137,13 +127,18 @@ volumes:
       - "5555:5555"
     container_name: bungee-gum-app
     volumes:
-      - /the-path-to-input-data-located-in-your-host-machine/:/app/data/input
-      - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/output
+      - /the-path-to-spark-input-data-located-in-your-host-machine/:/app/data/spark/input
+      - /the-path-to-the-generated-spark-output-in-your-host-machine/:/app/data/spark/output
+      - /the-path-to-the-generated-spark-processed-in-your-host-machine/:/app/data/spark/processed
+      - /the-path-to-kafka-input-data-located-in-your-host-machine/:/app/data/kafka/input
+      - /the-path-to-the-generated-kafka-output-in-your-host-machine/:/app/data/kafka/output
+      - /the-path-to-the-generated-kafka-processed-in-your-host-machine/:/app/data/kafka/processed
       - /the-path-to-your-log-file/log4j.properties:/app/config/log4j.properties
-    entrypoint: ["java", "-cp", "/app/jar/data-highway-assembly-0.1.jar", "io.oss.data.highway.IOMain", "-Dlog4j.configuration=/app/config/log4j.properties"]
     network_mode: "host"
+    entrypoint: ["java", "-cp", "/app/jar/data-highway-assembly-0.1.jar", "io.oss.data.highway.IOMain", "-Dlog4j.configuration=/app/config/log4j.properties"]
+
 ````
-2- Run the `start.sh` script under `data-highway/docker/rest/data-highway`
+2- Run the `start.sh` script under `data-highway/docker/rest/generic`
 
 3- Run your HTTP request. You can find HTTP requests samples under `data-highway/src/main/resources/rest_queries_samples`
 
@@ -151,7 +146,7 @@ volumes:
 
 Example : 
 
-For the following mounted volumes, you need to provide in your HTTP body request : `in = /app/data/input` and `out = /app/data/output` 
+For the following mounted volumes, you need to provide in your HTTP body request : `"in": "/app/data/input"` and `"out": "/app/data/output"` 
 ````yaml
 volumes:
       - /the-path-to-input-data-located-in-your-host-machine/:/app/data/input
@@ -172,15 +167,16 @@ volumes:
  
 1- Clone the data-highway project
 
-2- Set the input/output volumes and the path to your configuration file by modifying the `docker-compose.yml` file located under `data-highway/docker/cli/spark`:
+2- Set the input/output volumes and the path to your configuration file by modifying the `docker-compose.yml` file located under `data-highway/docker/cli/spark/generic`:
 ```yaml
 app:
     build: .
     image: data-highway-spark:v1.0
     container_name: bungee-gum-spark
     volumes:
-      - /the-path-to-input-data-located-in-your-host-machine/:/app/data/input
-      - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/output
+      - /the-path-to-input-data-located-in-your-host-machine/:/app/data/spark/input
+      - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/spark/output
+      - /the-path-to-the-generated-processed-in-your-host-machine/:/app/data/spark/processed
       - /the-path-to-your-config-file/application.conf:/app/config/application.conf
       - /the-path-to-your-log-file/log4j.properties:/app/config/log4j.properties
     entrypoint: ["spark-submit",
@@ -192,15 +188,16 @@ app:
                   "--files", "/app/config/application.conf,/app/config/log4j.properties",
                   "/app/jar/data-highway-assembly-0.1.jar"]
 ```
-3- Run the script `start.sh` located under the path `data-highway/docker/cli/spark`
+3- Run the script `start.sh` located under the path `data-highway/docker/cli/spark/generic`
 
 ps: You can find some input data samples under the test package, which you can use as an input for the input docker volume.
 
 4- Data will be generated under the output volume declared in the Dockerfile for sections "B-1", "B-2", "B-3", "B-4" and "B-6-c".
+All processed data will be moved to processed volume.
 
-In the section "B-5-c" case, data will be published to the output topic.
+In the section "B-5-c" case, data will be published to the output topic, and all processed data will be moved to processed folder. 
 
-### b- Kafka application without Confluent Cluster:
+### b- Kafka application :
 
 **Note** : The supported Kafka applications are all routes for : (See **B- Conversions** section to configure the module)
  * B-5-a- Sending data to Kafka though **Simple Kafka Producer**
@@ -210,56 +207,28 @@ In the section "B-5-c" case, data will be published to the output topic.
  
 1- Clone the data-highway project
 
-2- Set the input/output volumes and the path to your configuration file by modifying the `docker-compose.yml` file located under `data-highway/docker/cli/data-highway`:
+2- Set the input/output volumes and the path to your configuration file by modifying the `docker-compose.yml` file located under `data-highway/docker/cli/kafka/generic`:
 ```yaml
   app:
     build: .
-    image: data-highway-app:v1.0
-    container_name: bungee-gum-app
+    image: data-highway-kafka:v1.0
+    container_name: bungee-gum-kafka
     volumes:
-      - /the-path-to-input-data-located-in-your-host-machine/:/app/data/input # Used for sections "B-5-a" and "B-5-b"
-      - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/output # Used for sections "B-6-a" and "B-6-b"
+      - /the-path-to-input-data-located-in-your-host-machine/:/app/data/kafka/input
+      - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/kafka/output
+      - /the-path-to-the-generated-processed-in-your-host-machine/:/app/data/kafka/processed
       - /the-path-to-your-config-file/application.conf:/app/config/application.conf
       - /the-path-to-your-log-file/log4j.properties:/app/config/log4j.properties
     entrypoint: [ "java", "-jar", "-Dconfig.file=/app/config/application.conf", "-Dlog4j.configuration=/app/config/log4j.properties", "/app/jar/data-highway-assembly-0.1.jar" ]
     network_mode: "host"
 ```
 
-3- Run the script `start.sh` located under the path `data-highway/docker/cli/data-highway`
+3- Run the script `start.sh` located under the path `data-highway/docker/cli/kafka/generic`
 
 4- In the case of sections "B-5-a" and "B-5-b", data will be published to the output topic.
+All processed data will be moved to processed volume.
 
-In the case of sections "B-6-a" and "B-6-b", data will be saved in the provided output volume.
-
-### c- Kafka application with Confluent Cluster:
-
-**Note** : The supported Kafka applications are all routes for : (See **B- Conversions** section to configure the module)
- * B-5-a- Sending data to Kafka though **Simple Kafka Producer**
- * B-5-b- Sending data to Kafka though **Kafka Streaming**
- * B-6-a- Consuming data from Kafka though **Simple Kafka Consumer**
- * B-6-b- Consuming data from Kafka though **Kafka Streaming**
- 
-1- Clone the data-highway project
-
-2- Set the input/output volumes and the path to your configuration file by modifying the `docker-compose.yml` file located under `data-highway/docker/cli/kafka`:
-```yaml
-app:
-    build: .
-    image: data-highway-kafka:v1.0
-    container_name: bungee-gum-kafka
-    volumes:
-      - /the-path-to-input-data-located-in-your-host-machine/:/app/data/input # Used for sections "B-5-a" and "B-5-b"
-      - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/output # Used for sections "B-6-a" and "B-6-b"
-      - /the-path-to-your-config-file/application.conf:/app/config/application.conf
-      - /the-path-to-your-log-file/log4j.properties:/app/config/log4j.properties
-    entrypoint: ["java", "-jar", "-Dconfig.file=/app/config/application.conf", "-Dlog4j.configuration=/app/config/log4j.properties", "/app/jar/data-highway-assembly-0.1.jar"]
-```
-
-3- Run the script `start.sh` located under the path `data-highway/docker/cli/kafka`
-
-4- In the case of sections "B-5-a" and "B-5-b", data will be published to the output topic.
-
-In the case of sections "B-6-a" and "B-6-b", data will be saved in the provided output volume.
+In the case of sections "B-6-a" and "B-6-b", data will be saved in the provided output volume, and all processed data will be moved to processed folder.
 
 # B- Conversions :
 
@@ -421,19 +390,20 @@ route {
 
 ## 5- Send data to Kafka :
 
-This mode consists of publishing json files content into an output topic.
+This mode consists of publishing :
+    
+   * json files
+   * kafka topic content
 
-It is available using 4 types of routes :
-   * a- Pure Kafka Producer :
-       - without streaming (one-shot)
-       - with streaming
-   * b- Spark Kafka Producer Plugin :
-        - without streaming (one-shot)
-        - with streaming
+Publishing data could be performed by :
+
+   * a- Pure Kafka Producer
+   * b- Spark Kafka Plugin Producer
 
 
 #### a- Pure Kafka Producer :
 
+##### * File to Kafka :
 ````hocon
 route {
   type = file-to-kafka
@@ -442,14 +412,27 @@ route {
   broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas", // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
   kafka-mode = {
      type = "pure-kafka-producer"
-     use-stream = true // if set to 'false', there is no need to set 'stream-app-id' field
-     stream-app-id = "your-streaming-app-name" // eg: "first-stream-app"
   }
 }
 ````
 
-#### b- Spark Kafka Producer Plugin :
+##### * Kafka to Kafka :
+````hocon
+route {
+  type = kafka-to-kafka
+  in = "your-input-kafka-topic"
+  out = "your-output-kafka-topic"
+  broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas", // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
+  kafka-mode = {
+     type = "pure-kafka-streams-producer",
+     stream-app-id = "stream-app-name"
+  }
+}
+````
 
+#### b- Spark Kafka Plugin Producer :
+
+##### * File to Kafka :
 ````hocon
 route {
   type = file-to-kafka
@@ -457,28 +440,39 @@ route {
   out = "your-output-kafka-topic"
   broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas", // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
   kafka-mode = {
-      type = "spark-kafka-producer-plugin"
-      use-stream = false/true
+      type = "spark-kafka-plugin-producer"
+  }
+}
+````
+
+##### * Kafka to Kafka :
+````hocon
+route {
+  type = kafka-to-kafka
+  in = "your-input-kafka-topic"
+  out = "your-output-kafka-topic"
+  broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas", // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
+  kafka-mode = {
+      type = "spark-kafka-plugin-streams-producer"
   }
 }
 ````
 
 ## 6- Consume data from Kafka :
 
-ps: This feature is experimental. Its main goal is to get some data samples from an input topic.
-
 This mode consists of consuming and input topic and saving its content in files.
 
 It is available using 4 types of routes :
    * a- Pure Kafka Consumer :
-        - without streaming (one-shot)
+        - without streaming
         - with streaming
    * b- Spark Kafka Consumer Plugin :
-        - without streaming (one-shot)
+        - without streaming
         - with streaming
 
 #### a- Pure Kafka Consumer :
 
+##### * Without streaming :
 ````hocon
 route {
   type = kafka-to-file
@@ -491,16 +485,39 @@ route {
   broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas"  // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
   kafka-mode = {
     type = "pure-kafka-consumer"
-    use-stream = true // if set to 'false', there is no need to set 'stream-app-id' field
-    stream-app-id = "your-stream-app-name"
   }
-  offset = "offset-to-consume-from" // accepted values : earliest, latest, none
+  offset = {
+    type= "offset-to-consume-from" // accepted values : earliest, latest, none
+  }
+  consumer-group = "your-consumer-group-name"
+}
+````
+
+##### * With streaming :
+````hocon
+route {
+  type = kafka-to-file
+  in = "topic-name"
+  out = "your-output-folder-that-will-contain-your-generated-json-files"
+  data-type = {
+    type = "the-desired-datatype-of-the-generated-files" // Optional field : accepted values are json and avro (json is the default value, if not set). 
+             // It will be set as an extension for the generated output files.
+  }
+  broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas"  // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
+  kafka-mode = {
+    type = "pure-kafka-streams-consumer"
+    stream-app-id = "stream-app-name"
+  }
+  offset = {
+    type= "offset-to-consume-from" // accepted values : earliest, latest, none
+  }
   consumer-group = "your-consumer-group-name"
 }
 ````
 
 #### b- Spark Kafka Consumer Plugin :
 
+##### * Without streaming :
 ````hocon
 route {
   type = kafka-to-file
@@ -513,9 +530,10 @@ route {
   broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas"  // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
   kafka-mode = {
       type = "spark-kafka-consumer-plugin"
-      use-stream = "true/false"
   }
-  offset = "offset-to-consume-from" // accepted values : earliest, latest, none
+  offset = {
+    type = "offset-to-consume-from" // accepted values : earliest, latest, none
+  }
   consumer-group = "your-consumer-group-name"
 }
 ````
