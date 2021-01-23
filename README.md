@@ -44,7 +44,7 @@ You can convert your data to multiple data types.
         * [b- Spark Kafka Plugin Producer](#b--spark-kafka-plugin-producer-)
     * [6- Consume data from Kafka](#6--consume-data-from-kafka-)
         * [a- Pure Kafka Consumer](#a--pure-kafka-consumer-)
-        * [b- Spark Kafka Consumer Plugin](#b--spark-kafka-consumer-plugin-)
+        * [b- Spark Kafka Plugin Consumer](#b--spark-kafka-plugin-consumer-)
 * [C- Scheduling](#C--scheduling-)
 
 # A- Getting started :
@@ -515,7 +515,7 @@ route {
 }
 ````
 
-#### b- Spark Kafka Consumer Plugin :
+#### b- Spark Kafka Plugin Consumer :
 
 ##### * Without streaming :
 ````hocon
@@ -529,7 +529,7 @@ route {
   }
   broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas"  // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
   kafka-mode = {
-      type = "spark-kafka-consumer-plugin"
+      type = "spark-kafka-plugin-consumer"
   }
   offset = {
     type = "offset-to-consume-from" // accepted values : earliest, latest, none
@@ -538,6 +538,27 @@ route {
 }
 ````
 
+##### * With streaming :
+````hocon
+route {
+  type = kafka-to-file
+  in = "topic-name"
+  out = "your-output-folder-that-will-contain-your-generated-json-files"
+  data-type = {
+    type = "the-desired-datatype-of-the-generated-files" // Optional field : accepted values are json and avro (json is the default value, if not set). 
+    // It will be set as an extension for the generated output files.
+  }
+  broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas"  // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
+  kafka-mode = {
+      type = "spark-kafka-plugin-streams-consumer"
+  }
+  offset = {
+    type = "earliest" // accepted value : earliest. 
+  }
+  consumer-group = "your-consumer-group-name"
+}
+````
+
 # C- Scheduling :
 
-Under the `data-highway/airflow/dag` folder, you will find some Airflow DAG samples, that can help you to automate your data-highway application with Airflow. 
+Under the `data-highway/airflow/dags` folder, you will find some Airflow DAG samples, that can help you to automate your data-highway application with Airflow. 
