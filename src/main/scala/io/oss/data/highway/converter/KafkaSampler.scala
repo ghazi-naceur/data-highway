@@ -76,9 +76,19 @@ object KafkaSampler {
             sinkWithPureKafka(in, out, brokers, offset, consGroup, ext)
           })
       case SparkKafkaPluginStreamsConsumer =>
-        Either.catchNonFatal(
-          sinkViaSparkKafkaStreamsPlugin(session, in, out, brokers, offset, ext)
-        )
+        Either.catchNonFatal {
+          val thread = new Thread {
+            override def run() {
+              sinkViaSparkKafkaStreamsPlugin(session,
+                                             in,
+                                             out,
+                                             brokers,
+                                             offset,
+                                             ext)
+            }
+          }
+          thread.start()
+        }
       case SparkKafkaPluginConsumer =>
         Either.catchNonFatal(
           sinkViaSparkKafkaPlugin(session, in, out, brokers, offset, ext)
