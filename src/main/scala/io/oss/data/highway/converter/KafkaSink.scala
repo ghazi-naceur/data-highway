@@ -69,13 +69,20 @@ class KafkaSink {
             FilesUtils.deleteFolder(input)
           })
 
-      case SparkKafkaPluginStreamsProducer => // todo IOTimeOut
-        publishWithSparkKafkaStreamsPlugin(input,
-                                           prod,
-                                           brokers,
-                                           topic,
-                                           checkpointFolder,
-                                           sparkConfig)
+      case SparkKafkaPluginStreamsProducer =>
+        Either.catchNonFatal {
+          val thread = new Thread {
+            override def run() {
+              publishWithSparkKafkaStreamsPlugin(input,
+                                                 prod,
+                                                 brokers,
+                                                 topic,
+                                                 checkpointFolder,
+                                                 sparkConfig)
+            }
+          }
+          thread.start()
+        }
       case SparkKafkaPluginProducer =>
         Either.catchNonFatal(
           scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
