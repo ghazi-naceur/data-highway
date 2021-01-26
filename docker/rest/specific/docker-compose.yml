@@ -4,7 +4,8 @@ version: '3.2'
 services:
 
   app:
-    build: .
+    build:
+      context: ../generic
     image: data-highway-app:v1.0
     ports:
       - 5555:5555
