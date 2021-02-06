@@ -26,9 +26,12 @@ object IOMain extends IOApp {
   }
 
   def getBanner: List[String] = {
-    Source
+    val lines = Source
       .fromResource("banner.txt")
       .getLines()
-      .toList :+ s"version ${BuildInfo.version}"
+      .toList
+    val head = lines.dropRight(1)
+    val lastElement = (lines.diff(head) ::: head.diff(lines)).head + s" version ${BuildInfo.version}"
+    head :+ lastElement
   }
 }
