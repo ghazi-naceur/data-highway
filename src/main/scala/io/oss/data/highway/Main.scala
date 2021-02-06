@@ -1,6 +1,6 @@
 package io.oss.data.highway
 
-import io.oss.data.highway.configuration.{ConfigLoader, SparkConfigs}
+import io.oss.data.highway.configuration.ConfigLoader
 import io.oss.data.highway.converter.{
   AvroSink,
   CsvSink,
@@ -21,9 +21,8 @@ object Main {
     BasicConfigurator.configure()
     val result = for {
       route <- ConfigLoader().loadConf()
-      sparkConf <- ConfigLoader().loadSparkConf()
       _ = logger.info("Successfully loading configurations")
-      _ <- apply(sparkConf, route)
+      _ <- apply(route)
     } yield ()
     result match {
       case Left(thr) =>
@@ -32,8 +31,9 @@ object Main {
     }
   }
 
-  def apply(sparkConf: SparkConfigs, route: Route): Either[Throwable, Any] = {
+  def apply(route: Route): Either[Throwable, Any] = {
     logger.info(s"${route.toString} route is activated ...")
+    val sparkConf = ConfigLoader().loadSparkConf()
     route match {
       case CsvToParquet(in, out) =>
         ParquetSink.handleParquetChannel(in, out, Overwrite, CSV, sparkConf)
