@@ -1,6 +1,7 @@
 package io.oss.data.highway
 
 import cats.effect._
+import io.oss.data.highway.build.info.BuildInfo
 import org.http4s.server.blaze._
 import io.oss.data.highway.rest.ConversionController
 
@@ -25,6 +26,9 @@ object IOMain extends IOApp {
   }
 
   def getBanner: List[String] = {
-    Source.fromResource("banner.txt").getLines().toList
+    Source
+      .fromResource("banner.txt")
+      .getLines()
+      .toList :+ s"version ${BuildInfo.version}"
   }
 }

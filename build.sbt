@@ -6,6 +6,13 @@ scalaVersion := "2.12.12"
 
 resolvers += "Spark Packages Repo" at "http://dl.bintray.com/spark-packages/maven"
 
+lazy val root = (project in file(".")).
+  enablePlugins(BuildInfoPlugin).
+  settings(
+    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
+    buildInfoPackage := "io.oss.data.highway.build.info"
+  )
+
 assemblyMergeStrategy in assembly := {
   case PathList("META-INF","services",xs @ _*) => MergeStrategy.filterDistinctLines // To add Spark datasources : org.apache.spark.sql.sources.DataSourceRegister
     // See : https://stackoverflow.com/questions/62232209/classnotfoundexception-caused-by-java-lang-classnotfoundexception-csv-default
