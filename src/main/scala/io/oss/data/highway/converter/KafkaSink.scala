@@ -63,11 +63,12 @@ class KafkaSink {
         runStream(streamAppId, input, brokers, topic)
 
       case PureKafkaProducer =>
-        Either.catchNonFatal(
-          scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
-            publishPathContent(input, topic, prod)
-            FilesUtils.deleteFolder(input)
-          })
+        Either.catchNonFatal {
+          //          scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
+          publishPathContent(input, topic, prod)
+          FilesUtils.deleteFolder(input)
+          //          }
+        }
 
       case SparkKafkaPluginStreamsProducer =>
         Either.catchNonFatal {
@@ -229,13 +230,11 @@ class KafkaSink {
         if (new File(jsonPath).isFile) {
           publishFileContent(new File(jsonPath), basePath, topic, producer)
         } else {
-          if (new File(jsonPath).listFiles.filter(_.isFile).toList.nonEmpty) {
-            FilesUtils
-              .listFilesRecursively(new File(jsonPath), Seq(JSON.extension))
-              .foreach(file => {
-                publishFileContent(file, basePath, topic, producer)
-              })
-          }
+          FilesUtils
+            .listFilesRecursively(new File(jsonPath), Seq(JSON.extension))
+            .foreach(file => {
+              publishFileContent(file, basePath, topic, producer)
+            })
         }
       }
       .leftMap(thr =>
