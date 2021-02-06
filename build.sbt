@@ -1,6 +1,6 @@
 name := "data-highway"
 
-version := "0.1"
+version := "0.1-rc"
 
 scalaVersion := "2.12.12"
 
@@ -19,6 +19,11 @@ assemblyMergeStrategy in assembly := {
   case PathList("META-INF",xs @ _*) => MergeStrategy.discard
   case _ => MergeStrategy.first
 }
+
+lazy val utils = (project in file("utils")).
+  settings(
+    assemblyJarName in assembly := name+ "-" + version + ".jar"
+  )
 
 addCompilerPlugin(
   "org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full
