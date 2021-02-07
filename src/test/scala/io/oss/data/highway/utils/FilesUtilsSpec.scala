@@ -79,10 +79,9 @@ class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach {
       "src/test/resources/xlsx_to_csv-data/input/")
     directories.right.get
       .map(folder => FilesUtils.reversePathSeparator(folder)) should contain theSameElementsAs List(
-      "src/test/resources/xlsx_to_csv-data/input",
       "src/test/resources/xlsx_to_csv-data/input/folder1",
       "src/test/resources/xlsx_to_csv-data/input/folder2",
-      "src/test/resources/xlsx_to_csv-data/input/folder1/folder3"
+      "src/test/resources/xlsx_to_csv-data/input/folder3"
     )
   }
 }

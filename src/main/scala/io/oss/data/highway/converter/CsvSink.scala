@@ -210,15 +210,22 @@ object CsvSink {
       inputPath: String,
       outputPath: String,
       extensions: Seq[String]): Either[DataHighwayError, List[Unit]] = {
+    val basePath = new File(inputPath).getParent
     FilesUtils
       .getFilesFromPath(inputPath, extensions)
-      .flatMap(files =>
+      .map(files => {
         files.traverse(file => {
           val suffix =
             FilesUtils.reversePathSeparator(file).stripPrefix(inputPath)
           convertXlsxFileToCsvFiles(suffix,
                                     new FileInputStream(file),
                                     outputPath)
-        }))
+        })
+        files.traverse(file => {
+          val lastFolder = file.split("/").dropRight(1).mkString("/")
+          FilesUtils.movePathContent(s"$lastFolder", basePath)
+        })
+        FilesUtils.deleteFolder(inputPath)
+      }.toList)
   }
 }
