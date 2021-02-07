@@ -17,5 +17,6 @@ services:
       - /the-path-to-the-generated-kafka-output-in-your-host-machine/:/app/data/kafka/output
       - /the-path-to-the-generated-kafka-processed-in-your-host-machine/:/app/data/kafka/processed
       - /the-path-to-your-log-file/log4j.properties:/app/config/log4j.properties
+      - /the-path-to-your-config-file/application.conf:/app/config/application.conf
     network_mode: "host"
-    entrypoint: ["java", "-cp", "/app/jar/data-highway-0.1-rc.jar", "io.oss.data.highway.IOMain", "-Dlog4j.configuration=/app/config/log4j.properties"]
+    entrypoint: ["java", "-cp", "/app/jar/data-highway-0.1-rc.jar", "io.oss.data.highway.IOMain", "-Dlog4j.configuration=/app/config/log4j.properties", "-Dconfig.file=/app/config/application.conf"]
