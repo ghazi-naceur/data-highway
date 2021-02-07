@@ -134,14 +134,15 @@ object FilesUtils {
       .catchNonFatal {
         val srcPath = new File(src)
         val subDestFolder = s"$basePath/$zone/${srcPath.getName}"
-        new File(subDestFolder).mkdirs()
+        FileUtils.forceMkdir(new File(subDestFolder))
         val files = srcPath.listFiles().filter(_.isFile).toList
         files
           .map(file => {
             logger.info(
               s"Moving '${file.toPath}' to '$subDestFolder/${file.getName}'")
-            FileUtils.moveFile(file,
-                               new File(s"$subDestFolder/${file.getName}"))
+            Files.move(file.toPath,
+                       new File(s"$subDestFolder/${file.getName}").toPath,
+                       StandardCopyOption.REPLACE_EXISTING)
             new File(s"$subDestFolder/${file.getName}").toPath
           })
       }

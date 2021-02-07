@@ -1,7 +1,6 @@
 package io.oss.data.highway.converter
 
 import io.oss.data.highway.configuration.SparkConfigs
-import io.oss.data.highway.model.DataHighwayError.AvroError
 import io.oss.data.highway.model.{AVRO, DataType}
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
 import org.apache.spark.sql.SaveMode
@@ -31,7 +30,7 @@ object AvroSink {
       basePath: String,
       saveMode: SaveMode,
       inputDataType: DataType,
-      sparkConfig: SparkConfigs): Either[AvroError, List[Path]] = {
+      sparkConfig: SparkConfigs): Either[Throwable, List[Path]] = {
     DataFrameUtils(sparkConfig)
       .loadDataFrame(in, inputDataType)
       .map(df => {
@@ -43,8 +42,6 @@ object AvroSink {
           s"Successfully converting '$inputDataType' data from input folder '$in' to '${AVRO.getClass.getName}' and store it under output folder '$out'.")
       })
       .flatMap(_ => FilesUtils.movePathContent(in, basePath))
-      .leftMap(thr =>
-        AvroError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   /**
@@ -57,11 +54,12 @@ object AvroSink {
     * @param sparkConfig The Spark Configuration
     * @return List[Unit], otherwise Error
     */
-  def handleAvroChannel(in: String,
-                        out: String,
-                        saveMode: SaveMode,
-                        inputDataType: DataType,
-                        sparkConfig: SparkConfigs) = {
+  def handleAvroChannel(
+      in: String,
+      out: String,
+      saveMode: SaveMode,
+      inputDataType: DataType,
+      sparkConfig: SparkConfigs): Either[Throwable, List[List[Path]]] = {
     val basePath = new File(in).getParent
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
@@ -77,8 +75,6 @@ object AvroSink {
                         inputDataType,
                         sparkConfig)
         })
-        .leftMap(error =>
-          AvroError(error.message, error.cause, error.stacktrace))
       _ = FilesUtils.deleteFolder(in)
     } yield list
   }

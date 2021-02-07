@@ -2,7 +2,7 @@ package io.oss.data.highway.converter
 
 import java.io.{File, FileInputStream}
 import java.nio.file.{Files, Path, Paths}
-import io.oss.data.highway.model.DataHighwayError.{CsvError, ReadFileError}
+import io.oss.data.highway.model.DataHighwayError.ReadFileError
 import io.oss.data.highway.model._
 import io.oss.data.highway.utils.Constants._
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
@@ -33,7 +33,7 @@ object CsvSink {
                    basePath: String,
                    saveMode: SaveMode,
                    inputDataType: DataType,
-                   sparkConfig: SparkConfigs): Either[CsvError, List[Path]] = {
+                   sparkConfig: SparkConfigs): Either[Throwable, List[Path]] = {
     DataFrameUtils(sparkConfig)
       .loadDataFrame(in, inputDataType)
       .map(df => {
@@ -48,7 +48,6 @@ object CsvSink {
           s"Successfully converting '$inputDataType' data from input folder '$in' to '${CSV.getClass.getName}' and store it under output folder '$out'.")
       })
       .flatMap(_ => FilesUtils.movePathContent(in, basePath))
-      .leftMap(thr => CsvError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   /**
@@ -61,11 +60,12 @@ object CsvSink {
     * @param sparkConfig The Spark Configuration
     * @return List[Unit], otherwise Error
     */
-  def handleCsvChannel(in: String,
-                       out: String,
-                       saveMode: SaveMode,
-                       inputDataType: DataType,
-                       sparkConfig: SparkConfigs) = {
+  def handleCsvChannel(
+      in: String,
+      out: String,
+      saveMode: SaveMode,
+      inputDataType: DataType,
+      sparkConfig: SparkConfigs): Either[Throwable, List[List[Path]]] = {
     val basePath = new File(in).getParent
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
@@ -81,8 +81,6 @@ object CsvSink {
                        inputDataType,
                        sparkConfig)
         })
-        .leftMap(error =>
-          CsvError(error.message, error.cause, error.stacktrace))
       _ = FilesUtils.deleteFolder(in)
     } yield list
   }
@@ -212,15 +210,22 @@ object CsvSink {
       inputPath: String,
       outputPath: String,
       extensions: Seq[String]): Either[DataHighwayError, List[Unit]] = {
+    val basePath = new File(inputPath).getParent
     FilesUtils
       .getFilesFromPath(inputPath, extensions)
-      .flatMap(files =>
+      .map(files => {
         files.traverse(file => {
           val suffix =
             FilesUtils.reversePathSeparator(file).stripPrefix(inputPath)
           convertXlsxFileToCsvFiles(suffix,
                                     new FileInputStream(file),
                                     outputPath)
-        }))
+        })
+        files.traverse(file => {
+          val lastFolder = file.split("/").dropRight(1).mkString("/")
+          FilesUtils.movePathContent(s"$lastFolder", basePath)
+        })
+        FilesUtils.deleteFolder(inputPath)
+      }.toList)
   }
 }

@@ -20,7 +20,7 @@ case class ConfigLoader() {
       .leftMap(thrs => BulkErrorAccumulator(thrs))
   }
 
-  def loadSparkConf(): Either[BulkErrorAccumulator, SparkConfigs] = {
+  def loadSparkConf(): SparkConfigs = {
     import pureconfig._
     import pureconfig.generic.auto._ // To be kept, even though intellij didn't recognize its usage
 
@@ -29,7 +29,11 @@ case class ConfigLoader() {
 
     ConfigSource.default
       .at("spark")
-      .load[SparkConfigs]
-      .leftMap(thrs => BulkErrorAccumulator(thrs))
+      .load[SparkConfigs] match {
+      case Right(conf) => conf
+      case Left(thr) =>
+        throw new RuntimeException(
+          s"Error when trying to load configuration : ${thr.toList.mkString("\n")}")
+    }
   }
 }

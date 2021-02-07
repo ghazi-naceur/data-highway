@@ -1,10 +1,19 @@
 name := "data-highway"
 
-version := "0.1"
+version := "0.1-rc"
 
 scalaVersion := "2.12.12"
 
 resolvers += "Spark Packages Repo" at "http://dl.bintray.com/spark-packages/maven"
+
+lazy val root = (project in file(".")).
+  enablePlugins(BuildInfoPlugin).
+  settings(
+    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
+    buildInfoPackage := "io.oss.data.highway.build.info"
+  )
+
+assemblyJarName in assembly := s"${name.value}-${version.value}.jar"
 
 assemblyMergeStrategy in assembly := {
   case PathList("META-INF","services",xs @ _*) => MergeStrategy.filterDistinctLines // To add Spark datasources : org.apache.spark.sql.sources.DataSourceRegister

@@ -1,6 +1,5 @@
 package io.oss.data.highway.converter
 
-import io.oss.data.highway.model.DataHighwayError.ParquetError
 import io.oss.data.highway.model.{DataType, PARQUET}
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
 import org.apache.spark.sql.SaveMode
@@ -31,7 +30,7 @@ object ParquetSink {
       basePath: String, //app/data
       saveMode: SaveMode,
       inputDataType: DataType,
-      sparkConfig: SparkConfigs): Either[ParquetError, List[Path]] = {
+      sparkConfig: SparkConfigs): Either[Throwable, List[Path]] = {
     DataFrameUtils(sparkConfig)
       .loadDataFrame(in, inputDataType)
       .map(df => {
@@ -44,8 +43,6 @@ object ParquetSink {
       .flatMap(_ => {
         FilesUtils.movePathContent(in, basePath)
       })
-      .leftMap(thr =>
-        ParquetError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   /**
@@ -79,8 +76,6 @@ object ParquetSink {
                            inputDataType,
                            sparkConfig)
         })
-        .leftMap(error =>
-          ParquetError(error.message, error.cause, error.stacktrace))
       _ = FilesUtils.deleteFolder(in)
     } yield list
   }
