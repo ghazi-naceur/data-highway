@@ -13,17 +13,14 @@ lazy val root = (project in file(".")).
     buildInfoPackage := "io.oss.data.highway.build.info"
   )
 
+assemblyJarName in assembly := s"${name.value}-${version.value}.jar"
+
 assemblyMergeStrategy in assembly := {
   case PathList("META-INF","services",xs @ _*) => MergeStrategy.filterDistinctLines // To add Spark datasources : org.apache.spark.sql.sources.DataSourceRegister
     // See : https://stackoverflow.com/questions/62232209/classnotfoundexception-caused-by-java-lang-classnotfoundexception-csv-default
   case PathList("META-INF",xs @ _*) => MergeStrategy.discard
   case _ => MergeStrategy.first
 }
-
-lazy val utils = (project in file("utils")).
-  settings(
-    assemblyJarName in assembly := name+ "-" + version + ".jar"
-  )
 
 addCompilerPlugin(
   "org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full
