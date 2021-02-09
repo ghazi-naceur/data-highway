@@ -1,12 +1,5 @@
 // POST http://localhost:5555/conversion/route
 {
-  "spark" : {
-    "app-name": "handler",
-    "master-url": "local[*]",
-    "log-level" : {
-      "type": "warn"
-    }
-  },
   "route": {
     "type" : "xlsx-to-csv",
     "in": "/app/data/input",

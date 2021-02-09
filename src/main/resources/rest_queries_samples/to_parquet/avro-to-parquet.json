@@ -1,12 +1,5 @@
 // POST http://localhost:5555/conversion/route
 {
-  "spark" : {
-    "app-name": "handler",
-    "master-url": "local[*]",
-    "log-level" : {
-      "type": "warn"
-    }
-  },
   "route": {
     "type" : "avro-to-parquet",
     "in": "/app/data/input",

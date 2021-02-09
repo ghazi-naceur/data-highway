@@ -1,16 +1,9 @@
 // POST http://localhost:5555/conversion/route
 {
-  "spark" : {
-    "app-name": "handler",
-    "master-url": "local[*]",
-    "log-level" : {
-      "type": "warn"
-    }
-  },
   "route": {
     "type": "file-to-kafka",
-    "in": "/home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/input/",
-    "out": "file_to_kafka_skp_without_stream",
+    "in": "/app/data/kafka/input",
+    "out": "file_to_kafka_pure_without_stream_1",
     "broker-urls": "localhost:9092",
     "kafka-mode": {
       "type": "spark-kafka-plugin-producer"

@@ -1,11 +1,4 @@
 {
-  "spark" : {
-    "app-name": "handler",
-    "master-url": "local[*]",
-    "log-level" : {
-      "type": "warn"
-    }
-  },
   "route": {
     "type" : "json-to-csv",
     "in": "/app/data/input",
