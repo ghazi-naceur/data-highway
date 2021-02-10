@@ -14,6 +14,6 @@
     "offset" : {
       "type": "earliest"
     },
-    "consumer-group" : "consumer-kj"
+    "consumer-group" : "consumer-group-name"
   }
 }
