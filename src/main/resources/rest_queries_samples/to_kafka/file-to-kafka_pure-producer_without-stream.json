@@ -2,9 +2,9 @@
 {
   "route": {
     "type": "file-to-kafka",
-    "in": "/app/data/kafka/input",
-    "out": "file_to_kafka_pure_without_stream_3",
-    "broker-urls": "localhost:9092",
+    "in": "/json/files/input/folder",
+    "out" : "output-kafka-topic-name",
+    "broker-urls" : "kafka-broker:kafka-port",
     "kafka-mode": {
       "type": "pure-kafka-producer"
     }

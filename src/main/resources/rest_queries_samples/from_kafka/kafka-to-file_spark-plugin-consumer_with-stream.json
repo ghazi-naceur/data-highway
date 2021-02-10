@@ -2,12 +2,12 @@
 {
   "route": {
     "type" : "kafka-to-file",
-    "in" : "file_to_kafka_pure_without_stream",
-    "out" : "/app/data/kafka/output",
+    "in" : "input-kafka-topic-name",
+    "out" : "/consumed/data/kafka/output/folder",
     "data-type" : {
       "type" : "json"
     },
-    "broker-urls" : "localhost:9092",
+    "broker-urls" : "kafka-broker-url:kafka-port",
     "kafka-mode" : {
       "type" : "spark-kafka-plugin-streams-consumer"
     },

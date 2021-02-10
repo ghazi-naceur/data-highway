@@ -2,7 +2,7 @@
 {
   "route": {
     "type" : "parquet-to-json",
-    "in": "/app/data/input",
-    "out": "/app/data/output"
+    "in": "/input/parquet/data",
+    "out": "/output/json/data"
   }
 }

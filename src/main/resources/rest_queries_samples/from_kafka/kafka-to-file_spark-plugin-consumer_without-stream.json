@@ -2,18 +2,18 @@
 {
   "route": {
     "type" : "kafka-to-file",
-    "in" : "file_to_kafka_pure_without_stream_1",
-    "out" : "/app/data/kafka/output",
+    "in" : "input-kafka-topic-name",
+    "out" : "/consumed/data/kafka/output/folder",
     "data-type" : {
       "type" : "json"
     },
-    "broker-urls" : "localhost:9092",
+    "broker-urls" : "kafka-broker-url:kafka-port",
     "kafka-mode" : {
       "type" : "spark-kafka-plugin-consumer"
     },
     "offset" : {
       "type": "latest"
     },
-    "consumer-group" : "consumer-kj"
+    "consumer-group" : "consumer-group-name"
   }
 }

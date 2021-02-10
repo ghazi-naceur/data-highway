@@ -2,7 +2,7 @@
 {
   "route": {
     "type" : "parquet-to-avro",
-    "in": "/app/data/input",
-    "out": "/app/data/output"
+    "in": "/input/parquet/data",
+    "out": "/output/avro/data"
   }
 }

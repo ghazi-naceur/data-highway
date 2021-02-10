@@ -2,9 +2,9 @@
 {
   "route": {
     "type": "kafka-to-kafka",
-    "in": "file_to_kafka_pure_without_stream_2",
-    "out": "file_to_kafka_skp_without_stream_1",
-    "broker-urls": "localhost:9092",
+    "in" : "input-kafka-topic-name",
+    "out" : "output-kafka-topic-name",
+    "broker-urls" : "kafka-broker:kafka-port",
     "kafka-mode": {
       "type": "spark-kafka-plugin-streams-producer"
     }

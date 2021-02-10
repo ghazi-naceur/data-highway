@@ -2,7 +2,7 @@
 {
   "route": {
     "type" : "avro-to-json",
-    "in": "/app/data/input",
-    "out": "/app/data/output"
+    "in": "/input/avro/data",
+    "out": "/output/json/data"
   }
 }

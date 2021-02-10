@@ -2,12 +2,12 @@
 {
   "route": {
     "type": "kafka-to-kafka",
-    "in": "file_to_kafka_pure_without_stream_1",
-    "out": "file_to_kafka_pure_without_stream_2",
-    "broker-urls": "localhost:9092",
+    "in" : "input-kafka-topic-name",
+    "out" : "output-kafka-topic-name",
+    "broker-urls" : "kafka-broker:kafka-port",
     "kafka-mode": {
       "type": "pure-kafka-streams-producer",
-      "stream-app-id": "stream-app"
+      "stream-app-id": "stream-app-name"
     }
   }
 }

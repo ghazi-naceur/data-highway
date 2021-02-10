@@ -2,7 +2,7 @@
 {
   "route": {
     "type" : "xlsx-to-csv",
-    "in": "/app/data/input",
-    "out": "/app/data/output"
+    "in": "/input/xlsx/data",
+    "out": "/output/csv/data"
   }
 }

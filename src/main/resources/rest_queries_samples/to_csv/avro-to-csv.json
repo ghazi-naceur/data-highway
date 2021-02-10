@@ -2,7 +2,7 @@
 {
   "route": {
     "type" : "avro-to-csv",
-    "in": "/app/data/input",
-    "out": "/app/data/output"
+    "in": "/input/avro/data",
+    "out": "/output/csv/data"
   }
 }

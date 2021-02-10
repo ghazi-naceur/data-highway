@@ -2,7 +2,7 @@
 {
   "route": {
     "type" : "parquet-to-csv",
-    "in": "/app/data/input",
-    "out": "/app/data/output"
+    "in": "/input/parquet/data",
+    "out": "/output/csv/data"
   }
 }

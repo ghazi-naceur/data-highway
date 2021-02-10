@@ -1,8 +1,8 @@
 // POST http://localhost:5555/conversion/route
 {
-    "route": {
-        "type" : "csv-to-json",
-        "in": "/app/data/input",
-        "out": "/app/data/output"
+  "route": {
+    "type" : "csv-to-json",
+    "in": "/input/csv/data",
+    "out": "/output/json/data"
     }
 }
