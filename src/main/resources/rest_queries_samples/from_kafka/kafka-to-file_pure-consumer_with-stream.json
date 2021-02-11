@@ -1,27 +1,20 @@
 // POST http://localhost:5555/conversion/route
 {
-  "spark" : {
-    "app-name": "handler",
-    "master-url": "local[*]",
-    "log-level" : {
-      "type": "warn"
-    }
-  },
   "route": {
     "type" : "kafka-to-file",
-    "in" : "file_to_kafka_pure_without_stream",
-    "out" : "/home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/output/",
+    "in" : "input-kafka-topic-name",
+    "out" : "/consumed/data/kafka/output/folder",
     "data-type" : {
       "type" : "json"
     },
-    "broker-urls" : "localhost:9092",
+    "broker-urls" : "kafka-broker-url:kafka-port",
     "kafka-mode" : {
       "type" : "pure-kafka-streams-consumer",
-      "stream-app-id" : "stream-app"
+      "stream-app-id" : "stream-app-name"
     },
     "offset" : {
       "type": "earliest"
     },
-    "consumer-group" : "consumer-kj"
+    "consumer-group" : "consumer-group-name"
   }
 }

@@ -1,27 +1,29 @@
 Yet another data converter.
 
-You can convert your data to multiple data types.
+You can convert your data to multiple data types :
+
+* JSON Conversion (**csv-to-json**,  **parquet-to-json** and **avro-to-json**)
+* Parquet Conversion (**csv-to-parquet**,  **json-to-parquet**, **avro-to-parquet**)
+* CSV Conversion (**json-to-csv**,  **parquet-to-csv**, **avro-to-csv** and **xlsx-to-csv**)
+* Avro Conversion (**csv-to-avro**,  **parquet-to-avro** and **json-to-avro**)
+
+You can as well :  
+* Send data to Kafka (**file-to-kafka** and **kafka-to-kafka**)
+* Consume data from Kafka (**kafka-to-file**)
 
 **Environment :**
 
-- Docker 19.03.13
+- Docker 20.10.2
 - Docker compose 1.25.0
 - JDK 1.8
-- sbt 2.12.x
-- Spark 2.4.7
-- Hadoop 3.1.3
-- Confluent community 6.0.0
+- Scala 2.12.12
+- Spark 2.4.6
 
 ## Table of contents :
 * [A- Getting started](#A--getting-started-)
-    * [1- Run data-highway locally](#1--run-data-highway-locally-)
-    * [2- Run data-highway using REST API](#2--run-data-highway-using-rest-api-)
-        * [a- Locally](#a--locally-)
-        * [b- With Docker](#b--with-docker-)
-    * [3- Run data-highway using Docker](#3--run-data-highway-using-docker-)
-        * [a- Spark application](#a--spark-application)
-        * [b- Kafka application without Confluent Cluster](#b--kafka-application-without-confluent-cluster)
-* [B- Conversions](#B--conversions-)
+    * [1- Run data-highway jar ](#1--run-data-highway-jar-)
+    * [2- Run data-highway Docker Image ](#2--run-data-highway-docker-image-)
+* [B- Routes](#B--routes-)
     * [1- JSON conversion](#1--json-conversion-)
         * [a- From Parquet to JSON](#a--from-parquet-to-json-)
         * [b- From CSV to JSON](#b--from-csv-to-json-)
@@ -49,77 +51,28 @@ You can convert your data to multiple data types.
 
 # A- Getting started :
 
-## 1- Run data-highway locally :
+## 1- Run data-highway jar :
 
+1- Download the latest release **zip** file of **data-highway** from [data-highway releases](https://github.com/ghazi-naceur/data-highway/releases)
 
-You can run data-highway locally/manually by :
+2- Unzip your **data-highway** zip release file
 
-1- Cloning the project :
-````shell script
-git clone https://github.com/ghazi-naceur/data-highway.git
-````
+3- Enter the unzipped folder and run your **data-highway** instance by executing the **start.sh** script :
+```shell
+chmod +x start.sh
+./start.sh
+```
+![image](https://github.com/ghazi-naceur/data-highway/blob/doc_update/src/main/resources/screenshots/data-highway-banner.png?raw=true "Data Highway Launch Banner")
 
-2- Compiling the project :
-````shell script
-sbt clean; sbt compile; sbt assembly;
-````
+4- Finally, launch a data conversion using a REST query. You can find samples in the following folder [REST queries](https://github.com/ghazi-naceur/data-highway/tree/master/src/main/resources/rest_queries_samples)
 
-3- Move your generated jar file which will be under the folder : `data-highway/target/scala-2.12/data-highway-assembly-0.1.jar`
-to your delivery folder, along with the `application.conf` and `log4j.properties` files (which are located under the `resources` folder).
+For further explanation about **data-highway** conversion, you may want to jump to section [B- Routes](#B--routes-)
 
-4- Modify the `application.conf` file using the **B- Conversions** section of this `readme` file.
+## 2- Run data-highway Docker Image :
 
-5- Run **data-highway** application using the following commands :
-
-If you are using Spark, run the following command with these routes : (See the **B- Conversions** section)
- * B-1- JSON Conversion
- * B-2- Parquet Conversion
- * B-3- CSV Conversion
- * B-4- Avro Conversion
- * B-5-c- Sending data to Kafka though **Spark Kafka Producer Plugin**
- * B-6-c- Consuming data from Kafka though **Spark Kafka Consumer Plugin**
- 
-````shell script
-spark-submit  \
-      --packages org.apache.spark:spark-avro_2.12:2.4.0 \
-      --class "io.oss.data.highway.Main" --master local[*] \
-      --conf "spark.driver.extraJavaOptions=-Dconfig.file=/the/path/to/application.conf" \
-      --conf "spark.executor.extraJavaOptions=-Dconfig.file=/the/path/to/application.conf" \
-      --files "/the/path/to/application.conf,/the/path/to/log/file/log4j.properties" \
-      /the/path/to/data-highway-assembly-0.1.jar
-````
-
-If you are using 'pure' Kafka (not the spark-kafka-plugin feature), run instead the following command with these routes : (See the **B- Conversions** section)
- * B-5-a- Sending data to Kafka though **Simple Kafka Producer**
- * B-5-b- Sending data to Kafka though **Kafka Streaming**
- * B-6-a- Consuming data from Kafka though **Simple Kafka Consumer**
- * B-6-b- Consuming data from Kafka though **Kafka Streaming**
- 
-````shell script
-java -jar -Dconfig.file=/the/path/to/application.conf -Dlog4j.configuration=/the/path/to/log4j.properties /the/path/to/data-highway-assembly-0.1.jar
-
-````
-
-## 2- Run data-highway using REST API :
-
-**Note** : You can find some REST queries samples inside the folder `data-highway/src/main/resources/rest_queries_samples`
-
-#### a- Locally :
-
-1- Compile **data-highway** project :
-````shell
-sbt clean; sbt compile; sbt assembly
-````
-
-2- Run the command :
-````shell
-java -cp /path/to/jar/file/data-highway-assembly-0.1.jar io.oss.data.highway.IOMain -Dlog4j.configuration=/path/to/log/file/log4j.properties
-````
-
-#### b- With Docker :
-
-1- Specify your mounted volumes in the `docker-compose.yml` under `data-highway/docker/rest/generic` :
-````yaml
+1- After cloning this repository, specify your mounted volumes in the `docker-compose.yml` located under `data-highway/docker/rest/generic` and 
+specify your data-highway version (located in the jar file name) :
+```yaml
   app:
     build: .
     image: data-highway-app:v1.0
@@ -134,257 +87,213 @@ java -cp /path/to/jar/file/data-highway-assembly-0.1.jar io.oss.data.highway.IOM
       - /the-path-to-the-generated-kafka-output-in-your-host-machine/:/app/data/kafka/output
       - /the-path-to-the-generated-kafka-processed-in-your-host-machine/:/app/data/kafka/processed
       - /the-path-to-your-log-file/log4j.properties:/app/config/log4j.properties
+      - /the-path-to-your-config-file/application.conf:/app/config/application.conf
     network_mode: "host"
-    entrypoint: ["java", "-cp", "/app/jar/data-highway-assembly-0.1.jar", "io.oss.data.highway.IOMain", "-Dlog4j.configuration=/app/config/log4j.properties"]
+    entrypoint: ["java", "-cp", "/app/jar/data-highway-${version}.jar", "io.oss.data.highway.IOMain", "-Dlog4j.configuration=/app/config/log4j.properties", "-Dconfig.file=/app/config/application.conf"]
+```
+2- Run the `start.sh` script under `data-highway/docker/rest/generic` to generate your Data Highway Docker image.
 
-````
-2- Run the `start.sh` script under `data-highway/docker/rest/generic`
+3- Run your HTTP request. You can find HTTP requests samples here : [REST queries](https://github.com/ghazi-naceur/data-highway/tree/master/src/main/resources/rest_queries_samples)
 
-3- Run your HTTP request. You can find HTTP requests samples under `data-highway/src/main/resources/rest_queries_samples`
-
-**Note :** For `in` out `out` HTTP request body fields, you need to provide the mounted volumes Docker side (right side).
+**Note :** For `in` and `out` HTTP request body fields, you need to provide the mounted volumes Docker side (right side).
 
 Example : 
 
 For the following mounted volumes, you need to provide in your HTTP body request : `"in": "/app/data/input"` and `"out": "/app/data/output"` 
-````yaml
+```yaml
 volumes:
       - /the-path-to-input-data-located-in-your-host-machine/:/app/data/input
       - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/output
-````
-
-## 3- Run data-highway using Docker :
-
-### a- Spark application:
-
-**Note** : The supported Spark applications are all routes for : (See **B- Conversions** section to configure the module)
-  * B-1- JSON Conversion
-  * B-2- Parquet Conversion
-  * B-3- CSV Conversion
-  * B-4- Avro Conversion
-  * B-5-c- Sending data to Kafka though **Spark Kafka Producer Plugin**
-  * B-6-c- Consuming data from Kafka though **Spark Kafka Consumer Plugin**
- 
-1- Clone the data-highway project
-
-2- Set the input/output volumes and the path to your configuration file by modifying the `docker-compose.yml` file located under `data-highway/docker/cli/spark/generic`:
-```yaml
-app:
-    build: .
-    image: data-highway-spark:v1.0
-    container_name: bungee-gum-spark
-    volumes:
-      - /the-path-to-input-data-located-in-your-host-machine/:/app/data/spark/input
-      - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/spark/output
-      - /the-path-to-the-generated-processed-in-your-host-machine/:/app/data/spark/processed
-      - /the-path-to-your-config-file/application.conf:/app/config/application.conf
-      - /the-path-to-your-log-file/log4j.properties:/app/config/log4j.properties
-    entrypoint: ["spark-submit",
-                  "--packages", "org.apache.spark:spark-avro_2.12:2.4.0",
-                  "--class", "io.oss.data.highway.Main",
-                  "--master", "local[*]",
-                  "--conf", "spark.driver.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlog4j.configuration=/app/config/log4j.properties",
-                  "--conf", "spark.executor.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlog4j.configuration=/app/config/log4j.properties",
-                  "--files", "/app/config/application.conf,/app/config/log4j.properties",
-                  "/app/jar/data-highway-assembly-0.1.jar"]
-```
-3- Run the script `start.sh` located under the path `data-highway/docker/cli/spark/generic`
-
-ps: You can find some input data samples under the test package, which you can use as an input for the input docker volume.
-
-4- Data will be generated under the output volume declared in the Dockerfile for sections "B-1", "B-2", "B-3", "B-4" and "B-6-c".
-All processed data will be moved to processed volume.
-
-In the section "B-5-c" case, data will be published to the output topic, and all processed data will be moved to processed folder. 
-
-### b- Kafka application :
-
-**Note** : The supported Kafka applications are all routes for : (See **B- Conversions** section to configure the module)
- * B-5-a- Sending data to Kafka though **Simple Kafka Producer**
- * B-5-b- Sending data to Kafka though **Kafka Streaming**
- * B-6-a- Consuming data from Kafka though **Simple Kafka Consumer**
- * B-6-b- Consuming data from Kafka though **Kafka Streaming**
- 
-1- Clone the data-highway project
-
-2- Set the input/output volumes and the path to your configuration file by modifying the `docker-compose.yml` file located under `data-highway/docker/cli/kafka/generic`:
-```yaml
-  app:
-    build: .
-    image: data-highway-kafka:v1.0
-    container_name: bungee-gum-kafka
-    volumes:
-      - /the-path-to-input-data-located-in-your-host-machine/:/app/data/kafka/input
-      - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/kafka/output
-      - /the-path-to-the-generated-processed-in-your-host-machine/:/app/data/kafka/processed
-      - /the-path-to-your-config-file/application.conf:/app/config/application.conf
-      - /the-path-to-your-log-file/log4j.properties:/app/config/log4j.properties
-    entrypoint: [ "java", "-jar", "-Dconfig.file=/app/config/application.conf", "-Dlog4j.configuration=/app/config/log4j.properties", "/app/jar/data-highway-assembly-0.1.jar" ]
-    network_mode: "host"
 ```
 
-3- Run the script `start.sh` located under the path `data-highway/docker/cli/kafka/generic`
+# B- Routes :
 
-4- In the case of sections "B-5-a" and "B-5-b", data will be published to the output topic.
-All processed data will be moved to processed volume.
-
-In the case of sections "B-6-a" and "B-6-b", data will be saved in the provided output volume, and all processed data will be moved to processed folder.
-
-# B- Conversions :
+You can find some REST query samples in the following folder [REST queries](https://github.com/ghazi-naceur/data-highway/tree/master/src/main/resources/rest_queries_samples)
 
 ## 1- JSON conversion :
 
 There are 3 provided conversions.
 
-Update the `route` configuration in the `application.properties` file :
+Set the conversion `route` for your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and 
+setting the following request bodies : 
 
-#### a- From Parquet to JSON :
+### a- From Parquet to JSON :
 
-````hocon
-route {
-  type = parquet-to-json
-  in = "your-input-folder-containing-parquet-files"
-  out = "your-output-folder-that-will-contain-your-generated-json-files"
+```json
+{
+  "route": {
+    "type": "parquet-to-json",
+    "in": "your-input-folder-containing-parquet-files",
+    "out": "your-output-folder-that-will-contain-your-generated-json-files"
+  }
 }
-````
+```
 
-#### b- From CSV to JSON :
+### b- From CSV to JSON :
 
-````hocon
-route {
-  type = csv-to-json
-  in = "your-input-folder-containing-csv-files"
-  out = "your-output-folder-that-will-contain-your-generated-json-files"
+```json
+{
+  "route": {
+    "type": "csv-to-json",
+    "in": "your-input-folder-containing-csv-files",
+    "out": "your-output-folder-that-will-contain-your-generated-json-files"
+  }
 }
-````
+```
 
 #### c- From Avro to JSON : 
 
-````hocon
-route {
-  type = avro-to-json
-  in = "your-input-folder-containing-avro-files"
-  out = "your-output-folder-that-will-contain-your-generated-json-files"
+```json
+{
+  "route": {
+    "type": "avro-to-json",
+    "in": "your-input-folder-containing-avro-files",
+    "out": "your-output-folder-that-will-contain-your-generated-json-files"
+  }
 }
-````
+```
 
 ## 2- Parquet conversion :
 
 There are 3 provided conversions.
 
-Update the `route` configuration in the `application.properties` file :
+Set the conversion `route` for your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and
+setting the following request bodies :
 
 #### a- From JSON to Parquet :
 
-````hocon
-route {
-  type = json-to-parquet
-  in = "your-input-folder-containing-json-files"
-  out = "your-output-folder-that-will-contain-your-generated-parquet-files"
+```json
+{
+  "route": {
+    "type": "json-to-parquet",
+    "in": "your-input-folder-containing-json-files",
+    "out": "your-output-folder-that-will-contain-your-generated-parquet-files"
+  }
 }
-````
+```
 
 #### b- From CSV to Parquet :
 
-````hocon
-route {
-  type = csv-to-parquet
-  in = "your-input-folder-containing-csv-files"
-  out = "your-output-folder-that-will-contain-your-generated-parquet-files"
+```json
+{
+  "route": {
+    "type": "csv-to-parquet",
+    "in": "your-input-folder-containing-csv-files",
+    "out": "your-output-folder-that-will-contain-your-generated-parquet-files"
+  }
 }
-````
+```
 
 #### c- From Avro to Parquet :
 
-````hocon
-route {
-  type = avro-to-parquet
-  in = "your-input-folder-containing-avro-files"
-  out = "your-output-folder-that-will-contain-your-generated-parquet-files"
+```json
+{
+  "route": {
+    "type": "avro-to-parquet",
+    "in": "your-input-folder-containing-avro-files",
+    "out": "your-output-folder-that-will-contain-your-generated-parquet-files"
+  }
 }
-````
+```
 
 ## 3- CSV conversion :
 
 There are 4 provided conversions.
 
-Update the `route` configuration in the `application.properties` file :
+Set the conversion `route` for your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and
+setting the following request bodies :
 
 #### a- From JSON to CSV :
 
-````hocon
-route {
-  type = json-to-csv
-  in = "your-input-folder-containing-json-files"
-  out = "your-output-folder-that-will-contain-your-generated-csv-files"
+```json
+{
+  "route": {
+    "type": "json-to-csv",
+    "in": "your-input-folder-containing-json-files",
+    "out": "your-output-folder-that-will-contain-your-generated-csv-files"
+  }
 }
-````
+```
 
 #### b- From Parquet to CSV :
 
-````hocon
-route {
-  type = parquet-to-csv
-  in = "your-input-folder-containing-parquet-files"
-  out = "your-output-folder-that-will-contain-your-generated-csv-files"
+```json
+{
+  "route": {
+    "type": "parquet-to-csv",
+    "in": "your-input-folder-containing-parquet-files",
+    "out": "your-output-folder-that-will-contain-your-generated-csv-files"
+  }
 }
-````
+```
 
 #### c- From Avro to CSV :
 
-````hocon
-route {
-  type = avro-to-csv
-  in = "your-input-folder-containing-avro-files"
-  out = "your-output-folder-that-will-contain-your-generated-csv-files"
+```json
+{
+  "route": {
+    "type": "avro-to-csv",
+    "in": "your-input-folder-containing-avro-files",
+    "out": "your-output-folder-that-will-contain-your-generated-csv-files"
+  }
 }
-````
+```
 
 #### d- From XLSX (or XLS) to CSV :
 
 It consists of converting the different sheets of an XLSX or XLS file to multiple csv files.
 
-````hocon
-route {
-  type = xlsx-to-csv # This value is supported for both xlsx and xls files (no value with the name "xls-to-csv")
-  in = "your-input-folder-containing-xlsx-files"
-  out = "your-output-folder-that-will-contain-your-generated-csv-files"
+This route **"xlsx-to-csv"** supports both xlsx and xls files.
+```json
+{
+  "route": {
+    "type": "xlsx-to-csv",
+    "in": "your-input-folder-containing-xlsx-files",
+    "out": "your-output-folder-that-will-contain-your-generated-csv-files"
+  }
 }
-````
+```
 
 ## 4- Avro conversion :
 
 There are 3 provided conversions.
 
-Update the `route` configuration in the `application.properties` file :
+Set the conversion `route` for your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and
+setting the following request bodies :
 
 #### a- From Parquet to Avro :
 
-```hocon
-route {
-  type = parquet-to-avro
-  in = "your-input-folder-containing-parquet-files"
-  out = "your-output-folder-that-will-contain-your-generated-avro-files"
+```json
+{
+  "route": {
+    "type": "parquet-to-avro",
+    "in": "your-input-folder-containing-parquet-files",
+    "out": "your-output-folder-that-will-contain-your-generated-avro-files"
+  }
 }
 ```
 
 #### b- From Json to Avro :
 
-```hocon
-route {
-  type = json-to-avro
-  in = "your-input-folder-containing-json-files"
-  out = "your-output-folder-that-will-contain-your-generated-avro-files"
+```json
+{
+  "route": {
+    "type": "json-to-avro",
+    "in": "your-input-folder-containing-json-files",
+    "out": "your-output-folder-that-will-contain-your-generated-avro-files"
+  }
 }
 ```
 
 #### c- From Csv to Avro :
 
-```hocon
-route {
-    type = csv-to-avro
-  in = "your-input-folder-containing-csv-files"
-  out = "your-output-folder-that-will-contain-your-generated-avro-files"
+```json
+{
+  "route": {
+    "type": "csv-to-avro",
+    "in": "your-input-folder-containing-csv-files",
+    "out": "your-output-folder-that-will-contain-your-generated-avro-files"
+  }
 }
 ```
 
@@ -400,67 +309,81 @@ Publishing data could be performed by :
    * a- Pure Kafka Producer
    * b- Spark Kafka Plugin Producer
 
+Set the conversion `route` for your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and
+setting the following request bodies :
 
 #### a- Pure Kafka Producer :
 
 ##### * File to Kafka :
-````hocon
-route {
-  type = file-to-kafka
-  in = "your-input-folder-containing-json-files"
-  out = "your-output-kafka-topic"
-  broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas", // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
-  kafka-mode = {
-     type = "pure-kafka-producer"
+```json
+{
+  "route": {
+    "type": "file-to-kafka",
+    "in": "your-input-folder-containing-json-files",
+    "out": "your-output-kafka-topic",
+    "broker-urls": "your-kafka-brokers-with-its-ports-separated-with-commas",
+    "kafka-mode": {
+      "type": "pure-kafka-producer"
+    }
   }
 }
-````
+```
+The key **"brokers-urls"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
 
 ##### * Kafka to Kafka :
-````hocon
-route {
-  type = kafka-to-kafka
-  in = "your-input-kafka-topic"
-  out = "your-output-kafka-topic"
-  broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas", // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
-  kafka-mode = {
-     type = "pure-kafka-streams-producer",
-     stream-app-id = "stream-app-name"
+```json
+{
+  "route": {
+    "type": "kafka-to-kafka",
+    "in": "your-input-kafka-topic",
+    "out": "your-output-kafka-topic",
+    "broker-urls": "your-kafka-brokers-with-its-ports-separated-with-commas",
+    "kafka-mode": {
+      "type": "pure-kafka-streams-producer",
+      "stream-app-id": "stream-app-name"
+    }
   }
 }
-````
+```
+The key **"brokers-urls"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
 
 #### b- Spark Kafka Plugin Producer :
 
 ##### * File to Kafka :
-````hocon
-route {
-  type = file-to-kafka
-  in = "your-input-folder-containing-json-files"
-  out = "your-output-kafka-topic"
-  broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas", // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
-  kafka-mode = {
-      type = "spark-kafka-plugin-producer"
+```json
+{
+  "route": {
+    "type": "file-to-kafka",
+    "in": "your-input-folder-containing-json-files",
+    "out": "your-output-kafka-topic",
+    "broker-urls": "your-kafka-brokers-with-its-ports-separated-with-commas",
+    "kafka-mode": {
+      "type": "spark-kafka-plugin-producer"
+    }
   }
 }
-````
+```
+The key **"brokers-urls"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
 
 ##### * Kafka to Kafka :
-````hocon
-route {
-  type = kafka-to-kafka
-  in = "your-input-kafka-topic"
-  out = "your-output-kafka-topic"
-  broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas", // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
-  kafka-mode = {
-      type = "spark-kafka-plugin-streams-producer"
+```json
+{
+  "route": {
+    "type": "kafka-to-kafka",
+    "in": "your-input-kafka-topic",
+    "out": "your-output-kafka-topic",
+    "broker-urls": "your-kafka-brokers-with-its-ports-separated-with-commas",
+    "kafka-mode": {
+      "type": "spark-kafka-plugin-streams-producer"
+    }
   }
 }
-````
+```
+The key **"brokers-urls"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
 
 ## 6- Consume data from Kafka :
 
-This mode consists of consuming and input topic and saving its content in files.
+This mode consists of consuming an input topic and saving its content into files.
 
 It is available using 4 types of routes :
    * a- Pure Kafka Consumer :
@@ -473,91 +396,120 @@ It is available using 4 types of routes :
 #### a- Pure Kafka Consumer :
 
 ##### * Without streaming :
-````hocon
-route {
-  type = kafka-to-file
-  in = "topic-name"
-  out = "your-output-folder-that-will-contain-your-generated-json-files"
-  data-type = {
-    type = "the-desired-datatype-of-the-generated-files" // Optional field : accepted values are json and avro (json is the default value, if not set). 
-             // It will be set as an extension for the generated output files.
+```json
+{
+  "route": {
+    "type": "kafka-to-file",
+    "in": "topic-name",
+    "out": "your-output-folder-that-will-contain-your-generated-json-files",
+    "data-type": {
+      "type": "the-desired-datatype-of-the-generated-files"
+    },
+    "broker-urls": "your-kafka-brokers-with-its-ports-separated-with-commas",
+    "kafka-mode": {
+      "type": "pure-kafka-consumer"
+    },
+    "offset": {
+      "type": "offset-to-consume-from"
+    },
+    "consumer-group": "your-consumer-group-name"
   }
-  broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas"  // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
-  kafka-mode = {
-    type = "pure-kafka-consumer"
-  }
-  offset = {
-    type= "offset-to-consume-from" // accepted values : earliest, latest, none
-  }
-  consumer-group = "your-consumer-group-name"
 }
-````
+```
+- **"data-type"** is an optional field. Its accepted values are json and avro (json is the default value, if not set).
+  It will be set as an extension for the generated output files.
+  
+- **"brokers-urls"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
+
+- **"offset"** could have one of these values **earliest** and **latest**
 
 ##### * With streaming :
-````hocon
-route {
-  type = kafka-to-file
-  in = "topic-name"
-  out = "your-output-folder-that-will-contain-your-generated-json-files"
-  data-type = {
-    type = "the-desired-datatype-of-the-generated-files" // Optional field : accepted values are json and avro (json is the default value, if not set). 
-             // It will be set as an extension for the generated output files.
+```json
+{
+  "route": {
+    "type": "kafka-to-file",
+    "in": "topic-name",
+    "out": "your-output-folder-that-will-contain-your-generated-json-files",
+    "data-type": {
+      "type": "the-desired-datatype-of-the-generated-files"
+    },
+    "broker-urls": "your-kafka-brokers-with-its-ports-separated-with-commas",
+    "kafka-mode": {
+      "type": "pure-kafka-streams-consumer",
+      "stream-app-id": "stream-app-name"
+    },
+    "offset": {
+      "type": "offset-to-consume-from"
+    },
+    "consumer-group": "your-consumer-group-name"
   }
-  broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas"  // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
-  kafka-mode = {
-    type = "pure-kafka-streams-consumer"
-    stream-app-id = "stream-app-name"
-  }
-  offset = {
-    type= "offset-to-consume-from" // accepted values : earliest, latest, none
-  }
-  consumer-group = "your-consumer-group-name"
 }
-````
+```
+- **"data-type"** is an optional field. Its accepted values are json and avro (json is the default value, if not set).
+  It will be set as an extension for the generated output files.
+
+- **"brokers-urls"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
+
+- **"offset"** could have one of these values **earliest** and **latest**
 
 #### b- Spark Kafka Plugin Consumer :
 
 ##### * Without streaming :
-````hocon
-route {
-  type = kafka-to-file
-  in = "topic-name"
-  out = "your-output-folder-that-will-contain-your-generated-json-files"
-  data-type = {
-    type = "the-desired-datatype-of-the-generated-files" // Optional field : accepted values are json and avro (json is the default value, if not set). 
-    // It will be set as an extension for the generated output files.
+```json
+{
+  "route": {
+    "type": "kafka-to-file",
+    "in": "topic-name",
+    "out": "your-output-folder-that-will-contain-your-generated-json-files",
+    "data-type": {
+      "type": "the-desired-datatype-of-the-generated-files"
+    },
+    "broker-urls": "your-kafka-brokers-with-its-ports-separated-with-commas",
+    "kafka-mode": {
+      "type": "spark-kafka-plugin-consumer"
+    },
+    "offset": {
+      "type": "offset-to-consume-from"
+    },
+    "consumer-group": "your-consumer-group-name"
   }
-  broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas"  // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
-  kafka-mode = {
-      type = "spark-kafka-plugin-consumer"
-  }
-  offset = {
-    type = "offset-to-consume-from" // accepted values : earliest, latest, none
-  }
-  consumer-group = "your-consumer-group-name"
 }
-````
+```
+- **"data-type"** is an optional field. Its accepted values are json and avro (json is the default value, if not set).
+  It will be set as an extension for the generated output files.
+
+- **"brokers-urls"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
+
+- **"offset"** could have one of these values **earliest** and **latest**
 
 ##### * With streaming :
-````hocon
-route {
-  type = kafka-to-file
-  in = "topic-name"
-  out = "your-output-folder-that-will-contain-your-generated-json-files"
-  data-type = {
-    type = "the-desired-datatype-of-the-generated-files" // Optional field : accepted values are json and avro (json is the default value, if not set). 
-    // It will be set as an extension for the generated output files.
+```json
+{
+  "route": {
+    "type": "kafka-to-file",
+    "in": "topic-name",
+    "out": "your-output-folder-that-will-contain-your-generated-json-files",
+    "data-type": {
+      "type": "the-desired-datatype-of-the-generated-files"
+    },
+    "broker-urls": "your-kafka-brokers-with-its-ports-separated-with-commas",
+    "kafka-mode": {
+      "type": "spark-kafka-plugin-streams-consumer"
+    },
+    "offset": {
+      "type": "earliest"
+    },
+    "consumer-group": "your-consumer-group-name"
   }
-  broker-urls = "your-kafka-brokers-with-its-ports-separated-with-commas"  // eg : "localhost:9092" or "10.10.12.13:9091,10.10.12.14:9092"
-  kafka-mode = {
-      type = "spark-kafka-plugin-streams-consumer"
-  }
-  offset = {
-    type = "earliest" // accepted value : earliest. 
-  }
-  consumer-group = "your-consumer-group-name"
 }
-````
+```
+- **"data-type"** is an optional field. Its accepted values are json and avro (json is the default value, if not set).
+  It will be set as an extension for the generated output files.
+
+- **"brokers-urls"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
+
+- **"offset"** could have one of these values **earliest** and **latest**
+
 
 # C- Scheduling :
 

@@ -1,15 +1,8 @@
 // POST http://localhost:5555/conversion/route
 {
-  "spark" : {
-    "app-name": "handler",
-    "master-url": "local[*]",
-    "log-level" : {
-      "type": "warn"
-    }
-  },
   "route": {
     "type" : "parquet-to-csv",
-    "in": "/app/data/input",
-    "out": "/app/data/output"
+    "in": "/input/parquet/data",
+    "out": "/output/csv/data"
   }
 }
