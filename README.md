@@ -21,8 +21,9 @@ You can as well :
 
 ## Table of contents :
 * [A- Getting started](#A--getting-started-)
-    * [1- Run data-highway jar ](#1--run-data-highway-jar-)
-    * [2- Run data-highway Docker Image ](#2--run-data-highway-docker-image-)
+    * [1- Dataflow](#1--dataflow-)
+    * [2- Run data-highway jar ](#2--run-data-highway-jar-)
+    * [3- Run data-highway Docker Image ](#3--run-data-highway-docker-image-)
 * [B- Routes](#B--routes-)
     * [1- JSON conversion](#1--json-conversion-)
         * [a- From Parquet to JSON](#a--from-parquet-to-json-)
@@ -51,9 +52,29 @@ You can as well :
 
 # A- Getting started :
 
-## 1- Run data-highway jar :
+## 1- Dataflow :
 
-1- Download the latest release **zip** file of **data-highway** from [data-highway releases](https://github.com/ghazi-naceur/data-highway/releases)
+The data-highway conversion dataflow consists of converting data located under the **input** folder. The converted data will be generated under the **output** folder.
+All **input** data will be placed under the **processed** folder :
+
+![image](https://github.com/ghazi-naceur/data-highway/blob/master/src/main/resources/screenshots/1-conversions.png?raw=true)
+
+Publishing-data route consists of watching periodically an **input** folder containing json files, and publishing its content 
+to a Kafka topic :
+
+![image](https://github.com/ghazi-naceur/data-highway/blob/master/src/main/resources/screenshots/2-publish.png?raw=true)
+
+Consuming-data route consists of consuming periodically a Kafka topic and saving its content into json files in an **output** folder :
+
+![image](https://github.com/ghazi-naceur/data-highway/blob/master/src/main/resources/screenshots/3-consume.png?raw=true)
+
+**data-highway** can, as well, mirror kafka topics by consuming from an input topic and publishing its content to an output topic :
+
+![image](https://github.com/ghazi-naceur/data-highway/blob/master/src/main/resources/screenshots/4-kafka-mirror.png?raw=true)
+
+## 2- Run data-highway jar :
+
+1- Download the latest **zip** release file of **data-highway** from [data-highway releases](https://github.com/ghazi-naceur/data-highway/releases)
 
 2- Unzip your **data-highway** zip release file
 
@@ -62,16 +83,18 @@ You can as well :
 chmod +x start.sh
 ./start.sh
 ```
-![image](https://github.com/ghazi-naceur/data-highway/blob/doc_update/src/main/resources/screenshots/data-highway-banner.png?raw=true "Data Highway Launch Banner")
+![image](https://github.com/ghazi-naceur/data-highway/blob/master/src/main/resources/screenshots/data-highway-banner.png?raw=true "Data Highway Launch Banner")
 
-4- Finally, launch a data conversion using a REST query. You can find samples in the following folder [REST queries](https://github.com/ghazi-naceur/data-highway/tree/master/src/main/resources/rest_queries_samples)
+4- Finally, launch a data conversion using a REST query. You can find some query samples in the following folder [REST queries](https://github.com/ghazi-naceur/data-highway/tree/master/src/main/resources/rest_queries_samples).
 
-For further explanation about **data-highway** conversion, you may want to jump to section [B- Routes](#B--routes-)
+You can find, as well, some data samples to test your **data-highway** instance in the following link [data samples](https://github.com/ghazi-naceur/data-highway/tree/master/src/test/resources).
 
-## 2- Run data-highway Docker Image :
+You will find further explanations about **data-highway** route configuration in the section [B- Routes](#B--routes-)
+
+## 3- Run data-highway Docker Image :
 
 1- After cloning this repository, specify your mounted volumes in the `docker-compose.yml` located under `data-highway/docker/rest/generic` and 
-specify your data-highway version (located in the jar file name) :
+specify your data-highway version (located in the release file name) :
 ```yaml
   app:
     build: .
@@ -99,7 +122,7 @@ specify your data-highway version (located in the jar file name) :
 
 Example : 
 
-For the following mounted volumes, you need to provide in your HTTP body request : `"in": "/app/data/input"` and `"out": "/app/data/output"` 
+For the following mounted volumes, you need to provide in your HTTP request body : `"in": "/app/data/input"` and `"out": "/app/data/output"` 
 ```yaml
 volumes:
       - /the-path-to-input-data-located-in-your-host-machine/:/app/data/input
@@ -115,7 +138,7 @@ You can find some REST query samples in the following folder [REST queries](http
 There are 3 provided conversions.
 
 Set the conversion `route` for your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and 
-setting the following request bodies : 
+setting one of these following request bodies : 
 
 ### a- From Parquet to JSON :
 
@@ -158,7 +181,7 @@ setting the following request bodies :
 There are 3 provided conversions.
 
 Set the conversion `route` for your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and
-setting the following request bodies :
+setting one of these following request bodies :
 
 #### a- From JSON to Parquet :
 
@@ -201,7 +224,7 @@ setting the following request bodies :
 There are 4 provided conversions.
 
 Set the conversion `route` for your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and
-setting the following request bodies :
+setting one of these following request bodies :
 
 #### a- From JSON to CSV :
 
@@ -259,7 +282,7 @@ This route **"xlsx-to-csv"** supports both xlsx and xls files.
 There are 3 provided conversions.
 
 Set the conversion `route` for your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and
-setting the following request bodies :
+setting one of these following request bodies :
 
 #### a- From Parquet to Avro :
 
@@ -310,11 +333,13 @@ Publishing data could be performed by :
    * b- Spark Kafka Plugin Producer
 
 Set the conversion `route` for your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and
-setting the following request bodies :
+setting one of these following request bodies :
 
 #### a- Pure Kafka Producer :
 
 ##### * File to Kafka :
+
+Publishing data will be performed by **"pure-kafka-producer"** : 
 ```json
 {
   "route": {
@@ -331,6 +356,9 @@ setting the following request bodies :
 The key **"brokers-urls"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
 
 ##### * Kafka to Kafka :
+
+Publishing data will be performed by **"pure-kafka-streams-producer"** :
+
 ```json
 {
   "route": {
@@ -350,6 +378,9 @@ The key **"brokers-urls"** could have values like :  **"localhost:9092"** or **"
 #### b- Spark Kafka Plugin Producer :
 
 ##### * File to Kafka :
+
+Publishing data will be performed by **"spark-kafka-plugin-producer"** :
+
 ```json
 {
   "route": {
@@ -366,6 +397,9 @@ The key **"brokers-urls"** could have values like :  **"localhost:9092"** or **"
 The key **"brokers-urls"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
 
 ##### * Kafka to Kafka :
+
+Publishing data will be performed by **"spark-kafka-plugin-streams-producer"** :
+
 ```json
 {
   "route": {
@@ -396,6 +430,9 @@ It is available using 4 types of routes :
 #### a- Pure Kafka Consumer :
 
 ##### * Without streaming :
+
+Consuming data will be performed by **"pure-kafka-consumer"** :
+
 ```json
 {
   "route": {
@@ -424,6 +461,9 @@ It is available using 4 types of routes :
 - **"offset"** could have one of these values **earliest** and **latest**
 
 ##### * With streaming :
+
+Consuming data will be performed by **"pure-kafka-streams-consumer"** :
+
 ```json
 {
   "route": {
@@ -455,6 +495,9 @@ It is available using 4 types of routes :
 #### b- Spark Kafka Plugin Consumer :
 
 ##### * Without streaming :
+
+Consuming data will be performed by **"spark-kafka-plugin-consumer"** :
+
 ```json
 {
   "route": {
@@ -483,6 +526,9 @@ It is available using 4 types of routes :
 - **"offset"** could have one of these values **earliest** and **latest**
 
 ##### * With streaming :
+
+Consuming data will be performed by **"spark-kafka-plugin-streams-consumer"** :
+
 ```json
 {
   "route": {
