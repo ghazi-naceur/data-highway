@@ -368,7 +368,10 @@ Publishing data will be performed by **"pure-kafka-streams-producer"** :
     "broker-urls": "your-kafka-brokers-with-its-ports-separated-with-commas",
     "kafka-mode": {
       "type": "pure-kafka-streams-producer",
-      "stream-app-id": "stream-app-name"
+      "stream-app-id": "stream-app-name",
+      "offset": {
+        "type": "offset-to-consume-from"
+      }
     }
   }
 }
@@ -408,7 +411,10 @@ Publishing data will be performed by **"spark-kafka-plugin-streams-producer"** :
     "out": "your-output-kafka-topic",
     "broker-urls": "your-kafka-brokers-with-its-ports-separated-with-commas",
     "kafka-mode": {
-      "type": "spark-kafka-plugin-streams-producer"
+      "type": "spark-kafka-plugin-streams-producer",
+      "offset": {
+        "type": "offset-to-consume-from"
+      }
     }
   }
 }

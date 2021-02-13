@@ -7,10 +7,11 @@ import java.util.{Properties, UUID}
 import io.oss.data.highway.model.{
   JSON,
   KafkaMode,
+  Offset,
   PureKafkaProducer,
   PureKafkaStreamsProducer,
-  SparkKafkaPluginStreamsProducer,
-  SparkKafkaPluginProducer
+  SparkKafkaPluginProducer,
+  SparkKafkaPluginStreamsProducer
 }
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils, KafkaUtils}
 import org.apache.kafka.common.serialization.{Serdes, StringSerializer}
@@ -23,6 +24,7 @@ import cats.implicits._
 import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.model.DataHighwayError.KafkaError
 import monix.execution.Scheduler.{global => scheduler}
+import org.apache.kafka.clients.consumer.ConsumerConfig
 
 import scala.concurrent.duration._
 import java.io.File
@@ -59,8 +61,8 @@ class KafkaSink {
     val prod = new KafkaProducer[String, String](props)
     KafkaUtils.verifyTopicExistence(topic, brokers, enableTopicCreation = true)
     kafkaMode match {
-      case PureKafkaStreamsProducer(streamAppId) =>
-        runStream(streamAppId, input, brokers, topic)
+      case PureKafkaStreamsProducer(streamAppId, offset) =>
+        runStream(streamAppId, input, brokers, topic, offset)
 
       case PureKafkaProducer =>
         Either.catchNonFatal {
@@ -70,7 +72,7 @@ class KafkaSink {
           }
         }
 
-      case SparkKafkaPluginStreamsProducer =>
+      case SparkKafkaPluginStreamsProducer(offset) =>
         Either.catchNonFatal {
           val thread = new Thread {
             override def run() {
@@ -79,7 +81,8 @@ class KafkaSink {
                                                  brokers,
                                                  topic,
                                                  checkpointFolder,
-                                                 sparkConfig)
+                                                 sparkConfig,
+                                                 offset)
             }
           }
           thread.start()
@@ -140,7 +143,6 @@ class KafkaSink {
     * @param producer The Kafka Producer
     * @param bootstrapServers The kafka brokers urls
     * @param outputTopic The output topic
-    * @param intermediateTopic The intermediate kafka topic
     * @param checkpointFolder The checkpoint folder
     * @param sparkConfig The Spark configuration
     * @return Unit, otherwise an Error
@@ -151,12 +153,13 @@ class KafkaSink {
       bootstrapServers: String,
       outputTopic: String,
       checkpointFolder: String,
-      sparkConfig: SparkConfigs): Either[Throwable, Unit] = {
+      sparkConfig: SparkConfigs,
+      offset: Offset): Either[Throwable, Unit] = {
     Either.catchNonFatal {
       DataFrameUtils(sparkConfig).sparkSession.readStream
         .format("kafka")
         .option("kafka.bootstrap.servers", bootstrapServers)
-        .option("startingOffsets", "latest")
+        .option("startingOffsets", offset.value)
         .option("subscribe", input)
         .load()
         .selectExpr("CAST(value AS STRING)")
@@ -183,7 +186,8 @@ class KafkaSink {
       streamAppId: String,
       intermediateTopic: String,
       bootstrapServers: String,
-      streamsOutputTopic: String): Either[Throwable, ShutdownHookThread] = {
+      streamsOutputTopic: String,
+      offset: Offset): Either[Throwable, ShutdownHookThread] = {
     Either.catchNonFatal {
       import org.apache.kafka.streams.scala.ImplicitConversions._
       import org.apache.kafka.streams.scala.Serdes._
@@ -195,6 +199,8 @@ class KafkaSink {
                 Serdes.String().getClass)
       props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG,
                 Serdes.String().getClass)
+      props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, offset.value)
+
       val builder = new StreamsBuilder
 
       val dataKStream = builder.stream[String, String](intermediateTopic)

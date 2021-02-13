@@ -6,7 +6,10 @@
     "out" : "output-kafka-topic-name",
     "broker-urls" : "kafka-broker:kafka-port",
     "kafka-mode": {
-      "type": "spark-kafka-plugin-streams-producer"
+      "type": "spark-kafka-plugin-streams-producer",
+      "offset": {
+        "type": "offset-to-consume-from"
+      }
     }
   }
 }
