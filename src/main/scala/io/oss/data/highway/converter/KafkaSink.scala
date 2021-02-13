@@ -64,10 +64,10 @@ class KafkaSink {
 
       case PureKafkaProducer =>
         Either.catchNonFatal {
-          //          scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
-          publishPathContent(input, topic, prod)
-          FilesUtils.deleteFolder(input)
-          //          }
+          scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
+            publishPathContent(input, topic, prod)
+            FilesUtils.deleteFolder(input)
+          }
         }
 
       case SparkKafkaPluginStreamsProducer =>
