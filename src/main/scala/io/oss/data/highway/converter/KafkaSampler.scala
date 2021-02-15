@@ -59,7 +59,6 @@ object KafkaSampler {
                        dataType: Option[DataType],
                        kafkaMode: KafkaMode,
                        brokers: String,
-                       offset: Offset,
                        consGroup: String,
                        sparkConfig: SparkConfigs): Either[Throwable, Unit] = {
     val session = DataFrameUtils(sparkConfig).sparkSession
@@ -67,15 +66,15 @@ object KafkaSampler {
     KafkaUtils.verifyTopicExistence(in, brokers, enableTopicCreation = false)
     val ext = computeOutputExtension(dataType)
     kafkaMode match {
-      case PureKafkaStreamsConsumer(streamAppId) =>
+      case PureKafkaStreamsConsumer(streamAppId, offset) =>
         sinkWithPureKafkaStreams(in, out, brokers, offset, ext, streamAppId)
 
-      case PureKafkaConsumer =>
+      case PureKafkaConsumer(offset: Offset) =>
         Either.catchNonFatal(
           scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
             sinkWithPureKafka(in, out, brokers, offset, consGroup, ext)
           })
-      case SparkKafkaPluginStreamsConsumer =>
+      case SparkKafkaPluginStreamsConsumer(offset) =>
         Either.catchNonFatal {
           val thread = new Thread {
             override def run() {
@@ -89,7 +88,7 @@ object KafkaSampler {
           }
           thread.start()
         }
-      case SparkKafkaPluginConsumer =>
+      case SparkKafkaPluginConsumer(offset) =>
         Either.catchNonFatal(
           sinkViaSparkKafkaPlugin(session, in, out, brokers, offset, ext)
         )

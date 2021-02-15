@@ -21,9 +21,8 @@ object SparkKafkaConsumerPluginTest {
     KafkaSampler.consumeFromTopic(in,
                                   out,
                                   Some(JSON),
-                                  SparkKafkaPluginConsumer,
+                                  SparkKafkaPluginConsumer(Earliest),
                                   "localhost:9092",
-                                  Earliest,
                                   "consumer-group",
                                   sparkConfig)
   }

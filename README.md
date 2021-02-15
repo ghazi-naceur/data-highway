@@ -450,10 +450,10 @@ Consuming data will be performed by **"pure-kafka-consumer"** :
     },
     "broker-urls": "your-kafka-brokers-with-its-ports-separated-with-commas",
     "kafka-mode": {
-      "type": "pure-kafka-consumer"
-    },
-    "offset": {
-      "type": "offset-to-consume-from"
+      "type": "pure-kafka-consumer",
+      "offset": {
+        "type": "offset-to-consume-from"
+      }
     },
     "consumer-group": "your-consumer-group-name"
   }
@@ -482,10 +482,10 @@ Consuming data will be performed by **"pure-kafka-streams-consumer"** :
     "broker-urls": "your-kafka-brokers-with-its-ports-separated-with-commas",
     "kafka-mode": {
       "type": "pure-kafka-streams-consumer",
-      "stream-app-id": "stream-app-name"
-    },
-    "offset": {
-      "type": "offset-to-consume-from"
+      "stream-app-id": "stream-app-name",
+      "offset": {
+        "type": "offset-to-consume-from"
+      }
     },
     "consumer-group": "your-consumer-group-name"
   }
@@ -515,10 +515,10 @@ Consuming data will be performed by **"spark-kafka-plugin-consumer"** :
     },
     "broker-urls": "your-kafka-brokers-with-its-ports-separated-with-commas",
     "kafka-mode": {
-      "type": "spark-kafka-plugin-consumer"
-    },
-    "offset": {
-      "type": "offset-to-consume-from"
+      "type": "spark-kafka-plugin-consumer",
+      "offset": {
+        "type": "offset-to-consume-from"
+      }
     },
     "consumer-group": "your-consumer-group-name"
   }
@@ -546,10 +546,10 @@ Consuming data will be performed by **"spark-kafka-plugin-streams-consumer"** :
     },
     "broker-urls": "your-kafka-brokers-with-its-ports-separated-with-commas",
     "kafka-mode": {
-      "type": "spark-kafka-plugin-streams-consumer"
-    },
-    "offset": {
-      "type": "earliest"
+      "type": "spark-kafka-plugin-streams-consumer",
+      "offset": {
+        "type": "earliest"
+      }
     },
     "consumer-group": "your-consumer-group-name"
   }

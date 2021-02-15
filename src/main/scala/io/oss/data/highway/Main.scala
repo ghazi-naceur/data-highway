@@ -63,19 +63,12 @@ object Main {
         AvroSink.handleAvroChannel(in, out, Overwrite, JSON, sparkConf)
       case CsvToAvro(in, out) =>
         AvroSink.handleAvroChannel(in, out, Overwrite, CSV, sparkConf)
-      case KafkaToFile(in,
-                       out,
-                       dataType,
-                       brokers,
-                       kafkaMode,
-                       offset,
-                       consGroup) =>
+      case KafkaToFile(in, out, dataType, brokers, kafkaMode, consGroup) =>
         KafkaSampler.consumeFromTopic(in,
                                       out,
                                       dataType,
                                       kafkaMode,
                                       brokers,
-                                      offset,
                                       consGroup,
                                       sparkConf)
       case FileToKafka(in, out, brokerUrl, kafkaMode) =>

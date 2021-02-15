@@ -9,10 +9,10 @@
     },
     "broker-urls" : "kafka-broker-url:kafka-port",
     "kafka-mode" : {
-      "type" : "spark-kafka-plugin-streams-consumer"
-    },
-    "offset" : {
-      "type": "earliest"
+      "type" : "spark-kafka-plugin-streams-consumer",
+      "offset" : {
+        "type": "offset-to-consume-from"
+      }
     },
     "consumer-group" : "consumer-group-name"
   }

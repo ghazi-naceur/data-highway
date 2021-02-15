@@ -15,9 +15,8 @@ object KafkaStreamingConsumerTest {
     KafkaSampler.consumeFromTopic(in,
                                   out,
                                   Some(JSON),
-                                  PureKafkaConsumer,
+                                  PureKafkaConsumer(Earliest),
                                   "localhost:9092",
-                                  Earliest,
                                   "consumer-group",
                                   sparkConfig)
   }

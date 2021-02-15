@@ -2,12 +2,7 @@ package io.oss.data.highway.z.kafka.integration.tests
 
 import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.converter.KafkaSink
-import io.oss.data.highway.model.{
-  Latest,
-  PureKafkaProducer,
-  PureKafkaStreamsProducer,
-  WARN
-}
+import io.oss.data.highway.model.{Latest, PureKafkaStreamsProducer, WARN}
 import org.apache.log4j.BasicConfigurator
 
 object SimpleProducerTest {

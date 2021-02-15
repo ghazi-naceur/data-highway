@@ -10,10 +10,10 @@
     "broker-urls" : "kafka-broker-url:kafka-port",
     "kafka-mode" : {
       "type" : "pure-kafka-streams-consumer",
-      "stream-app-id" : "stream-app-name"
-    },
-    "offset" : {
-      "type": "earliest"
+      "stream-app-id" : "stream-app-name",
+      "offset" : {
+        "type": "offset-to-consume-from"
+      }
     },
     "consumer-group" : "consumer-group-name"
   }
