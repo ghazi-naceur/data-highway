@@ -59,7 +59,6 @@ object KafkaSampler {
                        dataType: Option[DataType],
                        kafkaMode: KafkaMode,
                        brokers: String,
-                       consGroup: String,
                        sparkConfig: SparkConfigs): Either[Throwable, Unit] = {
     val session = DataFrameUtils(sparkConfig).sparkSession
 
@@ -69,7 +68,7 @@ object KafkaSampler {
       case PureKafkaStreamsConsumer(streamAppId, offset) =>
         sinkWithPureKafkaStreams(in, out, brokers, offset, ext, streamAppId)
 
-      case PureKafkaConsumer(offset: Offset) =>
+      case PureKafkaConsumer(consGroup, offset) =>
         Either.catchNonFatal(
           scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
             sinkWithPureKafka(in, out, brokers, offset, consGroup, ext)
@@ -252,7 +251,6 @@ object KafkaSampler {
       offset: Offset,
       consumerGroup: String,
       extension: String): Either[DataHighwayError.KafkaError, Unit] = {
-    // todo offset == none => Undefined offset with no reset policy for partitions:
     KafkaTopicConsumer
       .consume(in, brokerUrls, offset, consumerGroup)
       .map(consumed => {

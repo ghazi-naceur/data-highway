@@ -38,8 +38,7 @@ case class KafkaToFile(in: String,
                        out: String,
                        dataType: Option[DataType],
                        brokerUrls: String,
-                       kafkaMode: KafkaMode,
-                       consumerGroup: String)
+                       kafkaMode: KafkaMode)
     extends Route
 
 case class KafkaToKafka(in: String,

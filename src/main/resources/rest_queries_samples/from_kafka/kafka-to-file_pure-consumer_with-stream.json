@@ -14,7 +14,6 @@
       "offset" : {
         "type": "offset-to-consume-from"
       }
-    },
-    "consumer-group" : "consumer-group-name"
+    }
   }
 }

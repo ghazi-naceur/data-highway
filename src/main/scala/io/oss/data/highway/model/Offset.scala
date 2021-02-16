@@ -11,7 +11,3 @@ case object Latest extends Offset {
 case object Earliest extends Offset {
   override val value: String = "earliest"
 }
-
-case object None extends Offset {
-  override val value: String = "none"
-}

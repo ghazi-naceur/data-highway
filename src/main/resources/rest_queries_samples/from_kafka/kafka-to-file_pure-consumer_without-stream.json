@@ -10,10 +10,10 @@
     "broker-urls" : "kafka-broker:kafka-port",
     "kafka-mode" : {
       "type" : "pure-kafka-consumer",
+      "consumer-group" : "consumer-group-name",
       "offset" : {
         "type": "offset-to-consume-from"
       }
-    },
-    "consumer-group" : "consumer-group-name"
+    }
   }
 }

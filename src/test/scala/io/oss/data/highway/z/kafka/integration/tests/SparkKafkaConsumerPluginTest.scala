@@ -23,7 +23,6 @@ object SparkKafkaConsumerPluginTest {
                                   Some(JSON),
                                   SparkKafkaPluginConsumer(Earliest),
                                   "localhost:9092",
-                                  "consumer-group",
                                   sparkConfig)
   }
 }
