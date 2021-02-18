@@ -18,8 +18,7 @@ object SparkKafkaProducerPluginTest {
 
     new KafkaSink().publishToTopic(in,
                                    out,
-                                   brokerUrl,
-                                   SparkKafkaPluginProducer,
+                                   SparkKafkaPluginProducer("localhost:9092"),
                                    sparkConfig)
   }
 }

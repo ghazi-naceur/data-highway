@@ -2,11 +2,7 @@ package io.oss.data.highway.z.kafka.integration.tests
 
 import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.converter.KafkaSink
-import io.oss.data.highway.model.{
-  PureKafkaProducer,
-  PureKafkaStreamsProducer,
-  WARN
-}
+import io.oss.data.highway.model.{Latest, PureKafkaStreamsProducer, WARN}
 import org.apache.log4j.BasicConfigurator
 
 object SimpleProducerTest {
@@ -20,10 +16,10 @@ object SimpleProducerTest {
     val out = "kafka-to-json-topic-2"
     val brokerUrl = "localhost:9092"
 
-    new KafkaSink().publishToTopic(in,
-                                   out,
-                                   brokerUrl,
-                                   PureKafkaStreamsProducer("stream-app-id"),
-                                   sparkConfig)
+    new KafkaSink().publishToTopic(
+      in,
+      out,
+      PureKafkaStreamsProducer("localhost:9092", "stream-app-id", Latest),
+      sparkConfig)
   }
 }

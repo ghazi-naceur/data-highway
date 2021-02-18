@@ -4,16 +4,16 @@
     "type" : "kafka-to-file",
     "in" : "input-kafka-topic-name",
     "out" : "/consumed/data/kafka/output/folder",
-    "data-type" : {
-      "type" : "json"
-    },
-    "broker-urls" : "kafka-broker:kafka-port",
     "kafka-mode" : {
-      "type" : "pure-kafka-consumer"
-    },
-    "offset" : {
-      "type": "earliest"
-    },
-    "consumer-group" : "consumer-group-name"
+      "type" : "pure-kafka-consumer",
+      "brokers" : "kafka-broker:kafka-port",
+      "consumer-group" : "consumer-group-name",
+      "offset" : {
+        "type": "offset-to-consume-from"
+      },
+      "data-type" : {
+        "type" : "json"
+      }
+    }
   }
 }

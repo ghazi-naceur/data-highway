@@ -4,9 +4,12 @@
     "type": "kafka-to-kafka",
     "in" : "input-kafka-topic-name",
     "out" : "output-kafka-topic-name",
-    "broker-urls" : "kafka-broker:kafka-port",
     "kafka-mode": {
-      "type": "spark-kafka-plugin-streams-producer"
+      "type": "spark-kafka-plugin-streams-producer",
+      "brokers" : "kafka-broker:kafka-port",
+      "offset": {
+        "type": "offset-to-consume-from"
+      }
     }
   }
 }

@@ -346,14 +346,14 @@ Publishing data will be performed by **"pure-kafka-producer"** :
     "type": "file-to-kafka",
     "in": "your-input-folder-containing-json-files",
     "out": "your-output-kafka-topic",
-    "broker-urls": "your-kafka-brokers-with-its-ports-separated-with-commas",
     "kafka-mode": {
-      "type": "pure-kafka-producer"
+      "type": "pure-kafka-producer",
+      "brokers": "your-kafka-brokers-with-its-ports-separated-with-commas"
     }
   }
 }
 ```
-The key **"brokers-urls"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
+The key **"brokers"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
 
 ##### * Kafka to Kafka :
 
@@ -365,15 +365,18 @@ Publishing data will be performed by **"pure-kafka-streams-producer"** :
     "type": "kafka-to-kafka",
     "in": "your-input-kafka-topic",
     "out": "your-output-kafka-topic",
-    "broker-urls": "your-kafka-brokers-with-its-ports-separated-with-commas",
     "kafka-mode": {
       "type": "pure-kafka-streams-producer",
-      "stream-app-id": "stream-app-name"
+      "brokers": "your-kafka-brokers-with-its-ports-separated-with-commas",
+      "stream-app-id": "stream-app-name",
+      "offset": {
+        "type": "offset-to-consume-from"
+      }
     }
   }
 }
 ```
-The key **"brokers-urls"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
+The key **"brokers"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
 
 #### b- Spark Kafka Plugin Producer :
 
@@ -387,14 +390,14 @@ Publishing data will be performed by **"spark-kafka-plugin-producer"** :
     "type": "file-to-kafka",
     "in": "your-input-folder-containing-json-files",
     "out": "your-output-kafka-topic",
-    "broker-urls": "your-kafka-brokers-with-its-ports-separated-with-commas",
     "kafka-mode": {
-      "type": "spark-kafka-plugin-producer"
+      "type": "spark-kafka-plugin-producer",
+      "brokers": "your-kafka-brokers-with-its-ports-separated-with-commas"
     }
   }
 }
 ```
-The key **"brokers-urls"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
+The key **"brokers"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
 
 ##### * Kafka to Kafka :
 
@@ -406,14 +409,17 @@ Publishing data will be performed by **"spark-kafka-plugin-streams-producer"** :
     "type": "kafka-to-kafka",
     "in": "your-input-kafka-topic",
     "out": "your-output-kafka-topic",
-    "broker-urls": "your-kafka-brokers-with-its-ports-separated-with-commas",
     "kafka-mode": {
-      "type": "spark-kafka-plugin-streams-producer"
+      "type": "spark-kafka-plugin-streams-producer",
+      "brokers": "your-kafka-brokers-with-its-ports-separated-with-commas",
+      "offset": {
+        "type": "offset-to-consume-from"
+      }
     }
   }
 }
 ```
-The key **"brokers-urls"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
+The key **"brokers"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
 
 ## 6- Consume data from Kafka :
 
@@ -439,24 +445,24 @@ Consuming data will be performed by **"pure-kafka-consumer"** :
     "type": "kafka-to-file",
     "in": "topic-name",
     "out": "your-output-folder-that-will-contain-your-generated-json-files",
-    "data-type": {
-      "type": "the-desired-datatype-of-the-generated-files"
-    },
-    "broker-urls": "your-kafka-brokers-with-its-ports-separated-with-commas",
     "kafka-mode": {
-      "type": "pure-kafka-consumer"
-    },
-    "offset": {
-      "type": "offset-to-consume-from"
-    },
-    "consumer-group": "your-consumer-group-name"
+      "type": "pure-kafka-consumer",
+      "brokers": "your-kafka-brokers-with-its-ports-separated-with-commas",
+      "consumer-group": "consumer-group-name",
+      "offset": {
+        "type": "offset-to-consume-from"
+      },
+      "data-type": {
+        "type": "the-desired-datatype-of-the-generated-files"
+      }
+    }
   }
 }
 ```
 - **"data-type"** is an optional field. Its accepted values are json and avro (json is the default value, if not set).
   It will be set as an extension for the generated output files.
   
-- **"brokers-urls"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
+- **"brokers"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
 
 - **"offset"** could have one of these values **earliest** and **latest**
 
@@ -470,25 +476,24 @@ Consuming data will be performed by **"pure-kafka-streams-consumer"** :
     "type": "kafka-to-file",
     "in": "topic-name",
     "out": "your-output-folder-that-will-contain-your-generated-json-files",
-    "data-type": {
-      "type": "the-desired-datatype-of-the-generated-files"
-    },
-    "broker-urls": "your-kafka-brokers-with-its-ports-separated-with-commas",
     "kafka-mode": {
       "type": "pure-kafka-streams-consumer",
-      "stream-app-id": "stream-app-name"
-    },
-    "offset": {
-      "type": "offset-to-consume-from"
-    },
-    "consumer-group": "your-consumer-group-name"
+      "brokers": "your-kafka-brokers-with-its-ports-separated-with-commas",
+      "stream-app-id": "stream-app-name",
+      "offset": {
+        "type": "offset-to-consume-from"
+      },
+      "data-type": {
+        "type": "the-desired-datatype-of-the-generated-files"
+      }
+    }
   }
 }
 ```
 - **"data-type"** is an optional field. Its accepted values are json and avro (json is the default value, if not set).
   It will be set as an extension for the generated output files.
 
-- **"brokers-urls"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
+- **"brokers"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
 
 - **"offset"** could have one of these values **earliest** and **latest**
 
@@ -504,24 +509,23 @@ Consuming data will be performed by **"spark-kafka-plugin-consumer"** :
     "type": "kafka-to-file",
     "in": "topic-name",
     "out": "your-output-folder-that-will-contain-your-generated-json-files",
-    "data-type": {
-      "type": "the-desired-datatype-of-the-generated-files"
-    },
-    "broker-urls": "your-kafka-brokers-with-its-ports-separated-with-commas",
     "kafka-mode": {
-      "type": "spark-kafka-plugin-consumer"
-    },
-    "offset": {
-      "type": "offset-to-consume-from"
-    },
-    "consumer-group": "your-consumer-group-name"
+      "type": "spark-kafka-plugin-consumer",
+      "brokers": "your-kafka-brokers-with-its-ports-separated-with-commas",
+      "offset": {
+        "type": "offset-to-consume-from"
+      },
+      "data-type": {
+        "type": "the-desired-datatype-of-the-generated-files"
+      }
+    }
   }
 }
 ```
 - **"data-type"** is an optional field. Its accepted values are json and avro (json is the default value, if not set).
   It will be set as an extension for the generated output files.
 
-- **"brokers-urls"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
+- **"brokers"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
 
 - **"offset"** could have one of these values **earliest** and **latest**
 
@@ -535,24 +539,23 @@ Consuming data will be performed by **"spark-kafka-plugin-streams-consumer"** :
     "type": "kafka-to-file",
     "in": "topic-name",
     "out": "your-output-folder-that-will-contain-your-generated-json-files",
-    "data-type": {
-      "type": "the-desired-datatype-of-the-generated-files"
-    },
-    "broker-urls": "your-kafka-brokers-with-its-ports-separated-with-commas",
     "kafka-mode": {
-      "type": "spark-kafka-plugin-streams-consumer"
-    },
-    "offset": {
-      "type": "earliest"
-    },
-    "consumer-group": "your-consumer-group-name"
+      "type": "spark-kafka-plugin-streams-consumer",
+      "brokers": "your-kafka-brokers-with-its-ports-separated-with-commas",
+      "offset": {
+        "type": "earliest"
+      },
+      "data-type": {
+        "type": "the-desired-datatype-of-the-generated-files"
+      }
+    }
   }
 }
 ```
 - **"data-type"** is an optional field. Its accepted values are json and avro (json is the default value, if not set).
   It will be set as an extension for the generated output files.
 
-- **"brokers-urls"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
+- **"brokers"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
 
 - **"offset"** could have one of these values **earliest** and **latest**
 

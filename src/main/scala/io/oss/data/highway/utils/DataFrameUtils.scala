@@ -13,11 +13,6 @@ case class DataFrameUtils(sparkConf: SparkConfigs) {
       .builder()
       .appName(sparkConf.appName)
       .master(sparkConf.masterUrl)
-      //      .config("spark.executor.memory", "4g")
-      //      .config("spark.driver.memory", "4g")
-      //      .config("spark.memory.offHeap.enabled", true)
-      //      .config("spark.memory.offHeap.size", "4g")
-      //      .config("spark.sql.autoBroadcastJoinThreshold", "30485760")
       .getOrCreate()
     ss.sparkContext.setLogLevel(sparkConf.logLevel.value)
     ss

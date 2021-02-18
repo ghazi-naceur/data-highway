@@ -22,10 +22,7 @@ case class AvroToJson(in: String, out: String) extends Route
 
 case class CsvToJson(in: String, out: String) extends Route
 
-case class FileToKafka(in: String,
-                       out: String,
-                       brokerUrls: String,
-                       kafkaMode: KafkaMode)
+case class FileToKafka(in: String, out: String, kafkaMode: KafkaMode)
     extends Route
 
 case class ParquetToAvro(in: String, out: String) extends Route
@@ -37,14 +34,8 @@ case class CsvToAvro(in: String, out: String) extends Route
 case class KafkaToFile(in: String,
                        out: String,
                        dataType: Option[DataType],
-                       brokerUrls: String,
-                       kafkaMode: KafkaMode,
-                       offset: Offset,
-                       consumerGroup: String)
+                       kafkaMode: KafkaMode)
     extends Route
 
-case class KafkaToKafka(in: String,
-                        out: String,
-                        brokerUrls: String,
-                        kafkaMode: KafkaMode)
+case class KafkaToKafka(in: String, out: String, kafkaMode: KafkaMode)
     extends Route

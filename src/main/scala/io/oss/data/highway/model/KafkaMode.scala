@@ -1,19 +1,33 @@
 package io.oss.data.highway.model
 
-sealed trait KafkaMode
+sealed trait KafkaMode {
+  val brokers: String
+}
 
-case object SparkKafkaPluginConsumer extends KafkaMode // one-shot, because of earliest restriction
+case class SparkKafkaPluginConsumer(brokers: String, offset: Offset)
+    extends KafkaMode
 
-case object SparkKafkaPluginStreamsConsumer extends KafkaMode
+case class SparkKafkaPluginStreamsConsumer(brokers: String, offset: Offset)
+    extends KafkaMode
 
-case object SparkKafkaPluginProducer extends KafkaMode
+case class SparkKafkaPluginProducer(brokers: String) extends KafkaMode
 
-case object PureKafkaConsumer extends KafkaMode
+case class PureKafkaConsumer(brokers: String,
+                             consumerGroup: String,
+                             offset: Offset)
+    extends KafkaMode
 
-case class PureKafkaStreamsConsumer(streamAppId: String) extends KafkaMode
+case class PureKafkaStreamsConsumer(brokers: String,
+                                    streamAppId: String,
+                                    offset: Offset)
+    extends KafkaMode
 
-case object PureKafkaProducer extends KafkaMode
+case class PureKafkaProducer(brokers: String) extends KafkaMode
 
-case object SparkKafkaPluginStreamsProducer extends KafkaMode
+case class SparkKafkaPluginStreamsProducer(brokers: String, offset: Offset)
+    extends KafkaMode
 
-case class PureKafkaStreamsProducer(streamAppId: String) extends KafkaMode
+case class PureKafkaStreamsProducer(brokers: String,
+                                    streamAppId: String,
+                                    offset: Offset)
+    extends KafkaMode

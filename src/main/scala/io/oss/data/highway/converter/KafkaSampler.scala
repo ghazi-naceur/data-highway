@@ -5,7 +5,6 @@ import java.time.Duration
 import java.util.UUID
 import io.oss.data.highway.model.{
   AVRO,
-  DataHighwayError,
   DataType,
   Earliest,
   JSON,
@@ -32,6 +31,7 @@ import monix.execution.Scheduler.{global => scheduler}
 
 import scala.concurrent.duration._
 import cats.implicits._
+import io.oss.data.highway.model.DataHighwayError.KafkaError
 
 import scala.jdk.CollectionConverters._
 import scala.util.Try
@@ -49,33 +49,30 @@ object KafkaSampler {
     * @param out The generated file
     * @param dataType The desired data type for the generated file (the extension)
     * @param kafkaMode The Kafka Mode
-    * @param brokers The kafka brokers urls
-    * @param offset The consumer offset : Latest, Earliest, None
-    * @param consGroup The consumer group
+    * @param sparkConfig The Spark configuration
     * @return a Unit, otherwise a Throwable
     */
   def consumeFromTopic(in: String,
                        out: String,
                        dataType: Option[DataType],
                        kafkaMode: KafkaMode,
-                       brokers: String,
-                       offset: Offset,
-                       consGroup: String,
                        sparkConfig: SparkConfigs): Either[Throwable, Unit] = {
     val session = DataFrameUtils(sparkConfig).sparkSession
 
-    KafkaUtils.verifyTopicExistence(in, brokers, enableTopicCreation = false)
+    KafkaUtils.verifyTopicExistence(in,
+                                    kafkaMode.brokers,
+                                    enableTopicCreation = false)
     val ext = computeOutputExtension(dataType)
     kafkaMode match {
-      case PureKafkaStreamsConsumer(streamAppId) =>
+      case PureKafkaStreamsConsumer(brokers, streamAppId, offset) =>
         sinkWithPureKafkaStreams(in, out, brokers, offset, ext, streamAppId)
 
-      case PureKafkaConsumer =>
+      case PureKafkaConsumer(brokers, consGroup, offset) =>
         Either.catchNonFatal(
           scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
             sinkWithPureKafka(in, out, brokers, offset, consGroup, ext)
           })
-      case SparkKafkaPluginStreamsConsumer =>
+      case SparkKafkaPluginStreamsConsumer(brokers, offset) =>
         Either.catchNonFatal {
           val thread = new Thread {
             override def run() {
@@ -89,7 +86,7 @@ object KafkaSampler {
           }
           thread.start()
         }
-      case SparkKafkaPluginConsumer =>
+      case SparkKafkaPluginConsumer(brokers, offset) =>
         Either.catchNonFatal(
           sinkViaSparkKafkaPlugin(session, in, out, brokers, offset, ext)
         )
@@ -115,7 +112,7 @@ object KafkaSampler {
   }
 
   /**
-    * Sinks topic content into files using a Spark-Kafka-Plugin Consumer
+    * Sinks topic content into files using a [[io.oss.data.highway.model.SparkKafkaPluginConsumer]]
     *
     * @param session The Spark session
     * @param in The input kafka topic
@@ -123,6 +120,7 @@ object KafkaSampler {
     * @param brokerUrls The kafka brokers urls
     * @param offset The kafka consumer offset
     * @param extension The output files extension
+    * @return Unit
     */
   private def sinkViaSparkKafkaPlugin(session: SparkSession,
                                       in: String,
@@ -157,7 +155,7 @@ object KafkaSampler {
   }
 
   /**
-    * Sinks topic content into files using a Spark-Kafka-Plugin Streaming Consumer
+    * Sinks topic content into files using a [[io.oss.data.highway.model.SparkKafkaPluginStreamsConsumer]]
     *
     * @param session The Spark session
     * @param in The input kafka topic
@@ -165,6 +163,7 @@ object KafkaSampler {
     * @param brokerUrls The kafka brokers urls
     * @param offset The kafka consumer offset
     * @param extension The output files extension
+    * @return Unit
     */
   private def sinkViaSparkKafkaStreamsPlugin(session: SparkSession,
                                              in: String,
@@ -197,7 +196,7 @@ object KafkaSampler {
   }
 
   /**
-    * Sinks topic content into files using a Pure Kafka Streaming Consumer
+    * Sinks topic content into files using a [[io.oss.data.highway.model.PureKafkaStreamsConsumer]]
     *
     * @param in The input kafka topic
     * @param out The output folder
@@ -205,6 +204,7 @@ object KafkaSampler {
     * @param offset The kafka consumer offset
     * @param extension The output files extension
     * @param streamAppId The identifier of the streaming application
+    * @return a Unit, otherwise an Error
     */
   private def sinkWithPureKafkaStreams(
       in: String,
@@ -237,7 +237,7 @@ object KafkaSampler {
   }
 
   /**
-    * Sinks topic content into files using Pure Kafka Consumer
+    * Sinks topic content into files using a [[io.oss.data.highway.model.PureKafkaConsumer]]
     *
     * @param in The input kafka topic
     * @param out The output folder
@@ -245,15 +245,14 @@ object KafkaSampler {
     * @param offset The kafka consumer offset
     * @param consumerGroup The consumer group
     * @param extension The output files extension
+    * @return a Unit, otherwise an Error
     */
-  private def sinkWithPureKafka(
-      in: String,
-      out: String,
-      brokerUrls: String,
-      offset: Offset,
-      consumerGroup: String,
-      extension: String): Either[DataHighwayError.KafkaError, Unit] = {
-    // todo offset == none => Undefined offset with no reset policy for partitions:
+  private def sinkWithPureKafka(in: String,
+                                out: String,
+                                brokerUrls: String,
+                                offset: Offset,
+                                consumerGroup: String,
+                                extension: String): Either[KafkaError, Unit] = {
     KafkaTopicConsumer
       .consume(in, brokerUrls, offset, consumerGroup)
       .map(consumed => {
