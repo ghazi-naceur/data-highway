@@ -4,15 +4,15 @@
     "type" : "kafka-to-file",
     "in" : "input-kafka-topic-name",
     "out" : "/consumed/data/kafka/output/folder",
-    "data-type" : {
-      "type" : "json"
-    },
-    "broker-urls" : "kafka-broker-url:kafka-port",
     "kafka-mode" : {
       "type" : "pure-kafka-streams-consumer",
+      "brokers" : "kafka-broker-url:kafka-port",
       "stream-app-id" : "stream-app-name",
       "offset" : {
         "type": "offset-to-consume-from"
+      },
+      "data-type" : {
+        "type" : "json"
       }
     }
   }

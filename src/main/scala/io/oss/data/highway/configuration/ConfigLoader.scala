@@ -7,6 +7,10 @@ import pureconfig.generic.semiauto._
 
 case class ConfigLoader() {
 
+  /**
+    * Loads Data Highway Route configurations
+    * @return a Route, otherwise a BulkErrorAccumulator
+    */
   def loadConf(): Either[BulkErrorAccumulator, Route] = {
     import pureconfig._
     import pureconfig.generic.auto._ // To be kept, even though intellij didn't recognize its usage
@@ -20,6 +24,10 @@ case class ConfigLoader() {
       .leftMap(thrs => BulkErrorAccumulator(thrs))
   }
 
+  /**
+    * Loads Spark configurations
+    * @return SparkConfigs, otherwise throws a RuntimeException
+    */
   def loadSparkConf(): SparkConfigs = {
     import pureconfig._
     import pureconfig.generic.auto._ // To be kept, even though intellij didn't recognize its usage

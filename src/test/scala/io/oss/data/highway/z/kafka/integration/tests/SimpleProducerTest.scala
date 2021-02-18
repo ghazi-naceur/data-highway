@@ -19,8 +19,7 @@ object SimpleProducerTest {
     new KafkaSink().publishToTopic(
       in,
       out,
-      brokerUrl,
-      PureKafkaStreamsProducer("stream-app-id", Latest),
+      PureKafkaStreamsProducer("localhost:9092", "stream-app-id", Latest),
       sparkConfig)
   }
 }

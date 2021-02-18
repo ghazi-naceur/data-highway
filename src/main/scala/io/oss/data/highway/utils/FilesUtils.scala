@@ -18,7 +18,8 @@ object FilesUtils {
     * Gets files' names located in a provided path
     *
     * @param path The provided path
-    * @return a list of files names without the extension
+    * @param extensions a Sequence of extensions
+    * @return a list of files names without the extension, otherwise an Error
     */
   def getFilesFromPath(
       path: String,
@@ -35,6 +36,7 @@ object FilesUtils {
     * Lists files recursively from a path
     *
     * @param path The provided path
+    * @param extensions a Sequence of extensions
     * @return a Seq of files
     */
   def listFilesRecursively(path: File, extensions: Seq[String]): Seq[File] = {
@@ -66,7 +68,7 @@ object FilesUtils {
     * Lists folders recursively from a path
     *
     * @param path The provided path
-    * @return a Seq of folders
+    * @return a List of folders, otherwise an Error
     */
   def listFoldersRecursively(
       path: String): Either[ReadFileError, List[String]] = {

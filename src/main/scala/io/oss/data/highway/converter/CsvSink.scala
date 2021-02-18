@@ -23,10 +23,11 @@ object CsvSink {
     *
     * @param in The input data path
     * @param out The generated csv file path
+    * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
     * @param sparkConfig The Spark Configuration
-    * @return Unit if successful, otherwise Error
+    * @return a List of Path, otherwise an Error
     */
   def convertToCsv(in: String,
                    out: String,
@@ -58,7 +59,7 @@ object CsvSink {
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
     * @param sparkConfig The Spark Configuration
-    * @return List[Unit], otherwise Error
+    * @return List of List of Path, otherwise Error
     */
   def handleCsvChannel(
       in: String,
@@ -91,6 +92,7 @@ object CsvSink {
     * @param fileRelativePath The xlsx input file name with its relative path
     * @param sheet            The provided Xlsx Sheet
     * @param csvOutputFolder  The generated CSV output folder
+    * @return a Path, otherwise an Error
     */
   private[converter] def convertXlsxSheetToCsvFile(
       fileRelativePath: String,
@@ -145,7 +147,7 @@ object CsvSink {
     * Creates a path recursively
     *
     * @param path The provided path to be created
-    * @return the created path
+    * @return The created path
     */
   private[converter] def createPathRecursively(path: String): String = {
     val folders = path.split("/").toList
@@ -176,6 +178,7 @@ object CsvSink {
     * @param fileRelativePath The xlsx input file name with its relative path
     * @param inputExcelPath   The provided Excel file
     * @param csvOutputPath    The generated CSV output folder
+    * @return a Unit, otherwise an Error
     */
   private[converter] def convertXlsxFileToCsvFiles(
       fileRelativePath: String,
@@ -205,6 +208,7 @@ object CsvSink {
     *
     * @param inputPath  The provided Excel input folder
     * @param outputPath The generated CSV output folder
+    * @return a List of Unit, otherwise Error
     */
   def handleXlsxCsvChannel(
       inputPath: String,

@@ -19,15 +19,16 @@ object ParquetSink {
     *
     * @param in The input data path
     * @param out The generated parquet file path
+    * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
     * @param sparkConfig The Spark Configuration
-    * @return Unit if successful, otherwise Error
+    * @return a List of Path, otherwise an Error
     */
   def convertToParquet(
-      in: String, //app/data/input/mock-data-2
-      out: String, //app/data/output/mock-data-2
-      basePath: String, //app/data
+      in: String,
+      out: String,
+      basePath: String,
       saveMode: SaveMode,
       inputDataType: DataType,
       sparkConfig: SparkConfigs): Either[Throwable, List[Path]] = {
@@ -53,13 +54,14 @@ object ParquetSink {
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
     * @param sparkConfig The Spark Configuration
-    * @return List[Unit], otherwise Error
+    * @return List of List of Path, otherwise an Error
     */
-  def handleParquetChannel(in: String,
-                           out: String,
-                           saveMode: SaveMode,
-                           inputDataType: DataType,
-                           sparkConfig: SparkConfigs) = {
+  def handleParquetChannel(
+      in: String,
+      out: String,
+      saveMode: SaveMode,
+      inputDataType: DataType,
+      sparkConfig: SparkConfigs): Either[Throwable, List[List[Path]]] = {
     val basePath = new File(in).getParent
     for {
       folders <- FilesUtils.listFoldersRecursively(in)

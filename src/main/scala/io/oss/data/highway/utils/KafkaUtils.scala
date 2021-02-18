@@ -19,7 +19,7 @@ object KafkaUtils {
   /**
     * Lists the available kafka topics
     * @param brokerUrls The brokers urls
-    * @return a List of Kafka topic names
+    * @return a List of Kafka topic names and info
     */
   def listTopics(
       brokerUrls: String): List[(String, util.List[PartitionInfo])] = {
@@ -39,7 +39,7 @@ object KafkaUtils {
     * Creates a Kafka topic
     * @param topic The topic to be created
     * @param brokerUrls The kafka brokers urls
-    * @return Unit, otherwise a Throwable
+    * @return Unit, otherwise a Error
     */
   private def createTopic(topic: String,
                           brokerUrls: String): Either[Throwable, Unit] = {
@@ -59,7 +59,7 @@ object KafkaUtils {
     * Deletes a Kafka topic
     * @param topic The topic to be created
     * @param brokerUrls The kafka brokers urls
-    * @return Unit, otherwise a Throwable
+    * @return Unit, otherwise a Error
     */
   def deleteTopic(topic: String,
                   brokerUrls: String): Either[Throwable, Unit] = {

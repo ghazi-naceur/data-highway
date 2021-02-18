@@ -44,27 +44,27 @@ class KafkaSink {
     * Publishes message to Kafka topic
     * @param input The input topic or the input path that contains json data to be send
     * @param topic The output topic
-    * @param brokers The kafka brokers urls
-    * @param kafkaMode The Kafka launch mode : SimpleProducer, KafkaStreaming or SparkKafkaPlugin
+    * @param kafkaMode The Kafka launch mode
     * @param sparkConfig The Spark configuration
     * @return Any, otherwise an Error
     */
   def publishToTopic(input: String,
                      topic: String,
-                     brokers: String,
                      kafkaMode: KafkaMode,
                      sparkConfig: SparkConfigs): Either[Throwable, Any] = {
     val props = new Properties()
-    props.put("bootstrap.servers", brokers)
+    props.put("bootstrap.servers", kafkaMode.brokers)
     props.put("key.serializer", classOf[StringSerializer].getName)
     props.put("value.serializer", classOf[StringSerializer].getName)
     val prod = new KafkaProducer[String, String](props)
-    KafkaUtils.verifyTopicExistence(topic, brokers, enableTopicCreation = true)
+    KafkaUtils.verifyTopicExistence(topic,
+                                    kafkaMode.brokers,
+                                    enableTopicCreation = true)
     kafkaMode match {
-      case PureKafkaStreamsProducer(streamAppId, offset) =>
+      case PureKafkaStreamsProducer(brokers, streamAppId, offset) =>
         runStream(streamAppId, input, brokers, topic, offset)
 
-      case PureKafkaProducer =>
+      case PureKafkaProducer(_) =>
         Either.catchNonFatal {
           scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
             publishPathContent(input, topic, prod)
@@ -72,7 +72,7 @@ class KafkaSink {
           }
         }
 
-      case SparkKafkaPluginStreamsProducer(offset) =>
+      case SparkKafkaPluginStreamsProducer(brokers, offset) =>
         Either.catchNonFatal {
           val thread = new Thread {
             override def run() {
@@ -87,7 +87,7 @@ class KafkaSink {
           }
           thread.start()
         }
-      case SparkKafkaPluginProducer =>
+      case SparkKafkaPluginProducer(brokers) =>
         Either.catchNonFatal(
           scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
             publishWithSparkKafkaPlugin(input, brokers, topic, sparkConfig)
@@ -100,7 +100,7 @@ class KafkaSink {
   }
 
   /**
-    * Publishes message via Spark Kafka-Plugin
+    * Publishes message via [[io.oss.data.highway.model.SparkKafkaPluginProducer]]
     * @param jsonPath The path that contains json data to be send
     * @param brokers The kafka brokers urls
     * @param topic The output topic
@@ -138,13 +138,14 @@ class KafkaSink {
   }
 
   /**
-    * Publishes a message via Spark Kafka-Stream-Plugin
+    * Publishes a message via Spark [[io.oss.data.highway.model.SparkKafkaPluginStreamsProducer]]
     * @param input The path that contains json data to be send
     * @param producer The Kafka Producer
     * @param bootstrapServers The kafka brokers urls
     * @param outputTopic The output topic
     * @param checkpointFolder The checkpoint folder
     * @param sparkConfig The Spark configuration
+    * @param offset The Kafka offset from where the message consumption will begin
     * @return Unit, otherwise an Error
     */
   private def publishWithSparkKafkaStreamsPlugin(
@@ -175,11 +176,12 @@ class KafkaSink {
   }
 
   /**
-    * Runs Kafka stream
+    * Runs Kafka stream via [[io.oss.data.highway.model.PureKafkaStreamsProducer]]
     * @param streamAppId The Kafka stream application id
     * @param intermediateTopic The Kafka intermediate topic
     * @param bootstrapServers The kafka brokers urls
     * @param streamsOutputTopic The Kafka output topic
+    * @param offset The Kafka offset from where the message consumption will begin
     * @return ShutdownHookThread, otherwise an Error
     */
   private def runStream(
@@ -248,15 +250,18 @@ class KafkaSink {
   }
 
   /**
-    * Publishes the content of the json file
+    * Publishes the content of the json file via [[io.oss.data.highway.model.PureKafkaProducer]]
     * @param jsonPath a json file or a folder or folders that contain json files
+    * @param basePath The base path for input, output and processed folders
     * @param topic The destination topic
     * @param producer The Kafka producer
+    * @return Unit, otherwise an Error
     */
-  private def publishFileContent(jsonPath: File,
-                                 basePath: String,
-                                 topic: String,
-                                 producer: KafkaProducer[String, String]) = {
+  private def publishFileContent(
+      jsonPath: File,
+      basePath: String,
+      topic: String,
+      producer: KafkaProducer[String, String]): Either[KafkaError, Unit] = {
     logger.info(s"Sending data of '${jsonPath.getAbsolutePath}'")
     Either
       .catchNonFatal {

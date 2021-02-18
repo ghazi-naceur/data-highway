@@ -19,10 +19,11 @@ object AvroSink {
     *
     * @param in The input data path
     * @param out The generated avro file path
+    * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
     * @param sparkConfig The Spark Configuration
-    * @return Unit if successful, otherwise Error
+    * @return a List of Path, otherwise an Error
     */
   def convertToAvro(
       in: String,
@@ -52,7 +53,7 @@ object AvroSink {
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
     * @param sparkConfig The Spark Configuration
-    * @return List[Unit], otherwise Error
+    * @return List of List of Path, otherwise an Error
     */
   def handleAvroChannel(
       in: String,

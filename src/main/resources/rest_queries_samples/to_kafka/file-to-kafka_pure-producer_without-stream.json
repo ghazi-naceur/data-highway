@@ -4,9 +4,9 @@
     "type": "file-to-kafka",
     "in": "/json/files/input/folder",
     "out" : "output-kafka-topic-name",
-    "broker-urls" : "kafka-broker:kafka-port",
     "kafka-mode": {
-      "type": "pure-kafka-producer"
+      "type": "pure-kafka-producer",
+      "brokers" : "kafka-broker:kafka-port"
     }
   }
 }

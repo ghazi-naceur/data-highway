@@ -18,11 +18,11 @@ object SparkKafkaConsumerPluginTest {
       "/home/ghazi/workspace/data-highway/src/test/resources/output/files"
     val sparkConfig = SparkConfigs("app-name", "local[*]", INFO)
 
-    KafkaSampler.consumeFromTopic(in,
-                                  out,
-                                  Some(JSON),
-                                  SparkKafkaPluginConsumer(Earliest),
-                                  "localhost:9092",
-                                  sparkConfig)
+    KafkaSampler.consumeFromTopic(
+      in,
+      out,
+      Some(JSON),
+      SparkKafkaPluginConsumer("localhost:9092", Earliest),
+      sparkConfig)
   }
 }

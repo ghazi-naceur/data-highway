@@ -29,7 +29,7 @@ object KafkaTopicConsumer {
               consumerGroup: String)
     : Either[KafkaError, KafkaConsumer[String, String]] = {
     val props = new Properties()
-    props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, brokerUrls)
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerUrls)
     props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
               classOf[StringDeserializer].getName)
     props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,

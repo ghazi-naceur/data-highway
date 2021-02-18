@@ -63,17 +63,12 @@ object Main {
         AvroSink.handleAvroChannel(in, out, Overwrite, JSON, sparkConf)
       case CsvToAvro(in, out) =>
         AvroSink.handleAvroChannel(in, out, Overwrite, CSV, sparkConf)
-      case KafkaToFile(in, out, dataType, brokers, kafkaMode) =>
-        KafkaSampler.consumeFromTopic(in,
-                                      out,
-                                      dataType,
-                                      kafkaMode,
-                                      brokers,
-                                      sparkConf)
-      case FileToKafka(in, out, brokerUrl, kafkaMode) =>
-        new KafkaSink().publishToTopic(in, out, brokerUrl, kafkaMode, sparkConf)
-      case KafkaToKafka(in, out, brokerUrl, kafkaMode) =>
-        new KafkaSink().publishToTopic(in, out, brokerUrl, kafkaMode, sparkConf)
+      case KafkaToFile(in, out, dataType, kafkaMode) =>
+        KafkaSampler.consumeFromTopic(in, out, dataType, kafkaMode, sparkConf)
+      case FileToKafka(in, out, kafkaMode) =>
+        new KafkaSink().publishToTopic(in, out, kafkaMode, sparkConf)
+      case KafkaToKafka(in, out, kafkaMode) =>
+        new KafkaSink().publishToTopic(in, out, kafkaMode, sparkConf)
       case _ =>
         throw new RuntimeException(
           s"The provided route '$route' is not supported.")
