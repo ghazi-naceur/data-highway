@@ -12,7 +12,7 @@ RUN mkdir -p /app/config && \
   mkdir -p /app/data/kafka/processed && \
   mkdir /app/jar && \
   cd /app/jar && \
-  wget https://github.com/ghazi-naceur/data-highway/releases/download/v0.1-rc/data-highway-0.1-rc.jar
+  wget https://github.com/ghazi-naceur/data-highway/releases/download/v0.1/data-highway-0.1.jar
 
 ARG SPARK_VERSION=2.4.6
 ENV SPARK_PACKAGE=spark-${SPARK_VERSION}-bin-without-hadoop \

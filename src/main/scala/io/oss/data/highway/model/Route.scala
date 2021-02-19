@@ -31,10 +31,7 @@ case class JsonToAvro(in: String, out: String) extends Route
 
 case class CsvToAvro(in: String, out: String) extends Route
 
-case class KafkaToFile(in: String,
-                       out: String,
-                       dataType: Option[DataType],
-                       kafkaMode: KafkaMode)
+case class KafkaToFile(in: String, out: String, kafkaMode: KafkaMode)
     extends Route
 
 case class KafkaToKafka(in: String, out: String, kafkaMode: KafkaMode)

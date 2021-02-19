@@ -47,14 +47,12 @@ object KafkaSampler {
     * Consumes data from a topic
     * @param in The input source topic
     * @param out The generated file
-    * @param dataType The desired data type for the generated file (the extension)
     * @param kafkaMode The Kafka Mode
     * @param sparkConfig The Spark configuration
     * @return a Unit, otherwise a Throwable
     */
   def consumeFromTopic(in: String,
                        out: String,
-                       dataType: Option[DataType],
                        kafkaMode: KafkaMode,
                        sparkConfig: SparkConfigs): Either[Throwable, Unit] = {
     val session = DataFrameUtils(sparkConfig).sparkSession
@@ -62,17 +60,17 @@ object KafkaSampler {
     KafkaUtils.verifyTopicExistence(in,
                                     kafkaMode.brokers,
                                     enableTopicCreation = false)
-    val ext = computeOutputExtension(dataType)
+    val ext = computeOutputExtension(kafkaMode.dataType)
     kafkaMode match {
-      case PureKafkaStreamsConsumer(brokers, streamAppId, offset) =>
+      case PureKafkaStreamsConsumer(brokers, streamAppId, offset, _) =>
         sinkWithPureKafkaStreams(in, out, brokers, offset, ext, streamAppId)
 
-      case PureKafkaConsumer(brokers, consGroup, offset) =>
+      case PureKafkaConsumer(brokers, consGroup, offset, _) =>
         Either.catchNonFatal(
           scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
             sinkWithPureKafka(in, out, brokers, offset, consGroup, ext)
           })
-      case SparkKafkaPluginStreamsConsumer(brokers, offset) =>
+      case SparkKafkaPluginStreamsConsumer(brokers, offset, _) =>
         Either.catchNonFatal {
           val thread = new Thread {
             override def run() {
@@ -86,7 +84,7 @@ object KafkaSampler {
           }
           thread.start()
         }
-      case SparkKafkaPluginConsumer(brokers, offset) =>
+      case SparkKafkaPluginConsumer(brokers, offset, _) =>
         Either.catchNonFatal(
           sinkViaSparkKafkaPlugin(session, in, out, brokers, offset, ext)
         )
