@@ -61,10 +61,10 @@ class KafkaSink {
                                     kafkaMode.brokers,
                                     enableTopicCreation = true)
     kafkaMode match {
-      case PureKafkaStreamsProducer(brokers, streamAppId, offset) =>
+      case PureKafkaStreamsProducer(brokers, streamAppId, offset, _) =>
         runStream(streamAppId, input, brokers, topic, offset)
 
-      case PureKafkaProducer(_) =>
+      case PureKafkaProducer(_, _) =>
         Either.catchNonFatal {
           scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
             publishPathContent(input, topic, prod)
@@ -72,7 +72,7 @@ class KafkaSink {
           }
         }
 
-      case SparkKafkaPluginStreamsProducer(brokers, offset) =>
+      case SparkKafkaPluginStreamsProducer(brokers, offset, _) =>
         Either.catchNonFatal {
           val thread = new Thread {
             override def run() {
@@ -87,7 +87,7 @@ class KafkaSink {
           }
           thread.start()
         }
-      case SparkKafkaPluginProducer(brokers) =>
+      case SparkKafkaPluginProducer(brokers, _) =>
         Either.catchNonFatal(
           scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
             publishWithSparkKafkaPlugin(input, brokers, topic, sparkConfig)

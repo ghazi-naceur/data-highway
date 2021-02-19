@@ -14,7 +14,6 @@ object SimpleProducerTest {
     BasicConfigurator.configure()
     val in = "src/test/resources/file_to_kafka-data/input/data.json"
     val out = "kafka-to-json-topic-2"
-    val brokerUrl = "localhost:9092"
 
     new KafkaSink().publishToTopic(
       in,
