@@ -265,7 +265,7 @@ class KafkaSink {
     logger.info(s"Sending data of '${jsonPath.getAbsolutePath}'")
     Either
       .catchNonFatal {
-        for (line <- getJsonLines(jsonPath.getAbsolutePath)) {
+        for (line <- FilesUtils.getJsonLines(jsonPath.getAbsolutePath)) {
           val uuid = UUID.randomUUID().toString
           val data =
             new ProducerRecord[String, String](topic, uuid, line)
@@ -278,16 +278,5 @@ class KafkaSink {
       }
       .leftMap(thr =>
         KafkaError(thr.getMessage, thr.getCause, thr.getStackTrace))
-  }
-
-  /**
-    * Get lines from json file
-    *
-    * @param jsonPath The path that contains json data to be send
-    * @return an Iterator of String
-    */
-  private def getJsonLines(jsonPath: String): Iterator[String] = {
-    val jsonFile = Source.fromFile(jsonPath)
-    jsonFile.getLines
   }
 }

@@ -4,6 +4,7 @@ import io.oss.data.highway.configuration.ConfigLoader
 import io.oss.data.highway.converter.{
   AvroSink,
   CsvSink,
+  ElasticSink,
   JsonSink,
   KafkaSampler,
   KafkaSink,
@@ -69,6 +70,8 @@ object Main {
         new KafkaSink().publishToTopic(in, out, kafkaMode, sparkConf)
       case KafkaToKafka(in, out, kafkaMode) =>
         new KafkaSink().publishToTopic(in, out, kafkaMode, sparkConf)
+      case FileToElasticsearch(in, out, esConfig) =>
+        ElasticSink.handleElasticsearchChannel(in, out, esConfig)
       case _ =>
         throw new RuntimeException(
           s"The provided route '$route' is not supported.")

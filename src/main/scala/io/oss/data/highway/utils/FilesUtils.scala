@@ -8,6 +8,7 @@ import org.apache.log4j.Logger
 
 import java.nio.file.{Files, Path, StandardCopyOption}
 import scala.annotation.tailrec
+import scala.io.Source
 import scala.util.Try
 
 object FilesUtils {
@@ -162,5 +163,16 @@ object FilesUtils {
       .listFiles()
       .filter(_.isDirectory)
       .map(folder => FileUtils.forceDelete(folder))
+  }
+
+  /**
+    * Get lines from json file
+    *
+    * @param jsonPath The path that contains json data to be send
+    * @return an Iterator of String
+    */
+  def getJsonLines(jsonPath: String): Iterator[String] = {
+    val jsonFile = Source.fromFile(jsonPath)
+    jsonFile.getLines
   }
 }

@@ -5,6 +5,7 @@ version := "0.1"
 scalaVersion := "2.12.12"
 
 resolvers += "Spark Packages Repo" at "http://dl.bintray.com/spark-packages/maven"
+resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/release"
 
 lazy val root = (project in file(".")).
   enablePlugins(BuildInfoPlugin).
@@ -33,6 +34,7 @@ val catsVersion = "2.1.1"
 val sparkVersion = "2.4.6"
 val kafkaVersion = "2.4.0"
 val circeVersion = "0.13.0"
+val elastic4sVersion = "7.10.2"
 
 libraryDependencies ++= Seq("com.github.pureconfig" %% "pureconfig" % "0.13.0",
   "org.apache.poi" % "poi" % poiVersion,
@@ -60,7 +62,9 @@ libraryDependencies ++= Seq("com.github.pureconfig" %% "pureconfig" % "0.13.0",
   "org.http4s" %% "http4s-blaze-client" % http4sVersion,
   "org.http4s" %% "http4s-circe" % http4sVersion,
   "io.circe" %% "circe-generic" % circeVersion,
-  "io.monix" %% "monix" % "3.3.0"
+  "io.monix" %% "monix" % "3.3.0",
+  "com.sksamuel.elastic4s" %% "elastic4s-client-esjava" % elastic4sVersion,
+  "com.sksamuel.elastic4s" %% "elastic4s-testkit" % elastic4sVersion % "test"
 )
 
 scalacOptions += "-Ypartial-unification"
