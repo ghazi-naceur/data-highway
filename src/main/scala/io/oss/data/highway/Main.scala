@@ -69,8 +69,8 @@ object Main {
         new KafkaSink().publishToTopic(in, out, kafkaMode)
       case KafkaToKafka(in, out, kafkaMode) =>
         new KafkaSink().publishToTopic(in, out, kafkaMode)
-      case FileToElasticsearch(in, out, esConfig) =>
-        ElasticSink.handleElasticsearchChannel(in, out, esConfig)
+      case FileToElasticsearch(in, out) =>
+        ElasticSink.handleElasticsearchChannel(in, out)
       case _ =>
         throw new RuntimeException(
           s"The provided route '$route' is not supported.")
