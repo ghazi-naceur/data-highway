@@ -1,9 +1,8 @@
 package io.oss.data.highway.z.hdfs.integration.tests
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
-import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.converter.AvroSink
-import io.oss.data.highway.model.{AVRO, CSV, JSON, PARQUET, WARN}
+import io.oss.data.highway.model.{AVRO, CSV, JSON, PARQUET}
 import io.oss.data.highway.utils.Constants.SEPARATOR
 import io.oss.data.highway.utils.DataFrameUtils
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
@@ -18,9 +17,6 @@ object AvroConversion extends DatasetComparer {
     "hdfs://localhost:9000/data-highway/parquet_to_avro-data/"
   val hdfsJsonToAvro = "hdfs://localhost:9000/data-highway/json_to_avro-data/"
   val hdfsCsvToAvro = "hdfs://localhost:9000/data-highway/csv_to_avro-data/"
-
-  val sparkConfig: SparkConfigs =
-    SparkConfigs("handler-app-test", "local[*]", WARN)
 
   lazy val spark: SparkSession = {
     SparkSession
@@ -101,9 +97,8 @@ object AvroConversion extends DatasetComparer {
                      hdfsParquetToAvro + "output/mock-data-2",
                      hdfsParquetToAvro + "processed",
                      SaveMode.Overwrite,
-                     PARQUET,
-                     sparkConfig)
-    val actual = DataFrameUtils(sparkConfig)
+                     PARQUET)
+    val actual = DataFrameUtils
       .loadDataFrame(hdfsParquetToAvro + "output/mock-data-2", AVRO)
       .right
       .get
@@ -119,9 +114,8 @@ object AvroConversion extends DatasetComparer {
                      hdfsJsonToAvro + "output/mock-data-2",
                      hdfsJsonToAvro + "processed",
                      SaveMode.Overwrite,
-                     JSON,
-                     sparkConfig)
-    val actual = DataFrameUtils(sparkConfig)
+                     JSON)
+    val actual = DataFrameUtils
       .loadDataFrame(hdfsJsonToAvro + "output/mock-data-2", AVRO)
       .right
       .get
@@ -137,9 +131,8 @@ object AvroConversion extends DatasetComparer {
                      hdfsCsvToAvro + "output/mock-data-2",
                      hdfsCsvToAvro + "processed",
                      SaveMode.Overwrite,
-                     CSV,
-                     sparkConfig)
-    val actual = DataFrameUtils(sparkConfig)
+                     CSV)
+    val actual = DataFrameUtils
       .loadDataFrame(hdfsCsvToAvro + "output/mock-data-2", AVRO)
       .right
       .get

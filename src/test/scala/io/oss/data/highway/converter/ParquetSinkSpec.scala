@@ -4,8 +4,7 @@ import java.io.File
 import java.nio.file.{Files, Paths}
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
-import io.oss.data.highway.configuration.SparkConfigs
-import io.oss.data.highway.model.{AVRO, CSV, JSON, PARQUET, WARN}
+import io.oss.data.highway.model.{AVRO, CSV, JSON, PARQUET}
 import io.oss.data.highway.utils.DataFrameUtils
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import org.scalatest.BeforeAndAfterEach
@@ -23,8 +22,6 @@ class ParquetSinkSpec
   val folderCsvToParquet = "src/test/resources/csv_to_parquet-data/"
   val folderJsonToParquet = "src/test/resources/json_to_parquet-data/"
   val folderAvroToParquet = "src/test/resources/avro_to_parquet-data/"
-  val sparkConfig: SparkConfigs =
-    SparkConfigs("handler-app-test", "local[*]", WARN)
   val getExpected: DataFrame = {
     import spark.implicits._
     List(
@@ -82,10 +79,9 @@ class ParquetSinkSpec
                         folderCsvToParquet + "output/mock-data-2",
                         folderCsvToParquet + "processed",
                         SaveMode.Overwrite,
-                        CSV,
-                        sparkConfig)
+                        CSV)
     val actual =
-      DataFrameUtils(sparkConfig)
+      DataFrameUtils
         .loadDataFrame(folderCsvToParquet + "output/mock-data-2", PARQUET)
         .right
         .get
@@ -100,10 +96,9 @@ class ParquetSinkSpec
                         folderAvroToParquet + "output/mock-data-2",
                         folderAvroToParquet + "processed",
                         SaveMode.Overwrite,
-                        AVRO,
-                        sparkConfig)
+                        AVRO)
     val actual =
-      DataFrameUtils(sparkConfig)
+      DataFrameUtils
         .loadDataFrame(folderAvroToParquet + "output/mock-data-2", PARQUET)
         .right
         .get
@@ -118,10 +113,9 @@ class ParquetSinkSpec
                         folderJsonToParquet + "output/mock-data-2",
                         folderJsonToParquet + "processed",
                         SaveMode.Overwrite,
-                        JSON,
-                        sparkConfig)
+                        JSON)
     val actual =
-      DataFrameUtils(sparkConfig)
+      DataFrameUtils
         .loadDataFrame(folderJsonToParquet + "output/mock-data-2", PARQUET)
         .right
         .get

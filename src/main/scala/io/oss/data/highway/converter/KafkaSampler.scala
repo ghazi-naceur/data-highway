@@ -22,7 +22,6 @@ import io.oss.data.highway.utils.{
   KafkaUtils
 }
 import org.apache.spark.sql.functions.to_json
-import io.oss.data.highway.configuration.SparkConfigs
 import org.apache.kafka.streams.KafkaStreams
 import org.apache.log4j.Logger
 import org.apache.spark.sql.SparkSession
@@ -48,15 +47,11 @@ object KafkaSampler {
     * @param in The input source topic
     * @param out The generated file
     * @param kafkaMode The Kafka Mode
-    * @param sparkConfig The Spark configuration
     * @return a Unit, otherwise a Throwable
     */
   def consumeFromTopic(in: String,
                        out: String,
-                       kafkaMode: KafkaMode,
-                       sparkConfig: SparkConfigs): Either[Throwable, Unit] = {
-    val session = DataFrameUtils(sparkConfig).sparkSession
-
+                       kafkaMode: KafkaMode): Either[Throwable, Unit] = {
     KafkaUtils.verifyTopicExistence(in,
                                     kafkaMode.brokers,
                                     enableTopicCreation = false)
@@ -74,7 +69,7 @@ object KafkaSampler {
         Either.catchNonFatal {
           val thread = new Thread {
             override def run() {
-              sinkViaSparkKafkaStreamsPlugin(session,
+              sinkViaSparkKafkaStreamsPlugin(DataFrameUtils.sparkSession,
                                              in,
                                              out,
                                              brokers,
@@ -86,7 +81,7 @@ object KafkaSampler {
         }
       case SparkKafkaPluginConsumer(brokers, offset, _) =>
         Either.catchNonFatal(
-          sinkViaSparkKafkaPlugin(session, in, out, brokers, offset, ext)
+          sinkViaSparkKafkaPlugin(DataFrameUtils.sparkSession, in, out, brokers, offset, ext)
         )
       case _ =>
         throw new RuntimeException(

@@ -1,9 +1,8 @@
 package io.oss.data.highway.z.hdfs.integration.tests
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
-import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.converter.JsonSink
-import io.oss.data.highway.model.{AVRO, CSV, JSON, PARQUET, WARN}
+import io.oss.data.highway.model.{AVRO, CSV, JSON, PARQUET}
 import io.oss.data.highway.utils.Constants.SEPARATOR
 import io.oss.data.highway.utils.DataFrameUtils
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
@@ -20,9 +19,6 @@ object JsonConversion extends DatasetComparer {
     "hdfs://localhost:9000/data-highway/csv_to_json-data/"
   val hdfsParquetToJson =
     "hdfs://localhost:9000/data-highway/parquet_to_json-data/"
-
-  val sparkConfig: SparkConfigs =
-    SparkConfigs("handler-app-test", "local[*]", WARN)
 
   lazy val spark: SparkSession = {
     SparkSession
@@ -103,9 +99,8 @@ object JsonConversion extends DatasetComparer {
                      hdfsAvroToJson + "output/mock-data-2",
                      hdfsAvroToJson + "processed",
                      SaveMode.Overwrite,
-                     AVRO,
-                     sparkConfig)
-    val actual = DataFrameUtils(sparkConfig)
+                     AVRO)
+    val actual = DataFrameUtils
       .loadDataFrame(hdfsAvroToJson + "output/mock-data-2", JSON)
       .right
       .get
@@ -121,9 +116,8 @@ object JsonConversion extends DatasetComparer {
                      hdfsCsvToJson + "output/mock-data-2",
                      hdfsCsvToJson + "processed",
                      SaveMode.Overwrite,
-                     CSV,
-                     sparkConfig)
-    val actual = DataFrameUtils(sparkConfig)
+                     CSV)
+    val actual = DataFrameUtils
       .loadDataFrame(hdfsCsvToJson + "output/mock-data-2", JSON)
       .right
       .get
@@ -139,9 +133,8 @@ object JsonConversion extends DatasetComparer {
                      hdfsParquetToJson + "output/mock-data-2",
                      hdfsParquetToJson + "processed",
                      SaveMode.Overwrite,
-                     PARQUET,
-                     sparkConfig)
-    val actual = DataFrameUtils(sparkConfig)
+                     PARQUET)
+    val actual = DataFrameUtils
       .loadDataFrame(hdfsParquetToJson + "output/mock-data-2", JSON)
       .right
       .get

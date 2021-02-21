@@ -4,8 +4,7 @@ import java.io.File
 import java.nio.file.{Files, Paths}
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
-import io.oss.data.highway.configuration.SparkConfigs
-import io.oss.data.highway.model.{AVRO, CSV, JSON, PARQUET, WARN}
+import io.oss.data.highway.model.{AVRO, CSV, JSON, PARQUET}
 import io.oss.data.highway.utils.DataFrameUtils
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import org.scalatest.BeforeAndAfterEach
@@ -23,8 +22,6 @@ class JsonSinkSpec
   val folderParquetToJson = "src/test/resources/parquet_to_json-data/"
   val folderCsvToJson = "src/test/resources/csv_to_json-data/"
   val folderAvroToJson = "src/test/resources/avro_to_json-data/"
-  val sparkConfig: SparkConfigs =
-    SparkConfigs("handler-app-test", "local[*]", WARN)
   val getExpected: DataFrame = {
     import spark.implicits._
     List(
@@ -83,11 +80,9 @@ class JsonSinkSpec
         folderParquetToJson + "output/mock-data-2",
         folderParquetToJson + "processed",
         SaveMode.Overwrite,
-        PARQUET,
-        sparkConfig
-      )
+        PARQUET)
     val actual =
-      DataFrameUtils(sparkConfig)
+      DataFrameUtils
         .loadDataFrame(folderParquetToJson + "output/mock-data-2", JSON)
         .right
         .get
@@ -108,10 +103,9 @@ class JsonSinkSpec
                      folderAvroToJson + "output/mock-data-2",
                      folderAvroToJson + "processed",
                      SaveMode.Overwrite,
-                     AVRO,
-                     sparkConfig)
+                     AVRO)
     val actual =
-      DataFrameUtils(sparkConfig)
+      DataFrameUtils
         .loadDataFrame(folderAvroToJson + "output/mock-data-2", JSON)
         .right
         .get
@@ -132,10 +126,9 @@ class JsonSinkSpec
                      folderCsvToJson + "output/mock-data-2",
                      folderCsvToJson + "processed",
                      SaveMode.Overwrite,
-                     CSV,
-                     sparkConfig)
+                     CSV)
     val actual =
-      DataFrameUtils(sparkConfig)
+      DataFrameUtils
         .loadDataFrame(folderCsvToJson + "output/mock-data-2", JSON)
         .right
         .get
