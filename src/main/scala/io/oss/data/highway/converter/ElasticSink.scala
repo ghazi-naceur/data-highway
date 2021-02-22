@@ -11,7 +11,7 @@ import java.nio.file.Path
 
 object ElasticSink extends ElasticUtils {
 
-  val logger: Logger = Logger.getLogger(AvroSink.getClass.getName)
+  val logger: Logger = Logger.getLogger(ElasticSink.getClass.getName)
 
   /**
     * Send file to Elasticsearch
@@ -28,7 +28,7 @@ object ElasticSink extends ElasticUtils {
 
     if (new File(in).isFile) {
       for (line <- FilesUtils.getJsonLines(in)) {
-        sendDocToEs(out, line)
+        indexDocInEs(out, line)
         val suffix = new File(in).getParent.split("/").last
         FilesUtils.movePathContent(in, basePath, s"processed/$suffix")
       }
@@ -37,7 +37,7 @@ object ElasticSink extends ElasticUtils {
         .listFilesRecursively(new File(in), Seq(JSON.extension))
         .foreach(file => {
           for (line <- FilesUtils.getJsonLines(file.getAbsolutePath)) {
-            sendDocToEs(out, line)
+            indexDocInEs(out, line)
             val suffix = new File(file.getAbsolutePath).getParent.split("/").last
             FilesUtils.movePathContent(file.getAbsolutePath, basePath, s"processed/$suffix")
           }
@@ -48,7 +48,12 @@ object ElasticSink extends ElasticUtils {
     FilesUtils.movePathContent(in, basePath)
   }
 
-  private def sendDocToEs(out: String, line: String): Unit = {
+  /**
+    * Indexes document in Elasticsearch
+    * @param out The Elasticsearch index
+    * @param line The document to be sent to Elasticsearch
+    */
+  private def indexDocInEs(out: String, line: String): Unit = {
     import com.sksamuel.elastic4s.ElasticDsl._
     esClient.execute {
       indexInto(out) doc line refresh RefreshPolicy.IMMEDIATE

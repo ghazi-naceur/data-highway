@@ -20,6 +20,8 @@ object IOMain extends IOApp {
       .withBanner(getBanner)
       .bindHttp(5555, "localhost")
       .withHttpApp(ConversionController.httpRequests)
+//      .withIdleTimeout(Duration.Inf)
+//      .withResponseHeaderTimeout(Duration.Inf)
       .resource
       .use(_ => IO.never)
       .as(ExitCode.Success)

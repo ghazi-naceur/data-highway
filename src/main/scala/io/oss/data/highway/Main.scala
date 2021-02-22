@@ -1,15 +1,7 @@
 package io.oss.data.highway
 
 import io.oss.data.highway.configuration.ConfigLoader
-import io.oss.data.highway.converter.{
-  AvroSink,
-  CsvSink,
-  ElasticSink,
-  JsonSink,
-  KafkaSampler,
-  KafkaSink,
-  ParquetSink
-}
+import io.oss.data.highway.converter.{AvroSink, CsvSink, ElasticSampler, ElasticSink, JsonSink, KafkaSampler, KafkaSink, ParquetSink}
 import io.oss.data.highway.model._
 import org.apache.spark.sql.SaveMode.Overwrite
 import org.apache.log4j.{BasicConfigurator, Logger}
@@ -71,6 +63,8 @@ object Main {
         new KafkaSink().publishToTopic(in, out, kafkaMode)
       case FileToElasticsearch(in, out) =>
         ElasticSink.handleElasticsearchChannel(in, out)
+      case ElasticsearchToFile(in, out) =>
+        ElasticSampler.saveDocuments(in, out)
       case _ =>
         throw new RuntimeException(
           s"The provided route '$route' is not supported.")
