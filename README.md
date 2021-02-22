@@ -51,6 +51,7 @@ You can as well :
         * [b- Spark Kafka Plugin Consumer](#b--spark-kafka-plugin-consumer-)
     * [7- Index data in Elasticsearch](#7--index-data-in-elasticsearch-)
         * [a- File to Elasticsearch](#a--file-to-elasticsearch-)
+        * [b- Elasticsearch to File](#b--elasticsearch-to-file-)
 * [C- Scheduling](#C--scheduling-)
 
 # A- Getting started :
@@ -78,6 +79,10 @@ Consuming-data route consists of consuming periodically a Kafka topic and saving
 You have as well a route dedicated to indexing data in Elasticsearch :
 
 ![image](https://github.com/ghazi-naceur/data-highway/blob/master/src/main/resources/screenshots/5-file_elasticsearch.png?raw=true)
+
+You can extract data from your Elasticsearch index :
+
+![image](https://github.com/ghazi-naceur/data-highway/blob/master/src/main/resources/screenshots/6-elasticsearch_file.png?raw=true)
 
 ## 2- Run data-highway jar :
 
@@ -583,6 +588,20 @@ Indexing data in Elasticsearch by **"file-to-elasticsearch"** :
   }
 }
 ```
+
+##### b- Elasticsearch to File :
+
+Extracting data from an Elasticsearch index by **"elasticsearch-to-file"** :
+```json
+{
+  "route": {
+    "type": "elasticsearch-to-file",
+    "in": "elasticsearch-index",
+    "out": "your-output-folder-containing-json-files"
+  }
+}
+```
+
 
 # C- Scheduling :
 
