@@ -10,6 +10,7 @@ You can convert your data to multiple data types :
 You can as well :  
 * Send data to Kafka (**file-to-kafka** and **kafka-to-kafka**)
 * Consume data from Kafka (**kafka-to-file**)
+* Index data in Elasticsearch (**file-to-elasticsearch**)
 
 **Environment :**
 
@@ -48,6 +49,9 @@ You can as well :
     * [6- Consume data from Kafka](#6--consume-data-from-kafka-)
         * [a- Pure Kafka Consumer](#a--pure-kafka-consumer-)
         * [b- Spark Kafka Plugin Consumer](#b--spark-kafka-plugin-consumer-)
+    * [7- Index data in Elasticsearch](#7--index-data-in-elasticsearch-)
+        * [a- File to Elasticsearch](#a--file-to-elasticsearch-)
+        * [b- Elasticsearch to File](#b--elasticsearch-to-file-)
 * [C- Scheduling](#C--scheduling-)
 
 # A- Getting started :
@@ -71,6 +75,14 @@ Consuming-data route consists of consuming periodically a Kafka topic and saving
 **data-highway** can, as well, mirror kafka topics by consuming from an input topic and publishing its content to an output topic :
 
 ![image](https://github.com/ghazi-naceur/data-highway/blob/master/src/main/resources/screenshots/4-kafka-mirror.png?raw=true)
+
+You have as well a route dedicated to indexing data in Elasticsearch :
+
+![image](https://github.com/ghazi-naceur/data-highway/blob/master/src/main/resources/screenshots/5-file_elasticsearch.png?raw=true)
+
+You can extract data from your Elasticsearch index :
+
+![image](https://github.com/ghazi-naceur/data-highway/blob/master/src/main/resources/screenshots/6-elasticsearch_file.png?raw=true)
 
 ## 2- Run data-highway jar :
 
@@ -137,7 +149,7 @@ You can find some REST query samples in the following folder [REST queries](http
 
 There are 3 provided conversions.
 
-Set the conversion `route` for your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and 
+Set the conversion `route` in your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and 
 setting one of these following request bodies : 
 
 ### a- From Parquet to JSON :
@@ -180,7 +192,7 @@ setting one of these following request bodies :
 
 There are 3 provided conversions.
 
-Set the conversion `route` for your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and
+Set the conversion `route` in your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and
 setting one of these following request bodies :
 
 #### a- From JSON to Parquet :
@@ -223,7 +235,7 @@ setting one of these following request bodies :
 
 There are 4 provided conversions.
 
-Set the conversion `route` for your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and
+Set the conversion `route` in your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and
 setting one of these following request bodies :
 
 #### a- From JSON to CSV :
@@ -281,7 +293,7 @@ This route **"xlsx-to-csv"** supports both xlsx and xls files.
 
 There are 3 provided conversions.
 
-Set the conversion `route` for your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and
+Set the conversion `route` in your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and
 setting one of these following request bodies :
 
 #### a- From Parquet to Avro :
@@ -332,7 +344,7 @@ Publishing data could be performed by :
    * a- Pure Kafka Producer
    * b- Spark Kafka Plugin Producer
 
-Set the conversion `route` for your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and
+Set the conversion `route` in your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and
 setting one of these following request bodies :
 
 #### a- Pure Kafka Producer :
@@ -558,6 +570,37 @@ Consuming data will be performed by **"spark-kafka-plugin-streams-consumer"** :
 - **"brokers"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
 
 - **"offset"** could have one of these values **earliest** and **latest**
+
+## 7- Index data in Elasticsearch :
+
+Set the `route` in your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and
+setting one of these following request bodies :
+
+##### a- File to Elasticsearch :
+
+Indexing data in Elasticsearch by **"file-to-elasticsearch"** :
+```json
+{
+  "route": {
+    "type": "file-to-elasticsearch",
+    "in": "your-input-folder-containing-json-files",
+    "out": "elasticsearch-index"
+  }
+}
+```
+
+##### b- Elasticsearch to File :
+
+Extracting data from an Elasticsearch index by **"elasticsearch-to-file"** :
+```json
+{
+  "route": {
+    "type": "elasticsearch-to-file",
+    "in": "elasticsearch-index",
+    "out": "your-output-folder-containing-json-files"
+  }
+}
+```
 
 
 # C- Scheduling :

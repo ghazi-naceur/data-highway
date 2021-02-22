@@ -18,10 +18,8 @@ import org.apache.kafka.common.serialization.{Serdes, StringSerializer}
 import org.apache.kafka.streams.scala.StreamsBuilder
 import org.apache.kafka.streams.{KafkaStreams, StreamsConfig}
 
-import scala.io.Source
 import org.apache.log4j.Logger
 import cats.implicits._
-import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.model.DataHighwayError.KafkaError
 import monix.execution.Scheduler.{global => scheduler}
 import org.apache.kafka.clients.consumer.ConsumerConfig
@@ -45,13 +43,11 @@ class KafkaSink {
     * @param input The input topic or the input path that contains json data to be send
     * @param topic The output topic
     * @param kafkaMode The Kafka launch mode
-    * @param sparkConfig The Spark configuration
     * @return Any, otherwise an Error
     */
   def publishToTopic(input: String,
                      topic: String,
-                     kafkaMode: KafkaMode,
-                     sparkConfig: SparkConfigs): Either[Throwable, Any] = {
+                     kafkaMode: KafkaMode): Either[Throwable, Any] = {
     val props = new Properties()
     props.put("bootstrap.servers", kafkaMode.brokers)
     props.put("key.serializer", classOf[StringSerializer].getName)
@@ -81,7 +77,6 @@ class KafkaSink {
                                                  brokers,
                                                  topic,
                                                  checkpointFolder,
-                                                 sparkConfig,
                                                  offset)
             }
           }
@@ -90,7 +85,7 @@ class KafkaSink {
       case SparkKafkaPluginProducer(brokers, _) =>
         Either.catchNonFatal(
           scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
-            publishWithSparkKafkaPlugin(input, brokers, topic, sparkConfig)
+            publishWithSparkKafkaPlugin(input, brokers, topic)
             FilesUtils.deleteFolder(input)
           })
       case _ =>
@@ -104,14 +99,12 @@ class KafkaSink {
     * @param jsonPath The path that contains json data to be send
     * @param brokers The kafka brokers urls
     * @param topic The output topic
-    * @param sparkConf The spark configuration
     * @return Unit, otherwise an Error
     */
   private def publishWithSparkKafkaPlugin(
       jsonPath: String,
       brokers: String,
-      topic: String,
-      sparkConf: SparkConfigs): Either[Throwable, Unit] = {
+      topic: String): Either[Throwable, Unit] = {
     import org.apache.spark.sql.functions.{to_json, struct}
     logger.info(s"Sending data through Spark Kafka Plugin to '$topic'.")
     val basePath = new File(jsonPath).getParent
@@ -122,7 +115,7 @@ class KafkaSink {
           .filterNot(path =>
             new File(path).listFiles.filter(_.isFile).toList.isEmpty)
           .map(path => {
-            DataFrameUtils(sparkConf)
+            DataFrameUtils
               .loadDataFrame(path, JSON)
               .map(df => {
                 df.select(to_json(struct("*")).as("value"))
@@ -144,7 +137,6 @@ class KafkaSink {
     * @param bootstrapServers The kafka brokers urls
     * @param outputTopic The output topic
     * @param checkpointFolder The checkpoint folder
-    * @param sparkConfig The Spark configuration
     * @param offset The Kafka offset from where the message consumption will begin
     * @return Unit, otherwise an Error
     */
@@ -154,10 +146,9 @@ class KafkaSink {
       bootstrapServers: String,
       outputTopic: String,
       checkpointFolder: String,
-      sparkConfig: SparkConfigs,
       offset: Offset): Either[Throwable, Unit] = {
     Either.catchNonFatal {
-      DataFrameUtils(sparkConfig).sparkSession.readStream
+      DataFrameUtils.sparkSession.readStream
         .format("kafka")
         .option("kafka.bootstrap.servers", bootstrapServers)
         .option("startingOffsets", offset.value)
@@ -265,7 +256,7 @@ class KafkaSink {
     logger.info(s"Sending data of '${jsonPath.getAbsolutePath}'")
     Either
       .catchNonFatal {
-        for (line <- getJsonLines(jsonPath.getAbsolutePath)) {
+        for (line <- FilesUtils.getJsonLines(jsonPath.getAbsolutePath)) {
           val uuid = UUID.randomUUID().toString
           val data =
             new ProducerRecord[String, String](topic, uuid, line)
@@ -278,16 +269,5 @@ class KafkaSink {
       }
       .leftMap(thr =>
         KafkaError(thr.getMessage, thr.getCause, thr.getStackTrace))
-  }
-
-  /**
-    * Get lines from json file
-    *
-    * @param jsonPath The path that contains json data to be send
-    * @return an Iterator of String
-    */
-  private def getJsonLines(jsonPath: String): Iterator[String] = {
-    val jsonFile = Source.fromFile(jsonPath)
-    jsonFile.getLines
   }
 }

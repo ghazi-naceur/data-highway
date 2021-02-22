@@ -4,8 +4,7 @@ import java.io.File
 import java.nio.file.{Files, Paths}
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
-import io.oss.data.highway.configuration.SparkConfigs
-import io.oss.data.highway.model.{AVRO, CSV, JSON, PARQUET, WARN}
+import io.oss.data.highway.model.{AVRO, CSV, JSON, PARQUET}
 import io.oss.data.highway.utils.DataFrameUtils
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import org.scalatest.BeforeAndAfterEach
@@ -23,8 +22,6 @@ class AvroSinkSpec
   val folderParquetToAvro = "src/test/resources/parquet_to_avro-data/"
   val folderJsonToAvro = "src/test/resources/json_to_avro-data/"
   val folderCsvToAvro = "src/test/resources/csv_to_avro-data/"
-  val sparkConfig: SparkConfigs =
-    SparkConfigs("handler-app-test", "local[*]", WARN)
 
   lazy val spark: SparkSession = {
     SparkSession
@@ -85,10 +82,8 @@ class AvroSinkSpec
         folderParquetToAvro + "output/mock-data-2",
         folderParquetToAvro + "processed",
         SaveMode.Overwrite,
-        PARQUET,
-        sparkConfig
-      )
-    val actual = DataFrameUtils(sparkConfig)
+        PARQUET)
+    val actual = DataFrameUtils
       .loadDataFrame(folderParquetToAvro + "output/mock-data-2", AVRO)
       .right
       .get
@@ -104,10 +99,9 @@ class AvroSinkSpec
                      folderJsonToAvro + "output/mock-data-2",
                      folderJsonToAvro + "processed",
                      SaveMode.Overwrite,
-                     JSON,
-                     sparkConfig)
+                     JSON)
     val actual =
-      DataFrameUtils(sparkConfig)
+      DataFrameUtils
         .loadDataFrame(folderJsonToAvro + "output/mock-data-2", AVRO)
         .right
         .get
@@ -128,10 +122,9 @@ class AvroSinkSpec
                      folderCsvToAvro + "output/mock-data-2",
                      folderCsvToAvro + "processed",
                      SaveMode.Overwrite,
-                     CSV,
-                     sparkConfig)
+                     CSV)
     val actual =
-      DataFrameUtils(sparkConfig)
+      DataFrameUtils
         .loadDataFrame(folderCsvToAvro + "output/mock-data-2", AVRO)
         .right
         .get

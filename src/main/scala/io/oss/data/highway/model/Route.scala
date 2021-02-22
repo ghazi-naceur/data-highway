@@ -22,8 +22,7 @@ case class AvroToJson(in: String, out: String) extends Route
 
 case class CsvToJson(in: String, out: String) extends Route
 
-case class FileToKafka(in: String, out: String, kafkaMode: KafkaMode)
-    extends Route
+case class FileToKafka(in: String, out: String, kafkaMode: KafkaMode) extends Route
 
 case class ParquetToAvro(in: String, out: String) extends Route
 
@@ -31,8 +30,10 @@ case class JsonToAvro(in: String, out: String) extends Route
 
 case class CsvToAvro(in: String, out: String) extends Route
 
-case class KafkaToFile(in: String, out: String, kafkaMode: KafkaMode)
-    extends Route
+case class KafkaToFile(in: String, out: String, kafkaMode: KafkaMode) extends Route
 
-case class KafkaToKafka(in: String, out: String, kafkaMode: KafkaMode)
-    extends Route
+case class KafkaToKafka(in: String, out: String, kafkaMode: KafkaMode) extends Route
+
+case class FileToElasticsearch(in: String, out: String) extends Route
+
+case class ElasticsearchToFile(in: String, out: String) extends Route

@@ -3,9 +3,8 @@ package io.oss.data.highway.converter
 import java.io.{File, FileInputStream}
 import java.nio.file.{Files, Paths}
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
-import io.oss.data.highway.configuration.SparkConfigs
-import io.oss.data.highway.model.{AVRO, CSV, JSON, PARQUET, WARN}
-import io.oss.data.highway.utils.{DataFrameUtils, MockSheetCreator}
+import io.oss.data.highway.model.{AVRO, CSV, JSON, PARQUET}
+import io.oss.data.highway.utils.DataFrameUtils
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
@@ -24,8 +23,6 @@ class CsvSinkSpec
   val folderAvroToCsvData = "src/test/resources/avro_to_csv-data/"
   val folderXlsxCsvData = "src/test/resources/xlsx_to_csv-data/"
   val extensions = Seq("xlsx", "xls")
-  val sparkConfig: SparkConfigs =
-    SparkConfigs("handler-app-test", "local[*]", WARN)
   val getExpected: DataFrame = {
     import spark.implicits._
     List(
@@ -85,11 +82,9 @@ class CsvSinkSpec
         folderParquetToCsvData + "output/mock-data-2",
         folderJsonToCsvData + "processed",
         SaveMode.Overwrite,
-        PARQUET,
-        sparkConfig
-      )
+        PARQUET)
     val actual =
-      DataFrameUtils(sparkConfig)
+      DataFrameUtils
         .loadDataFrame(folderParquetToCsvData + "output/mock-data-2", CSV)
         .right
         .get
@@ -110,10 +105,9 @@ class CsvSinkSpec
                     folderJsonToCsvData + "output/mock-data-2",
                     folderJsonToCsvData + "processed",
                     SaveMode.Overwrite,
-                    JSON,
-                    sparkConfig)
+                    JSON)
     val actual =
-      DataFrameUtils(sparkConfig)
+      DataFrameUtils
         .loadDataFrame(folderJsonToCsvData + "output/mock-data-2", CSV)
         .right
         .get
@@ -134,10 +128,9 @@ class CsvSinkSpec
                     folderAvroToCsvData + "output/mock-data-2",
                     folderAvroToCsvData + "processed",
                     SaveMode.Overwrite,
-                    AVRO,
-                    sparkConfig)
+                    AVRO)
     val actual =
-      DataFrameUtils(sparkConfig)
+      DataFrameUtils
         .loadDataFrame(folderAvroToCsvData + "output/mock-data-2", CSV)
         .right
         .get
@@ -151,23 +144,6 @@ class CsvSinkSpec
 
     assertSmallDatasetEquality(actual, getExpected, ignoreNullable = true)
   }
-
-//  "CsvSink.convertXlsxFileToCsvFile" should "convert xlsx sheet to a csv file" in {
-//    CsvSink
-//      .convertXlsxSheetToCsvFile("something",
-//                                 MockSheetCreator.createXlsxSheet("new-sheet"),
-//                                 folderXlsxCsvData + "output/",
-//                                 folderXlsxCsvData + "input/",
-//                                 folderXlsxCsvData)
-//      .map(path => path.toUri.getPath)
-//      .map(str => str.split(File.separatorChar).last)
-//    val d = new File(folderXlsxCsvData + "output/something/")
-//    d.listFiles
-//      .map(file => file.getName)
-//      .toList should contain theSameElementsAs List(
-//      "new-sheet.csv"
-//    )
-//  }
 
   "CsvSink.convertXlsxFileToCsvFiles" should "convert xlsx file to multiple csv files" in {
     val inputStream =
@@ -244,6 +220,6 @@ class CsvSinkSpec
     val str = CsvSink.createPathRecursively(
       "src/test/resources/xlsx_to_csv-data/output/sub1/sub2/sub3")
     Files.exists(Paths.get(str)) shouldBe true
-    beforeEach() // delete folderXlsxCsvData
+    beforeEach()
   }
 }

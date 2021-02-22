@@ -4,7 +4,6 @@ import io.oss.data.highway.model.{DataType, JSON}
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
-import io.oss.data.highway.configuration.SparkConfigs
 import org.apache.log4j.Logger
 
 import java.io.File
@@ -22,7 +21,6 @@ object JsonSink {
     * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
-    * @param sparkConfig The Spark Configuration
     * @return a List of Path, otherwise an Error
     */
   def convertToJson(
@@ -30,9 +28,8 @@ object JsonSink {
       out: String,
       basePath: String,
       saveMode: SaveMode,
-      inputDataType: DataType,
-      sparkConfig: SparkConfigs): Either[Throwable, List[Path]] = {
-    DataFrameUtils(sparkConfig)
+      inputDataType: DataType): Either[Throwable, List[Path]] = {
+    DataFrameUtils
       .loadDataFrame(in, inputDataType)
       .map(df => {
         df.coalesce(1)
@@ -52,15 +49,13 @@ object JsonSink {
     * @param out      The generated json file path
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
-    * @param sparkConfig The Spark Configuration
     * @return List of List of Path, otherwise an Error
     */
   def handleJsonChannel(
       in: String,
       out: String,
       saveMode: SaveMode,
-      inputDataType: DataType,
-      sparkConfig: SparkConfigs): Either[Throwable, List[List[Path]]] = {
+      inputDataType: DataType): Either[Throwable, List[List[Path]]] = {
     val basePath = new File(in).getParent
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
@@ -74,8 +69,7 @@ object JsonSink {
                         s"$out/$suffix",
                         basePath,
                         saveMode,
-                        inputDataType,
-                        sparkConfig)
+                        inputDataType)
         })
       _ = FilesUtils.deleteFolder(in)
     } yield list

@@ -1,14 +1,7 @@
 package io.oss.data.highway
 
 import io.oss.data.highway.configuration.ConfigLoader
-import io.oss.data.highway.converter.{
-  AvroSink,
-  CsvSink,
-  JsonSink,
-  KafkaSampler,
-  KafkaSink,
-  ParquetSink
-}
+import io.oss.data.highway.converter.{AvroSink, CsvSink, ElasticSampler, ElasticSink, JsonSink, KafkaSampler, KafkaSink, ParquetSink}
 import io.oss.data.highway.model._
 import org.apache.spark.sql.SaveMode.Overwrite
 import org.apache.log4j.{BasicConfigurator, Logger}
@@ -33,42 +26,45 @@ object Main {
 
   def apply(route: Route): Either[Throwable, Any] = {
     logger.info(s"${route.toString} route is activated ...")
-    val sparkConf = ConfigLoader().loadSparkConf()
     route match {
       case CsvToParquet(in, out) =>
-        ParquetSink.handleParquetChannel(in, out, Overwrite, CSV, sparkConf)
+        ParquetSink.handleParquetChannel(in, out, Overwrite, CSV)
       case JsonToParquet(in, out) =>
-        ParquetSink.handleParquetChannel(in, out, Overwrite, JSON, sparkConf)
+        ParquetSink.handleParquetChannel(in, out, Overwrite, JSON)
       case AvroToParquet(in, out) =>
-        ParquetSink.handleParquetChannel(in, out, Overwrite, AVRO, sparkConf)
+        ParquetSink.handleParquetChannel(in, out, Overwrite, AVRO)
       case XlsxToCsv(in, out) =>
         CsvSink.handleXlsxCsvChannel(in,
                                      out,
                                      Seq(XLSX.extension, XLS.extension))
       case ParquetToCsv(in, out) =>
-        CsvSink.handleCsvChannel(in, out, Overwrite, PARQUET, sparkConf)
+        CsvSink.handleCsvChannel(in, out, Overwrite, PARQUET)
       case AvroToCsv(in, out) =>
-        CsvSink.handleCsvChannel(in, out, Overwrite, AVRO, sparkConf)
+        CsvSink.handleCsvChannel(in, out, Overwrite, AVRO)
       case JsonToCsv(in, out) =>
-        CsvSink.handleCsvChannel(in, out, Overwrite, JSON, sparkConf)
+        CsvSink.handleCsvChannel(in, out, Overwrite, JSON)
       case ParquetToJson(in, out) =>
-        JsonSink.handleJsonChannel(in, out, Overwrite, PARQUET, sparkConf)
+        JsonSink.handleJsonChannel(in, out, Overwrite, PARQUET)
       case AvroToJson(in, out) =>
-        JsonSink.handleJsonChannel(in, out, Overwrite, AVRO, sparkConf)
+        JsonSink.handleJsonChannel(in, out, Overwrite, AVRO)
       case CsvToJson(in, out) =>
-        JsonSink.handleJsonChannel(in, out, Overwrite, CSV, sparkConf)
+        JsonSink.handleJsonChannel(in, out, Overwrite, CSV)
       case ParquetToAvro(in, out) =>
-        AvroSink.handleAvroChannel(in, out, Overwrite, PARQUET, sparkConf)
+        AvroSink.handleAvroChannel(in, out, Overwrite, PARQUET)
       case JsonToAvro(in, out) =>
-        AvroSink.handleAvroChannel(in, out, Overwrite, JSON, sparkConf)
+        AvroSink.handleAvroChannel(in, out, Overwrite, JSON)
       case CsvToAvro(in, out) =>
-        AvroSink.handleAvroChannel(in, out, Overwrite, CSV, sparkConf)
+        AvroSink.handleAvroChannel(in, out, Overwrite, CSV)
       case KafkaToFile(in, out, kafkaMode) =>
-        KafkaSampler.consumeFromTopic(in, out, kafkaMode, sparkConf)
+        KafkaSampler.consumeFromTopic(in, out, kafkaMode)
       case FileToKafka(in, out, kafkaMode) =>
-        new KafkaSink().publishToTopic(in, out, kafkaMode, sparkConf)
+        new KafkaSink().publishToTopic(in, out, kafkaMode)
       case KafkaToKafka(in, out, kafkaMode) =>
-        new KafkaSink().publishToTopic(in, out, kafkaMode, sparkConf)
+        new KafkaSink().publishToTopic(in, out, kafkaMode)
+      case FileToElasticsearch(in, out) =>
+        ElasticSink.handleElasticsearchChannel(in, out)
+      case ElasticsearchToFile(in, out) =>
+        ElasticSampler.saveDocuments(in, out)
       case _ =>
         throw new RuntimeException(
           s"The provided route '$route' is not supported.")

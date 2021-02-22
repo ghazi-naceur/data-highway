@@ -9,7 +9,6 @@ import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
 import org.apache.poi.ss.usermodel.{CellType, Sheet, WorkbookFactory}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
-import io.oss.data.highway.configuration.SparkConfigs
 import org.apache.log4j.Logger
 
 import scala.annotation.tailrec
@@ -26,16 +25,14 @@ object CsvSink {
     * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
-    * @param sparkConfig The Spark Configuration
     * @return a List of Path, otherwise an Error
     */
   def convertToCsv(in: String,
                    out: String,
                    basePath: String,
                    saveMode: SaveMode,
-                   inputDataType: DataType,
-                   sparkConfig: SparkConfigs): Either[Throwable, List[Path]] = {
-    DataFrameUtils(sparkConfig)
+                   inputDataType: DataType): Either[Throwable, List[Path]] = {
+    DataFrameUtils
       .loadDataFrame(in, inputDataType)
       .map(df => {
         df.coalesce(1)
@@ -58,15 +55,13 @@ object CsvSink {
     * @param out The generated csv file path
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
-    * @param sparkConfig The Spark Configuration
     * @return List of List of Path, otherwise Error
     */
   def handleCsvChannel(
       in: String,
       out: String,
       saveMode: SaveMode,
-      inputDataType: DataType,
-      sparkConfig: SparkConfigs): Either[Throwable, List[List[Path]]] = {
+      inputDataType: DataType): Either[Throwable, List[List[Path]]] = {
     val basePath = new File(in).getParent
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
@@ -79,8 +74,7 @@ object CsvSink {
                        s"$out/$suffix",
                        basePath,
                        saveMode,
-                       inputDataType,
-                       sparkConfig)
+                       inputDataType)
         })
       _ = FilesUtils.deleteFolder(in)
     } yield list

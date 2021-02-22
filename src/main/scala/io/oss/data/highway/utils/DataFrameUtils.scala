@@ -1,22 +1,11 @@
 package io.oss.data.highway.utils
 
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.DataFrame
 import cats.syntax.either._
-import io.oss.data.highway.configuration.SparkConfigs
 import io.oss.data.highway.model.{AVRO, CSV, DataType, JSON, PARQUET}
 import io.oss.data.highway.utils.Constants.SEPARATOR
 
-case class DataFrameUtils(sparkConf: SparkConfigs) {
-
-  val sparkSession: SparkSession = {
-    val ss = SparkSession
-      .builder()
-      .appName(sparkConf.appName)
-      .master(sparkConf.masterUrl)
-      .getOrCreate()
-    ss.sparkContext.setLogLevel(sparkConf.logLevel.value)
-    ss
-  }
+object DataFrameUtils extends SparkUtils {
 
   /**
     * Loads a dataframe

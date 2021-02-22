@@ -41,7 +41,26 @@ case class ConfigLoader() {
       case Right(conf) => conf
       case Left(thr) =>
         throw new RuntimeException(
-          s"Error when trying to load configuration : ${thr.toList.mkString("\n")}")
+          s"Error when trying to load Spark configuration : ${thr.toList.mkString("\n")}")
+    }
+  }
+
+
+  /**
+    * Loads Elasticsearch configurations
+    * @return ElasticConfigs, otherwise throws a RuntimeException
+    */
+  def loadElasticConf(): ElasticConfigs = {
+    import pureconfig._
+    import pureconfig.generic.auto._ // To be kept, even though intellij didn't recognize its usage
+
+    ConfigSource.default
+      .at("elasticsearch")
+      .load[ElasticConfigs] match {
+      case Right(conf) => conf
+      case Left(thr) =>
+        throw new RuntimeException(
+          s"Error when trying to load Elasticsearch configuration : ${thr.toList.mkString("\n")}")
     }
   }
 }

@@ -1,0 +1,8 @@
+// POST http://localhost:5555/conversion/route
+{
+  "route": {
+    "type": "file-to-elasticsearch",
+    "in": "your-input-folder-containing-json-files",
+    "out": "elasticsearch-index"
+  }
+}
