@@ -1,6 +1,6 @@
-package io.oss.data.highway.converter
+package io.oss.data.highway.sinks
 
-import io.oss.data.highway.model.{DataType, JSON}
+import io.oss.data.highway.models.{DataType, JSON}
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
@@ -23,12 +23,11 @@ object JsonSink {
     * @param inputDataType The type of the input data
     * @return a List of Path, otherwise an Error
     */
-  def convertToJson(
-      in: String,
-      out: String,
-      basePath: String,
-      saveMode: SaveMode,
-      inputDataType: DataType): Either[Throwable, List[Path]] = {
+  def convertToJson(in: String,
+                    out: String,
+                    basePath: String,
+                    saveMode: SaveMode,
+                    inputDataType: DataType): Either[Throwable, List[Path]] = {
     DataFrameUtils
       .loadDataFrame(in, inputDataType)
       .map(df => {

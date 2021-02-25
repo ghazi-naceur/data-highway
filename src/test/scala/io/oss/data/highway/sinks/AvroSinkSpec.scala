@@ -1,10 +1,10 @@
-package io.oss.data.highway.converter
+package io.oss.data.highway.sinks
 
 import java.io.File
 import java.nio.file.{Files, Paths}
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
-import io.oss.data.highway.model.{AVRO, CSV, JSON, PARQUET}
+import io.oss.data.highway.models.{AVRO, CSV, JSON, PARQUET}
 import io.oss.data.highway.utils.DataFrameUtils
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import org.scalatest.BeforeAndAfterEach
@@ -13,16 +13,32 @@ import org.scalatest.matchers.should.Matchers
 
 import scala.reflect.io.Directory
 
-class JsonSinkSpec
+class AvroSinkSpec
     extends AnyFlatSpec
     with Matchers
     with BeforeAndAfterEach
     with DatasetComparer {
 
-  val folderParquetToJson = "src/test/resources/parquet_to_json-data/"
-  val folderCsvToJson = "src/test/resources/csv_to_json-data/"
-  val folderAvroToJson = "src/test/resources/avro_to_json-data/"
-  val getExpected: DataFrame = {
+  val folderParquetToAvro = "src/test/resources/parquet_to_avro-data/"
+  val folderJsonToAvro = "src/test/resources/json_to_avro-data/"
+  val folderCsvToAvro = "src/test/resources/csv_to_avro-data/"
+
+  lazy val spark: SparkSession = {
+    SparkSession
+      .builder()
+      .master("local")
+      .appName("spark session")
+      .config("spark.sql.shuffle.partitions", "1")
+      .getOrCreate()
+  }
+
+  override def beforeEach(): Unit = {
+    deleteFolderWithItsContent(folderParquetToAvro)
+    deleteFolderWithItsContent(folderJsonToAvro)
+    deleteFolderWithItsContent(folderCsvToAvro)
+  }
+
+  private def getExpected: DataFrame = {
     import spark.implicits._
     List(
       (6.0,
@@ -47,22 +63,8 @@ class JsonSinkSpec
        "215.57.123.52")
     ).toDF("id", "first_name", "last_name", "email", "gender", "ip_address")
   }
-  lazy val spark: SparkSession = {
-    SparkSession
-      .builder()
-      .master("local")
-      .appName("spark session")
-      .config("spark.sql.shuffle.partitions", "1")
-      .getOrCreate()
-  }
 
-  override def beforeEach(): Unit = {
-    deleteFoldersWithContents(folderParquetToJson)
-    deleteFoldersWithContents(folderAvroToJson)
-    deleteFoldersWithContents(folderCsvToJson)
-  }
-
-  private def deleteFoldersWithContents(path: String): Unit = {
+  private def deleteFolderWithItsContent(path: String): Unit = {
     new File(path + "output").listFiles.toList
       .filterNot(_.getName.endsWith(".gitkeep"))
       .foreach(file => {
@@ -73,40 +75,33 @@ class JsonSinkSpec
       })
   }
 
-  "JsonSink.saveParquetAsJson" should "save a parquet as a json file" in {
-    JsonSink
-      .convertToJson(
-        folderParquetToJson + "input/mock-data-2",
-        folderParquetToJson + "output/mock-data-2",
-        folderParquetToJson + "processed",
-        SaveMode.Overwrite,
-        PARQUET)
-    val actual =
-      DataFrameUtils
-        .loadDataFrame(folderParquetToJson + "output/mock-data-2", JSON)
-        .right
-        .get
-        .orderBy("id")
-        .select("id",
-                "first_name",
-                "last_name",
-                "email",
-                "gender",
-                "ip_address")
-
-    assertSmallDatasetEquality(actual, getExpected, ignoreNullable = true)
-  }
-
-  "JsonSink.saveAvroAsJson" should "save an avro as a json file" in {
-    JsonSink
-      .convertToJson(folderAvroToJson + "input/mock-data-2",
-                     folderAvroToJson + "output/mock-data-2",
-                     folderAvroToJson + "processed",
+  "AvroSink.saveParquetAsAvro" should "save a parquet as an avro file" in {
+    AvroSink
+      .convertToAvro(folderParquetToAvro + "input/mock-data-2",
+                     folderParquetToAvro + "output/mock-data-2",
+                     folderParquetToAvro + "processed",
                      SaveMode.Overwrite,
-                     AVRO)
+                     PARQUET)
+    val actual = DataFrameUtils
+      .loadDataFrame(folderParquetToAvro + "output/mock-data-2", AVRO)
+      .right
+      .get
+      .orderBy("id")
+      .select("id", "first_name", "last_name", "email", "gender", "ip_address")
+
+    assertSmallDatasetEquality(actual, getExpected, ignoreNullable = true)
+  }
+
+  "AvroSink.saveJsonAsAvro" should "save a json as an avro file" in {
+    AvroSink
+      .convertToAvro(folderJsonToAvro + "input/mock-data-2",
+                     folderJsonToAvro + "output/mock-data-2",
+                     folderJsonToAvro + "processed",
+                     SaveMode.Overwrite,
+                     JSON)
     val actual =
       DataFrameUtils
-        .loadDataFrame(folderAvroToJson + "output/mock-data-2", JSON)
+        .loadDataFrame(folderJsonToAvro + "output/mock-data-2", AVRO)
         .right
         .get
         .orderBy("id")
@@ -120,16 +115,16 @@ class JsonSinkSpec
     assertSmallDatasetEquality(actual, getExpected, ignoreNullable = true)
   }
 
-  "JsonSink.saveCsvAsJson" should "save a csv as a json file" in {
-    JsonSink
-      .convertToJson(folderCsvToJson + "input/mock-data-2",
-                     folderCsvToJson + "output/mock-data-2",
-                     folderCsvToJson + "processed",
+  "AvroSink.saveCsvAsAvro" should "save a csv as an avro file" in {
+    AvroSink
+      .convertToAvro(folderCsvToAvro + "input/mock-data-2",
+                     folderCsvToAvro + "output/mock-data-2",
+                     folderCsvToAvro + "processed",
                      SaveMode.Overwrite,
                      CSV)
     val actual =
       DataFrameUtils
-        .loadDataFrame(folderCsvToJson + "output/mock-data-2", JSON)
+        .loadDataFrame(folderCsvToAvro + "output/mock-data-2", AVRO)
         .right
         .get
         .orderBy("id")

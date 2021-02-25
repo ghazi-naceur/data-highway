@@ -1,6 +1,6 @@
-package io.oss.data.highway.converter
+package io.oss.data.highway.sinks
 
-import io.oss.data.highway.model.{AVRO, DataType}
+import io.oss.data.highway.models.{DataType, PARQUET}
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
@@ -9,21 +9,21 @@ import org.apache.log4j.Logger
 import java.io.File
 import java.nio.file.Path
 
-object AvroSink {
+object ParquetSink {
 
-  val logger: Logger = Logger.getLogger(AvroSink.getClass.getName)
+  val logger: Logger = Logger.getLogger(ParquetSink.getClass.getName)
 
   /**
-    * Converts file to avro
+    * Converts file to parquet
     *
     * @param in The input data path
-    * @param out The generated avro file path
+    * @param out The generated parquet file path
     * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
     * @return a List of Path, otherwise an Error
     */
-  def convertToAvro(
+  def convertToParquet(
       in: String,
       out: String,
       basePath: String,
@@ -33,25 +33,26 @@ object AvroSink {
       .loadDataFrame(in, inputDataType)
       .map(df => {
         df.write
-          .format(AVRO.extension)
           .mode(saveMode)
-          .save(out)
+          .parquet(out)
         logger.info(
-          s"Successfully converting '$inputDataType' data from input folder '$in' to '${AVRO.getClass.getName}' and store it under output folder '$out'.")
+          s"Successfully converting '$inputDataType' data from input folder '$in' to '${PARQUET.getClass.getName}' and store it under output folder '$out'.")
       })
-      .flatMap(_ => FilesUtils.movePathContent(in, basePath))
+      .flatMap(_ => {
+        FilesUtils.movePathContent(in, basePath)
+      })
   }
 
   /**
-    * Converts files to avro
+    * Converts files to parquet
     *
     * @param in The input data path
-    * @param out The generated avro file path
+    * @param out The generated parquet file path
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
     * @return List of List of Path, otherwise an Error
     */
-  def handleAvroChannel(
+  def handleParquetChannel(
       in: String,
       out: String,
       saveMode: SaveMode,
@@ -59,16 +60,17 @@ object AvroSink {
     val basePath = new File(in).getParent
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
+      _ = logger.info("folders : " + folders)
       list <- folders
         .filterNot(path =>
           new File(path).listFiles.filter(_.isFile).toList.isEmpty)
         .traverse(folder => {
           val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
-          convertToAvro(folder,
-                        s"$out/$suffix",
-                        basePath,
-                        saveMode,
-                        inputDataType)
+          convertToParquet(folder,
+                           s"$out/$suffix",
+                           basePath,
+                           saveMode,
+                           inputDataType)
         })
       _ = FilesUtils.deleteFolder(in)
     } yield list

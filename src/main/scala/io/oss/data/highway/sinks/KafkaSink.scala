@@ -1,10 +1,10 @@
-package io.oss.data.highway.converter
+package io.oss.data.highway.sinks
 
 import java.time.Duration
 import org.apache.kafka.clients.producer._
 
 import java.util.{Properties, UUID}
-import io.oss.data.highway.model.{
+import io.oss.data.highway.models.{
   JSON,
   KafkaMode,
   Offset,
@@ -20,7 +20,7 @@ import org.apache.kafka.streams.{KafkaStreams, StreamsConfig}
 
 import org.apache.log4j.Logger
 import cats.implicits._
-import io.oss.data.highway.model.DataHighwayError.KafkaError
+import io.oss.data.highway.models.DataHighwayError.KafkaError
 import monix.execution.Scheduler.{global => scheduler}
 import org.apache.kafka.clients.consumer.ConsumerConfig
 
@@ -95,7 +95,8 @@ class KafkaSink {
   }
 
   /**
-    * Publishes message via [[io.oss.data.highway.model.SparkKafkaPluginProducer]]
+    * Publishes message via [[io.oss.data.highway.models.SparkKafkaPluginProducer]]
+    *
     * @param jsonPath The path that contains json data to be send
     * @param brokers The kafka brokers urls
     * @param topic The output topic
@@ -131,7 +132,8 @@ class KafkaSink {
   }
 
   /**
-    * Publishes a message via Spark [[io.oss.data.highway.model.SparkKafkaPluginStreamsProducer]]
+    * Publishes a message via Spark [[io.oss.data.highway.models.SparkKafkaPluginStreamsProducer]]
+    *
     * @param input The path that contains json data to be send
     * @param producer The Kafka Producer
     * @param bootstrapServers The kafka brokers urls
@@ -167,7 +169,8 @@ class KafkaSink {
   }
 
   /**
-    * Runs Kafka stream via [[io.oss.data.highway.model.PureKafkaStreamsProducer]]
+    * Runs Kafka stream via [[io.oss.data.highway.models.PureKafkaStreamsProducer]]
+    *
     * @param streamAppId The Kafka stream application id
     * @param intermediateTopic The Kafka intermediate topic
     * @param bootstrapServers The kafka brokers urls
@@ -241,7 +244,8 @@ class KafkaSink {
   }
 
   /**
-    * Publishes the content of the json file via [[io.oss.data.highway.model.PureKafkaProducer]]
+    * Publishes the content of the json file via [[io.oss.data.highway.models.PureKafkaProducer]]
+    *
     * @param jsonPath a json file or a folder or folders that contain json files
     * @param basePath The base path for input, output and processed folders
     * @param topic The destination topic

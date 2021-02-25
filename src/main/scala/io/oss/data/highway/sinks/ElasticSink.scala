@@ -1,6 +1,6 @@
-package io.oss.data.highway.converter
+package io.oss.data.highway.sinks
 
-import io.oss.data.highway.model.{ElasticConfig, JSON}
+import io.oss.data.highway.models.{ElasticConfig, JSON}
 import io.oss.data.highway.utils.{ElasticUtils, FilesUtils}
 import org.apache.log4j.Logger
 import cats.implicits._
@@ -21,10 +21,9 @@ object ElasticSink extends ElasticUtils {
     * @param basePath The base path for input, output and processed folders
     * @return a List of Path, otherwise an Error
     */
-  def sendToElasticsearch(
-      in: String,
-      out: String,
-      basePath: String): Either[Throwable, List[Path]] = {
+  def sendToElasticsearch(in: String,
+                          out: String,
+                          basePath: String): Either[Throwable, List[Path]] = {
 
     if (new File(in).isFile) {
       for (line <- FilesUtils.getJsonLines(in)) {
@@ -38,8 +37,11 @@ object ElasticSink extends ElasticUtils {
         .foreach(file => {
           for (line <- FilesUtils.getJsonLines(file.getAbsolutePath)) {
             indexDocInEs(out, line)
-            val suffix = new File(file.getAbsolutePath).getParent.split("/").last
-            FilesUtils.movePathContent(file.getAbsolutePath, basePath, s"processed/$suffix")
+            val suffix =
+              new File(file.getAbsolutePath).getParent.split("/").last
+            FilesUtils.movePathContent(file.getAbsolutePath,
+                                       basePath,
+                                       s"processed/$suffix")
           }
         })
     }

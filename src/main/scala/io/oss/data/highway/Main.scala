@@ -1,8 +1,17 @@
 package io.oss.data.highway
 
-import io.oss.data.highway.configuration.ConfigLoader
-import io.oss.data.highway.converter.{AvroSink, CsvSink, ElasticSampler, ElasticSink, JsonSink, KafkaSampler, KafkaSink, ParquetSink}
-import io.oss.data.highway.model._
+import io.oss.data.highway.configs.ConfigLoader
+import io.oss.data.highway.sinks.{
+  AvroSink,
+  CsvSink,
+  ElasticSampler,
+  ElasticSink,
+  JsonSink,
+  KafkaSampler,
+  KafkaSink,
+  ParquetSink
+}
+import io.oss.data.highway.models._
 import org.apache.spark.sql.SaveMode.Overwrite
 import org.apache.log4j.{BasicConfigurator, Logger}
 

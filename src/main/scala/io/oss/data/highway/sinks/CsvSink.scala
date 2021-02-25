@@ -1,9 +1,9 @@
-package io.oss.data.highway.converter
+package io.oss.data.highway.sinks
 
 import java.io.{File, FileInputStream}
 import java.nio.file.{Files, Path, Paths}
-import io.oss.data.highway.model.DataHighwayError.ReadFileError
-import io.oss.data.highway.model._
+import io.oss.data.highway.models.DataHighwayError.ReadFileError
+import io.oss.data.highway.models._
 import io.oss.data.highway.utils.Constants._
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
 import org.apache.poi.ss.usermodel.{CellType, Sheet, WorkbookFactory}
@@ -88,7 +88,7 @@ object CsvSink {
     * @param csvOutputFolder  The generated CSV output folder
     * @return a Path, otherwise an Error
     */
-  private[converter] def convertXlsxSheetToCsvFile(
+  private[sinks] def convertXlsxSheetToCsvFile(
       fileRelativePath: String,
       sheet: Sheet,
       csvOutputFolder: String): Either[DataHighwayError, Path] = {
@@ -143,7 +143,7 @@ object CsvSink {
     * @param path The provided path to be created
     * @return The created path
     */
-  private[converter] def createPathRecursively(path: String): String = {
+  private[sinks] def createPathRecursively(path: String): String = {
     val folders = path.split("/").toList
 
     @tailrec
@@ -174,7 +174,7 @@ object CsvSink {
     * @param csvOutputPath    The generated CSV output folder
     * @return a Unit, otherwise an Error
     */
-  private[converter] def convertXlsxFileToCsvFiles(
+  private[sinks] def convertXlsxFileToCsvFiles(
       fileRelativePath: String,
       inputExcelPath: FileInputStream,
       csvOutputPath: String): Either[DataHighwayError, Unit] = {

@@ -1,9 +1,9 @@
-package io.oss.data.highway.converter
+package io.oss.data.highway.sinks
 
 import java.io.{File, FileInputStream}
 import java.nio.file.{Files, Paths}
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
-import io.oss.data.highway.model.{AVRO, CSV, JSON, PARQUET}
+import io.oss.data.highway.models.{AVRO, CSV, JSON, PARQUET}
 import io.oss.data.highway.utils.DataFrameUtils
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import org.scalatest.BeforeAndAfterEach
@@ -77,12 +77,11 @@ class CsvSinkSpec
 
   "CsvSink.saveParquetAsCsv" should "save a parquet as a csv file" in {
     CsvSink
-      .convertToCsv(
-        folderParquetToCsvData + "input/mock-data-2",
-        folderParquetToCsvData + "output/mock-data-2",
-        folderJsonToCsvData + "processed",
-        SaveMode.Overwrite,
-        PARQUET)
+      .convertToCsv(folderParquetToCsvData + "input/mock-data-2",
+                    folderParquetToCsvData + "output/mock-data-2",
+                    folderJsonToCsvData + "processed",
+                    SaveMode.Overwrite,
+                    PARQUET)
     val actual =
       DataFrameUtils
         .loadDataFrame(folderParquetToCsvData + "output/mock-data-2", CSV)

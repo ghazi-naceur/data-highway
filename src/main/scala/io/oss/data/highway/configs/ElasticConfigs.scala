@@ -1,3 +1,3 @@
-package io.oss.data.highway.configuration
+package io.oss.data.highway.configs
 
 case class ElasticConfigs(esNodes: String)

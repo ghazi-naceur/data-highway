@@ -1,9 +1,9 @@
-package io.oss.data.highway.converter
+package io.oss.data.highway.sinks
 
 import java.io.File
 import java.time.Duration
 import java.util.UUID
-import io.oss.data.highway.model.{
+import io.oss.data.highway.models.{
   AVRO,
   DataType,
   Earliest,
@@ -30,7 +30,7 @@ import monix.execution.Scheduler.{global => scheduler}
 
 import scala.concurrent.duration._
 import cats.implicits._
-import io.oss.data.highway.model.DataHighwayError.KafkaError
+import io.oss.data.highway.models.DataHighwayError.KafkaError
 
 import scala.jdk.CollectionConverters._
 import scala.util.Try
@@ -81,7 +81,12 @@ object KafkaSampler {
         }
       case SparkKafkaPluginConsumer(brokers, offset, _) =>
         Either.catchNonFatal(
-          sinkViaSparkKafkaPlugin(DataFrameUtils.sparkSession, in, out, brokers, offset, ext)
+          sinkViaSparkKafkaPlugin(DataFrameUtils.sparkSession,
+                                  in,
+                                  out,
+                                  brokers,
+                                  offset,
+                                  ext)
         )
       case _ =>
         throw new RuntimeException(
@@ -105,7 +110,7 @@ object KafkaSampler {
   }
 
   /**
-    * Sinks topic content into files using a [[io.oss.data.highway.model.SparkKafkaPluginConsumer]]
+    * Sinks topic content into files using a [[io.oss.data.highway.models.SparkKafkaPluginConsumer]]
     *
     * @param session The Spark session
     * @param in The input kafka topic
@@ -148,7 +153,7 @@ object KafkaSampler {
   }
 
   /**
-    * Sinks topic content into files using a [[io.oss.data.highway.model.SparkKafkaPluginStreamsConsumer]]
+    * Sinks topic content into files using a [[io.oss.data.highway.models.SparkKafkaPluginStreamsConsumer]]
     *
     * @param session The Spark session
     * @param in The input kafka topic
@@ -189,7 +194,7 @@ object KafkaSampler {
   }
 
   /**
-    * Sinks topic content into files using a [[io.oss.data.highway.model.PureKafkaStreamsConsumer]]
+    * Sinks topic content into files using a [[io.oss.data.highway.models.PureKafkaStreamsConsumer]]
     *
     * @param in The input kafka topic
     * @param out The output folder
@@ -230,7 +235,7 @@ object KafkaSampler {
   }
 
   /**
-    * Sinks topic content into files using a [[io.oss.data.highway.model.PureKafkaConsumer]]
+    * Sinks topic content into files using a [[io.oss.data.highway.models.PureKafkaConsumer]]
     *
     * @param in The input kafka topic
     * @param out The output folder

@@ -1,8 +1,8 @@
-package io.oss.data.highway.configuration
+package io.oss.data.highway.configs
 
 import cats.syntax.either._
-import io.oss.data.highway.model.DataHighwayError.BulkErrorAccumulator
-import io.oss.data.highway.model.{LogLevel, Offset, Route}
+import io.oss.data.highway.models.DataHighwayError.BulkErrorAccumulator
+import io.oss.data.highway.models.{LogLevel, Offset, Route}
 import pureconfig.generic.semiauto._
 
 case class ConfigLoader() {
@@ -45,7 +45,6 @@ case class ConfigLoader() {
     }
   }
 
-
   /**
     * Loads Elasticsearch configurations
     * @return ElasticConfigs, otherwise throws a RuntimeException
@@ -60,7 +59,8 @@ case class ConfigLoader() {
       case Right(conf) => conf
       case Left(thr) =>
         throw new RuntimeException(
-          s"Error when trying to load Elasticsearch configuration : ${thr.toList.mkString("\n")}")
+          s"Error when trying to load Elasticsearch configuration : ${thr.toList
+            .mkString("\n")}")
     }
   }
 }

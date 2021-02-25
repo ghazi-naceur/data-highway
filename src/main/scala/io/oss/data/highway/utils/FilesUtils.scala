@@ -1,7 +1,7 @@
 package io.oss.data.highway.utils
 
 import java.io.{File, FileWriter}
-import io.oss.data.highway.model.DataHighwayError.ReadFileError
+import io.oss.data.highway.models.DataHighwayError.ReadFileError
 import cats.syntax.either._
 import org.apache.commons.io.FileUtils
 import org.apache.log4j.Logger

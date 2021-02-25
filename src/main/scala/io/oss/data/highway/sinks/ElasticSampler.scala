@@ -1,4 +1,4 @@
-package io.oss.data.highway.converter
+package io.oss.data.highway.sinks
 
 import cats.implicits.toTraverseOps
 import com.sksamuel.elastic4s.{RequestFailure, RequestSuccess}

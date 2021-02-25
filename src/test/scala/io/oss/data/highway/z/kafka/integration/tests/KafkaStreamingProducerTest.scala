@@ -1,10 +1,7 @@
 package io.oss.data.highway.z.kafka.integration.tests
 
-import io.oss.data.highway.converter.KafkaSink
-import io.oss.data.highway.model.{
-  Latest,
-  PureKafkaStreamsProducer
-}
+import io.oss.data.highway.sinks.KafkaSink
+import io.oss.data.highway.models.{Latest, PureKafkaStreamsProducer}
 import org.apache.log4j.BasicConfigurator
 
 object KafkaStreamingProducerTest {

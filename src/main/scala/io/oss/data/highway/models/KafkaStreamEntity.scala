@@ -1,4 +1,4 @@
-package io.oss.data.highway.model
+package io.oss.data.highway.models
 
 import java.util.Properties
 

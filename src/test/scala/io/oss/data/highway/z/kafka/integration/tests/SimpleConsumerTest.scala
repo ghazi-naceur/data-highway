@@ -1,7 +1,7 @@
 package io.oss.data.highway.z.kafka.integration.tests
 
-import io.oss.data.highway.converter.KafkaSampler
-import io.oss.data.highway.model.{Earliest, JSON, PureKafkaConsumer}
+import io.oss.data.highway.sinks.KafkaSampler
+import io.oss.data.highway.models.{Earliest, JSON, PureKafkaConsumer}
 
 object SimpleConsumerTest {
 
