@@ -11,6 +11,34 @@ class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach {
   val folder = "src/test/resources/xlsx_to_csv-data/"
   val extensions = Seq("xlsx", "xls")
 
+  "FilesUtils.listFoldersRecursively" should "list folders recursively" in {
+
+    val directories = FilesUtils.listFoldersRecursively(
+      "src/test/resources/xlsx_to_csv-data/processed/")
+    directories.right.get
+      .map(folder => FilesUtils.reversePathSeparator(folder)) should contain theSameElementsAs List(
+      "src/test/resources/xlsx_to_csv-data/processed/folder1",
+      "src/test/resources/xlsx_to_csv-data/processed/folder2",
+      "src/test/resources/xlsx_to_csv-data/processed/folder3"
+    )
+  }
+
+  "FilesUtils.listFilesRecursively" should "list the files under a provided path" in {
+    val list = FilesUtils
+      .listFilesRecursively(
+        new File("src/test/resources/xlsx_to_csv-data/processed/folder2"),
+        extensions)
+      .toList
+    val actual: List[String] =
+      list.map(file => FilesUtils.reversePathSeparator(file.toString))
+    val expected = List(
+      "src/test/resources/xlsx_to_csv-data/processed/folder2/mock-xlsx-data-21.xlsx",
+      "src/test/resources/xlsx_to_csv-data/processed/folder2/mock-xlsx-data-22.xlsx"
+    )
+
+    actual should contain theSameElementsAs expected
+  }
+
   "FilesUtils.getFilesFromPath" should "list all files in folderXlsxCsvData" in {
 
     val files = FilesUtils
@@ -44,21 +72,6 @@ class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach {
     })
   }
 
-  "FilesUtils.listFilesRecursively" should "list the files under a provided path" in {
-    val list = FilesUtils
-      .listFilesRecursively(
-        new File("src/test/resources/xlsx_to_csv-data/input/folder2"),
-        extensions)
-      .toList
-    val actual: List[String] =
-      list.map(file => FilesUtils.reversePathSeparator(file.toString))
-    val expected = List(
-      "src/test/resources/xlsx_to_csv-data/input/folder2/mock-xlsx-data-21.xlsx",
-      "src/test/resources/xlsx_to_csv-data/input/folder2/mock-xlsx-data-22.xlsx")
-
-    actual should contain theSameElementsAs expected
-  }
-
   "FilesUtils.filterByExtension" should "valid file's extension againt the provided ones : 1st test" in {
 
     val bool = FilesUtils.filterByExtension("fkfj/ffkfj/fkfjkf/file.txt",
@@ -71,17 +84,5 @@ class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach {
     val bool = FilesUtils.filterByExtension("fkfj/ffkfj/fkfjkf/file.txt",
                                             Seq("txtt", "lks"))
     bool shouldBe false
-  }
-
-  "FilesUtils.listFoldersRecursively" should "list folders recursively" in {
-
-    val directories = FilesUtils.listFoldersRecursively(
-      "src/test/resources/xlsx_to_csv-data/input/")
-    directories.right.get
-      .map(folder => FilesUtils.reversePathSeparator(folder)) should contain theSameElementsAs List(
-      "src/test/resources/xlsx_to_csv-data/input/folder1",
-      "src/test/resources/xlsx_to_csv-data/input/folder2",
-      "src/test/resources/xlsx_to_csv-data/input/folder3"
-    )
   }
 }
