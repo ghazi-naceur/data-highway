@@ -597,11 +597,22 @@ Extracting data from an Elasticsearch index by **"elasticsearch-to-file"** :
   "route": {
     "type": "elasticsearch-to-file",
     "in": "elasticsearch-index",
-    "out": "your-output-folder-containing-json-files"
+    "out": "your-output-folder-containing-json-files",
+    "search-query": {
+      "type": "elasticsearch-search-query"
+    }
   }
 }
 ```
 
+**"search-query"** : Could be a "match-all-query"
+```json
+...
+    "search-query": {
+          "type": "match-all-query"
+    }
+...
+```
 
 # C- Scheduling :
 

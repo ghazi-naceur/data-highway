@@ -3,6 +3,9 @@
   "route": {
     "type": "elasticsearch-to-file",
     "in": "elasticsearch-index",
-    "out": "your-output-folder-containing-json-files"
+    "out": "your-output-folder-containing-json-files",
+    "search-query": {
+      "type": "elasticsearch-search-query"
+    }
   }
 }
