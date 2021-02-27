@@ -67,9 +67,9 @@ object Main {
       case KafkaToFile(in, out, kafkaMode) =>
         KafkaSampler.consumeFromTopic(in, out, kafkaMode)
       case FileToKafka(in, out, kafkaMode) =>
-        new KafkaSink().publishToTopic(in, out, kafkaMode)
+        KafkaSink.publishToTopic(in, out, kafkaMode)
       case KafkaToKafka(in, out, kafkaMode) =>
-        new KafkaSink().publishToTopic(in, out, kafkaMode)
+        KafkaSink.publishToTopic(in, out, kafkaMode)
       case FileToElasticsearch(in, out) =>
         ElasticSink.handleElasticsearchChannel(in, out)
       case ElasticsearchToFile(in, out, searchQuery) =>

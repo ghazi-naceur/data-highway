@@ -11,7 +11,7 @@ object KafkaStreamingProducerTest {
     val in = "src/test/resources/file_to_kafka-data/input/data.json"
     val out = "kafka-to-json-topic-2"
 
-    new KafkaSink().publishToTopic(
+    KafkaSink.publishToTopic(
       in,
       out,
       PureKafkaStreamsProducer("localhost:9092", "stream-app-id", Latest))

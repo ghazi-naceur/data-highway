@@ -28,9 +28,9 @@ import scala.concurrent.duration._
 import java.io.File
 import scala.sys.ShutdownHookThread
 
-class KafkaSink {
+object KafkaSink {
 
-  val logger: Logger = Logger.getLogger(classOf[KafkaSink].getName)
+  val logger: Logger = Logger.getLogger(KafkaSink.getClass.getName)
   val generated =
     s"${UUID.randomUUID()}-${System.currentTimeMillis().toString}"
   val intermediateTopic: String =

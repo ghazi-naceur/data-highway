@@ -11,7 +11,7 @@ object SparkKafkaProducerPluginTest {
     val in = "src/test/resources/file_to_kafka-data/input/data.json"
     val out = "kafka-to-json-topic-3"
 
-    new KafkaSink()
+    KafkaSink
       .publishToTopic(in, out, SparkKafkaPluginProducer("localhost:9092"))
   }
 }
