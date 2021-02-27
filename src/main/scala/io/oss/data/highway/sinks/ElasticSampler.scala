@@ -11,6 +11,7 @@ import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext.Implicits.global
 import cats.syntax.either._
 import com.sksamuel.elastic4s.requests.searches.SearchHit
+import io.oss.data.highway.models.{MatchAllQuery, MatchQuery, SearchQuery}
 
 object ElasticSampler extends ElasticUtils {
 
@@ -90,19 +91,29 @@ object ElasticSampler extends ElasticUtils {
     * Saves documents found in Elasticsearch index
     * @param in The Elasticsearch index
     * @param out The output base folder
+    * @param searchQuery The Elasticsearch query
     * @return List of Unit, otherwise an Error
     */
-  def saveDocuments(in: String, out: String): Either[Throwable, List[Unit]] = {
-    scanAndScroll(in) match {
-      case Right(searches) =>
-        searches.traverse(searchHit => {
-          FilesUtils.save(
-            s"$out/${searchHit.index}",
-            s"es-${searchHit.id}.json",
-            searchHit.sourceAsMap.mapValues(_.toString).asJson.noSpaces)
-        })
-      case Left(thr) =>
-        Left(thr)
+  def saveDocuments(in: String,
+                    out: String,
+                    searchQuery: SearchQuery): Either[Throwable, List[Unit]] = {
+    searchQuery match {
+      case MatchAllQuery =>
+        scanAndScroll(in) match {
+          case Right(searches) =>
+            searches.traverse(searchHit => {
+              FilesUtils.save(
+                s"$out/${searchHit.index}",
+                s"es-${searchHit.id}.json",
+                searchHit.sourceAsMap.mapValues(_.toString).asJson.noSpaces)
+            })
+          case Left(thr) =>
+            Left(thr)
+        }
+
+      case MatchQuery(fields) => Either.catchNonFatal(List())
+      case _                  => Either.catchNonFatal(List())
+
     }
   }
 }
