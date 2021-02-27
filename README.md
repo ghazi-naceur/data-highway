@@ -605,7 +605,9 @@ Extracting data from an Elasticsearch index by **"elasticsearch-to-file"** :
 }
 ```
 
-**"search-query"** : Could be a "match-all-query"
+**"search-query"** : Could be a :
+
+a- "match-all-query" :
 ```json
 ...
     "search-query": {
@@ -613,7 +615,18 @@ Extracting data from an Elasticsearch index by **"elasticsearch-to-file"** :
     }
 ...
 ```
-
+b- "match-query" :
+```json
+...
+    "search-query": {
+        "type": "match-query",
+        "field": {
+            "name": "field_name",
+            "value": "field_value"
+        }
+    }
+...
+```
 # C- Scheduling :
 
 Under the `data-highway/airflow/dags` folder, you will find some Airflow DAG samples, that can help you to automate your data-highway application with Airflow. 

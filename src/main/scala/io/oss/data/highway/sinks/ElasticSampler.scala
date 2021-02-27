@@ -11,7 +11,12 @@ import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext.Implicits.global
 import cats.syntax.either._
 import com.sksamuel.elastic4s.requests.searches.SearchHit
-import io.oss.data.highway.models.{MatchAllQuery, MatchQuery, SearchQuery}
+import io.oss.data.highway.models.{
+  Field,
+  MatchAllQuery,
+  MatchQuery,
+  SearchQuery
+}
 
 object ElasticSampler extends ElasticUtils {
 
@@ -45,9 +50,9 @@ object ElasticSampler extends ElasticUtils {
   /**
     * Scans and scrolls on an Index to get all documents
     * @param in The Elasticsearch index
-    * @return List of SearchHit, otherwise an Error
+    * @return List of SearchHit
     */
-  def scanAndScroll(in: String): Either[Throwable, List[SearchHit]] = {
+  def scanAndScroll(in: String): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     @tailrec
@@ -77,14 +82,32 @@ object ElasticSampler extends ElasticUtils {
       .await
       .result
 
-    Either.catchNonFatal {
-      matchAllRes.scrollId match {
-        case Some(scrollId) =>
-          scrollOnDocs(scrollId, matchAllRes.hits.hits.toList)
-        case None =>
-          List[SearchHit]()
-      }
+    matchAllRes.scrollId match {
+      case Some(scrollId) =>
+        scrollOnDocs(scrollId, matchAllRes.hits.hits.toList)
+      case None =>
+        List[SearchHit]()
     }
+  }
+
+  /**
+    * Searches for documents using Elasticsearch MatchQuery
+    * @param in The Elasticsearch index
+    * @param field The filter field
+    * @return List of SearchHit
+    */
+  def searchWithMatchQuery(in: String, field: Field): List[SearchHit] = {
+    import com.sksamuel.elastic4s.ElasticDsl._
+
+    esClient
+      .execute {
+        search(in).matchQuery(field.name, field.value)
+      }
+      .await
+      .result
+      .hits
+      .hits
+      .toList
   }
 
   /**
@@ -99,20 +122,22 @@ object ElasticSampler extends ElasticUtils {
                     searchQuery: SearchQuery): Either[Throwable, List[Unit]] = {
     searchQuery match {
       case MatchAllQuery =>
-        scanAndScroll(in) match {
-          case Right(searches) =>
-            searches.traverse(searchHit => {
-              FilesUtils.save(
-                s"$out/${searchHit.index}",
-                s"es-${searchHit.id}.json",
-                searchHit.sourceAsMap.mapValues(_.toString).asJson.noSpaces)
-            })
-          case Left(thr) =>
-            Left(thr)
-        }
+        scanAndScroll(in).traverse(searchHit => {
+          FilesUtils.save(
+            s"$out/${searchHit.index}",
+            s"es-${searchHit.id}.json",
+            searchHit.sourceAsMap.mapValues(_.toString).asJson.noSpaces)
+        })
 
-      case MatchQuery(fields) => Either.catchNonFatal(List())
-      case _                  => Either.catchNonFatal(List())
+      case MatchQuery(field) =>
+        searchWithMatchQuery(in, field).traverse(searchHit => {
+          FilesUtils.save(
+            s"$out/${searchHit.index}",
+            s"es-${searchHit.id}.json",
+            searchHit.sourceAsMap.mapValues(_.toString).asJson.noSpaces)
+        })
+
+      case _ => Either.catchNonFatal(List())
 
     }
   }
