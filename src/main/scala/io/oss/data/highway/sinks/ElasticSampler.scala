@@ -97,17 +97,53 @@ object ElasticSampler extends ElasticUtils {
     * @return List of SearchHit
     */
   def searchWithMatchQuery(in: String, field: Field): List[SearchHit] = {
+//    import com.sksamuel.elastic4s.ElasticDsl._
+//
+//    esClient
+//      .execute {
+//        search(in).matchQuery(field.name, field.value)
+//      }
+//      .await
+//      .result
+//      .hits
+//      .hits
+//      .toList
+
     import com.sksamuel.elastic4s.ElasticDsl._
 
-    esClient
+    @tailrec
+    def scrollOnDocs(scrollId: String,
+                     hits: List[SearchHit]): List[SearchHit] = {
+      val resp = esClient
+        .execute {
+          searchScroll(scrollId).keepAlive("1m")
+        }
+        .await
+        .result
+      if (resp.hits.hits.isEmpty) hits
+      else {
+        resp.scrollId match {
+          case Some(scrollId) =>
+            scrollOnDocs(scrollId, hits ::: resp.hits.hits.toList)
+          case None =>
+            hits
+        }
+      }
+    }
+
+    val matchAllRes = esClient
       .execute {
-        search(in).matchQuery(field.name, field.value)
+        search(in).matchQuery(field.name, field.value) scroll "1m"
       }
       .await
       .result
-      .hits
-      .hits
-      .toList
+
+    matchAllRes.scrollId match {
+      case Some(scrollId) =>
+        scrollOnDocs(scrollId, matchAllRes.hits.hits.toList)
+      case None =>
+        List[SearchHit]()
+    }
   }
 
   /**
@@ -122,23 +158,24 @@ object ElasticSampler extends ElasticUtils {
                     searchQuery: SearchQuery): Either[Throwable, List[Unit]] = {
     searchQuery match {
       case MatchAllQuery =>
-        scanAndScroll(in).traverse(searchHit => {
-          FilesUtils.save(
-            s"$out/${searchHit.index}",
-            s"es-${searchHit.id}.json",
-            searchHit.sourceAsMap.mapValues(_.toString).asJson.noSpaces)
-        })
+        scanAndScroll(in).traverse(saveSearchHit(out))
 
       case MatchQuery(field) =>
-        searchWithMatchQuery(in, field).traverse(searchHit => {
-          FilesUtils.save(
-            s"$out/${searchHit.index}",
-            s"es-${searchHit.id}.json",
-            searchHit.sourceAsMap.mapValues(_.toString).asJson.noSpaces)
-        })
+        searchWithMatchQuery(in, field).traverse(saveSearchHit(out))
 
       case _ => Either.catchNonFatal(List())
 
     }
+  }
+
+  private def saveSearchHit(
+      out: String): SearchHit => Either[Throwable, Unit] = {
+    (searchHit: SearchHit) =>
+      {
+        FilesUtils.save(
+          s"$out/${searchHit.index}",
+          s"es-${searchHit.id}.json",
+          searchHit.sourceAsMap.mapValues(_.toString).asJson.noSpaces)
+      }
   }
 }
