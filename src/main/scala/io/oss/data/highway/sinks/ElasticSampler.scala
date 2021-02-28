@@ -10,13 +10,16 @@ import org.apache.log4j.Logger
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext.Implicits.global
 import cats.syntax.either._
-import com.sksamuel.elastic4s.requests.searches.SearchHit
+import com.sksamuel.elastic4s.requests.searches.{SearchHit, SearchResponse}
 import io.oss.data.highway.models.{
   Field,
+  JSON,
   MatchAllQuery,
   MatchQuery,
   SearchQuery
 }
+
+import java.util.UUID
 
 object ElasticSampler extends ElasticUtils {
 
@@ -48,32 +51,12 @@ object ElasticSampler extends ElasticUtils {
   }
 
   /**
-    * Scans and scrolls on an Index to get all documents
+    * Searches for documents using Elasticsearch MatchAllQuery
     * @param in The Elasticsearch index
     * @return List of SearchHit
     */
-  def scanAndScroll(in: String): List[SearchHit] = {
+  def searchWithMatchAllQuery(in: String): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    @tailrec
-    def scrollOnDocs(scrollId: String,
-                     hits: List[SearchHit]): List[SearchHit] = {
-      val resp = esClient
-        .execute {
-          searchScroll(scrollId).keepAlive("1m")
-        }
-        .await
-        .result
-      if (resp.hits.hits.isEmpty) hits
-      else {
-        resp.scrollId match {
-          case Some(scrollId) =>
-            scrollOnDocs(scrollId, hits ::: resp.hits.hits.toList)
-          case None =>
-            hits
-        }
-      }
-    }
 
     val matchAllRes = esClient
       .execute {
@@ -82,12 +65,7 @@ object ElasticSampler extends ElasticUtils {
       .await
       .result
 
-    matchAllRes.scrollId match {
-      case Some(scrollId) =>
-        scrollOnDocs(scrollId, matchAllRes.hits.hits.toList)
-      case None =>
-        List[SearchHit]()
-    }
+    collectSearchHits(matchAllRes)
   }
 
   /**
@@ -97,39 +75,7 @@ object ElasticSampler extends ElasticUtils {
     * @return List of SearchHit
     */
   def searchWithMatchQuery(in: String, field: Field): List[SearchHit] = {
-//    import com.sksamuel.elastic4s.ElasticDsl._
-//
-//    esClient
-//      .execute {
-//        search(in).matchQuery(field.name, field.value)
-//      }
-//      .await
-//      .result
-//      .hits
-//      .hits
-//      .toList
-
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    @tailrec
-    def scrollOnDocs(scrollId: String,
-                     hits: List[SearchHit]): List[SearchHit] = {
-      val resp = esClient
-        .execute {
-          searchScroll(scrollId).keepAlive("1m")
-        }
-        .await
-        .result
-      if (resp.hits.hits.isEmpty) hits
-      else {
-        resp.scrollId match {
-          case Some(scrollId) =>
-            scrollOnDocs(scrollId, hits ::: resp.hits.hits.toList)
-          case None =>
-            hits
-        }
-      }
-    }
 
     val matchAllRes = esClient
       .execute {
@@ -138,12 +84,7 @@ object ElasticSampler extends ElasticUtils {
       .await
       .result
 
-    matchAllRes.scrollId match {
-      case Some(scrollId) =>
-        scrollOnDocs(scrollId, matchAllRes.hits.hits.toList)
-      case None =>
-        List[SearchHit]()
-    }
+    collectSearchHits(matchAllRes)
   }
 
   /**
@@ -158,7 +99,7 @@ object ElasticSampler extends ElasticUtils {
                     searchQuery: SearchQuery): Either[Throwable, List[Unit]] = {
     searchQuery match {
       case MatchAllQuery =>
-        scanAndScroll(in).traverse(saveSearchHit(out))
+        searchWithMatchAllQuery(in).traverse(saveSearchHit(out))
 
       case MatchQuery(field) =>
         searchWithMatchQuery(in, field).traverse(saveSearchHit(out))
@@ -168,14 +109,46 @@ object ElasticSampler extends ElasticUtils {
     }
   }
 
+  private def collectSearchHits(
+      matchAllRes: SearchResponse): List[SearchHit] = {
+    matchAllRes.scrollId match {
+      case Some(scrollId) =>
+        scrollOnDocs(scrollId, matchAllRes.hits.hits.toList)
+      case None =>
+        List[SearchHit]()
+    }
+  }
+
+  @tailrec
+  def scrollOnDocs(scrollId: String, hits: List[SearchHit]): List[SearchHit] = {
+    import com.sksamuel.elastic4s.ElasticDsl._
+    val resp = esClient
+      .execute {
+        searchScroll(scrollId).keepAlive("1m")
+      }
+      .await
+      .result
+    if (resp.hits.hits.isEmpty) hits
+    else {
+      resp.scrollId match {
+        case Some(scrollId) =>
+          scrollOnDocs(scrollId, hits ::: resp.hits.hits.toList)
+        case None =>
+          hits
+      }
+    }
+  }
+
   private def saveSearchHit(
       out: String): SearchHit => Either[Throwable, Unit] = {
     (searchHit: SearchHit) =>
       {
         FilesUtils.save(
           s"$out/${searchHit.index}",
-          s"es-${searchHit.id}.json",
-          searchHit.sourceAsMap.mapValues(_.toString).asJson.noSpaces)
+          s"es-${searchHit.id}-${UUID.randomUUID()}-${System
+            .currentTimeMillis()}.${JSON.extension}",
+          searchHit.sourceAsMap.mapValues(_.toString).asJson.noSpaces
+        )
       }
   }
 }
