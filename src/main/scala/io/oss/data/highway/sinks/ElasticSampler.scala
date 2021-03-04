@@ -16,6 +16,7 @@ import io.oss.data.highway.models.{
   JSON,
   MatchAllQuery,
   MatchQuery,
+  MultiMatchQuery,
   SearchQuery
 }
 
@@ -88,6 +89,36 @@ object ElasticSampler extends ElasticUtils {
   }
 
   /**
+    * Searches for documents using Elasticsearch MultiMatchQuery
+    * @param in The Elasticsearch index
+    * @param values The list of values to search for
+    * @return List of SearchHit
+    */
+  def searchWithMultiMatchQuery(
+      in: String,
+      values: List[String]): Either[Throwable, List[SearchHit]] = {
+    import com.sksamuel.elastic4s.ElasticDsl._
+
+    val request = values.map(value => search(in).query(value).size(10000))
+
+    Either.catchNonFatal {
+      esClient
+        .execute {
+          multi(
+            request
+          )
+        }
+        .await
+        .result
+        .successes
+        .toList
+        .flatMap(searchResponse => {
+          searchResponse.hits.hits
+        })
+    }
+  }
+
+  /**
     * Saves documents found in Elasticsearch index
     * @param in The Elasticsearch index
     * @param out The output base folder
@@ -103,6 +134,11 @@ object ElasticSampler extends ElasticUtils {
 
       case MatchQuery(field) =>
         searchWithMatchQuery(in, field).traverse(saveSearchHit(out))
+
+      case MultiMatchQuery(values) =>
+        searchWithMultiMatchQuery(in, values).flatMap(hits => {
+          hits.traverse(saveSearchHit(out))
+        })
 
       case _ => Either.catchNonFatal(List())
 
