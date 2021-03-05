@@ -17,7 +17,8 @@ import io.oss.data.highway.models.{
   MatchAllQuery,
   MatchQuery,
   MultiMatchQuery,
-  SearchQuery
+  SearchQuery,
+  TermQuery
 }
 
 import java.util.UUID
@@ -119,6 +120,25 @@ object ElasticSampler extends ElasticUtils {
   }
 
   /**
+    * Searches for documents using Elasticsearch TermQuery
+    * @param in The Elasticsearch index
+    * @param field The filter field
+    * @return List of SearchHit
+    */
+  def searchWithTermQuery(in: String, field: Field): List[SearchHit] = {
+    import com.sksamuel.elastic4s.ElasticDsl._
+
+    val matchAllRes =
+      esClient
+        .execute {
+          search(in).query(termQuery(field.name, field.value)) scroll "1m"
+        }
+        .await
+        .result
+    collectSearchHits(matchAllRes)
+  }
+
+  /**
     * Saves documents found in Elasticsearch index
     * @param in The Elasticsearch index
     * @param out The output base folder
@@ -139,6 +159,9 @@ object ElasticSampler extends ElasticUtils {
         searchWithMultiMatchQuery(in, values).flatMap(hits => {
           hits.traverse(saveSearchHit(out))
         })
+
+      case TermQuery(field) =>
+        searchWithTermQuery(in, field).traverse(saveSearchHit(out))
 
       case _ => Either.catchNonFatal(List())
 

@@ -9,3 +9,5 @@ case object MatchAllQuery extends SearchQuery
 case class MatchQuery(field: Field) extends SearchQuery
 
 case class MultiMatchQuery(values: List[String]) extends SearchQuery
+
+case class TermQuery(field: Field) extends SearchQuery
