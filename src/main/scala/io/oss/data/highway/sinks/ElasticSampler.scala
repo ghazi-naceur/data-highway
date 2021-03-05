@@ -19,6 +19,7 @@ import io.oss.data.highway.models.{
   MatchAllQuery,
   MatchQuery,
   MultiMatchQuery,
+  QueryStringQuery,
   SearchQuery,
   TermQuery,
   TermsQuery
@@ -183,6 +184,27 @@ object ElasticSampler extends ElasticUtils {
   }
 
   /**
+    * Searches for documents using Elasticsearch QueryStringQuery
+    * @param in The Elasticsearch index
+    * @param strQuery The elasticsearch string query
+    * @return List of SearchHit
+    */
+  def searchWithQueryStringQuery(in: String,
+                                 strQuery: String): List[SearchHit] = {
+    import com.sksamuel.elastic4s.ElasticDsl._
+    import com.sksamuel.elastic4s.requests.searches.queries.QueryStringQuery
+
+    val matchAllRes =
+      esClient
+        .execute {
+          search(in).query(QueryStringQuery(strQuery)) scroll "1m"
+        }
+        .await
+        .result
+    collectSearchHits(matchAllRes)
+  }
+
+  /**
     * Saves documents found in Elasticsearch index
     * @param in The Elasticsearch index
     * @param out The output base folder
@@ -212,6 +234,9 @@ object ElasticSampler extends ElasticUtils {
 
       case CommonTermsQuery(field) =>
         searchWithCommonTermsQuery(in, field).traverse(saveSearchHit(out))
+
+      case QueryStringQuery(query) =>
+        searchWithQueryStringQuery(in, query).traverse(saveSearchHit(out))
 
       case _ => Either.catchNonFatal(List())
 

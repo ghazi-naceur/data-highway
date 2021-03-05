@@ -16,3 +16,5 @@ case class TermQuery(field: Field) extends SearchQuery
 case class TermsQuery(field: FieldValues) extends SearchQuery
 
 case class CommonTermsQuery(field: Field) extends SearchQuery
+
+case class QueryStringQuery(query: String) extends SearchQuery
