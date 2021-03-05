@@ -12,6 +12,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import cats.syntax.either._
 import com.sksamuel.elastic4s.requests.searches.{SearchHit, SearchResponse}
 import io.oss.data.highway.models.{
+  CommonTermsQuery,
   Field,
   FieldValues,
   JSON,
@@ -162,6 +163,26 @@ object ElasticSampler extends ElasticUtils {
   }
 
   /**
+    * Searches for documents using Elasticsearch CommonTermsQuery
+    * @param in The Elasticsearch index
+    * @param field The filter field
+    * @return List of SearchHit
+    */
+  def searchWithCommonTermsQuery(in: String, field: Field): List[SearchHit] = {
+    import com.sksamuel.elastic4s.ElasticDsl._
+    import com.sksamuel.elastic4s.requests.searches.queries.CommonTermsQuery
+
+    val matchAllRes =
+      esClient
+        .execute {
+          search(in).query(CommonTermsQuery(field.name, field.value)) scroll "1m"
+        }
+        .await
+        .result
+    collectSearchHits(matchAllRes)
+  }
+
+  /**
     * Saves documents found in Elasticsearch index
     * @param in The Elasticsearch index
     * @param out The output base folder
@@ -188,6 +209,9 @@ object ElasticSampler extends ElasticUtils {
 
       case TermsQuery(fieldValues) =>
         searchWithTermsQuery(in, fieldValues).traverse(saveSearchHit(out))
+
+      case CommonTermsQuery(field) =>
+        searchWithCommonTermsQuery(in, field).traverse(saveSearchHit(out))
 
       case _ => Either.catchNonFatal(List())
 
