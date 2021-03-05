@@ -648,6 +648,18 @@ d- "term-query" :
     }
 ...
 ```
+e- "terms-query" :
+```json
+...
+    "search-query": {
+        "type": "terms-query",
+        "field": {
+            "name": "field_name",
+            "values": ["value-1", "value-2", "value-n"]
+        }
+    }
+...
+```
 # C- Scheduling :
 
 Under the `data-highway/airflow/dags` folder, you will find some Airflow DAG samples, that can help you to automate your data-highway application with Airflow. 
