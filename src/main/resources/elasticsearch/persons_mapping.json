@@ -1,0 +1,25 @@
+PUT http://localhost:9200/persons/
+{
+  "mappings" : {
+    "properties" : {
+      "id" : {
+        "type" : "float"
+      },
+      "first_name" : {
+        "type" : "text"
+      },
+      "last_name" : {
+        "type" : "text"
+      },
+      "gender" : {
+        "type" : "keyword"
+      },
+      "email" : {
+        "type" : "text"
+      },
+      "ip_address" : {
+        "type" : "keyword"
+      }
+    }
+  }
+}

@@ -591,7 +591,7 @@ Indexing data in Elasticsearch by **"file-to-elasticsearch"** :
 
 ##### b- Elasticsearch to File :
 
-Extracting data from an Elasticsearch index by **"elasticsearch-to-file"** :
+Extracting data from an Elasticsearch index by **"elasticsearch-to-file"**. You can find samples [here](https://github.com/ghazi-naceur/data-highway/tree/master/src/main/resources/rest_queries_samples/from_elasticsearch).
 ```json
 {
   "route": {
@@ -620,6 +620,27 @@ b- "match-query" :
 ...
     "search-query": {
         "type": "match-query",
+        "field": {
+            "name": "field_name",
+            "value": "field_value"
+        }
+    }
+...
+```
+c- "multi-match-query" :
+```json
+...
+    "search-query": {
+        "type": "multi-match-query",
+        "values": ["value-1", "value-2", "value-n"]
+    }
+...
+```
+d- "term-query" :
+```json
+...
+    "search-query": {
+        "type": "term-query",
         "field": {
             "name": "field_name",
             "value": "field_value"
