@@ -2,6 +2,7 @@ package io.oss.data.highway.models
 
 case class Field(name: String, value: String)
 case class FieldValues(name: String, values: List[String])
+case class Prefix(fieldName: String, value: String)
 
 sealed trait SearchQuery
 
@@ -20,3 +21,5 @@ case class CommonTermsQuery(field: Field) extends SearchQuery
 case class QueryStringQuery(query: String) extends SearchQuery
 
 case class SimpleStringQuery(query: String) extends SearchQuery
+
+case class PrefixQuery(prefix: Prefix) extends SearchQuery

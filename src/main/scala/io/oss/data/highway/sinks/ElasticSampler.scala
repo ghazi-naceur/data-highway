@@ -19,6 +19,8 @@ import io.oss.data.highway.models.{
   MatchAllQuery,
   MatchQuery,
   MultiMatchQuery,
+  Prefix,
+  PrefixQuery,
   QueryStringQuery,
   SearchQuery,
   SimpleStringQuery,
@@ -65,14 +67,14 @@ object ElasticSampler extends ElasticUtils {
   def searchWithMatchAllQuery(in: String): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
 
-    val matchAllRes = esClient
+    val result = esClient
       .execute {
         search(in).matchAllQuery() scroll "1m"
       }
       .await
       .result
 
-    collectSearchHits(matchAllRes)
+    collectSearchHits(result)
   }
 
   /**
@@ -84,14 +86,14 @@ object ElasticSampler extends ElasticUtils {
   def searchWithMatchQuery(in: String, field: Field): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
 
-    val matchAllRes = esClient
+    val result = esClient
       .execute {
         search(in).matchQuery(field.name, field.value) scroll "1m"
       }
       .await
       .result
 
-    collectSearchHits(matchAllRes)
+    collectSearchHits(result)
   }
 
   /**
@@ -133,14 +135,14 @@ object ElasticSampler extends ElasticUtils {
   def searchWithTermQuery(in: String, field: Field): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
 
-    val matchAllRes =
+    val result =
       esClient
         .execute {
           search(in).query(termQuery(field.name, field.value)) scroll "1m"
         }
         .await
         .result
-    collectSearchHits(matchAllRes)
+    collectSearchHits(result)
   }
 
   /**
@@ -154,14 +156,14 @@ object ElasticSampler extends ElasticUtils {
     import com.sksamuel.elastic4s.ElasticDsl._
     import com.sksamuel.elastic4s.requests.searches.queries.term.TermsQuery
 
-    val matchAllRes =
+    val result =
       esClient
         .execute {
           search(in).query(TermsQuery(fieldValues.name, fieldValues.values)) scroll "1m"
         }
         .await
         .result
-    collectSearchHits(matchAllRes)
+    collectSearchHits(result)
   }
 
   /**
@@ -174,14 +176,14 @@ object ElasticSampler extends ElasticUtils {
     import com.sksamuel.elastic4s.ElasticDsl._
     import com.sksamuel.elastic4s.requests.searches.queries.CommonTermsQuery
 
-    val matchAllRes =
+    val result =
       esClient
         .execute {
           search(in).query(CommonTermsQuery(field.name, field.value)) scroll "1m"
         }
         .await
         .result
-    collectSearchHits(matchAllRes)
+    collectSearchHits(result)
   }
 
   /**
@@ -195,14 +197,14 @@ object ElasticSampler extends ElasticUtils {
     import com.sksamuel.elastic4s.ElasticDsl._
     import com.sksamuel.elastic4s.requests.searches.queries.QueryStringQuery
 
-    val matchAllRes =
+    val result =
       esClient
         .execute {
           search(in).query(QueryStringQuery(strQuery)) scroll "1m"
         }
         .await
         .result
-    collectSearchHits(matchAllRes)
+    collectSearchHits(result)
   }
 
   /**
@@ -216,14 +218,34 @@ object ElasticSampler extends ElasticUtils {
     import com.sksamuel.elastic4s.ElasticDsl._
     import com.sksamuel.elastic4s.requests.searches.queries.SimpleStringQuery
 
-    val matchAllRes =
+    val result =
       esClient
         .execute {
           search(in).query(SimpleStringQuery(strQuery)) scroll "1m"
         }
         .await
         .result
-    collectSearchHits(matchAllRes)
+    collectSearchHits(result)
+  }
+
+  /**
+    * Searches for documents using Elasticsearch PrefixQuery
+    * @param in The Elasticsearch index
+    * @param prefix The filter prefix
+    * @return List of SearchHit
+    */
+  def searchWithPrefixQuery(in: String, prefix: Prefix): List[SearchHit] = {
+    import com.sksamuel.elastic4s.ElasticDsl._
+    import com.sksamuel.elastic4s.requests.searches.queries.PrefixQuery
+
+    val result =
+      esClient
+        .execute {
+          search(in).query(PrefixQuery(prefix.fieldName, prefix.value)) scroll "1m"
+        }
+        .await
+        .result
+    collectSearchHits(result)
   }
 
   /**
@@ -263,16 +285,18 @@ object ElasticSampler extends ElasticUtils {
       case SimpleStringQuery(query) =>
         searchWithSimpleStringQuery(in, query).traverse(saveSearchHit(out))
 
+      case PrefixQuery(query) =>
+        searchWithPrefixQuery(in, query).traverse(saveSearchHit(out))
+
       case _ => Either.catchNonFatal(List())
 
     }
   }
 
-  private def collectSearchHits(
-      matchAllRes: SearchResponse): List[SearchHit] = {
-    matchAllRes.scrollId match {
+  private def collectSearchHits(result: SearchResponse): List[SearchHit] = {
+    result.scrollId match {
       case Some(scrollId) =>
-        scrollOnDocs(scrollId, matchAllRes.hits.hits.toList)
+        scrollOnDocs(scrollId, result.hits.hits.toList)
       case None =>
         List[SearchHit]()
     }

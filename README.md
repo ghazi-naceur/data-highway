@@ -694,6 +694,19 @@ h- "simple-string-query" :
 ```
 **"query"** should contain an elasticsearch string query such as for example, **"query"**: "(value-1) OR (value-2)"
 
+i- "prefix-query" :
+```json
+...
+    "search-query": {
+        "type": "prefix-query",
+        "prefix": {
+            "field-name": "field_name",
+            "value": "prefix_value"
+        }
+    }
+...
+```
+
 # C- Scheduling :
 
 Under the `data-highway/airflow/dags` folder, you will find some Airflow DAG samples, that can help you to automate your data-highway application with Airflow. 
