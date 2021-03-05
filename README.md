@@ -683,6 +683,17 @@ g- "query-string-query" :
 ```
 **"query"** should contain an elasticsearch string query such as for example, **"query"**: "(value-1) OR (value-2)"
 
+h- "simple-string-query" :
+```json
+...
+    "search-query": {
+        "type": "simple-string-query",
+        "query": "string-format elastic query"
+    }
+...
+```
+**"query"** should contain an elasticsearch string query such as for example, **"query"**: "(value-1) OR (value-2)"
+
 # C- Scheduling :
 
 Under the `data-highway/airflow/dags` folder, you will find some Airflow DAG samples, that can help you to automate your data-highway application with Airflow. 
