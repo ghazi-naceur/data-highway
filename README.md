@@ -736,7 +736,17 @@ k- "range-query" :
 ```
 **"range-type"** could have values like : **string-range**, **integer-range**, **long-range** or **float-range**.
 
+**"lte"** and **"gte"** are optional fields.
 
+l- "exists-query" :
+```json
+...
+    "search-query": {
+        "type": "exists-query",
+        "field-name": "field-name"
+    }
+...
+```
 # C- Scheduling :
 
 Under the `data-highway/airflow/dags` folder, you will find some Airflow DAG samples, that can help you to automate your data-highway application with Airflow. 

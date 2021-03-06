@@ -13,13 +13,14 @@ import cats.syntax.either._
 import com.sksamuel.elastic4s.requests.searches.{SearchHit, SearchResponse}
 import io.oss.data.highway.models.{
   CommonTermsQuery,
-  FloatRange,
   DoubleRangeField,
+  ExistsQuery,
   Field,
   FieldValues,
+  FloatRange,
   GenericRangeField,
-  IntegerRange,
   IntRangeField,
+  IntegerRange,
   JSON,
   LikeFields,
   LongRange,
@@ -309,6 +310,26 @@ object ElasticSampler extends ElasticUtils {
   }
 
   /**
+    * Searches for documents using Elasticsearch ExistsQuery
+    * @param in The Elasticsearch index
+    * @param fieldName The filter field name
+    * @return List of SearchHit
+    */
+  def searchWithExistsQuery(in: String, fieldName: String): List[SearchHit] = {
+    import com.sksamuel.elastic4s.ElasticDsl._
+    import com.sksamuel.elastic4s.requests.searches.queries.ExistsQuery
+
+    val result =
+      esClient
+        .execute {
+          search(in).query(ExistsQuery(fieldName)) scroll "1m"
+        }
+        .await
+        .result
+    collectSearchHits(result)
+  }
+
+  /**
     * Saves documents found in Elasticsearch index
     *
     * @param in The Elasticsearch index
@@ -354,6 +375,9 @@ object ElasticSampler extends ElasticUtils {
 
       case RangeQuery(rangeField) =>
         searchWithRangeQuery(in, rangeField).traverse(saveSearchHit(out))
+
+      case ExistsQuery(fieldName) =>
+        searchWithExistsQuery(in, fieldName).traverse(saveSearchHit(out))
 
       case _ => Either.catchNonFatal(List())
 

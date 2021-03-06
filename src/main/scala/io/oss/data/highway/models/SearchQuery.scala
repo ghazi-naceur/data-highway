@@ -23,3 +23,5 @@ case class PrefixQuery(prefix: Prefix) extends SearchQuery
 case class MoreLikeThisQuery(likeFields: LikeFields) extends SearchQuery
 
 case class RangeQuery(rangeField: RangeField) extends SearchQuery
+
+case class ExistsQuery(fieldName: String) extends SearchQuery
