@@ -13,10 +13,17 @@ import cats.syntax.either._
 import com.sksamuel.elastic4s.requests.searches.{SearchHit, SearchResponse}
 import io.oss.data.highway.models.{
   CommonTermsQuery,
+  FloatRange,
+  DoubleRangeField,
   Field,
   FieldValues,
+  GenericRangeField,
+  IntegerRange,
+  IntRangeField,
   JSON,
   LikeFields,
+  LongRange,
+  LongRangeField,
   MatchAllQuery,
   MatchQuery,
   MoreLikeThisQuery,
@@ -24,8 +31,12 @@ import io.oss.data.highway.models.{
   Prefix,
   PrefixQuery,
   QueryStringQuery,
+  RangeField,
+  RangeQuery,
   SearchQuery,
   SimpleStringQuery,
+  StringRange,
+  StringRangeField,
   TermQuery,
   TermsQuery
 }
@@ -253,7 +264,7 @@ object ElasticSampler extends ElasticUtils {
   /**
     * Searches for documents using Elasticsearch MoreLikeThisQuery
     * @param in The Elasticsearch index
-    * @param likeFields The filter prefix
+    * @param likeFields The filter fields
     * @return List of SearchHit
     */
   def searchWithMoreLikeThisQuery(in: String,
@@ -275,7 +286,31 @@ object ElasticSampler extends ElasticUtils {
   }
 
   /**
+    * Searches for documents using Elasticsearch RangeQuery
+    * @param in The Elasticsearch index
+    * @param range The filter range field
+    * @return List of SearchHit
+    */
+  def searchWithRangeQuery(in: String, range: RangeField): List[SearchHit] = {
+    import com.sksamuel.elastic4s.ElasticDsl._
+    import com.sksamuel.elastic4s.requests.searches.queries.RangeQuery
+    val rangeField = GenericRangeField.computeTypedRangeField(range)
+    val result =
+      esClient
+        .execute {
+          search(in).query(
+            RangeQuery(rangeField.name,
+                       lte = rangeField.lte,
+                       gte = rangeField.gte)) scroll "1m"
+        }
+        .await
+        .result
+    collectSearchHits(result)
+  }
+
+  /**
     * Saves documents found in Elasticsearch index
+    *
     * @param in The Elasticsearch index
     * @param out The output base folder
     * @param searchQuery The Elasticsearch query
@@ -316,6 +351,9 @@ object ElasticSampler extends ElasticUtils {
 
       case MoreLikeThisQuery(likeFields) =>
         searchWithMoreLikeThisQuery(in, likeFields).traverse(saveSearchHit(out))
+
+      case RangeQuery(rangeField) =>
+        searchWithRangeQuery(in, rangeField).traverse(saveSearchHit(out))
 
       case _ => Either.catchNonFatal(List())
 

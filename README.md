@@ -718,6 +718,25 @@ j- "more-like-this-query" :
     }
 ...
 ```
+k- "range-query" :
+```json
+...
+    "search-query": {
+        "type": "range-query",
+        "range-field": {
+            "range-type": {
+                "type": "range-type"
+            },
+            "name": "field-name",
+            "lte": "lower than or equal value",
+            "gte": "greater than or equal value"
+        }
+    }
+...
+```
+**"range-type"** could have values like : **string-range**, **integer-range**, **long-range** or **float-range**.
+
+
 # C- Scheduling :
 
 Under the `data-highway/airflow/dags` folder, you will find some Airflow DAG samples, that can help you to automate your data-highway application with Airflow. 
