@@ -16,8 +16,10 @@ import io.oss.data.highway.models.{
   Field,
   FieldValues,
   JSON,
+  LikeFields,
   MatchAllQuery,
   MatchQuery,
+  MoreLikeThisQuery,
   MultiMatchQuery,
   Prefix,
   PrefixQuery,
@@ -249,6 +251,30 @@ object ElasticSampler extends ElasticUtils {
   }
 
   /**
+    * Searches for documents using Elasticsearch MoreLikeThisQuery
+    * @param in The Elasticsearch index
+    * @param likeFields The filter prefix
+    * @return List of SearchHit
+    */
+  def searchWithMoreLikeThisQuery(in: String,
+                                  likeFields: LikeFields): List[SearchHit] = {
+    import com.sksamuel.elastic4s.ElasticDsl._
+    import com.sksamuel.elastic4s.requests.searches.queries.MoreLikeThisQuery
+
+    val result =
+      esClient
+        .execute {
+          search(in).query(
+            MoreLikeThisQuery(likeFields.fields, likeFields.likeTexts)
+              .minTermFreq(1)
+              .maxQueryTerms(12)) scroll "1m"
+        }
+        .await
+        .result
+    collectSearchHits(result)
+  }
+
+  /**
     * Saves documents found in Elasticsearch index
     * @param in The Elasticsearch index
     * @param out The output base folder
@@ -287,6 +313,9 @@ object ElasticSampler extends ElasticUtils {
 
       case PrefixQuery(query) =>
         searchWithPrefixQuery(in, query).traverse(saveSearchHit(out))
+
+      case MoreLikeThisQuery(likeFields) =>
+        searchWithMoreLikeThisQuery(in, likeFields).traverse(saveSearchHit(out))
 
       case _ => Either.catchNonFatal(List())
 

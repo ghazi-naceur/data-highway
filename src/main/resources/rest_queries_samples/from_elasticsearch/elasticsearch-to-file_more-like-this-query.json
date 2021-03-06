@@ -1,0 +1,15 @@
+// POST http://localhost:5555/conversion/route
+{
+  "route": {
+    "type": "elasticsearch-to-file",
+    "in": "elasticsearch-index",
+    "out": "your-output-folder-containing-json-files",
+    "search-query": {
+      "type": "more-like-this-query",
+      "like-fields": {
+        "fields": ["field-1", "field-2", "field-n"],
+        "like-texts": ["value-1", "value-2", "value-n"]
+      }
+    }
+  }
+}
