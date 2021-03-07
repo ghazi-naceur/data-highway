@@ -1,13 +1,12 @@
 package io.oss.data.highway.sinks
 
-import io.oss.data.highway.models.{ElasticConfig, JSON}
+import io.oss.data.highway.models.JSON
 import io.oss.data.highway.utils.{ElasticUtils, FilesUtils}
 import org.apache.log4j.Logger
 import cats.implicits._
 import com.sksamuel.elastic4s.requests.common.RefreshPolicy
 
 import java.io.File
-import java.nio.file.Path
 
 object ElasticSink extends ElasticUtils {
 
@@ -19,35 +18,35 @@ object ElasticSink extends ElasticUtils {
     * @param in The input data path
     * @param out The Elasticsearch index
     * @param basePath The base path for input, output and processed folders
-    * @return a List of Path, otherwise an Error
+    * @return a List of Unit, otherwise an Error
     */
   def sendToElasticsearch(in: String,
                           out: String,
-                          basePath: String): Either[Throwable, List[Path]] = {
-
-    if (new File(in).isFile) {
-      for (line <- FilesUtils.getJsonLines(in)) {
-        indexDocInEs(out, line)
+                          basePath: String): Either[Throwable, Unit] = {
+    Either.catchNonFatal {
+      if (new File(in).isFile) {
+        FilesUtils.getJsonLines(in).foreach(line => indexDocInEs(out, line))
         val suffix = new File(in).getParent.split("/").last
         FilesUtils.movePathContent(in, basePath, s"processed/$suffix")
-      }
-    } else {
-      FilesUtils
-        .listFilesRecursively(new File(in), Seq(JSON.extension))
-        .foreach(file => {
-          for (line <- FilesUtils.getJsonLines(file.getAbsolutePath)) {
-            indexDocInEs(out, line)
+      } else {
+        FilesUtils
+          .listFilesRecursively(new File(in), Seq(JSON.extension))
+          .foreach(file => {
+            FilesUtils
+              .getJsonLines(file.getAbsolutePath)
+              .foreach(line => indexDocInEs(out, line))
             val suffix =
               new File(file.getAbsolutePath).getParent.split("/").last
             FilesUtils.movePathContent(file.getAbsolutePath,
                                        basePath,
                                        s"processed/$suffix")
-          }
-        })
-    }
+          })
+      }
 
-    logger.info(s"Successfully indexing data from '$in' into the '$out' index.")
-    FilesUtils.movePathContent(in, basePath)
+      logger.info(
+        s"Successfully indexing data from '$in' into the '$out' index.")
+      FilesUtils.movePathContent(in, basePath)
+    }
   }
 
   /**
@@ -68,11 +67,10 @@ object ElasticSink extends ElasticUtils {
     *
     * @param in The input data path
     * @param out The elasticsearch index
-    * @return List of List of Path, otherwise an Error
+    * @return List of List of Unit, otherwise an Error
     */
-  def handleElasticsearchChannel(
-      in: String,
-      out: String): Either[Throwable, List[List[Path]]] = {
+  def handleElasticsearchChannel(in: String,
+                                 out: String): Either[Throwable, List[Unit]] = {
     val basePath = new File(in).getParent
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
