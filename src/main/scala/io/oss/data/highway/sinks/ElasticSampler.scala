@@ -12,6 +12,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import cats.syntax.either._
 import com.sksamuel.elastic4s.requests.searches.{SearchHit, SearchResponse}
 import io.oss.data.highway.models.{
+  BoolFilter,
+  BoolMatchPhraseQuery,
   CommonTermsQuery,
   DoubleRangeField,
   ExistsQuery,
@@ -31,6 +33,8 @@ import io.oss.data.highway.models.{
   MatchQuery,
   MoreLikeThisQuery,
   MultiMatchQuery,
+  Must,
+  MustNot,
   Prefix,
   PrefixQuery,
   QueryStringQuery,
@@ -38,6 +42,7 @@ import io.oss.data.highway.models.{
   RangeQuery,
   RegexQuery,
   SearchQuery,
+  Should,
   SimpleStringQuery,
   StringRange,
   StringRangeField,
@@ -410,6 +415,42 @@ object ElasticSampler extends ElasticUtils {
   }
 
   /**
+    * Searches for documents using Elasticsearch BoolMatchPhraseQuery
+    * @param in The Elasticsearch index
+    * @param boolFilter The bool filter. It could have one of these values : Must, MustNot or Should
+    * @param fields The filter fields
+    * @return List of SearchHit
+    */
+  def searchWithBoolMatchPhraseQuery(in: String,
+                                     boolFilter: BoolFilter,
+                                     fields: List[Field]): List[SearchHit] = {
+    import com.sksamuel.elastic4s.ElasticDsl._
+
+    val query = boolQuery()
+    val queries = fields.map(field => {
+      query.must(matchPhraseQuery(field.name, field.value))
+    })
+
+    val searchQuery = boolFilter match {
+      case Must =>
+        search(in).query(bool(queries, List(), List())) scroll "1m"
+      case MustNot =>
+        search(in).query(bool(List(), List(), queries)) scroll "1m"
+      case Should =>
+        search(in).query(bool(List(), queries, List())) scroll "1m"
+    }
+
+    val result =
+      esClient
+        .execute {
+          searchQuery
+        }
+        .await
+        .result
+    collectSearchHits(result)
+  }
+
+  /**
     * Saves documents found in Elasticsearch index
     *
     * @param in The Elasticsearch index
@@ -470,6 +511,10 @@ object ElasticSampler extends ElasticUtils {
 
       case IdsQuery(ids) =>
         searchWithIdsQuery(in, ids).traverse(saveSearchHit(out))
+
+      case BoolMatchPhraseQuery(boolFilter, fields) =>
+        searchWithBoolMatchPhraseQuery(in, boolFilter, fields).traverse(
+          saveSearchHit(out))
 
       case _ => Either.catchNonFatal(List())
 

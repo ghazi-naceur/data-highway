@@ -33,3 +33,6 @@ case class RegexQuery(field: Field) extends SearchQuery
 case class FuzzyQuery(field: Field) extends SearchQuery
 
 case class IdsQuery(ids: List[String]) extends SearchQuery
+
+case class BoolMatchPhraseQuery(boolFilter: BoolFilter, fields: List[Field])
+    extends SearchQuery

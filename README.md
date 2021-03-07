@@ -794,6 +794,33 @@ p- "ids-query" :
     }
 ...
 ```
+q- "bool-match-phrase-query" :
+```json
+...
+    "search-query": {
+        "type": "bool-match-phrase-query",
+        "bool-filter": {
+            "type": "bool-filter"
+        },
+        "fields": [
+            {
+                "name": "field_name-1",
+                "value": "field_value-1"
+            },
+            {
+                "name": "field_name-2",
+                "value": "field_value-2"
+            },
+            {
+                "name": "field_name-n",
+                "value": "field_value-n"
+            }
+        ]
+    }
+...
+```
+**"bool-filter"** can have one of these values : **"must"**, **"must-not"** or **"should"**.
+
 
 # C- Scheduling :
 
