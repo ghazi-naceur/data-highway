@@ -22,35 +22,84 @@ object ElasticSink extends ElasticUtils {
     */
   def sendToElasticsearch(in: String,
                           out: String,
-                          basePath: String): Either[Throwable, Unit] = {
+                          basePath: String,
+                          bulkEnabled: Boolean): Either[Throwable, Unit] = {
     Either.catchNonFatal {
-      if (new File(in).isFile) {
-        FilesUtils.getJsonLines(in).foreach(line => indexDocInEs(out, line))
-        val suffix = new File(in).getParent.split("/").last
-        FilesUtils.movePathContent(in, basePath, s"processed/$suffix")
-      } else {
-        FilesUtils
-          .listFilesRecursively(new File(in), Seq(JSON.extension))
-          .foreach(file => {
-            FilesUtils
-              .getJsonLines(file.getAbsolutePath)
-              .foreach(line => indexDocInEs(out, line))
-            val suffix =
-              new File(file.getAbsolutePath).getParent.split("/").last
-            FilesUtils.movePathContent(file.getAbsolutePath,
-                                       basePath,
-                                       s"processed/$suffix")
-          })
-      }
-
+      if (!bulkEnabled)
+        indexWithIndexQuery(in, out, basePath)
+      else
+        indexWithBulkQuery(in, out, basePath)
       logger.info(
         s"Successfully indexing data from '$in' into the '$out' index.")
       FilesUtils.movePathContent(in, basePath)
     }
   }
 
+  private def indexWithIndexQuery(in: String,
+                                  out: String,
+                                  basePath: String): Any = {
+    if (new File(in).isFile) {
+      FilesUtils.getJsonLines(in).foreach(line => indexDocInEs(out, line))
+      val suffix = new File(in).getParent.split("/").last
+      FilesUtils.movePathContent(in, basePath, s"processed/$suffix")
+    } else {
+      FilesUtils
+        .listFilesRecursively(new File(in), Seq(JSON.extension))
+        .foreach(file => {
+          FilesUtils
+            .getJsonLines(file.getAbsolutePath)
+            .foreach(line => indexDocInEs(out, line))
+          val suffix =
+            new File(file.getAbsolutePath).getParent.split("/").last
+          FilesUtils.movePathContent(file.getAbsolutePath,
+                                     basePath,
+                                     s"processed/$suffix")
+        })
+    }
+  }
+
+  private def indexWithBulkQuery(in: String,
+                                 out: String,
+                                 basePath: String): Any = {
+    import com.sksamuel.elastic4s.ElasticDsl._
+
+    if (new File(in).isFile) {
+      val queries = FilesUtils
+        .getJsonLines(in)
+        .map(line => {
+          indexInto(out) doc line refresh RefreshPolicy.IMMEDIATE
+        })
+        .toSeq
+      esClient.execute {
+        bulk(queries).refresh(RefreshPolicy.Immediate)
+      }.await
+      val suffix = new File(in).getParent.split("/").last
+      FilesUtils.movePathContent(in, basePath, s"processed/$suffix")
+    } else {
+      FilesUtils
+        .listFilesRecursively(new File(in), Seq(JSON.extension))
+        .foreach(file => {
+          val queries = FilesUtils
+            .getJsonLines(file.getAbsolutePath)
+            .map(line => {
+              indexInto(out) doc line refresh RefreshPolicy.IMMEDIATE
+            })
+            .toSeq
+          esClient.execute {
+            bulk(queries).refresh(RefreshPolicy.Immediate)
+          }.await
+          val suffix =
+            new File(file.getAbsolutePath).getParent.split("/").last
+          FilesUtils.movePathContent(file.getAbsolutePath,
+                                     basePath,
+                                     s"processed/$suffix")
+        })
+    }
+  }
+
   /**
     * Indexes document in Elasticsearch
+    *
     * @param out The Elasticsearch index
     * @param line The document to be sent to Elasticsearch
     */
@@ -67,10 +116,13 @@ object ElasticSink extends ElasticUtils {
     *
     * @param in The input data path
     * @param out The elasticsearch index
+    * @param bulkEnabled A flag to specify if the Elastic Bulk is enabled or not
     * @return List of List of Unit, otherwise an Error
     */
-  def handleElasticsearchChannel(in: String,
-                                 out: String): Either[Throwable, List[Unit]] = {
+  def handleElasticsearchChannel(
+      in: String,
+      out: String,
+      bulkEnabled: Boolean): Either[Throwable, List[Unit]] = {
     val basePath = new File(in).getParent
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
@@ -78,7 +130,7 @@ object ElasticSink extends ElasticUtils {
         .filterNot(path =>
           new File(path).listFiles.filter(_.isFile).toList.isEmpty)
         .traverse(folder => {
-          sendToElasticsearch(folder, out, basePath)
+          sendToElasticsearch(folder, out, basePath, bulkEnabled)
         })
       _ = FilesUtils.deleteFolder(in)
     } yield list

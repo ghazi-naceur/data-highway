@@ -584,7 +584,8 @@ Indexing data in Elasticsearch by **"file-to-elasticsearch"** :
   "route": {
     "type": "file-to-elasticsearch",
     "in": "your-input-folder-containing-json-files",
-    "out": "elasticsearch-index"
+    "out": "elasticsearch-index",
+    "bulk-enabled": true/false
   }
 }
 ```

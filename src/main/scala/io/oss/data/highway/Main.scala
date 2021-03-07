@@ -70,8 +70,8 @@ object Main {
         KafkaSink.publishToTopic(in, out, kafkaMode)
       case KafkaToKafka(in, out, kafkaMode) =>
         KafkaSink.publishToTopic(in, out, kafkaMode)
-      case FileToElasticsearch(in, out) =>
-        ElasticSink.handleElasticsearchChannel(in, out)
+      case FileToElasticsearch(in, out, bulkEnabled) =>
+        ElasticSink.handleElasticsearchChannel(in, out, bulkEnabled)
       case ElasticsearchToFile(in, out, searchQuery) =>
         ElasticSampler.saveDocuments(in, out, searchQuery)
       case _ =>

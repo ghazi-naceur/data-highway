@@ -37,7 +37,8 @@ case class KafkaToFile(in: String, out: String, kafkaMode: KafkaMode)
 case class KafkaToKafka(in: String, out: String, kafkaMode: KafkaMode)
     extends Route
 
-case class FileToElasticsearch(in: String, out: String) extends Route
+case class FileToElasticsearch(in: String, out: String, bulkEnabled: Boolean)
+    extends Route
 
 case class ElasticsearchToFile(in: String,
                                out: String,
