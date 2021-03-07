@@ -39,7 +39,8 @@ import io.oss.data.highway.models.{
   StringRange,
   StringRangeField,
   TermQuery,
-  TermsQuery
+  TermsQuery,
+  WildcardQuery
 }
 
 import java.util.UUID
@@ -330,6 +331,25 @@ object ElasticSampler extends ElasticUtils {
   }
 
   /**
+    * Searches for documents using Elasticsearch ExistsQuery
+    * @param in The Elasticsearch index
+    * @param field The filter field name
+    * @return List of SearchHit
+    */
+  def searchWithWildcardQuery(in: String, field: Field): List[SearchHit] = {
+    import com.sksamuel.elastic4s.ElasticDsl._
+
+    val result =
+      esClient
+        .execute {
+          search(in).query(wildcardQuery(field.name, field.value)) scroll "1m"
+        }
+        .await
+        .result
+    collectSearchHits(result)
+  }
+
+  /**
     * Saves documents found in Elasticsearch index
     *
     * @param in The Elasticsearch index
@@ -378,6 +398,9 @@ object ElasticSampler extends ElasticUtils {
 
       case ExistsQuery(fieldName) =>
         searchWithExistsQuery(in, fieldName).traverse(saveSearchHit(out))
+
+      case WildcardQuery(field) =>
+        searchWithWildcardQuery(in, field).traverse(saveSearchHit(out))
 
       case _ => Either.catchNonFatal(List())
 
