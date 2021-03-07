@@ -15,20 +15,14 @@ import io.oss.data.highway.models.{
   BoolFilter,
   BoolMatchPhraseQuery,
   CommonTermsQuery,
-  DoubleRangeField,
   ExistsQuery,
   Field,
   FieldValues,
-  FloatRange,
   FuzzyQuery,
   GenericRangeField,
   IdsQuery,
-  IntRangeField,
-  IntegerRange,
   JSON,
   LikeFields,
-  LongRange,
-  LongRangeField,
   MatchAllQuery,
   MatchQuery,
   MoreLikeThisQuery,
@@ -44,8 +38,6 @@ import io.oss.data.highway.models.{
   SearchQuery,
   Should,
   SimpleStringQuery,
-  StringRange,
-  StringRangeField,
   TermQuery,
   TermsQuery,
   WildcardQuery
@@ -177,12 +169,11 @@ object ElasticSampler extends ElasticUtils {
   def searchWithTermsQuery(in: String,
                            fieldValues: FieldValues): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-    import com.sksamuel.elastic4s.requests.searches.queries.term.TermsQuery
 
     val result =
       esClient
         .execute {
-          search(in).query(TermsQuery(fieldValues.name, fieldValues.values)) scroll "1m"
+          search(in).query(termsQuery(fieldValues.name, fieldValues.values)) scroll "1m"
         }
         .await
         .result
@@ -197,12 +188,11 @@ object ElasticSampler extends ElasticUtils {
     */
   def searchWithCommonTermsQuery(in: String, field: Field): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-    import com.sksamuel.elastic4s.requests.searches.queries.CommonTermsQuery
 
     val result =
       esClient
         .execute {
-          search(in).query(CommonTermsQuery(field.name, field.value)) scroll "1m"
+          search(in).query(commonTermsQuery(field.name, field.value)) scroll "1m"
         }
         .await
         .result
@@ -218,12 +208,11 @@ object ElasticSampler extends ElasticUtils {
   def searchWithQueryStringQuery(in: String,
                                  strQuery: String): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-    import com.sksamuel.elastic4s.requests.searches.queries.QueryStringQuery
 
     val result =
       esClient
         .execute {
-          search(in).query(QueryStringQuery(strQuery)) scroll "1m"
+          search(in).query(queryStringQuery(strQuery)) scroll "1m"
         }
         .await
         .result
@@ -239,12 +228,11 @@ object ElasticSampler extends ElasticUtils {
   def searchWithSimpleStringQuery(in: String,
                                   strQuery: String): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-    import com.sksamuel.elastic4s.requests.searches.queries.SimpleStringQuery
 
     val result =
       esClient
         .execute {
-          search(in).query(SimpleStringQuery(strQuery)) scroll "1m"
+          search(in).query(simpleStringQuery(strQuery)) scroll "1m"
         }
         .await
         .result
@@ -259,12 +247,11 @@ object ElasticSampler extends ElasticUtils {
     */
   def searchWithPrefixQuery(in: String, prefix: Prefix): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-    import com.sksamuel.elastic4s.requests.searches.queries.PrefixQuery
 
     val result =
       esClient
         .execute {
-          search(in).query(PrefixQuery(prefix.fieldName, prefix.value)) scroll "1m"
+          search(in).query(prefixQuery(prefix.fieldName, prefix.value)) scroll "1m"
         }
         .await
         .result
@@ -326,12 +313,11 @@ object ElasticSampler extends ElasticUtils {
     */
   def searchWithExistsQuery(in: String, fieldName: String): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-    import com.sksamuel.elastic4s.requests.searches.queries.ExistsQuery
 
     val result =
       esClient
         .execute {
-          search(in).query(ExistsQuery(fieldName)) scroll "1m"
+          search(in).query(existsQuery(fieldName)) scroll "1m"
         }
         .await
         .result
