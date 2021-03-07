@@ -773,6 +773,18 @@ n- "regex-query" :
 ```
 **"regex-query"** is used for strings indexed as **keyword**.
 
+o- "fuzzy-query" :
+```json
+...
+    "search-query": {
+        "type": "fuzzy-query",
+        "field": {
+            "name": "field_name",
+            "value": "field_value"
+        }
+    }
+...
+```
 
 # C- Scheduling :
 
