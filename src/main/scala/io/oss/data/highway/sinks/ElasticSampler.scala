@@ -34,6 +34,7 @@ import io.oss.data.highway.models.{
   QueryStringQuery,
   RangeField,
   RangeQuery,
+  RegexQuery,
   SearchQuery,
   SimpleStringQuery,
   StringRange,
@@ -350,6 +351,25 @@ object ElasticSampler extends ElasticUtils {
   }
 
   /**
+    * Searches for documents using Elasticsearch RegexQuery
+    * @param in The Elasticsearch index
+    * @param field The filter field name
+    * @return List of SearchHit
+    */
+  def searchWithRegexQuery(in: String, field: Field): List[SearchHit] = {
+    import com.sksamuel.elastic4s.ElasticDsl._
+
+    val result =
+      esClient
+        .execute {
+          search(in).query(regexQuery(field.name, field.value)) scroll "1m"
+        }
+        .await
+        .result
+    collectSearchHits(result)
+  }
+
+  /**
     * Saves documents found in Elasticsearch index
     *
     * @param in The Elasticsearch index
@@ -401,6 +421,9 @@ object ElasticSampler extends ElasticUtils {
 
       case WildcardQuery(field) =>
         searchWithWildcardQuery(in, field).traverse(saveSearchHit(out))
+
+      case RegexQuery(field) =>
+        searchWithRegexQuery(in, field).traverse(saveSearchHit(out))
 
       case _ => Either.catchNonFatal(List())
 

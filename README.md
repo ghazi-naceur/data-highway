@@ -759,6 +759,21 @@ m- "wildcard-query" :
     }
 ...
 ```
+n- "regex-query" :
+```json
+...
+    "search-query": {
+        "type": "regex-query",
+        "field": {
+            "name": "field_name",
+            "value": "regex_value"
+        }
+    }
+...
+```
+**"regex-query"** is used for strings indexed as **keyword**.
+
+
 # C- Scheduling :
 
 Under the `data-highway/airflow/dags` folder, you will find some Airflow DAG samples, that can help you to automate your data-highway application with Airflow. 

@@ -27,3 +27,5 @@ case class RangeQuery(rangeField: RangeField) extends SearchQuery
 case class ExistsQuery(fieldName: String) extends SearchQuery
 
 case class WildcardQuery(field: Field) extends SearchQuery
+
+case class RegexQuery(field: Field) extends SearchQuery
