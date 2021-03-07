@@ -20,6 +20,7 @@ import io.oss.data.highway.models.{
   FloatRange,
   FuzzyQuery,
   GenericRangeField,
+  IdsQuery,
   IntRangeField,
   IntegerRange,
   JSON,
@@ -390,6 +391,25 @@ object ElasticSampler extends ElasticUtils {
   }
 
   /**
+    * Searches for documents using Elasticsearch IdsQuery
+    * @param in The Elasticsearch index
+    * @param ids The filter Elasticsearch ids
+    * @return List of SearchHit
+    */
+  def searchWithIdsQuery(in: String, ids: List[String]): List[SearchHit] = {
+    import com.sksamuel.elastic4s.ElasticDsl._
+
+    val result =
+      esClient
+        .execute {
+          search(in).query(idsQuery(ids)) scroll "1m"
+        }
+        .await
+        .result
+    collectSearchHits(result)
+  }
+
+  /**
     * Saves documents found in Elasticsearch index
     *
     * @param in The Elasticsearch index
@@ -447,6 +467,9 @@ object ElasticSampler extends ElasticUtils {
 
       case FuzzyQuery(field) =>
         searchWithFuzzyQuery(in, field).traverse(saveSearchHit(out))
+
+      case IdsQuery(ids) =>
+        searchWithIdsQuery(in, ids).traverse(saveSearchHit(out))
 
       case _ => Either.catchNonFatal(List())
 

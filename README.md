@@ -785,6 +785,15 @@ o- "fuzzy-query" :
     }
 ...
 ```
+p- "ids-query" :
+```json
+...
+    "search-query": {
+        "type": "ids-query",
+        "ids": ["id-1", "id-2", "id-n"]
+    }
+...
+```
 
 # C- Scheduling :
 
