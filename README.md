@@ -11,6 +11,7 @@ You can as well :
 * Send data to Kafka (**file-to-kafka** and **kafka-to-kafka**)
 * Consume data from Kafka (**kafka-to-file**)
 * Index data in Elasticsearch (**file-to-elasticsearch**)
+* Extract data from Elasticsearch (**elasticsearch-to-file**)
 
 **Environment :**
 
@@ -19,6 +20,7 @@ You can as well :
 - JDK 1.8
 - Scala 2.12.12
 - Spark 2.4.6
+- Elasticsearch 7.10.2
 
 ## Table of contents :
 * [A- Getting started](#A--getting-started-)
