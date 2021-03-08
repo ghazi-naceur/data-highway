@@ -6,6 +6,7 @@ import org.http4s.server.blaze._
 import io.oss.data.highway.rest.ConversionController
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.Duration
 import scala.io.Source
 
 object IOMain extends IOApp {
@@ -20,8 +21,8 @@ object IOMain extends IOApp {
       .withBanner(getBanner)
       .bindHttp(5555, "localhost")
       .withHttpApp(ConversionController.httpRequests)
-//      .withIdleTimeout(Duration.Inf)
-//      .withResponseHeaderTimeout(Duration.Inf)
+      .withIdleTimeout(Duration.Inf)
+      .withResponseHeaderTimeout(Duration.Inf)
       .resource
       .use(_ => IO.never)
       .as(ExitCode.Success)

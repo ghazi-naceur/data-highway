@@ -584,23 +584,243 @@ Indexing data in Elasticsearch by **"file-to-elasticsearch"** :
   "route": {
     "type": "file-to-elasticsearch",
     "in": "your-input-folder-containing-json-files",
-    "out": "elasticsearch-index"
+    "out": "elasticsearch-index",
+    "bulk-enabled": true/false
   }
 }
 ```
 
 ##### b- Elasticsearch to File :
 
-Extracting data from an Elasticsearch index by **"elasticsearch-to-file"** :
+Extracting data from an Elasticsearch index by **"elasticsearch-to-file"**. You can find samples [here](https://github.com/ghazi-naceur/data-highway/tree/master/src/main/resources/rest_queries_samples/from_elasticsearch).
 ```json
 {
   "route": {
     "type": "elasticsearch-to-file",
     "in": "elasticsearch-index",
-    "out": "your-output-folder-containing-json-files"
+    "out": "your-output-folder-containing-json-files",
+    "search-query": {
+      "type": "elasticsearch-search-query"
+    }
   }
 }
 ```
+
+**"search-query"** : Could be a :
+
+a- "match-all-query" :
+```json
+...
+    "search-query": {
+          "type": "match-all-query"
+    }
+...
+```
+b- "match-query" :
+```json
+...
+    "search-query": {
+        "type": "match-query",
+        "field": {
+            "name": "field_name",
+            "value": "field_value"
+        }
+    }
+...
+```
+c- "multi-match-query" :
+```json
+...
+    "search-query": {
+        "type": "multi-match-query",
+        "values": ["value-1", "value-2", "value-n"]
+    }
+...
+```
+d- "term-query" :
+```json
+...
+    "search-query": {
+        "type": "term-query",
+        "field": {
+            "name": "field_name",
+            "value": "field_value"
+        }
+    }
+...
+```
+e- "terms-query" :
+```json
+...
+    "search-query": {
+        "type": "terms-query",
+        "field": {
+            "name": "field_name",
+            "values": ["value-1", "value-2", "value-n"]
+        }
+    }
+...
+```
+f- "common-terms-query" :
+```json
+...
+    "search-query": {
+        "type": "common-terms-query",
+        "field": {
+            "name": "field_name",
+            "value": "field_value"
+        }
+    }
+...
+```
+g- "query-string-query" :
+```json
+...
+    "search-query": {
+        "type": "query-string-query",
+        "query": "string-format elastic query"
+    }
+...
+```
+**"query"** should contain an elasticsearch string query such as for example, **"query"**: "(value-1) OR (value-2)"
+
+h- "simple-string-query" :
+```json
+...
+    "search-query": {
+        "type": "simple-string-query",
+        "query": "string-format elastic query"
+    }
+...
+```
+**"query"** should contain an elasticsearch string query such as for example, **"query"**: "(value-1) OR (value-2)"
+
+i- "prefix-query" :
+```json
+...
+    "search-query": {
+        "type": "prefix-query",
+        "prefix": {
+            "field-name": "field_name",
+            "value": "prefix_value"
+        }
+    }
+...
+```
+j- "more-like-this-query" :
+```json
+...
+    "search-query": {
+        "type": "more-like-this-query",
+        "like-fields": {
+            "fields": ["field-1", "field-2", "field-n"],
+            "like-texts": ["value-1", "value-2", "value-n"]
+        }
+    }
+...
+```
+k- "range-query" :
+```json
+...
+    "search-query": {
+        "type": "range-query",
+        "range-field": {
+            "range-type": {
+                "type": "range-type"
+            },
+            "name": "field-name",
+            "lte": "lower than or equal value",
+            "gte": "greater than or equal value"
+        }
+    }
+...
+```
+**"range-type"** could have values like : **string-range**, **integer-range**, **long-range** or **float-range**.
+
+**"lte"** and **"gte"** are optional fields.
+
+l- "exists-query" :
+```json
+...
+    "search-query": {
+        "type": "exists-query",
+        "field-name": "field-name"
+    }
+...
+```
+m- "wildcard-query" :
+```json
+...
+    "search-query": {
+        "type": "wildcard-query",
+        "field": {
+            "name": "field_name",
+            "value": "wildcard_value"
+        }
+    }
+...
+```
+n- "regex-query" :
+```json
+...
+    "search-query": {
+        "type": "regex-query",
+        "field": {
+            "name": "field_name",
+            "value": "regex_value"
+        }
+    }
+...
+```
+**"regex-query"** is used for strings indexed as **keyword**.
+
+o- "fuzzy-query" :
+```json
+...
+    "search-query": {
+        "type": "fuzzy-query",
+        "field": {
+            "name": "field_name",
+            "value": "field_value"
+        }
+    }
+...
+```
+p- "ids-query" :
+```json
+...
+    "search-query": {
+        "type": "ids-query",
+        "ids": ["id-1", "id-2", "id-n"]
+    }
+...
+```
+q- "bool-match-phrase-query" :
+```json
+...
+    "search-query": {
+        "type": "bool-match-phrase-query",
+        "bool-filter": {
+            "type": "bool-filter"
+        },
+        "fields": [
+            {
+                "name": "field_name-1",
+                "value": "field_value-1"
+            },
+            {
+                "name": "field_name-2",
+                "value": "field_value-2"
+            },
+            {
+                "name": "field_name-n",
+                "value": "field_value-n"
+            }
+        ]
+    }
+...
+```
+**"bool-filter"** can have one of these values : **"must"**, **"must-not"** or **"should"**.
 
 
 # C- Scheduling :

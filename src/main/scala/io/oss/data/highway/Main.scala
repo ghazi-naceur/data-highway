@@ -1,8 +1,17 @@
 package io.oss.data.highway
 
-import io.oss.data.highway.configuration.ConfigLoader
-import io.oss.data.highway.converter.{AvroSink, CsvSink, ElasticSampler, ElasticSink, JsonSink, KafkaSampler, KafkaSink, ParquetSink}
-import io.oss.data.highway.model._
+import io.oss.data.highway.configs.ConfigLoader
+import io.oss.data.highway.sinks.{
+  AvroSink,
+  CsvSink,
+  ElasticSampler,
+  ElasticSink,
+  JsonSink,
+  KafkaSampler,
+  KafkaSink,
+  ParquetSink
+}
+import io.oss.data.highway.models._
 import org.apache.spark.sql.SaveMode.Overwrite
 import org.apache.log4j.{BasicConfigurator, Logger}
 
@@ -58,13 +67,13 @@ object Main {
       case KafkaToFile(in, out, kafkaMode) =>
         KafkaSampler.consumeFromTopic(in, out, kafkaMode)
       case FileToKafka(in, out, kafkaMode) =>
-        new KafkaSink().publishToTopic(in, out, kafkaMode)
+        KafkaSink.publishToTopic(in, out, kafkaMode)
       case KafkaToKafka(in, out, kafkaMode) =>
-        new KafkaSink().publishToTopic(in, out, kafkaMode)
-      case FileToElasticsearch(in, out) =>
-        ElasticSink.handleElasticsearchChannel(in, out)
-      case ElasticsearchToFile(in, out) =>
-        ElasticSampler.saveDocuments(in, out)
+        KafkaSink.publishToTopic(in, out, kafkaMode)
+      case FileToElasticsearch(in, out, bulkEnabled) =>
+        ElasticSink.handleElasticsearchChannel(in, out, bulkEnabled)
+      case ElasticsearchToFile(in, out, searchQuery) =>
+        ElasticSampler.saveDocuments(in, out, searchQuery)
       case _ =>
         throw new RuntimeException(
           s"The provided route '$route' is not supported.")

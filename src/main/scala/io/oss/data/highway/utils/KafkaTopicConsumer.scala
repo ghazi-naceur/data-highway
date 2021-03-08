@@ -2,11 +2,11 @@ package io.oss.data.highway.utils
 
 import java.util
 import java.util.Properties
-import io.oss.data.highway.model.{KafkaStreamEntity, Offset}
+import io.oss.data.highway.models.{KafkaStreamEntity, Offset}
 import org.apache.kafka.clients.consumer.{ConsumerConfig, KafkaConsumer}
 import org.apache.kafka.common.serialization.{Serdes, StringDeserializer}
 import cats.syntax.either._
-import io.oss.data.highway.model.DataHighwayError.KafkaError
+import io.oss.data.highway.models.DataHighwayError.KafkaError
 import org.apache.kafka.streams.StreamsConfig
 import org.apache.kafka.streams.scala.StreamsBuilder
 import org.apache.log4j.Logger

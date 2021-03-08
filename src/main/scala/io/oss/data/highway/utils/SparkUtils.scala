@@ -1,6 +1,6 @@
 package io.oss.data.highway.utils
 
-import io.oss.data.highway.configuration.{ConfigLoader, SparkConfigs}
+import io.oss.data.highway.configs.{ConfigLoader, SparkConfigs}
 import org.apache.spark.sql.SparkSession
 
 trait SparkUtils {

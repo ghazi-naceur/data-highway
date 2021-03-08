@@ -6,7 +6,7 @@ import io.circe.Json
 import org.http4s.implicits._
 import io.circe.syntax._
 import io.oss.data.highway.Main
-import io.oss.data.highway.model.Route
+import io.oss.data.highway.models.Route
 import org.apache.log4j.Logger
 import org.http4s._
 import org.http4s.circe.CirceEntityCodec.circeEntityEncoder

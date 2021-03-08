@@ -1,8 +1,8 @@
 package io.oss.data.highway.z.hdfs.integration.tests
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
-import io.oss.data.highway.converter.JsonSink
-import io.oss.data.highway.model.{AVRO, CSV, JSON, PARQUET}
+import io.oss.data.highway.sinks.JsonSink
+import io.oss.data.highway.models.{AVRO, CSV, JSON, PARQUET}
 import io.oss.data.highway.utils.Constants.SEPARATOR
 import io.oss.data.highway.utils.DataFrameUtils
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}

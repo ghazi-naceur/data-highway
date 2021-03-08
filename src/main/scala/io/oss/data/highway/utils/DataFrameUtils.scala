@@ -2,7 +2,7 @@ package io.oss.data.highway.utils
 
 import org.apache.spark.sql.DataFrame
 import cats.syntax.either._
-import io.oss.data.highway.model.{AVRO, CSV, DataType, JSON, PARQUET}
+import io.oss.data.highway.models.{AVRO, CSV, DataType, JSON, PARQUET}
 import io.oss.data.highway.utils.Constants.SEPARATOR
 
 object DataFrameUtils extends SparkUtils {
