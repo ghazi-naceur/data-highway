@@ -5,7 +5,7 @@ services:
 
   app:
     build: .
-    image: data-highway-app:v1.0
+    image: data-highway-app:v2.0
     ports:
       - "5555:5555"
     container_name: bungee-gum-app
@@ -16,6 +16,9 @@ services:
       - /the-path-to-kafka-input-data-located-in-your-host-machine/:/app/data/kafka/input
       - /the-path-to-the-generated-kafka-output-in-your-host-machine/:/app/data/kafka/output
       - /the-path-to-the-generated-kafka-processed-in-your-host-machine/:/app/data/kafka/processed
+      - /the-path-to-elasticsearch-input-data-located-in-your-host-machine/:/app/data/elasticsearch/input
+      - /the-path-to-the-generated-elasticsearch-output-in-your-host-machine/:/app/data/elasticsearch/output
+      - /the-path-to-the-generated-elasticsearch-processed-in-your-host-machine/:/app/data/elasticsearch/processed
       - /the-path-to-your-log-file/log4j.properties:/app/config/log4j.properties
       - /the-path-to-your-config-file/application.conf:/app/config/application.conf
     network_mode: "host"
