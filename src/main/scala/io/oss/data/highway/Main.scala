@@ -4,6 +4,7 @@ import io.oss.data.highway.configs.ConfigLoader
 import io.oss.data.highway.sinks.{
   AvroSink,
   CsvSink,
+  ElasticAdminOps,
   ElasticSampler,
   ElasticSink,
   JsonSink,
@@ -74,6 +75,8 @@ object Main {
         ElasticSink.handleElasticsearchChannel(in, out, bulkEnabled)
       case ElasticsearchToFile(in, out, searchQuery) =>
         ElasticSampler.saveDocuments(in, out, searchQuery)
+      case ElasticOps(operation) =>
+        ElasticAdminOps.execute(operation)
       case _ =>
         throw new RuntimeException(
           s"The provided route '$route' is not supported.")
