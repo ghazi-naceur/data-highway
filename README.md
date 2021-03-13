@@ -842,7 +842,22 @@ a- "index-creation" :
 ```
 **mapping** is an optional field. Your Elasticsearch mapping should be inside the **properties** tag.
 
-b- "index-deletion" :
+b- "index-mapping" :
+```json
+{
+  "route": {
+    "type": "elastic-ops",
+    "operation": {
+      "type": "index-mapping",
+      "index-name": "index-name",
+      "mapping": "{ \"properties\" : { ... }"
+    }
+  }
+}
+```
+It adds a mapping for an existing index.
+
+c- "index-deletion" :
 ```json
 {
   "route": {

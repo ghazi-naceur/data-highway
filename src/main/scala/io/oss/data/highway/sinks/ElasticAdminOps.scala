@@ -2,14 +2,14 @@ package io.oss.data.highway.sinks
 
 import com.sksamuel.elastic4s.requests.indexes.{
   CreateIndexResponse,
-  IndexMappings,
   PutMappingResponse
 }
 import com.sksamuel.elastic4s.requests.indexes.admin.DeleteIndexResponse
 import io.oss.data.highway.models.{
   ElasticOperation,
   IndexCreation,
-  IndexDeletion
+  IndexDeletion,
+  IndexMapping
 }
 import cats.syntax.either._
 import io.oss.data.highway.utils.ElasticUtils
@@ -27,6 +27,8 @@ object ElasticAdminOps extends ElasticUtils {
         }
       case IndexDeletion(indexName) =>
         deleteIndice(indexName)
+      case IndexMapping(indexName, mapping) =>
+        addMapping(indexName, mapping)
     }
   }
 
@@ -69,6 +71,19 @@ object ElasticAdminOps extends ElasticUtils {
       esClient
         .execute {
           deleteIndex(indexName)
+        }
+        .await
+        .result
+    }
+  }
+
+  def addMapping(indexName: String,
+                 mappings: String): Either[Throwable, PutMappingResponse] = {
+    import com.sksamuel.elastic4s.ElasticDsl._
+    Either.catchNonFatal {
+      esClient
+        .execute {
+          putMapping(indexName).rawSource(mappings)
         }
         .await
         .result
