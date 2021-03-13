@@ -1,0 +1,10 @@
+// POST http://localhost:5555/conversion/route
+{
+  "route": {
+    "type": "elastic-ops",
+    "operation": {
+      "type": "index-deletion",
+      "index-name": "index-name"
+    }
+  }
+}

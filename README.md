@@ -54,6 +54,7 @@ You can as well :
     * [7- Index data in Elasticsearch](#7--index-data-in-elasticsearch-)
         * [a- File to Elasticsearch](#a--file-to-elasticsearch-)
         * [b- Elasticsearch to File](#b--elasticsearch-to-file-)
+        * [c- Elasticsearch operations](#c--elasticsearch-operations-)
 * [C- Scheduling](#C--scheduling-)
 
 # A- Getting started :
@@ -823,6 +824,36 @@ q- "bool-match-phrase-query" :
 ...
 ```
 **"bool-filter"** can have one of these values : **"must"**, **"must-not"** or **"should"**.
+
+##### c- Elasticsearch operations :
+
+a- "index-creation" :
+```json
+{
+  "route": {
+    "type": "elastic-ops",
+    "operation": {
+      "type": "index-creation",
+      "index-name": "index-name",
+      "mapping": "{ \"properties\" : { ... }"
+    }
+  }
+}
+```
+**mapping** is an optional field. Your Elasticsearch mapping should be inside the **properties** tag.
+
+b- "index-deletion" :
+```json
+{
+  "route": {
+    "type": "elastic-ops",
+    "operation": {
+      "type": "index-deletion",
+      "index-name": "index-name"
+    }
+  }
+}
+```
 
 
 # C- Scheduling :
