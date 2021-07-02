@@ -41,7 +41,7 @@ object JsonSink {
           s"Successfully converting '$inputDataType' data from input folder '$in' to '${JSON.getClass.getName}' and store it under output folder '$out'."
         )
       })
-      .flatMap(_ => FilesUtils.movePathContent(in, basePath, fileSystem))
+      .flatMap(_ => FilesUtils.movePathContent(in, basePath))
   }
 
   /**
@@ -71,7 +71,7 @@ object JsonSink {
               FilesUtils.reversePathSeparator(folder).split("/").last
             convertToJson(folder, s"$out/$suffix", basePath, saveMode, fileSystem, inputDataType)
           })
-      _ = FilesUtils.deleteFolder(in)
+      _ = FilesUtils.cleanup(in)
     } yield list
   }
 }

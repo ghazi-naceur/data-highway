@@ -41,7 +41,7 @@ object AvroSink {
           s"Successfully converting '$inputDataType' data from input folder '$in' to '${AVRO.getClass.getName}' and store it under output folder '$out'."
         )
       })
-      .flatMap(_ => FilesUtils.movePathContent(in, basePath, fileSystem))
+      .flatMap(_ => FilesUtils.movePathContent(in, basePath))
   }
 
   /**
@@ -70,7 +70,7 @@ object AvroSink {
             val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
             convertToAvro(folder, s"$out/$suffix", basePath, saveMode, fileSystem, inputDataType)
           })
-      _ = FilesUtils.deleteFolder(in)
+      _ = FilesUtils.cleanup(in)
     } yield list
   }
 }

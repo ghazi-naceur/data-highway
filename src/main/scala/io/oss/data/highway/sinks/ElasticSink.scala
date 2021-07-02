@@ -32,7 +32,7 @@ object ElasticSink extends ElasticUtils {
       else
         indexWithBulkQuery(in, out, basePath)
       logger.info(s"Successfully indexing data from '$in' into the '$out' index.")
-      FilesUtils.movePathContent(in, basePath, Local)
+      FilesUtils.movePathContent(in, basePath)
     }
   }
 
@@ -40,7 +40,7 @@ object ElasticSink extends ElasticUtils {
     if (new File(in).isFile) {
       FilesUtils.getJsonLines(in).foreach(line => indexDocInEs(out, line))
       val suffix = new File(in).getParent.split("/").last
-      FilesUtils.movePathContent(in, basePath, Local, s"processed/$suffix")
+      FilesUtils.movePathContent(in, basePath, s"processed/$suffix")
     } else {
       FilesUtils
         .listFilesRecursively(new File(in), Seq(JSON.extension))
@@ -50,7 +50,7 @@ object ElasticSink extends ElasticUtils {
             .foreach(line => indexDocInEs(out, line))
           val suffix =
             new File(file.getAbsolutePath).getParent.split("/").last
-          FilesUtils.movePathContent(file.getAbsolutePath, basePath, Local, s"processed/$suffix")
+          FilesUtils.movePathContent(file.getAbsolutePath, basePath, s"processed/$suffix")
         })
     }
   }
@@ -69,7 +69,7 @@ object ElasticSink extends ElasticUtils {
         bulk(queries).refresh(RefreshPolicy.Immediate)
       }.await
       val suffix = new File(in).getParent.split("/").last
-      FilesUtils.movePathContent(in, basePath, Local, s"processed/$suffix")
+      FilesUtils.movePathContent(in, basePath, s"processed/$suffix")
     } else {
       FilesUtils
         .listFilesRecursively(new File(in), Seq(JSON.extension))
@@ -85,7 +85,7 @@ object ElasticSink extends ElasticUtils {
           }.await
           val suffix =
             new File(file.getAbsolutePath).getParent.split("/").last
-          FilesUtils.movePathContent(file.getAbsolutePath, basePath, Local, s"processed/$suffix")
+          FilesUtils.movePathContent(file.getAbsolutePath, basePath, s"processed/$suffix")
         })
     }
   }
@@ -126,7 +126,7 @@ object ElasticSink extends ElasticUtils {
           .traverse(folder => {
             sendToElasticsearch(folder, out, basePath, bulkEnabled)
           })
-      _ = FilesUtils.deleteFolder(in)
+      _ = FilesUtils.cleanup(in)
     } yield list
   }
 }

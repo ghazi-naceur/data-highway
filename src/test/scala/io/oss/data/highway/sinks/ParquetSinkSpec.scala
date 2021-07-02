@@ -64,7 +64,6 @@ class ParquetSinkSpec
         folderCsvToParquet + "output/mock-data-2",
         folderCsvToParquet + "processed",
         SaveMode.Overwrite,
-        Local,
         CSV
       )
     val actual =
@@ -84,7 +83,6 @@ class ParquetSinkSpec
         folderAvroToParquet + "output/mock-data-2",
         folderAvroToParquet + "processed",
         SaveMode.Overwrite,
-        Local,
         AVRO
       )
     val actual =
@@ -104,7 +102,6 @@ class ParquetSinkSpec
         folderJsonToParquet + "output/mock-data-2",
         folderJsonToParquet + "processed",
         SaveMode.Overwrite,
-        Local,
         JSON
       )
     val actual =

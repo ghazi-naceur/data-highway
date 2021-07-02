@@ -85,7 +85,6 @@ object ParquetConversion extends DatasetComparer {
         hdfsAvroToParquet + "output/mock-data-2",
         hdfsAvroToParquet + "processed",
         SaveMode.Overwrite,
-        Local,
         AVRO
       )
     val actual = DataFrameUtils
@@ -105,7 +104,6 @@ object ParquetConversion extends DatasetComparer {
         hdfsJsonToParquet + "output/mock-data-2",
         hdfsJsonToParquet + "processed",
         SaveMode.Overwrite,
-        Local,
         JSON
       )
     val actual = DataFrameUtils
@@ -125,7 +123,6 @@ object ParquetConversion extends DatasetComparer {
         hdfsCsvToParquet + "output/mock-data-2",
         hdfsCsvToParquet + "processed",
         SaveMode.Overwrite,
-        Local,
         CSV
       )
     val actual = DataFrameUtils

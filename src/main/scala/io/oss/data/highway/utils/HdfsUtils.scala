@@ -1,14 +1,7 @@
 package io.oss.data.highway.utils
 
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{
-  FSDataOutputStream,
-  FileSystem,
-  FileUtil,
-  LocatedFileStatus,
-  Path,
-  RemoteIterator
-}
+import org.apache.hadoop.fs.{FileSystem, LocatedFileStatus, Path, RemoteIterator}
 
 import java.io.File
 import scala.annotation.tailrec
@@ -30,14 +23,11 @@ object HdfsUtils {
 
   def move(src: String, dest: String): Either[Throwable, Boolean] = {
     Either.catchNonFatal {
-//      fs.rename(new Path(src), new Path(dest))
       fs.rename(new Path(src), new Path(dest))
-//      FileUtil.copy(fs, new Path(src), fs, new Path(dest), true, conf)
-//      FileUtil.replaceFile(new File(src), new File(dest))
     }.leftMap(thr => ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
-  def rmdir(folder: String): Either[Throwable, Boolean] = {
+  def cleanup(folder: String): Either[Throwable, Boolean] = {
     Try {
       fs.delete(new Path(folder), true)
       fs.mkdirs(new Path(folder))
@@ -51,7 +41,7 @@ object HdfsUtils {
   }
 
   def listFolders(path: String): Either[Throwable, List[String]] = {
-    Try { // todo returns only first level folders
+    Try {
       fs.listStatus(new Path(path))
         .filter(_.isDirectory)
         .map(_.getPath.toUri.toString)
@@ -60,19 +50,6 @@ object HdfsUtils {
   }
 
   def listFiles(path: String): List[String] = {
-//    val iterator = HdfsUtils.fs.listFiles(new Path(path), true)
-//
-//    @tailrec
-//    def iterate(iterator: RemoteIterator[LocatedFileStatus], acc: List[String]): List[String] = {
-//      if (iterator.next.isFile) {
-//        val uri = iterator.next.getPath.toUri.toString
-//        iterate(iterator, uri :: acc)
-//      } else {
-//        acc
-//      }
-//    }
-//    iterate(iterator, List.empty[String])
-
     val iterator = HdfsUtils.fs.listFiles(new Path(path), true)
 
     @tailrec
@@ -85,5 +62,37 @@ object HdfsUtils {
       }
     }
     iterate(iterator, List.empty[String])
+  }
+
+  /**
+    * Moves files from a path to another
+    * @param src The input path
+    * @param basePath The base path
+    * @param zone The destination zone name
+    * @return List of Path, otherwise an Error
+    */
+  def movePathContent(
+      src: String,
+      basePath: String,
+      zone: String = "processed"
+  ): Either[ReadFileError, List[String]] = {
+    Either.catchNonFatal {
+      val srcPath       = new File(src)
+      val subDestFolder = s"$basePath/$zone/${srcPath.getName}"
+      HdfsUtils.mkdir(pathWithoutUriPrefix(subDestFolder))
+      val files = HdfsUtils.listFiles(src)
+      files
+        .map(file => {
+          HdfsUtils.move(
+            pathWithoutUriPrefix(file),
+            s"${pathWithoutUriPrefix(subDestFolder)}/${file.split("/").last}"
+          )
+          s"$subDestFolder/${file.split("/").last}"
+        })
+    }.leftMap(thr => ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+  }
+
+  def pathWithoutUriPrefix(path: String): String = {
+    "/" + path.replace("//", "/").split("/").drop(2).mkString("/")
   }
 }

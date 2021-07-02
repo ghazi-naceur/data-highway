@@ -49,7 +49,7 @@ object CsvSink {
           s"Successfully converting '$inputDataType' data from input folder '$in' to '${CSV.getClass.getName}' and store it under output folder '$out'."
         )
       })
-      .flatMap(_ => FilesUtils.movePathContent(in, basePath, fileSystem))
+      .flatMap(_ => FilesUtils.movePathContent(in, basePath))
   }
 
   /**
@@ -78,7 +78,7 @@ object CsvSink {
             val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
             convertToCsv(folder, s"$out/$suffix", basePath, saveMode, fileSystem, inputDataType)
           })
-      _ = FilesUtils.deleteFolder(in)
+      _ = FilesUtils.cleanup(in)
     } yield list
   }
 
@@ -188,9 +188,9 @@ object CsvSink {
       }
       if (inputExcelPath != null) inputExcelPath.close()
     }.leftMap(thr => {
-        if (inputExcelPath != null) inputExcelPath.close()
-        ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace)
-      })
+      if (inputExcelPath != null) inputExcelPath.close()
+      ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace)
+    })
   }
 
   /**
@@ -218,9 +218,9 @@ object CsvSink {
           })
           files.traverse(file => {
             val lastFolder = file.split("/").dropRight(1).mkString("/")
-            FilesUtils.movePathContent(s"$lastFolder", basePath, fileSystem)
+            FilesUtils.movePathContent(s"$lastFolder", basePath)
           })
-          FilesUtils.deleteFolder(inputPath)
+          FilesUtils.cleanup(inputPath)
         }.toList
       )
   }

@@ -60,7 +60,7 @@ object KafkaSink {
         Either.catchNonFatal {
           scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
             publishPathContent(input, topic, prod)
-            FilesUtils.deleteFolder(input)
+            FilesUtils.cleanup(input)
           }
         }
 
@@ -83,7 +83,7 @@ object KafkaSink {
       case SparkKafkaPluginProducer(brokers, _) =>
         Either.catchNonFatal(scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
           publishWithSparkKafkaPlugin(input, brokers, topic)
-          FilesUtils.deleteFolder(input)
+          FilesUtils.cleanup(input)
         })
       case _ =>
         throw new RuntimeException(
@@ -124,7 +124,7 @@ object KafkaSink {
                   .option("topic", topic)
                   .save()
               })
-            FilesUtils.movePathContent(new File(path).getAbsolutePath, basePath, Local)
+            FilesUtils.movePathContent(new File(path).getAbsolutePath, basePath)
           })
       })
   }
@@ -263,7 +263,7 @@ object KafkaSink {
           new ProducerRecord[String, String](topic, uuid, line)
         producer.send(data)
         logger.info(s"Topic: '$topic' - Sent data: '$line'")
-        FilesUtils.movePathContent(new File(jsonPath.getAbsolutePath).getParent, basePath, Local)
+        FilesUtils.movePathContent(new File(jsonPath.getAbsolutePath).getParent, basePath)
       }
     }.leftMap(thr => KafkaError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }

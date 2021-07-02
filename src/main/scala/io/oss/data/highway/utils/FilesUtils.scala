@@ -3,10 +3,8 @@ package io.oss.data.highway.utils
 import java.io.{File, FileWriter}
 import io.oss.data.highway.models.DataHighwayError.ReadFileError
 import cats.syntax.either._
-import io.oss.data.highway.models.{FileSystem, HDFS, Local}
+import io.oss.data.highway.models.Local
 import org.apache.commons.io.FileUtils
-import org.apache.hadoop.fs
-import org.apache.hadoop.fs.{FileUtil, Path}
 import org.apache.log4j.Logger
 
 import java.nio.file.{Files, StandardCopyOption}
@@ -126,54 +124,32 @@ object FilesUtils {
   def movePathContent(
       src: String,
       basePath: String,
-      fileSystem: FileSystem,
       zone: String = "processed"
   ): Either[ReadFileError, List[String]] = {
     Either.catchNonFatal {
-      fileSystem match {
-        case HDFS =>
-          val srcPath       = new File(src)
-          val subDestFolder = s"$basePath/$zone/${srcPath.getName}"
-//          FileUtils.forceMkdir(new File(subDestFolder))
-          HdfsUtils.mkdir("/" + subDestFolder.split("/").drop(2).mkString("/"))
-//          val files = srcPath.listFiles().filter(_.isFile).toList
-          val files = HdfsUtils.listFiles(src)
-          files
-            .map(file => {
-//              logger.info(s"Moving '$file' to '$subDestFolder/${file.split("/").last}'")
-              HdfsUtils.move(
-                "/" + file.split("/").drop(3).mkString("/"),
-                s"/${subDestFolder.split("/").drop(2).mkString("/")}/${file.split("/").last}"
-              )
-//              HdfsUtils.move(file, subDestFolder)
-//              HdfsUtils.move(src, subDestFolder)
-              s"$subDestFolder/${file.split("/").last}"
-            })
-        case Local =>
-          val srcPath       = new File(src)
-          val subDestFolder = s"$basePath/$zone/${srcPath.getName}"
-          FileUtils.forceMkdir(new File(subDestFolder))
-          val files = srcPath.listFiles().filter(_.isFile).toList
-          files
-            .map(file => {
-              logger.info(s"Moving '${file.toPath}' to '$subDestFolder/${file.getName}'")
-              Files.move(
-                file.toPath,
-                new File(s"$subDestFolder/${file.getName}").toPath,
-                StandardCopyOption.REPLACE_EXISTING
-              )
-              s"$subDestFolder/${file.getName}"
-            })
-      }
+      val srcPath       = new File(src)
+      val subDestFolder = s"$basePath/$zone/${srcPath.getName}"
+      FileUtils.forceMkdir(new File(subDestFolder))
+      val files = srcPath.listFiles().filter(_.isFile).toList
+      files
+        .map(file => {
+          logger.info(s"Moving '${file.toPath}' to '$subDestFolder/${file.getName}'")
+          Files.move(
+            file.toPath,
+            new File(s"$subDestFolder/${file.getName}").toPath,
+            StandardCopyOption.REPLACE_EXISTING
+          )
+          s"$subDestFolder/${file.getName}"
+        })
     }.leftMap(thr => ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   /**
-    * Deletes folder
+    * Cleanups folder
     * @param in The folder to be deleted
     * @return Array of Unit
     */
-  def deleteFolder(in: String): Array[Unit] = {
+  def cleanup(in: String): Array[Unit] = {
     new File(in)
       .listFiles()
       .filter(_.isDirectory)
