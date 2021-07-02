@@ -1,0 +1,7 @@
+
+
+hdfs dfs -mkdir -p /data/csv_to_parquet/input
+hadoop fs -copyFromLocal /home/ghazi/workspace/data-highway/src/test/resources/csv_to_parquet-data/input/* /data/csv_to_parquet/input
+
+
+hdfs dfs -rm -r /logs
