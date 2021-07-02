@@ -1,13 +1,12 @@
 package io.oss.data.highway.sinks
 
-import io.oss.data.highway.models.{AVRO, DataType}
+import io.oss.data.highway.models.{AVRO, DataType, FileSystem}
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
 import org.apache.log4j.Logger
 
 import java.io.File
-import java.nio.file.Path
 
 object AvroSink {
 
@@ -23,11 +22,14 @@ object AvroSink {
     * @param inputDataType The type of the input data
     * @return a List of Path, otherwise an Error
     */
-  def convertToAvro(in: String,
-                    out: String,
-                    basePath: String,
-                    saveMode: SaveMode,
-                    inputDataType: DataType): Either[Throwable, List[Path]] = {
+  def convertToAvro(
+      in: String,
+      out: String,
+      basePath: String,
+      saveMode: SaveMode,
+      fileSystem: FileSystem,
+      inputDataType: DataType
+  ): Either[Throwable, List[String]] = {
     DataFrameUtils
       .loadDataFrame(in, inputDataType)
       .map(df => {
@@ -36,9 +38,10 @@ object AvroSink {
           .mode(saveMode)
           .save(out)
         logger.info(
-          s"Successfully converting '$inputDataType' data from input folder '$in' to '${AVRO.getClass.getName}' and store it under output folder '$out'.")
+          s"Successfully converting '$inputDataType' data from input folder '$in' to '${AVRO.getClass.getName}' and store it under output folder '$out'."
+        )
       })
-      .flatMap(_ => FilesUtils.movePathContent(in, basePath))
+      .flatMap(_ => FilesUtils.movePathContent(in, basePath, fileSystem))
   }
 
   /**
@@ -54,21 +57,19 @@ object AvroSink {
       in: String,
       out: String,
       saveMode: SaveMode,
-      inputDataType: DataType): Either[Throwable, List[List[Path]]] = {
+      fileSystem: FileSystem,
+      inputDataType: DataType
+  ): Either[Throwable, List[List[String]]] = {
     val basePath = new File(in).getParent
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
-      list <- folders
-        .filterNot(path =>
-          new File(path).listFiles.filter(_.isFile).toList.isEmpty)
-        .traverse(folder => {
-          val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
-          convertToAvro(folder,
-                        s"$out/$suffix",
-                        basePath,
-                        saveMode,
-                        inputDataType)
-        })
+      list <-
+        folders
+          .filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)
+          .traverse(folder => {
+            val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
+            convertToAvro(folder, s"$out/$suffix", basePath, saveMode, fileSystem, inputDataType)
+          })
       _ = FilesUtils.deleteFolder(in)
     } yield list
   }

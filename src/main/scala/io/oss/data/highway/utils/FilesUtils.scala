@@ -3,10 +3,13 @@ package io.oss.data.highway.utils
 import java.io.{File, FileWriter}
 import io.oss.data.highway.models.DataHighwayError.ReadFileError
 import cats.syntax.either._
+import io.oss.data.highway.models.{FileSystem, HDFS, Local}
 import org.apache.commons.io.FileUtils
+import org.apache.hadoop.fs
+import org.apache.hadoop.fs.{FileUtil, Path}
 import org.apache.log4j.Logger
 
-import java.nio.file.{Files, Path, StandardCopyOption}
+import java.nio.file.{Files, StandardCopyOption}
 import scala.annotation.tailrec
 import scala.io.Source
 import scala.util.Try
@@ -24,13 +27,11 @@ object FilesUtils {
     */
   def getFilesFromPath(
       path: String,
-      extensions: Seq[String]): Either[ReadFileError, List[String]] = {
-    Either
-      .catchNonFatal {
-        listFilesRecursively(new File(path), extensions).map(_.getPath).toList
-      }
-      .leftMap(thr =>
-        ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+      extensions: Seq[String]
+  ): Either[ReadFileError, List[String]] = {
+    Either.catchNonFatal {
+      listFilesRecursively(new File(path), extensions).map(_.getPath).toList
+    }.leftMap(thr => ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   /**
@@ -71,13 +72,12 @@ object FilesUtils {
     * @param path The provided path
     * @return a List of folders, otherwise an Error
     */
-  def listFoldersRecursively(
-      path: String): Either[ReadFileError, List[String]] = {
+  def listFoldersRecursively(path: String): Either[ReadFileError, List[String]] = {
     @tailrec
     def getFolders(path: List[File], results: List[File]): Seq[File] =
       path match {
         case head :: tail =>
-          val files = head.listFiles
+          val files       = head.listFiles
           val directories = files.filter(_.isDirectory)
           val updated =
             if (files.size == directories.length) results else head :: results
@@ -85,12 +85,9 @@ object FilesUtils {
         case _ => results
       }
 
-    Either
-      .catchNonFatal {
-        getFolders(new File(path) :: Nil, Nil).map(_.getPath).reverse.toList
-      }
-      .leftMap(thr =>
-        ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    Either.catchNonFatal {
+      getFolders(new File(path) :: Nil, Nil).map(_.getPath).reverse.toList
+    }.leftMap(thr => ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   /**
@@ -109,17 +106,14 @@ object FilesUtils {
     * @param content The file's content
     * @return Unit, otherwise Error
     */
-  def save(path: String,
-           fileName: String,
-           content: String): Either[Throwable, Unit] = {
+  def save(path: String, fileName: String, content: String): Either[Throwable, Unit] = {
     Try {
       new File(path).mkdirs()
       val fileWriter = new FileWriter(new File(s"$path/$fileName"))
       fileWriter.write(content)
       fileWriter.close()
     }.toEither
-      .leftMap(thr =>
-        ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+      .leftMap(thr => ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   /**
@@ -132,25 +126,46 @@ object FilesUtils {
   def movePathContent(
       src: String,
       basePath: String,
-      zone: String = "processed"): Either[ReadFileError, List[Path]] = {
-    Either
-      .catchNonFatal {
-        val srcPath = new File(src)
-        val subDestFolder = s"$basePath/$zone/${srcPath.getName}"
-        FileUtils.forceMkdir(new File(subDestFolder))
-        val files = srcPath.listFiles().filter(_.isFile).toList
-        files
-          .map(file => {
-            logger.info(
-              s"Moving '${file.toPath}' to '$subDestFolder/${file.getName}'")
-            Files.move(file.toPath,
-                       new File(s"$subDestFolder/${file.getName}").toPath,
-                       StandardCopyOption.REPLACE_EXISTING)
-            new File(s"$subDestFolder/${file.getName}").toPath
-          })
+      fileSystem: FileSystem,
+      zone: String = "processed"
+  ): Either[ReadFileError, List[String]] = {
+    Either.catchNonFatal {
+      fileSystem match {
+        case HDFS =>
+          val srcPath       = new File(src)
+          val subDestFolder = s"$basePath/$zone/${srcPath.getName}"
+//          FileUtils.forceMkdir(new File(subDestFolder))
+          HdfsUtils.mkdir("/" + subDestFolder.split("/").drop(2).mkString("/"))
+//          val files = srcPath.listFiles().filter(_.isFile).toList
+          val files = HdfsUtils.listFiles(src)
+          files
+            .map(file => {
+//              logger.info(s"Moving '$file' to '$subDestFolder/${file.split("/").last}'")
+              HdfsUtils.move(
+                "/" + file.split("/").drop(3).mkString("/"),
+                s"/${subDestFolder.split("/").drop(2).mkString("/")}/${file.split("/").last}"
+              )
+//              HdfsUtils.move(file, subDestFolder)
+//              HdfsUtils.move(src, subDestFolder)
+              s"$subDestFolder/${file.split("/").last}"
+            })
+        case Local =>
+          val srcPath       = new File(src)
+          val subDestFolder = s"$basePath/$zone/${srcPath.getName}"
+          FileUtils.forceMkdir(new File(subDestFolder))
+          val files = srcPath.listFiles().filter(_.isFile).toList
+          files
+            .map(file => {
+              logger.info(s"Moving '${file.toPath}' to '$subDestFolder/${file.getName}'")
+              Files.move(
+                file.toPath,
+                new File(s"$subDestFolder/${file.getName}").toPath,
+                StandardCopyOption.REPLACE_EXISTING
+              )
+              s"$subDestFolder/${file.getName}"
+            })
       }
-      .leftMap(thr =>
-        ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }.leftMap(thr => ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   /**

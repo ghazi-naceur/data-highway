@@ -1,6 +1,6 @@
 package io.oss.data.highway.sinks
 
-import io.oss.data.highway.models.JSON
+import io.oss.data.highway.models.{JSON, Local}
 import io.oss.data.highway.utils.{ElasticUtils, FilesUtils}
 import org.apache.log4j.Logger
 import cats.implicits._
@@ -20,28 +20,27 @@ object ElasticSink extends ElasticUtils {
     * @param basePath The base path for input, output and processed folders
     * @return a List of Unit, otherwise an Error
     */
-  def sendToElasticsearch(in: String,
-                          out: String,
-                          basePath: String,
-                          bulkEnabled: Boolean): Either[Throwable, Unit] = {
+  def sendToElasticsearch(
+      in: String,
+      out: String,
+      basePath: String,
+      bulkEnabled: Boolean
+  ): Either[Throwable, Unit] = {
     Either.catchNonFatal {
       if (!bulkEnabled)
         indexWithIndexQuery(in, out, basePath)
       else
         indexWithBulkQuery(in, out, basePath)
-      logger.info(
-        s"Successfully indexing data from '$in' into the '$out' index.")
-      FilesUtils.movePathContent(in, basePath)
+      logger.info(s"Successfully indexing data from '$in' into the '$out' index.")
+      FilesUtils.movePathContent(in, basePath, Local)
     }
   }
 
-  private def indexWithIndexQuery(in: String,
-                                  out: String,
-                                  basePath: String): Any = {
+  private def indexWithIndexQuery(in: String, out: String, basePath: String): Any = {
     if (new File(in).isFile) {
       FilesUtils.getJsonLines(in).foreach(line => indexDocInEs(out, line))
       val suffix = new File(in).getParent.split("/").last
-      FilesUtils.movePathContent(in, basePath, s"processed/$suffix")
+      FilesUtils.movePathContent(in, basePath, Local, s"processed/$suffix")
     } else {
       FilesUtils
         .listFilesRecursively(new File(in), Seq(JSON.extension))
@@ -51,16 +50,12 @@ object ElasticSink extends ElasticUtils {
             .foreach(line => indexDocInEs(out, line))
           val suffix =
             new File(file.getAbsolutePath).getParent.split("/").last
-          FilesUtils.movePathContent(file.getAbsolutePath,
-                                     basePath,
-                                     s"processed/$suffix")
+          FilesUtils.movePathContent(file.getAbsolutePath, basePath, Local, s"processed/$suffix")
         })
     }
   }
 
-  private def indexWithBulkQuery(in: String,
-                                 out: String,
-                                 basePath: String): Any = {
+  private def indexWithBulkQuery(in: String, out: String, basePath: String): Any = {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     if (new File(in).isFile) {
@@ -74,7 +69,7 @@ object ElasticSink extends ElasticUtils {
         bulk(queries).refresh(RefreshPolicy.Immediate)
       }.await
       val suffix = new File(in).getParent.split("/").last
-      FilesUtils.movePathContent(in, basePath, s"processed/$suffix")
+      FilesUtils.movePathContent(in, basePath, Local, s"processed/$suffix")
     } else {
       FilesUtils
         .listFilesRecursively(new File(in), Seq(JSON.extension))
@@ -90,9 +85,7 @@ object ElasticSink extends ElasticUtils {
           }.await
           val suffix =
             new File(file.getAbsolutePath).getParent.split("/").last
-          FilesUtils.movePathContent(file.getAbsolutePath,
-                                     basePath,
-                                     s"processed/$suffix")
+          FilesUtils.movePathContent(file.getAbsolutePath, basePath, Local, s"processed/$suffix")
         })
     }
   }
@@ -122,16 +115,17 @@ object ElasticSink extends ElasticUtils {
   def handleElasticsearchChannel(
       in: String,
       out: String,
-      bulkEnabled: Boolean): Either[Throwable, List[Unit]] = {
+      bulkEnabled: Boolean
+  ): Either[Throwable, List[Unit]] = {
     val basePath = new File(in).getParent
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
-      list <- folders
-        .filterNot(path =>
-          new File(path).listFiles.filter(_.isFile).toList.isEmpty)
-        .traverse(folder => {
-          sendToElasticsearch(folder, out, basePath, bulkEnabled)
-        })
+      list <-
+        folders
+          .filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)
+          .traverse(folder => {
+            sendToElasticsearch(folder, out, basePath, bulkEnabled)
+          })
       _ = FilesUtils.deleteFolder(in)
     } yield list
   }

@@ -2,14 +2,14 @@ package io.oss.data.highway.z.hdfs.integration.tests
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
 import io.oss.data.highway.sinks.CsvSink
-import io.oss.data.highway.models.{AVRO, CSV, JSON, PARQUET}
+import io.oss.data.highway.models.{AVRO, CSV, JSON, Local, PARQUET}
 import io.oss.data.highway.utils.DataFrameUtils
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 
 object CsvConversion extends DatasetComparer {
 
-  val folderAvroToCsv = "src/test/resources/avro_to_csv-data/"
-  val folderJsonToCsv = "src/test/resources/json_to_csv-data/"
+  val folderAvroToCsv    = "src/test/resources/avro_to_csv-data/"
+  val folderJsonToCsv    = "src/test/resources/json_to_csv-data/"
   val folderParquetToCsv = "src/test/resources/parquet_to_csv-data/"
 
   val hdfsAvroToCsv =
@@ -64,36 +64,24 @@ object CsvConversion extends DatasetComparer {
   private def getExpected: DataFrame = {
     import spark.implicits._
     List(
-      (6.0,
-       "Marquita",
-       "Jarrad",
-       "mjarrad5@rakuten.co.jp",
-       "Female",
-       "247.246.40.151"),
+      (6.0, "Marquita", "Jarrad", "mjarrad5@rakuten.co.jp", "Female", "247.246.40.151"),
       (7.0, "Bordie", "Altham", "baltham6@hud.gov", "Male", "234.202.91.240"),
       (8.0, "Dom", "Greson", "dgreson7@somehting.com", "Male", "103.7.243.71"),
-      (9.0,
-       "Alphard",
-       "Meardon",
-       "ameardon8@comsenz.com",
-       "Male",
-       "37.31.17.200"),
-      (10.0,
-       "Reynold",
-       "Neighbour",
-       "rneighbour9@gravatar.com",
-       "Male",
-       "215.57.123.52")
+      (9.0, "Alphard", "Meardon", "ameardon8@comsenz.com", "Male", "37.31.17.200"),
+      (10.0, "Reynold", "Neighbour", "rneighbour9@gravatar.com", "Male", "215.57.123.52")
     ).toDF("id", "first_name", "last_name", "email", "gender", "ip_address")
   }
 
   def convertAvroToCsv(): Unit = {
     CsvSink
-      .convertToCsv(hdfsAvroToCsv + "input/mock-data-2",
-                    hdfsAvroToCsv + "output/mock-data-2",
-                    hdfsAvroToCsv + "processed",
-                    SaveMode.Overwrite,
-                    AVRO)
+      .convertToCsv(
+        hdfsAvroToCsv + "input/mock-data-2",
+        hdfsAvroToCsv + "output/mock-data-2",
+        hdfsAvroToCsv + "processed",
+        SaveMode.Overwrite,
+        Local,
+        AVRO
+      )
     val actual = DataFrameUtils
       .loadDataFrame(hdfsAvroToCsv + "output/mock-data-2", CSV)
       .right
@@ -106,11 +94,14 @@ object CsvConversion extends DatasetComparer {
 
   def convertJsonToCsv(): Unit = {
     CsvSink
-      .convertToCsv(hdfsJsonToCsv + "input/mock-data-2",
-                    hdfsJsonToCsv + "output/mock-data-2",
-                    hdfsAvroToCsv + "processed",
-                    SaveMode.Overwrite,
-                    JSON)
+      .convertToCsv(
+        hdfsJsonToCsv + "input/mock-data-2",
+        hdfsJsonToCsv + "output/mock-data-2",
+        hdfsAvroToCsv + "processed",
+        SaveMode.Overwrite,
+        Local,
+        JSON
+      )
     val actual = DataFrameUtils
       .loadDataFrame(hdfsJsonToCsv + "output/mock-data-2", CSV)
       .right
@@ -123,11 +114,14 @@ object CsvConversion extends DatasetComparer {
 
   def convertParquetToCsv(): Unit = {
     CsvSink
-      .convertToCsv(hdfsParquetToCsv + "input/mock-data-2",
-                    hdfsParquetToCsv + "output/mock-data-2",
-                    hdfsAvroToCsv + "processed",
-                    SaveMode.Overwrite,
-                    PARQUET)
+      .convertToCsv(
+        hdfsParquetToCsv + "input/mock-data-2",
+        hdfsParquetToCsv + "output/mock-data-2",
+        hdfsAvroToCsv + "processed",
+        SaveMode.Overwrite,
+        Local,
+        PARQUET
+      )
     val actual = DataFrameUtils
       .loadDataFrame(hdfsParquetToCsv + "output/mock-data-2", CSV)
       .right

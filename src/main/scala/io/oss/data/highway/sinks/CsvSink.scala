@@ -27,11 +27,14 @@ object CsvSink {
     * @param inputDataType The type of the input data
     * @return a List of Path, otherwise an Error
     */
-  def convertToCsv(in: String,
-                   out: String,
-                   basePath: String,
-                   saveMode: SaveMode,
-                   inputDataType: DataType): Either[Throwable, List[Path]] = {
+  def convertToCsv(
+      in: String,
+      out: String,
+      basePath: String,
+      saveMode: SaveMode,
+      fileSystem: FileSystem,
+      inputDataType: DataType
+  ): Either[Throwable, List[String]] = {
     DataFrameUtils
       .loadDataFrame(in, inputDataType)
       .map(df => {
@@ -43,9 +46,10 @@ object CsvSink {
           .option("sep", SEPARATOR)
           .csv(out)
         logger.info(
-          s"Successfully converting '$inputDataType' data from input folder '$in' to '${CSV.getClass.getName}' and store it under output folder '$out'.")
+          s"Successfully converting '$inputDataType' data from input folder '$in' to '${CSV.getClass.getName}' and store it under output folder '$out'."
+        )
       })
-      .flatMap(_ => FilesUtils.movePathContent(in, basePath))
+      .flatMap(_ => FilesUtils.movePathContent(in, basePath, fileSystem))
   }
 
   /**
@@ -61,21 +65,19 @@ object CsvSink {
       in: String,
       out: String,
       saveMode: SaveMode,
-      inputDataType: DataType): Either[Throwable, List[List[Path]]] = {
+      fileSystem: FileSystem,
+      inputDataType: DataType
+  ): Either[Throwable, List[List[String]]] = {
     val basePath = new File(in).getParent
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
-      list <- folders
-        .filterNot(path =>
-          new File(path).listFiles.filter(_.isFile).toList.isEmpty)
-        .traverse(folder => {
-          val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
-          convertToCsv(folder,
-                       s"$out/$suffix",
-                       basePath,
-                       saveMode,
-                       inputDataType)
-        })
+      list <-
+        folders
+          .filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)
+          .traverse(folder => {
+            val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
+            convertToCsv(folder, s"$out/$suffix", basePath, saveMode, fileSystem, inputDataType)
+          })
       _ = FilesUtils.deleteFolder(in)
     } yield list
   }
@@ -91,50 +93,46 @@ object CsvSink {
   private[sinks] def convertXlsxSheetToCsvFile(
       fileRelativePath: String,
       sheet: Sheet,
-      csvOutputFolder: String): Either[DataHighwayError, Path] = {
+      csvOutputFolder: String
+  ): Either[DataHighwayError, Path] = {
     val data = new StringBuilder
-    Either
-      .catchNonFatal {
-        val rowIterator = sheet.iterator
-        while (rowIterator.hasNext) {
-          val row = rowIterator.next
-          for (index <- 0 until row.getLastCellNum) {
-            if (row.getCell(index) == null) {
-              data.append(EMPTY)
-            } else {
-              val cellType = row.getCell(index).getCellType
-              val cell = row.getCell(index)
-              cellType match {
-                case CellType._NONE   => data.append(cell.toString)
-                case CellType.NUMERIC => data.append(cell.getNumericCellValue)
-                case CellType.STRING =>
-                  val str =
-                    cell.getStringCellValue.replaceAll("\n\r|\n|\r|\\R", EMPTY)
-                  data.append(str)
-                case CellType.FORMULA => data.append(cell.getCellFormula)
-                case CellType.BLANK   => data.append(cell.toString)
-                case CellType.BOOLEAN => data.append(cell.getBooleanCellValue)
-                case CellType.ERROR   => data.append(cell.toString)
-              }
+    Either.catchNonFatal {
+      val rowIterator = sheet.iterator
+      while (rowIterator.hasNext) {
+        val row = rowIterator.next
+        for (index <- 0 until row.getLastCellNum) {
+          if (row.getCell(index) == null) {
+            data.append(EMPTY)
+          } else {
+            val cellType = row.getCell(index).getCellType
+            val cell     = row.getCell(index)
+            cellType match {
+              case CellType._NONE   => data.append(cell.toString)
+              case CellType.NUMERIC => data.append(cell.getNumericCellValue)
+              case CellType.STRING =>
+                val str =
+                  cell.getStringCellValue.replaceAll("\n\r|\n|\r|\\R", EMPTY)
+                data.append(str)
+              case CellType.FORMULA => data.append(cell.getCellFormula)
+              case CellType.BLANK   => data.append(cell.toString)
+              case CellType.BOOLEAN => data.append(cell.getBooleanCellValue)
+              case CellType.ERROR   => data.append(cell.toString)
             }
-            data.append(SEPARATOR)
           }
-          data.deleteCharAt(data.length() - 1).append("\n")
+          data.append(SEPARATOR)
         }
-
-        val fName =
-          fileRelativePath.replaceFirst(PATH_WITHOUT_EXTENSION_REGEX, EMPTY)
-        createPathRecursively(s"$csvOutputFolder/$fName")
-        logger.info(
-          s"Successfully creating the path '$csvOutputFolder/$fName'.")
-        Files.write(
-          Paths.get(
-            s"$csvOutputFolder/$fName/${sheet.getSheetName}.${CSV.extension}"),
-          data.toString.getBytes(FORMAT)
-        )
+        data.deleteCharAt(data.length() - 1).append("\n")
       }
-      .leftMap(thr =>
-        ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+
+      val fName =
+        fileRelativePath.replaceFirst(PATH_WITHOUT_EXTENSION_REGEX, EMPTY)
+      createPathRecursively(s"$csvOutputFolder/$fName")
+      logger.info(s"Successfully creating the path '$csvOutputFolder/$fName'.")
+      Files.write(
+        Paths.get(s"$csvOutputFolder/$fName/${sheet.getSheetName}.${CSV.extension}"),
+        data.toString.getBytes(FORMAT)
+      )
+    }.leftMap(thr => ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   /**
@@ -177,21 +175,19 @@ object CsvSink {
   private[sinks] def convertXlsxFileToCsvFiles(
       fileRelativePath: String,
       inputExcelPath: FileInputStream,
-      csvOutputPath: String): Either[DataHighwayError, Unit] = {
-    Either
-      .catchNonFatal {
-        val wb = WorkbookFactory.create(inputExcelPath)
-        for (i <- 0 until wb.getNumberOfSheets) {
-          convertXlsxSheetToCsvFile(fileRelativePath,
-                                    wb.getSheetAt(i),
-                                    csvOutputPath)
-          logger.info(
-            s"Successfully converting '${XLSX.getClass.getName}/${XLS.getClass.getName}' data from input folder " +
-              s"'$fileRelativePath' to '${CSV.getClass.getName}' and store it under output folder '$csvOutputPath'.")
-        }
-        if (inputExcelPath != null) inputExcelPath.close()
+      csvOutputPath: String
+  ): Either[DataHighwayError, Unit] = {
+    Either.catchNonFatal {
+      val wb = WorkbookFactory.create(inputExcelPath)
+      for (i <- 0 until wb.getNumberOfSheets) {
+        convertXlsxSheetToCsvFile(fileRelativePath, wb.getSheetAt(i), csvOutputPath)
+        logger.info(
+          s"Successfully converting '${XLSX.getClass.getName}/${XLS.getClass.getName}' data from input folder " +
+            s"'$fileRelativePath' to '${CSV.getClass.getName}' and store it under output folder '$csvOutputPath'."
+        )
       }
-      .leftMap(thr => {
+      if (inputExcelPath != null) inputExcelPath.close()
+    }.leftMap(thr => {
         if (inputExcelPath != null) inputExcelPath.close()
         ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace)
       })
@@ -207,23 +203,25 @@ object CsvSink {
   def handleXlsxCsvChannel(
       inputPath: String,
       outputPath: String,
-      extensions: Seq[String]): Either[DataHighwayError, List[Unit]] = {
+      fileSystem: FileSystem,
+      extensions: Seq[String]
+  ): Either[DataHighwayError, List[Unit]] = {
     val basePath = new File(inputPath).getParent
     FilesUtils
       .getFilesFromPath(inputPath, extensions)
-      .map(files => {
-        files.traverse(file => {
-          val suffix =
-            FilesUtils.reversePathSeparator(file).stripPrefix(inputPath)
-          convertXlsxFileToCsvFiles(suffix,
-                                    new FileInputStream(file),
-                                    outputPath)
-        })
-        files.traverse(file => {
-          val lastFolder = file.split("/").dropRight(1).mkString("/")
-          FilesUtils.movePathContent(s"$lastFolder", basePath)
-        })
-        FilesUtils.deleteFolder(inputPath)
-      }.toList)
+      .map(files =>
+        {
+          files.traverse(file => {
+            val suffix =
+              FilesUtils.reversePathSeparator(file).stripPrefix(inputPath)
+            convertXlsxFileToCsvFiles(suffix, new FileInputStream(file), outputPath)
+          })
+          files.traverse(file => {
+            val lastFolder = file.split("/").dropRight(1).mkString("/")
+            FilesUtils.movePathContent(s"$lastFolder", basePath, fileSystem)
+          })
+          FilesUtils.deleteFolder(inputPath)
+        }.toList
+      )
   }
 }
