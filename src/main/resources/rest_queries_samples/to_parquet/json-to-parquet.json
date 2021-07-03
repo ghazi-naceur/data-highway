@@ -3,6 +3,9 @@
   "route": {
     "type" : "json-to-parquet",
     "in": "/input/json/data",
-    "out": "/output/parquet/data"
+    "out": "/output/parquet/data",
+    "file-system": {
+      "type": "hdfs or local"
+    }
   }
 }

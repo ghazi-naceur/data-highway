@@ -93,14 +93,18 @@ You can extract data from your Elasticsearch index :
 
 2- Unzip your **data-highway** zip release file
 
-3- Enter the unzipped folder and run your **data-highway** instance by executing the **start.sh** script :
+3- Enter the unzipped folder 
+
+4- Set configurations in the **application.conf** file
+
+5- run your **data-highway** instance by executing the **start.sh** script :
 ```shell
 chmod +x start.sh
 ./start.sh
 ```
 ![image](https://github.com/ghazi-naceur/data-highway/blob/master/src/main/resources/screenshots/data-highway-banner.png?raw=true "Data Highway Launch Banner")
 
-4- Finally, launch a data conversion using a REST query. You can find some query samples in the following folder [REST queries](https://github.com/ghazi-naceur/data-highway/tree/master/src/main/resources/rest_queries_samples).
+6- Finally, launch a data conversion using a REST query. You can find some query samples in the following folder [REST queries](https://github.com/ghazi-naceur/data-highway/tree/master/src/main/resources/rest_queries_samples).
 
 You can find, as well, some data samples to test your **data-highway** instance in the following link [data samples](https://github.com/ghazi-naceur/data-highway/tree/master/src/test/resources).
 
@@ -108,7 +112,9 @@ You will find further explanations about **data-highway** route configuration in
 
 ## 3- Run data-highway Docker Image :
 
-1- After cloning this repository, specify your mounted volumes in the `docker-compose.yml` located under `data-highway/docker/rest/generic` and 
+1- Set configurations in the **/the-path-to-your-config-file/application.conf** (to be mounted in the next step)
+
+2- After cloning this repository, specify your mounted volumes in the `docker-compose.yml` located under `data-highway/docker/rest/generic` and 
 specify your data-highway version (located in the release file name) :
 ```yaml
   app:
@@ -129,9 +135,9 @@ specify your data-highway version (located in the release file name) :
     network_mode: "host"
     entrypoint: ["java", "-cp", "/app/jar/data-highway-${version}.jar", "io.oss.data.highway.IOMain", "-Dlog4j.configuration=/app/config/log4j.properties", "-Dconfig.file=/app/config/application.conf"]
 ```
-2- Run the `start.sh` script under `data-highway/docker/rest/generic` to generate your Data Highway Docker image.
+3- Run the `start.sh` script under `data-highway/docker/rest/generic` to generate your Data Highway Docker image.
 
-3- Run your HTTP request. You can find HTTP requests samples here : [REST queries](https://github.com/ghazi-naceur/data-highway/tree/master/src/main/resources/rest_queries_samples)
+4- Run your HTTP request. You can find HTTP requests samples here : [REST queries](https://github.com/ghazi-naceur/data-highway/tree/master/src/main/resources/rest_queries_samples)
 
 **Note :** For `in` and `out` HTTP request body fields, you need to provide the mounted volumes Docker side (right side).
 
@@ -162,7 +168,10 @@ setting one of these following request bodies :
   "route": {
     "type": "parquet-to-json",
     "in": "your-input-folder-containing-parquet-files",
-    "out": "your-output-folder-that-will-contain-your-generated-json-files"
+    "out": "your-output-folder-that-will-contain-your-generated-json-files",
+    "file-system": {
+      "type": "*hdfs* or *local*"
+    }
   }
 }
 ```
@@ -174,7 +183,10 @@ setting one of these following request bodies :
   "route": {
     "type": "csv-to-json",
     "in": "your-input-folder-containing-csv-files",
-    "out": "your-output-folder-that-will-contain-your-generated-json-files"
+    "out": "your-output-folder-that-will-contain-your-generated-json-files",
+    "file-system": {
+      "type": "*hdfs* or *local*"
+    }
   }
 }
 ```
@@ -186,7 +198,10 @@ setting one of these following request bodies :
   "route": {
     "type": "avro-to-json",
     "in": "your-input-folder-containing-avro-files",
-    "out": "your-output-folder-that-will-contain-your-generated-json-files"
+    "out": "your-output-folder-that-will-contain-your-generated-json-files",
+    "file-system": {
+      "type": "*hdfs* or *local*"
+    }
   }
 }
 ```
@@ -205,7 +220,10 @@ setting one of these following request bodies :
   "route": {
     "type": "json-to-parquet",
     "in": "your-input-folder-containing-json-files",
-    "out": "your-output-folder-that-will-contain-your-generated-parquet-files"
+    "out": "your-output-folder-that-will-contain-your-generated-parquet-files",
+    "file-system": {
+      "type": "*hdfs* or *local*"
+    }
   }
 }
 ```
@@ -217,7 +235,10 @@ setting one of these following request bodies :
   "route": {
     "type": "csv-to-parquet",
     "in": "your-input-folder-containing-csv-files",
-    "out": "your-output-folder-that-will-contain-your-generated-parquet-files"
+    "out": "your-output-folder-that-will-contain-your-generated-parquet-files",
+    "file-system": {
+      "type": "*hdfs* or *local*"
+    }
   }
 }
 ```
@@ -229,7 +250,10 @@ setting one of these following request bodies :
   "route": {
     "type": "avro-to-parquet",
     "in": "your-input-folder-containing-avro-files",
-    "out": "your-output-folder-that-will-contain-your-generated-parquet-files"
+    "out": "your-output-folder-that-will-contain-your-generated-parquet-files",
+    "file-system": {
+      "type": "*hdfs* or *local*"
+    }
   }
 }
 ```
@@ -248,7 +272,10 @@ setting one of these following request bodies :
   "route": {
     "type": "json-to-csv",
     "in": "your-input-folder-containing-json-files",
-    "out": "your-output-folder-that-will-contain-your-generated-csv-files"
+    "out": "your-output-folder-that-will-contain-your-generated-csv-files",
+    "file-system": {
+      "type": "*hdfs* or *local*"
+    }
   }
 }
 ```
@@ -260,7 +287,10 @@ setting one of these following request bodies :
   "route": {
     "type": "parquet-to-csv",
     "in": "your-input-folder-containing-parquet-files",
-    "out": "your-output-folder-that-will-contain-your-generated-csv-files"
+    "out": "your-output-folder-that-will-contain-your-generated-csv-files",
+    "file-system": {
+      "type": "*hdfs* or *local*"
+    }
   }
 }
 ```
@@ -272,7 +302,10 @@ setting one of these following request bodies :
   "route": {
     "type": "avro-to-csv",
     "in": "your-input-folder-containing-avro-files",
-    "out": "your-output-folder-that-will-contain-your-generated-csv-files"
+    "out": "your-output-folder-that-will-contain-your-generated-csv-files",
+    "file-system": {
+      "type": "*hdfs* or *local*"
+    }
   }
 }
 ```
@@ -287,7 +320,10 @@ This route **"xlsx-to-csv"** supports both xlsx and xls files.
   "route": {
     "type": "xlsx-to-csv",
     "in": "your-input-folder-containing-xlsx-files",
-    "out": "your-output-folder-that-will-contain-your-generated-csv-files"
+    "out": "your-output-folder-that-will-contain-your-generated-csv-files",
+    "file-system": {
+      "type": "*hdfs* or *local*"
+    }
   }
 }
 ```
@@ -306,7 +342,10 @@ setting one of these following request bodies :
   "route": {
     "type": "parquet-to-avro",
     "in": "your-input-folder-containing-parquet-files",
-    "out": "your-output-folder-that-will-contain-your-generated-avro-files"
+    "out": "your-output-folder-that-will-contain-your-generated-avro-files",
+    "file-system": {
+      "type": "*hdfs* or *local*"
+    }
   }
 }
 ```
@@ -318,7 +357,10 @@ setting one of these following request bodies :
   "route": {
     "type": "json-to-avro",
     "in": "your-input-folder-containing-json-files",
-    "out": "your-output-folder-that-will-contain-your-generated-avro-files"
+    "out": "your-output-folder-that-will-contain-your-generated-avro-files",
+    "file-system": {
+      "type": "*hdfs* or *local*"
+    }
   }
 }
 ```
@@ -330,7 +372,10 @@ setting one of these following request bodies :
   "route": {
     "type": "csv-to-avro",
     "in": "your-input-folder-containing-csv-files",
-    "out": "your-output-folder-that-will-contain-your-generated-avro-files"
+    "out": "your-output-folder-that-will-contain-your-generated-avro-files",
+    "file-system": {
+      "type": "*hdfs* or *local*"
+    }
   }
 }
 ```
