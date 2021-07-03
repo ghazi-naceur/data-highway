@@ -59,8 +59,20 @@ hadoop fs -copyFromLocal /home/ghazi/workspace/data-highway/src/test/resources/a
 
 ##################   Json   ##################
 
-hdfs dfs -mkdir -p /data/avro_to_csv/input
-hdfs dfs -mkdir -p /data/avro_to_csv/output
-hdfs dfs -rm -r /data/avro_to_csv/output/*
-hdfs dfs -rm -r /data/avro_to_csv/processed
-hadoop fs -copyFromLocal /home/ghazi/workspace/data-highway/src/test/resources/avro_to_csv-data/input/* /data/avro_to_csv/input
+hdfs dfs -mkdir -p /data/avro_to_json/input
+hdfs dfs -mkdir -p /data/avro_to_json/output
+hdfs dfs -rm -r /data/avro_to_json/output/*
+hdfs dfs -rm -r /data/avro_to_json/processed
+hadoop fs -copyFromLocal /home/ghazi/workspace/data-highway/src/test/resources/avro_to_json-data/input/* /data/avro_to_json/input
+
+hdfs dfs -mkdir -p /data/csv_to_json/input
+hdfs dfs -mkdir -p /data/csv_to_json/output
+hdfs dfs -rm -r /data/csv_to_json/output/*
+hdfs dfs -rm -r /data/csv_to_json/processed
+hadoop fs -copyFromLocal /home/ghazi/workspace/data-highway/src/test/resources/csv_to_json-data/input/* /data/csv_to_json/input
+
+hdfs dfs -mkdir -p /data/parquet_to_json/input
+hdfs dfs -mkdir -p /data/parquet_to_json/output
+hdfs dfs -rm -r /data/parquet_to_json/output/*
+hdfs dfs -rm -r /data/parquet_to_json/processed
+hadoop fs -copyFromLocal /home/ghazi/workspace/data-highway/src/test/resources/parquet_to_json-data/input/* /data/parquet_to_json/input

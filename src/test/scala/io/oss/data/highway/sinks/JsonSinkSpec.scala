@@ -60,7 +60,6 @@ class JsonSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
         folderParquetToJson + "output/mock-data-2",
         folderParquetToJson + "processed",
         SaveMode.Overwrite,
-        Local,
         PARQUET
       )
     val actual =
@@ -81,7 +80,6 @@ class JsonSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
         folderAvroToJson + "output/mock-data-2",
         folderAvroToJson + "processed",
         SaveMode.Overwrite,
-        Local,
         AVRO
       )
     val actual =
@@ -102,7 +100,6 @@ class JsonSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
         folderCsvToJson + "output/mock-data-2",
         folderCsvToJson + "processed",
         SaveMode.Overwrite,
-        Local,
         CSV
       )
     val actual =
