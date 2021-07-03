@@ -5,48 +5,53 @@ import org.apache.hadoop.fs.{FileSystem, LocatedFileStatus, Path, RemoteIterator
 
 import java.io.File
 import scala.annotation.tailrec
-import scala.util.Try
 import cats.implicits._
-import io.oss.data.highway.models.DataHighwayError.ReadFileError
+import io.oss.data.highway.configs.{ConfigLoader, HadoopConfigs}
+import io.oss.data.highway.models.DataHighwayError.HdfsError
 
-object HdfsUtils {
+trait HdfsUtils {
+  val hadoopConf: HadoopConfigs = ConfigLoader().loadHadoopConf()
+}
+
+object HdfsUtils extends HdfsUtils {
 
   val conf = new Configuration()
-  conf.set("fs.defaultFS", "hdfs://localhost:9000") // todo to be externalized
+  conf.set("fs.defaultFS", HdfsUtils.hadoopConf.host)
+
   val fs: FileSystem = FileSystem.get(conf)
 
   def mkdir(folder: String): Either[Throwable, Boolean] = {
-    Try {
+    Either.catchNonFatal {
       fs.mkdirs(new Path(folder))
-    }.toEither
+    }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   def move(src: String, dest: String): Either[Throwable, Boolean] = {
     Either.catchNonFatal {
       fs.rename(new Path(src), new Path(dest))
-    }.leftMap(thr => ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   def cleanup(folder: String): Either[Throwable, Boolean] = {
-    Try {
+    Either.catchNonFatal {
       fs.delete(new Path(folder), true)
       fs.mkdirs(new Path(folder))
-    }.toEither
+    }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   def isEmpty(folder: String): Either[Throwable, Boolean] = {
-    Try {
+    Either.catchNonFatal {
       fs.listFiles(new Path(folder), false).hasNext
-    }.toEither
+    }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   def listFolders(path: String): Either[Throwable, List[String]] = {
-    Try {
+    Either.catchNonFatal {
       fs.listStatus(new Path(path))
         .filter(_.isDirectory)
         .map(_.getPath.toUri.toString)
         .toList
-    }.toEither
+    }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   def listFiles(path: String): List[String] = {
@@ -75,7 +80,7 @@ object HdfsUtils {
       src: String,
       basePath: String,
       zone: String = "processed"
-  ): Either[ReadFileError, List[String]] = {
+  ): Either[HdfsError, List[String]] = {
     Either.catchNonFatal {
       val srcPath       = new File(src)
       val subDestFolder = s"$basePath/$zone/${srcPath.getName}"
@@ -89,7 +94,7 @@ object HdfsUtils {
           )
           s"$subDestFolder/${file.split("/").last}"
         })
-    }.leftMap(thr => ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   def pathWithoutUriPrefix(path: String): String = {
