@@ -50,6 +50,7 @@ object AvroSink {
     * @param in The input data path
     * @param out The generated avro file path
     * @param saveMode The file saving mode
+    * @param fileSystem The file system : It can be *Local* or *HDFS*
     * @param inputDataType The type of the input data
     * @return List of List of Path, otherwise an Error
     */
@@ -78,7 +79,6 @@ object AvroSink {
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
     * @return List of List of Path, otherwise an Error
-    * @return
     */
   private def handleHDFS(
       in: String,
@@ -117,7 +117,6 @@ object AvroSink {
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
     * @return List of List of Path, otherwise an Error
-    * @return
     */
   private def handleLocalFS(
       in: String,
@@ -147,5 +146,4 @@ object AvroSink {
       _ = FilesUtils.cleanup(in)
     } yield list
   }
-
 }

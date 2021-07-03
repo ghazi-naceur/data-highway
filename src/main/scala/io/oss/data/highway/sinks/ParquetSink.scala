@@ -49,6 +49,7 @@ object ParquetSink {
     * @param in The input data path
     * @param out The generated parquet file path
     * @param saveMode The file saving mode
+    * @param fileSystem The file system : It can be *Local* or *HDFS*
     * @param inputDataType The type of the input data
     * @return List of List of Path, otherwise an Error
     */
@@ -77,7 +78,6 @@ object ParquetSink {
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
     * @return List of List of Path, otherwise an Error
-    * @return
     */
   private def handleHDFS(
       in: String,
@@ -116,7 +116,6 @@ object ParquetSink {
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
     * @return List of List of Path, otherwise an Error
-    * @return
     */
   private def handleLocalFS(
       in: String,

@@ -79,7 +79,6 @@ object CsvConversion extends DatasetComparer {
         hdfsAvroToCsv + "output/mock-data-2",
         hdfsAvroToCsv + "processed",
         SaveMode.Overwrite,
-        Local,
         AVRO
       )
     val actual = DataFrameUtils
@@ -99,7 +98,6 @@ object CsvConversion extends DatasetComparer {
         hdfsJsonToCsv + "output/mock-data-2",
         hdfsAvroToCsv + "processed",
         SaveMode.Overwrite,
-        Local,
         JSON
       )
     val actual = DataFrameUtils
@@ -119,7 +117,6 @@ object CsvConversion extends DatasetComparer {
         hdfsParquetToCsv + "output/mock-data-2",
         hdfsAvroToCsv + "processed",
         SaveMode.Overwrite,
-        Local,
         PARQUET
       )
     val actual = DataFrameUtils

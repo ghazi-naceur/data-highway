@@ -63,7 +63,6 @@ class CsvSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with
         folderParquetToCsvData + "output/mock-data-2",
         folderJsonToCsvData + "processed",
         SaveMode.Overwrite,
-        Local,
         PARQUET
       )
     val actual =
@@ -84,7 +83,6 @@ class CsvSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with
         folderJsonToCsvData + "output/mock-data-2",
         folderJsonToCsvData + "processed",
         SaveMode.Overwrite,
-        Local,
         JSON
       )
     val actual =
@@ -105,7 +103,6 @@ class CsvSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with
         folderAvroToCsvData + "output/mock-data-2",
         folderAvroToCsvData + "processed",
         SaveMode.Overwrite,
-        Local,
         AVRO
       )
     val actual =
@@ -143,7 +140,6 @@ class CsvSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with
     CsvSink.handleXlsxCsvChannel(
       folderXlsxCsvData + "input/",
       folderXlsxCsvData + "output/",
-      Local,
       Seq("xlsx", "xls")
     )
     val list1 = List(
