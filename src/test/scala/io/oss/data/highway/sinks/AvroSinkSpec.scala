@@ -62,7 +62,6 @@ class AvroSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
         folderParquetToAvro + "output/mock-data-2",
         folderParquetToAvro + "processed",
         SaveMode.Overwrite,
-        Local,
         PARQUET
       )
     val actual = DataFrameUtils
@@ -82,7 +81,6 @@ class AvroSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
         folderJsonToAvro + "output/mock-data-2",
         folderJsonToAvro + "processed",
         SaveMode.Overwrite,
-        Local,
         JSON
       )
     val actual =
@@ -103,7 +101,6 @@ class AvroSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
         folderCsvToAvro + "output/mock-data-2",
         folderCsvToAvro + "processed",
         SaveMode.Overwrite,
-        Local,
         CSV
       )
     val actual =

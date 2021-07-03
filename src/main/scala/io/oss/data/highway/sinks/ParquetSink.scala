@@ -69,6 +69,16 @@ object ParquetSink {
     }
   }
 
+  /**
+    * Handles data conversion for HDFS
+    * @param in The input data path
+    * @param basePath The base path for input and output folders
+    * @param out The generated parquet file path
+    * @param saveMode The file saving mode
+    * @param inputDataType The type of the input data
+    * @return List of List of Path, otherwise an Error
+    * @return
+    */
   private def handleHDFS(
       in: String,
       basePath: String,
@@ -98,6 +108,16 @@ object ParquetSink {
     } yield list
   }
 
+  /**
+    * Handles data conversion for Local File System
+    * @param in The input data path
+    * @param basePath The base path for input and output folders
+    * @param out The generated parquet file path
+    * @param saveMode The file saving mode
+    * @param inputDataType The type of the input data
+    * @return List of List of Path, otherwise an Error
+    * @return
+    */
   private def handleLocalFS(
       in: String,
       basePath: String,
