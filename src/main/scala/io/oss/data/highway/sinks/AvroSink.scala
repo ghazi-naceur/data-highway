@@ -29,7 +29,7 @@ object AvroSink {
       basePath: String,
       saveMode: SaveMode,
       inputDataType: DataType
-  ): Either[Throwable, Unit] = {
+  ): Either[Throwable, String] = {
     DataFrameUtils
       .loadDataFrame(in, inputDataType)
       .map(df => {
@@ -41,6 +41,7 @@ object AvroSink {
           s"Successfully converting '$inputDataType' data from input folder '$in' to '${AVRO.getClass.getName}' and " +
             s"store it under output folder '$out'."
         )
+        in
       })
   }
 
@@ -139,8 +140,8 @@ object AvroSink {
               basePath,
               saveMode,
               inputDataType
-            ).flatMap(_ => {
-              FilesUtils.movePathContent(in, basePath)
+            ).flatMap(subInputFolder => {
+              FilesUtils.movePathContent(subInputFolder, basePath)
             })
           })
       _ = FilesUtils.cleanup(in)

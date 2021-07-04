@@ -29,7 +29,7 @@ object JsonSink {
       basePath: String,
       saveMode: SaveMode,
       inputDataType: DataType
-  ): Either[Throwable, Unit] = {
+  ): Either[Throwable, String] = {
     DataFrameUtils
       .loadDataFrame(in, inputDataType)
       .map(df => {
@@ -40,6 +40,7 @@ object JsonSink {
         logger.info(
           s"Successfully converting '$inputDataType' data from input folder '$in' to '${JSON.getClass.getName}' and store it under output folder '$out'."
         )
+        in
       })
   }
 
@@ -137,8 +138,8 @@ object JsonSink {
               basePath,
               saveMode,
               inputDataType
-            ).flatMap(_ => {
-              FilesUtils.movePathContent(in, basePath)
+            ).flatMap(subInputFolder => {
+              FilesUtils.movePathContent(subInputFolder, basePath)
             })
           })
       _ = FilesUtils.cleanup(in)

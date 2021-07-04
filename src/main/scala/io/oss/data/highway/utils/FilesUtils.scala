@@ -3,7 +3,6 @@ package io.oss.data.highway.utils
 import java.io.{File, FileWriter}
 import io.oss.data.highway.models.DataHighwayError.ReadFileError
 import cats.syntax.either._
-import io.oss.data.highway.models.Local
 import org.apache.commons.io.FileUtils
 import org.apache.log4j.Logger
 
@@ -122,6 +121,24 @@ object FilesUtils {
     * @return List of Path, otherwise an Error
     */
   def movePathContent(
+      src: String,
+      basePath: String,
+      zone: String = "processed"
+  ): Either[ReadFileError, List[String]] = {
+    Either.catchNonFatal {
+      val srcPath       = new File(src)
+      val subDestFolder = s"$basePath/$zone/${srcPath.getName}"
+      FileUtils.forceMkdir(new File(subDestFolder))
+      Files.move(
+        new File(src).toPath,
+        new File(subDestFolder).toPath,
+        StandardCopyOption.REPLACE_EXISTING
+      )
+      List(subDestFolder)
+    }.leftMap(thr => ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+  }
+
+  def moveFiles(
       src: String,
       basePath: String,
       zone: String = "processed"

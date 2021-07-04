@@ -29,7 +29,7 @@ object ParquetSink {
       basePath: String,
       saveMode: SaveMode,
       inputDataType: DataType
-  ): Either[Throwable, Unit] = {
+  ): Either[Throwable, String] = {
     DataFrameUtils
       .loadDataFrame(in, inputDataType)
       .map(df => {
@@ -40,6 +40,7 @@ object ParquetSink {
           s"Successfully converting '$inputDataType' data from input folder '$in' to '${PARQUET.getClass.getName}' and " +
             s"store it under output folder '$out'."
         )
+        in
       })
   }
 
@@ -138,8 +139,8 @@ object ParquetSink {
               basePath,
               saveMode,
               inputDataType
-            ).flatMap(_ => {
-              FilesUtils.movePathContent(in, basePath)
+            ).flatMap(subInputFolder => {
+              FilesUtils.movePathContent(subInputFolder, basePath)
             })
           })
       _ = FilesUtils.cleanup(in)

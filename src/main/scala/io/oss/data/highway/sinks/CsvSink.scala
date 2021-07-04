@@ -33,7 +33,7 @@ object CsvSink {
       basePath: String,
       saveMode: SaveMode,
       inputDataType: DataType
-  ): Either[Throwable, Unit] = {
+  ): Either[Throwable, String] = {
     DataFrameUtils
       .loadDataFrame(in, inputDataType)
       .map(df => {
@@ -47,6 +47,7 @@ object CsvSink {
         logger.info(
           s"Successfully converting '$inputDataType' data from input folder '$in' to '${CSV.getClass.getName}' and store it under output folder '$out'."
         )
+        in
       })
   }
 
@@ -147,8 +148,8 @@ object CsvSink {
               basePath,
               saveMode,
               inputDataType
-            ).flatMap(_ => {
-              FilesUtils.movePathContent(in, basePath)
+            ).flatMap(subInputFolder => {
+              FilesUtils.movePathContent(subInputFolder, basePath)
             })
           })
       _ = FilesUtils.cleanup(in)
@@ -290,7 +291,7 @@ object CsvSink {
           })
           files.traverse(file => {
             val lastFolder = file.split("/").dropRight(1).mkString("/")
-            FilesUtils.movePathContent(s"$lastFolder", basePath)
+            FilesUtils.moveFiles(s"$lastFolder", basePath)
           })
           FilesUtils.cleanup(inputPath)
         }.toList

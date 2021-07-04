@@ -57,6 +57,12 @@ hdfs dfs -rm -r /data/avro_to_csv/output/*
 hdfs dfs -rm -r /data/avro_to_csv/processed
 hadoop fs -copyFromLocal /home/ghazi/workspace/data-highway/src/test/resources/avro_to_csv-data/input/* /data/avro_to_csv/input
 
+hdfs dfs -mkdir -p /data/xlsx_to_csv/input
+hdfs dfs -mkdir -p /data/xlsx_to_csv/output
+hdfs dfs -rm -r /data/xlsx_to_csv/output/*
+hdfs dfs -rm -r /data/xlsx_to_csv/processed
+hadoop fs -copyFromLocal /home/ghazi/workspace/data-highway/src/test/resources/xlsx_to_csv-data/input/* /data/xlsx_to_csv/input
+
 ##################   Json   ##################
 
 hdfs dfs -mkdir -p /data/avro_to_json/input
