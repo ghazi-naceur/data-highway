@@ -89,9 +89,9 @@ object JsonSink {
     for {
       folders <- HdfsUtils.listFolders(in)
       _ = logger.info("folders : " + folders)
+      filtered <- HdfsUtils.verifyNotEmpty(folders)
       list <-
-        folders
-          .filter(path => HdfsUtils.fs.listFiles(new Path(path), false).hasNext)
+        filtered
           .traverse(folder => {
             val suffix = folder.split("/").last
             convertToJson(

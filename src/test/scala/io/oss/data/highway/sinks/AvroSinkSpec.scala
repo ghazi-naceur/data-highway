@@ -3,7 +3,7 @@ package io.oss.data.highway.sinks
 import java.io.File
 import java.nio.file.{Files, Paths}
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
-import io.oss.data.highway.models.{AVRO, CSV, JSON, Local, PARQUET}
+import io.oss.data.highway.models.{AVRO, CSV, JSON, PARQUET}
 import io.oss.data.highway.utils.DataFrameUtils
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import org.scalatest.BeforeAndAfterEach

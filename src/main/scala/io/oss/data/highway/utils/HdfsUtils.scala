@@ -39,12 +39,6 @@ object HdfsUtils extends HdfsUtils {
     }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
-  def isEmpty(folder: String): Either[Throwable, Boolean] = {
-    Either.catchNonFatal {
-      fs.listFiles(new Path(folder), false).hasNext
-    }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
-  }
-
   def listFolders(path: String): Either[Throwable, List[String]] = {
     Either.catchNonFatal {
       fs.listStatus(new Path(path))
@@ -100,4 +94,10 @@ object HdfsUtils extends HdfsUtils {
   def pathWithoutUriPrefix(path: String): String = {
     "/" + path.replace("//", "/").split("/").drop(2).mkString("/")
   }
+
+  def verifyNotEmpty(folders: List[String]): Either[Throwable, List[String]] = {
+    Either.catchNonFatal {
+      folders.filter(folder => HdfsUtils.fs.listFiles(new Path(folder), false).hasNext)
+    }
+  }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
 }

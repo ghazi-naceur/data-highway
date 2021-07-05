@@ -92,12 +92,10 @@ object CsvSink {
     for {
       folders <- HdfsUtils.listFolders(in)
       _ = logger.info("folders : " + folders)
+      filtered <- HdfsUtils.verifyNotEmpty(folders)
       res <- inputDataType match {
         case XLSX =>
-          folders
-            .filter(path =>
-              HdfsUtils.fs.listFiles(new org.apache.hadoop.fs.Path(path), false).hasNext
-            )
+          filtered
             .traverse(folder => {
               HdfsUtils
                 .listFiles(folder)
@@ -120,10 +118,7 @@ object CsvSink {
                 })
             })
         case _ =>
-          folders
-            .filter(path =>
-              HdfsUtils.fs.listFiles(new org.apache.hadoop.fs.Path(path), false).hasNext
-            )
+          filtered
             .traverse(folder => {
               val suffix = folder.split("/").last
               convertToCsv(

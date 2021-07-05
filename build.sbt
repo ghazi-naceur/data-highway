@@ -29,7 +29,6 @@ addCompilerPlugin(
 )
 
 val http4sVersion    = "0.21.12"
-val poiVersion       = "4.1.2"
 val scalatestVersion = "3.2.0"
 val catsVersion      = "2.1.1"
 val sparkVersion     = "2.4.6"
@@ -40,8 +39,6 @@ val hadoopVersion    = "3.3.0"
 
 libraryDependencies ++= Seq(
   "com.github.pureconfig"  %% "pureconfig"               % "0.13.0",
-  "org.apache.poi"          % "poi"                      % poiVersion,
-  "org.apache.poi"          % "poi-ooxml"                % poiVersion,
   "org.scalatest"          %% "scalatest"                % scalatestVersion,
   "org.scalatest"          %% "scalatest"                % scalatestVersion % "test",
   "org.typelevel"          %% "cats-core"                % catsVersion,
