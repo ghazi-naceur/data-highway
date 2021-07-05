@@ -100,11 +100,7 @@ object CsvSink {
               HdfsUtils
                 .listFiles(folder)
                 .traverse(file => {
-                  val suffix = file
-                    .split("/")
-                    .takeRight(2)
-                    .mkString("/")
-                    .replace(".xlsx", "")
+                  val suffix = FilesUtils.getFileNameAndParentFolderFromPath(file)
                   convertToCsv(
                     file,
                     s"$out/$suffix",
@@ -161,16 +157,10 @@ object CsvSink {
           FilesUtils
             .listFiles(filtered)
             .traverse(folder => {
-              folder.traverse(fi => {
-                val suffix =
-                  FilesUtils
-                    .reversePathSeparator(fi.toURI.getPath)
-                    .split("/")
-                    .takeRight(2)
-                    .mkString("/")
-                    .replace(".xlsx", "")
+              folder.traverse(file => {
+                val suffix = FilesUtils.getFileNameAndParentFolderFromPath(file.toURI.getPath)
                 convertToCsv(
-                  fi.toURI.getPath,
+                  file.toURI.getPath,
                   s"$out/$suffix",
                   basePath,
                   saveMode,

@@ -4,7 +4,6 @@ import io.oss.data.highway.models.{DataType, FileSystem, HDFS, Local, PARQUET}
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
-import org.apache.hadoop.fs.Path
 import org.apache.log4j.Logger
 
 import java.io.File

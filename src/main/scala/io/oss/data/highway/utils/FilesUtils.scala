@@ -205,4 +205,12 @@ object FilesUtils {
       folders.filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)
     }.leftMap(thr => ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
+
+  def getFileNameAndParentFolderFromPath(path: String): String = {
+    reversePathSeparator(path)
+      .split("/")
+      .takeRight(2)
+      .mkString("/")
+      .replace(".xlsx", "")
+  }
 }
