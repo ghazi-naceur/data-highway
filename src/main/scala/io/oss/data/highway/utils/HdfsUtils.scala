@@ -98,6 +98,6 @@ object HdfsUtils extends HdfsUtils {
   def verifyNotEmpty(folders: List[String]): Either[Throwable, List[String]] = {
     Either.catchNonFatal {
       folders.filter(folder => HdfsUtils.fs.listFiles(new Path(folder), false).hasNext)
-    }
-  }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
+  }
 }

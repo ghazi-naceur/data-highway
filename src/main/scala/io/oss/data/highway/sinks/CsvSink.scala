@@ -155,17 +155,11 @@ object CsvSink {
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
       _ = logger.info("folders : " + folders)
-      list <- Either.catchNonFatal {
-        folders.filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)
-      }
+      filtered <- FilesUtils.verifyNotEmpty(folders)
       res <- inputDataType match {
         case XLSX =>
-          val files = Either.catchNonFatal {
-            list.flatMap(subfolder => {
-              new File(subfolder).listFiles
-            })
-          }
-          files
+          FilesUtils
+            .listFiles(filtered)
             .traverse(folder => {
               folder.traverse(fi => {
                 val suffix =
@@ -188,7 +182,7 @@ object CsvSink {
             })
             .flatten
         case _ =>
-          list.traverse(folder => {
+          filtered.traverse(folder => {
             val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
             convertToCsv(
               folder,

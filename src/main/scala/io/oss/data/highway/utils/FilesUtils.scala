@@ -52,6 +52,14 @@ object FilesUtils {
         .flatMap(f => listFilesRecursively(f, extensions))
   }
 
+  def listFiles(folders: List[String]): Either[Throwable, List[File]] = {
+    Either.catchNonFatal {
+      folders.flatMap(subfolder => {
+        new File(subfolder).listFiles
+      })
+    }.leftMap(thr => ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+  }
+
   /**
     * Checks that the provided file has an extension that belongs to the provided ones
     *
@@ -190,5 +198,11 @@ object FilesUtils {
   def getJsonLines(jsonPath: String): Iterator[String] = {
     val jsonFile = Source.fromFile(jsonPath)
     jsonFile.getLines
+  }
+
+  def verifyNotEmpty(folders: List[String]): Either[Throwable, List[String]] = {
+    Either.catchNonFatal {
+      folders.filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)
+    }.leftMap(thr => ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 }

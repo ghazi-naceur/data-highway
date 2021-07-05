@@ -127,9 +127,9 @@ object JsonSink {
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
       _ = logger.info("folders : " + folders)
+      filtered <- FilesUtils.verifyNotEmpty(folders)
       list <-
-        folders
-          .filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)
+        filtered
           .traverse(folder => {
             val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
             convertToJson(

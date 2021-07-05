@@ -4,7 +4,6 @@ import io.oss.data.highway.models.{AVRO, DataType, FileSystem, HDFS, Local}
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
-import org.apache.hadoop.fs.Path
 import org.apache.log4j.Logger
 
 import java.io.File
@@ -63,7 +62,6 @@ object AvroSink {
       inputDataType: DataType
   ): Either[Throwable, List[List[String]]] = {
     val basePath = new File(in).getParent
-
     fileSystem match {
       case Local =>
         handleLocalFS(in, basePath, out, saveMode, inputDataType)
@@ -130,9 +128,9 @@ object AvroSink {
     for {
       folders <- FilesUtils.listFoldersRecursively(in)
       _ = logger.info("folders : " + folders)
+      filtered <- FilesUtils.verifyNotEmpty(folders)
       list <-
-        folders
-          .filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)
+        filtered
           .traverse(folder => {
             val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
             convertToAvro(
