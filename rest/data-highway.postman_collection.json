@@ -1050,6 +1050,122 @@
 			]
 		},
 		{
+			"name": "xlsx_to_csv",
+			"item": [
+				{
+					"name": "xlsx-to-csv_docker",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"route\": {\n    \"type\" : \"xlsx-to-csv\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:5555/conversion/route",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5555",
+							"path": [
+								"conversion",
+								"route"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "xlsx-to-csv_local",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"route\": {\n    \"type\" : \"xlsx-to-csv\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/xlsx_to_csv-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/xlsx_to_csv-data/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:5555/conversion/route",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5555",
+							"path": [
+								"conversion",
+								"route"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "xlsx-to-csv_hdfs",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"route\": {\n    \"type\" : \"xlsx-to-csv\",\n    \"in\": \"hdfs://localhost:9000/data/xlsx_to_csv/input\",\n    \"out\": \"hdfs://localhost:9000/data/xlsx_to_csv/output\",\n    \"file-system\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:5555/conversion/route",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5555",
+							"path": [
+								"conversion",
+								"route"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "avro_to_json",
 			"item": [
 				{

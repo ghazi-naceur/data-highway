@@ -40,7 +40,7 @@ You can as well :
         * [a- From JSON to CSV](#a--from-json-to-csv-)
         * [b- From Parquet to CSV](#b--from-parquet-to-csv-)
         * [c- From Avro to CSV](#c--from-avro-to-csv-)
-        * [d- From XLSX (or XLS) to CSV](#d--from-xlsx-(or-xls)-to-csv-)
+        * [d- From XLSX to CSV](#d--from-xlsx-to-csv-)
     * [4- Avro conversion](#4--avro-conversion-)
         * [a- From Parquet to Avro](#a--from-parquet-to-avro-)
         * [b- From Json to Avro](#b--from-json-to-avro-)
@@ -310,11 +310,10 @@ setting one of these following request bodies :
 }
 ```
 
-#### d- From XLSX (or XLS) to CSV :
+#### d- From XLSX to CSV :
 
-It consists of converting the different sheets of an XLSX or XLS file to multiple csv files.
+It consists of converting the different sheets of an XLSX file to multiple csv files.
 
-This route **"xlsx-to-csv"** supports both xlsx and xls files.
 ```json
 {
   "route": {
