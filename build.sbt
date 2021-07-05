@@ -67,7 +67,8 @@ libraryDependencies ++= Seq(
   "org.http4s"             %% "http4s-circe"             % http4sVersion,
   "io.circe"               %% "circe-generic"            % circeVersion,
   "io.monix"               %% "monix"                    % "3.3.0",
-  "com.sksamuel.elastic4s" %% "elastic4s-client-esjava"  % elastic4sVersion
+  "com.sksamuel.elastic4s" %% "elastic4s-client-esjava"  % elastic4sVersion,
+  "com.crealytics"         %% "spark-excel"              % "0.13.7"
 )
 
 scalacOptions += "-Ypartial-unification"

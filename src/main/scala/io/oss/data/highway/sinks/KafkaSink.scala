@@ -7,7 +7,6 @@ import java.util.{Properties, UUID}
 import io.oss.data.highway.models.{
   JSON,
   KafkaMode,
-  Local,
   Offset,
   PureKafkaProducer,
   PureKafkaStreamsProducer,
@@ -124,7 +123,7 @@ object KafkaSink {
                   .option("topic", topic)
                   .save()
               })
-            FilesUtils.movePathContent(new File(path).getAbsolutePath, basePath)
+            FilesUtils.movePathContent(new File(path).getAbsolutePath, basePath, JSON)
           })
       })
   }
@@ -263,7 +262,7 @@ object KafkaSink {
           new ProducerRecord[String, String](topic, uuid, line)
         producer.send(data)
         logger.info(s"Topic: '$topic' - Sent data: '$line'")
-        FilesUtils.movePathContent(new File(jsonPath.getAbsolutePath).getParent, basePath)
+        FilesUtils.movePathContent(new File(jsonPath.getAbsolutePath).getParent, basePath, JSON)
       }
     }.leftMap(thr => KafkaError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }

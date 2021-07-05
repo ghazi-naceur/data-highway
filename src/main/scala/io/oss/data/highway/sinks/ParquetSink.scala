@@ -140,7 +140,7 @@ object ParquetSink {
               saveMode,
               inputDataType
             ).flatMap(subInputFolder => {
-              FilesUtils.movePathContent(subInputFolder, basePath)
+              FilesUtils.movePathContent(subInputFolder, basePath, inputDataType)
             })
           })
       _ = FilesUtils.cleanup(in)

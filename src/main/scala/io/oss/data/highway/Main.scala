@@ -44,7 +44,7 @@ object Main {
       case AvroToParquet(in, out, fileSystem) =>
         ParquetSink.handleParquetChannel(in, out, Overwrite, fileSystem, AVRO)
       case XlsxToCsv(in, out, fileSystem) =>
-        CsvSink.handleXlsxCsvChannel(in, out, Seq(XLSX.extension, XLS.extension))
+        CsvSink.handleCsvChannel(in, out, Overwrite, fileSystem, XLSX)
       case ParquetToCsv(in, out, fileSystem) =>
         CsvSink.handleCsvChannel(in, out, Overwrite, fileSystem, PARQUET)
       case AvroToCsv(in, out, fileSystem) =>

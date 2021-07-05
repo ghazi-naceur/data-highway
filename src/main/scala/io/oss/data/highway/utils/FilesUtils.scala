@@ -3,6 +3,7 @@ package io.oss.data.highway.utils
 import java.io.{File, FileWriter}
 import io.oss.data.highway.models.DataHighwayError.ReadFileError
 import cats.syntax.either._
+import io.oss.data.highway.models.{DataType, XLSX}
 import org.apache.commons.io.FileUtils
 import org.apache.log4j.Logger
 
@@ -123,11 +124,18 @@ object FilesUtils {
   def movePathContent(
       src: String,
       basePath: String,
+      inputDataType: DataType,
       zone: String = "processed"
   ): Either[ReadFileError, List[String]] = {
     Either.catchNonFatal {
-      val srcPath       = new File(src)
-      val subDestFolder = s"$basePath/$zone/${srcPath.getName}"
+      val srcPath = new File(src)
+      val subDestFolder = inputDataType match {
+        case XLSX =>
+          s"$basePath/$zone/${srcPath.toURI.getPath.split("/").takeRight(2).mkString("/")}"
+        case _ =>
+          s"$basePath/$zone/${srcPath.getName}"
+      }
+
       FileUtils.forceMkdir(new File(subDestFolder))
       Files.move(
         new File(src).toPath,
