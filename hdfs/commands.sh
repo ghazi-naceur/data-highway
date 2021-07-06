@@ -82,3 +82,11 @@ hdfs dfs -mkdir -p /data/parquet_to_json/output
 hdfs dfs -rm -r /data/parquet_to_json/output/*
 hdfs dfs -rm -r /data/parquet_to_json/processed
 hadoop fs -copyFromLocal /home/ghazi/workspace/data-highway/src/test/resources/parquet_to_json-data/input/* /data/parquet_to_json/input
+
+##################   Kafka   ##################
+
+hdfs dfs -mkdir -p /data/file_to_kafka/input
+hdfs dfs -mkdir -p /data/file_to_kafka/output
+hdfs dfs -rm -r /data/file_to_kafka/output/*
+hdfs dfs -rm -r /data/file_to_kafka/processed
+hadoop fs -copyFromLocal /home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/input/* /data/file_to_kafka/input
