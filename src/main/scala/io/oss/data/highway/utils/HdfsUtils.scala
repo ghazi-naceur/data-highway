@@ -76,18 +76,29 @@ object HdfsUtils extends HdfsUtils {
       zone: String = "processed"
   ): Either[Throwable, List[String]] = {
     Either.catchNonFatal {
-      val srcPath       = new File(src)
-      val subDestFolder = s"$basePath/$zone/${srcPath.getName}"
-      HdfsUtils.mkdir(pathWithoutUriPrefix(subDestFolder))
-      val files = HdfsUtils.listFiles(src)
-      files
-        .map(file => {
-          HdfsUtils.move(
-            pathWithoutUriPrefix(file),
-            s"${pathWithoutUriPrefix(subDestFolder)}/${file.split("/").last}"
-          )
-          s"$subDestFolder/${file.split("/").last}"
-        })
+      if (fs.getFileStatus(new Path(src)).isFile) {
+        val srcPath       = new File(src)
+        val subDestFolder = s"$basePath/$zone/${src.split("/").takeRight(2).mkString("/")}"
+        HdfsUtils.mkdir(pathWithoutUriPrefix(subDestFolder.split("/").dropRight(1).mkString("/")))
+        HdfsUtils.move(
+          src,
+          pathWithoutUriPrefix(subDestFolder)
+        )
+        List(subDestFolder)
+      } else {
+        val srcPath       = new File(src)
+        val subDestFolder = s"$basePath/$zone/${srcPath.getName}"
+        HdfsUtils.mkdir(pathWithoutUriPrefix(subDestFolder))
+        val files = HdfsUtils.listFiles(src)
+        files
+          .map(file => {
+            HdfsUtils.move(
+              pathWithoutUriPrefix(file),
+              s"${pathWithoutUriPrefix(subDestFolder)}/${file.split("/").last}"
+            )
+            s"$subDestFolder/${file.split("/").last}"
+          })
+      }
     }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 

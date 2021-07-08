@@ -66,7 +66,12 @@ object KafkaSink {
         Either.catchNonFatal {
           scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
             publishPathContent(input, topic, fileSystem, prod)
-            FilesUtils.cleanup(input)
+            fileSystem match {
+              case Local =>
+                FilesUtils.cleanup(input)
+              case HDFS =>
+                HdfsUtils.cleanup(input)
+            }
           }
         }
 
