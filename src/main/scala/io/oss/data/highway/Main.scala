@@ -65,10 +65,10 @@ object Main {
         AvroSink.handleAvroChannel(in, out, Overwrite, fileSystem, CSV)
       case KafkaToFile(in, out, kafkaMode) =>
         KafkaSampler.consumeFromTopic(in, out, kafkaMode)
-      case FileToKafka(in, out, kafkaMode) =>
-        KafkaSink.publishToTopic(in, out, kafkaMode)
-      case KafkaToKafka(in, out, kafkaMode) =>
-        KafkaSink.publishToTopic(in, out, kafkaMode)
+      case FileToKafka(in, out, fileSystem, kafkaMode) =>
+        KafkaSink.publishToTopic(in, out, fileSystem, kafkaMode)
+      case KafkaToKafka(in, out, fileSystem, kafkaMode) =>
+        KafkaSink.publishToTopic(in, out, fileSystem, kafkaMode)
       case FileToElasticsearch(in, out, bulkEnabled) =>
         ElasticSink.handleElasticsearchChannel(in, out, bulkEnabled)
       case ElasticsearchToFile(in, out, searchQuery) =>

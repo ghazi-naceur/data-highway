@@ -7,7 +7,7 @@ import io.oss.data.highway.models.{DataType, XLSX}
 import org.apache.commons.io.FileUtils
 import org.apache.log4j.Logger
 
-import java.nio.file.{Files, StandardCopyOption}
+import java.nio.file.{Files, Path, Paths, StandardCopyOption}
 import scala.annotation.tailrec
 import scala.io.Source
 import scala.util.Try
@@ -134,23 +134,44 @@ object FilesUtils {
       basePath: String,
       inputDataType: DataType,
       zone: String = "processed"
-  ): Either[ReadFileError, List[String]] = {
+  ): Either[Throwable, List[String]] = {
     Either.catchNonFatal {
-      val srcPath = new File(src)
-      val subDestFolder = inputDataType match {
-        case XLSX =>
-          s"$basePath/$zone/${srcPath.toURI.getPath.split("/").takeRight(2).mkString("/")}"
-        case _ =>
-          s"$basePath/$zone/${srcPath.getName}"
+      if (new File(src).isFile) {
+        val srcPath     = new File(src).getParentFile
+        val srcFileName = new File(src).getName
+
+        val subDestFolder = inputDataType match {
+          case XLSX =>
+            s"$basePath/$zone/${srcPath.toURI.getPath.split("/").takeRight(2).mkString("/")}"
+          case _ =>
+            s"$basePath/$zone/${srcPath.getName}"
+        }
+
+        FileUtils.forceMkdir(new File(subDestFolder))
+        Files.move(
+          new File(src).toPath,
+          new File(subDestFolder + "/" + srcFileName).toPath,
+          StandardCopyOption.REPLACE_EXISTING
+        )
+        List(subDestFolder)
+      } else {
+        val srcPath = new File(src)
+        val subDestFolder = inputDataType match {
+          case XLSX =>
+            s"$basePath/$zone/${srcPath.toURI.getPath.split("/").takeRight(2).mkString("/")}"
+          case _ =>
+            s"$basePath/$zone/${srcPath.getName}"
+        }
+
+        FileUtils.forceMkdir(new File(subDestFolder))
+        Files.move(
+          new File(src).toPath,
+          new File(subDestFolder).toPath,
+          StandardCopyOption.REPLACE_EXISTING
+        )
+        List(subDestFolder)
       }
 
-      FileUtils.forceMkdir(new File(subDestFolder))
-      Files.move(
-        new File(src).toPath,
-        new File(subDestFolder).toPath,
-        StandardCopyOption.REPLACE_EXISTING
-      )
-      List(subDestFolder)
     }.leftMap(thr => ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
@@ -185,8 +206,7 @@ object FilesUtils {
   def cleanup(in: String): Array[Unit] = {
     new File(in)
       .listFiles()
-      .filter(_.isDirectory)
-      .map(folder => FileUtils.forceDelete(folder))
+      .map(FileUtils.forceDelete)
   }
 
   /**

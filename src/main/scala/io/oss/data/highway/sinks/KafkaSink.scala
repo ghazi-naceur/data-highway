@@ -5,15 +5,18 @@ import org.apache.kafka.clients.producer._
 
 import java.util.{Properties, UUID}
 import io.oss.data.highway.models.{
+  FileSystem,
+  HDFS,
   JSON,
   KafkaMode,
+  Local,
   Offset,
   PureKafkaProducer,
   PureKafkaStreamsProducer,
   SparkKafkaPluginProducer,
   SparkKafkaPluginStreamsProducer
 }
-import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils, KafkaUtils}
+import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils, KafkaUtils}
 import org.apache.kafka.common.serialization.{Serdes, StringSerializer}
 import org.apache.kafka.streams.scala.StreamsBuilder
 import org.apache.kafka.streams.{KafkaStreams, StreamsConfig}
@@ -21,6 +24,7 @@ import org.apache.log4j.Logger
 import cats.implicits._
 import io.oss.data.highway.models.DataHighwayError.KafkaError
 import monix.execution.Scheduler.{global => scheduler}
+import org.apache.hadoop.fs.Path
 import org.apache.kafka.clients.consumer.ConsumerConfig
 
 import scala.concurrent.duration._
@@ -29,22 +33,25 @@ import scala.sys.ShutdownHookThread
 
 object KafkaSink {
 
-  val logger: Logger = Logger.getLogger(KafkaSink.getClass.getName)
-  val generated =
-    s"${UUID.randomUUID()}-${System.currentTimeMillis().toString}"
-  val intermediateTopic: String =
-    s"intermediate-topic-$generated"
-  val checkpointFolder: String =
-    s"/tmp/data-highway/checkpoint-$generated"
+  val logger: Logger            = Logger.getLogger(KafkaSink.getClass.getName)
+  val generated: String         = s"${UUID.randomUUID()}-${System.currentTimeMillis().toString}"
+  val intermediateTopic: String = s"intermediate-topic-$generated"
+  val checkpointFolder: String  = s"/tmp/data-highway/checkpoint-$generated"
 
   /**
     * Publishes message to Kafka topic
     * @param input The input topic or the input path that contains json data to be send
     * @param topic The output topic
+    * @param fileSystem The input file system : Local or HDFS
     * @param kafkaMode The Kafka launch mode
     * @return Any, otherwise an Error
     */
-  def publishToTopic(input: String, topic: String, kafkaMode: KafkaMode): Either[Throwable, Any] = {
+  def publishToTopic(
+      input: String,
+      topic: String,
+      fileSystem: FileSystem,
+      kafkaMode: KafkaMode
+  ): Either[Throwable, Any] = {
     val props = new Properties()
     props.put("bootstrap.servers", kafkaMode.brokers)
     props.put("key.serializer", classOf[StringSerializer].getName)
@@ -58,7 +65,7 @@ object KafkaSink {
       case PureKafkaProducer(_, _) =>
         Either.catchNonFatal {
           scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
-            publishPathContent(input, topic, prod)
+            publishPathContent(input, topic, fileSystem, prod)
             FilesUtils.cleanup(input)
           }
         }
@@ -223,18 +230,26 @@ object KafkaSink {
   private def publishPathContent(
       jsonPath: String,
       topic: String,
+      fileSystem: FileSystem,
       producer: KafkaProducer[String, String]
   ): Either[KafkaError, Any] = {
-    val basePath = new File(jsonPath).getParent
     Either.catchNonFatal {
-      if (new File(jsonPath).isFile) {
-        publishFileContent(new File(jsonPath), basePath, topic, producer)
-      } else {
-        FilesUtils
-          .listFilesRecursively(new File(jsonPath), Seq(JSON.extension))
-          .foreach(file => {
-            publishFileContent(file, basePath, topic, producer)
-          })
+      fileSystem match {
+        case HDFS =>
+          val basePath = new Path(jsonPath).getParent
+          HdfsUtils
+            .listFilesRecursively(jsonPath)
+            .foreach(file => {
+              publishFileContent(file, basePath.toString, fileSystem, topic, producer)
+            })
+
+        case Local =>
+          val basePath = new File(jsonPath).getParent
+          FilesUtils
+            .listFilesRecursively(new File(jsonPath), Seq(JSON.extension))
+            .foreach(file => {
+              publishFileContent(file.getAbsolutePath, basePath, fileSystem, topic, producer)
+            })
       }
     }.leftMap(thr => KafkaError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
@@ -244,26 +259,45 @@ object KafkaSink {
     *
     * @param jsonPath a json file or a folder or folders that contain json files
     * @param basePath The base path for input, output and processed folders
+    * @param fileSystem The input file system : Local or HDFS
     * @param topic The destination topic
     * @param producer The Kafka producer
     * @return Unit, otherwise an Error
     */
   private def publishFileContent(
-      jsonPath: File,
+      jsonPath: String,
       basePath: String,
+      fileSystem: FileSystem,
       topic: String,
       producer: KafkaProducer[String, String]
-  ): Either[KafkaError, Unit] = {
-    logger.info(s"Sending data of '${jsonPath.getAbsolutePath}'")
+  ): Either[KafkaError, List[String]] = {
+    logger.info(s"Sending data of '$jsonPath'")
     Either.catchNonFatal {
-      for (line <- FilesUtils.getJsonLines(jsonPath.getAbsolutePath)) {
-        val uuid = UUID.randomUUID().toString
-        val data =
-          new ProducerRecord[String, String](topic, uuid, line)
-        producer.send(data)
-        logger.info(s"Topic: '$topic' - Sent data: '$line'")
-        FilesUtils.movePathContent(new File(jsonPath.getAbsolutePath).getParent, basePath, JSON)
+      fileSystem match {
+        case Local =>
+          FilesUtils
+            .getJsonLines(jsonPath)
+            .foreach(line => {
+              val uuid = UUID.randomUUID().toString
+              val data =
+                new ProducerRecord[String, String](topic, uuid, line)
+              producer.send(data)
+              logger.info(s"Topic: '$topic' - Sent data: '$line'")
+            })
+          FilesUtils.movePathContent(jsonPath, basePath, JSON)
+
+        case HDFS =>
+          HdfsUtils
+            .getJsonLines(jsonPath)
+            .foreach(line => {
+              val uuid = UUID.randomUUID().toString
+              val data =
+                new ProducerRecord[String, String](topic, uuid, line)
+              producer.send(data)
+              logger.info(s"Topic: '$topic' - Sent data: '$line'")
+            })
+          HdfsUtils.movePathContent(jsonPath, basePath)
       }
-    }.leftMap(thr => KafkaError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }.flatten.leftMap(thr => KafkaError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 }

@@ -74,7 +74,7 @@ object HdfsUtils extends HdfsUtils {
       src: String,
       basePath: String,
       zone: String = "processed"
-  ): Either[HdfsError, List[String]] = {
+  ): Either[Throwable, List[String]] = {
     Either.catchNonFatal {
       val srcPath       = new File(src)
       val subDestFolder = s"$basePath/$zone/${srcPath.getName}"
@@ -99,5 +99,26 @@ object HdfsUtils extends HdfsUtils {
     Either.catchNonFatal {
       folders.filter(folder => HdfsUtils.fs.listFiles(new Path(folder), false).hasNext)
     }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
+  }
+
+  def listFilesRecursively(hdfsPath: String): List[String] = {
+    fs.listStatus(new Path(hdfsPath))
+      .flatMap { status =>
+        if (status.isFile)
+          List(status.getPath.toUri.getPath)
+        else
+          listFilesRecursively(status.getPath.toUri.getPath)
+      }
+      .toList
+      .sorted
+  }
+
+  def getJsonLines(jsonPath: String): List[String] = {
+    val path   = new Path(jsonPath)
+    val stream = fs.open(path)
+    Stream
+      .cons(stream.readLine, Stream.continually(stream.readLine))
+      .takeWhile(_ != null)
+      .toList
   }
 }
