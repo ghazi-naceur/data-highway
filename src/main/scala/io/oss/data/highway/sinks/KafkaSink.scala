@@ -93,8 +93,13 @@ object KafkaSink {
         }
       case SparkKafkaPluginProducer(brokers, _) =>
         Either.catchNonFatal(scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
-          publishWithSparkKafkaPlugin(input, brokers, topic)
-          FilesUtils.cleanup(input)
+          publishWithSparkKafkaPlugin(input, fileSystem, brokers, topic)
+          fileSystem match {
+            case Local =>
+              FilesUtils.cleanup(input)
+            case HDFS =>
+              HdfsUtils.cleanup(input)
+          }
         })
       case _ =>
         throw new RuntimeException(
@@ -107,37 +112,62 @@ object KafkaSink {
     * Publishes message via [[io.oss.data.highway.models.SparkKafkaPluginProducer]]
     *
     * @param jsonPath The path that contains json data to be send
+    * @param fileSystem The input file system : Local or HDFS
     * @param brokers The kafka brokers urls
     * @param topic The output topic
     * @return Unit, otherwise an Error
     */
   private def publishWithSparkKafkaPlugin(
       jsonPath: String,
+      fileSystem: FileSystem,
       brokers: String,
       topic: String
   ): Either[Throwable, Unit] = {
     import org.apache.spark.sql.functions.{to_json, struct}
     logger.info(s"Sending data through Spark Kafka Plugin to '$topic'.")
-    val basePath = new File(jsonPath).getParent
-    FilesUtils
-      .listFoldersRecursively(jsonPath)
-      .map(paths => {
-        paths
-          .filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)
-          .map(path => {
-            DataFrameUtils
-              .loadDataFrame(path, JSON)
-              .map(df => {
-                df.select(to_json(struct("*")).as("value"))
-                  .write
-                  .format("kafka")
-                  .option("kafka.bootstrap.servers", brokers)
-                  .option("topic", topic)
-                  .save()
-              })
-            FilesUtils.movePathContent(new File(path).getAbsolutePath, basePath, JSON)
+    fileSystem match {
+      case HDFS =>
+        val basePath = new Path(jsonPath).getParent
+        HdfsUtils
+          .listFolders(jsonPath)
+          .flatMap(HdfsUtils.verifyNotEmpty)
+          .map(paths => {
+            paths.map(path => {
+              DataFrameUtils
+                .loadDataFrame(path, JSON)
+                .map(df => {
+                  df.select(to_json(struct("*")).as("value"))
+                    .write
+                    .format("kafka")
+                    .option("kafka.bootstrap.servers", brokers)
+                    .option("topic", topic)
+                    .save()
+                })
+              HdfsUtils.movePathContent(path, basePath.toString)
+            })
           })
-      })
+      case Local =>
+        val basePath = new File(jsonPath).getParent
+        FilesUtils
+          .listFoldersRecursively(jsonPath)
+          .map(paths => {
+            paths
+              .filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)
+              .map(path => {
+                DataFrameUtils
+                  .loadDataFrame(path, JSON)
+                  .map(df => {
+                    df.select(to_json(struct("*")).as("value"))
+                      .write
+                      .format("kafka")
+                      .option("kafka.bootstrap.servers", brokers)
+                      .option("topic", topic)
+                      .save()
+                  })
+                FilesUtils.movePathContent(new File(path).getAbsolutePath, basePath, JSON)
+              })
+          })
+    }
   }
 
   /**
@@ -241,6 +271,7 @@ object KafkaSink {
     Either.catchNonFatal {
       fileSystem match {
         case HDFS =>
+//      todo
           val basePath = new Path(jsonPath).getParent
           HdfsUtils
             .listFilesRecursively(jsonPath)

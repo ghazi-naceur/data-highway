@@ -77,6 +77,7 @@ object HdfsUtils extends HdfsUtils {
   ): Either[Throwable, List[String]] = {
     Either.catchNonFatal {
       if (fs.getFileStatus(new Path(src)).isFile) {
+//        todo
         val srcPath       = new File(src)
         val subDestFolder = s"$basePath/$zone/${src.split("/").takeRight(2).mkString("/")}"
         HdfsUtils.mkdir(pathWithoutUriPrefix(subDestFolder.split("/").dropRight(1).mkString("/")))
