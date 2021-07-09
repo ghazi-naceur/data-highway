@@ -87,8 +87,17 @@ object KafkaSampler {
           thread.start()
         }
       case SparkKafkaPluginConsumer(brokers, offset, _) =>
+        // todo one-shot job
         Either.catchNonFatal(
-          sinkViaSparkKafkaPlugin(DataFrameUtils.sparkSession, in, out, brokers, offset, ext)
+          sinkViaSparkKafkaPlugin(
+            DataFrameUtils.sparkSession,
+            in,
+            out,
+            fileSystem,
+            brokers,
+            offset,
+            ext
+          )
         )
       case _ =>
         throw new RuntimeException(
@@ -118,6 +127,7 @@ object KafkaSampler {
     * @param session The Spark session
     * @param in The input kafka topic
     * @param out The output folder
+    * @param fileSystem The output file system
     * @param brokerUrls The kafka brokers urls
     * @param offset The kafka consumer offset
     * @param extension The output files extension
@@ -127,6 +137,7 @@ object KafkaSampler {
       session: SparkSession,
       in: String,
       out: String,
+      fileSystem: FileSystem,
       brokerUrls: String,
       offset: Offset,
       extension: String
@@ -153,11 +164,19 @@ object KafkaSampler {
       .select(to_json(struct("value")))
       .toJavaRDD
       .foreach(data =>
-        FilesUtils.save(
-          out,
-          s"spark-kafka-plugin-${UUID.randomUUID()}-${System.currentTimeMillis()}.$extension",
-          data.toString()
-        )
+        fileSystem match {
+          case Local =>
+            FilesUtils.save(
+              out,
+              s"spark-kafka-plugin-${UUID.randomUUID()}-${System.currentTimeMillis()}.$extension",
+              data.toString()
+            )
+          case HDFS =>
+            HdfsUtils.save(
+              s"$out/spark-kafka-plugin-${UUID.randomUUID()}-${System.currentTimeMillis()}.$extension",
+              data.toString()
+            )
+        }
       )
   }
 
