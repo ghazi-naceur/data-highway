@@ -1,7 +1,7 @@
 package io.oss.data.highway.z.kafka.integration.tests
 
 import io.oss.data.highway.sinks.KafkaSampler
-import io.oss.data.highway.models.{Earliest, JSON, SparkKafkaPluginConsumer}
+import io.oss.data.highway.models.{Earliest, JSON, Local, SparkKafkaPluginConsumer}
 
 object SparkKafkaConsumerPluginTest {
 
@@ -14,6 +14,8 @@ object SparkKafkaConsumerPluginTest {
     KafkaSampler.consumeFromTopic(
       in,
       out,
-      SparkKafkaPluginConsumer("localhost:9092", Earliest, Some(JSON)))
+      Local,
+      SparkKafkaPluginConsumer("localhost:9092", Earliest, Some(JSON))
+    )
   }
 }

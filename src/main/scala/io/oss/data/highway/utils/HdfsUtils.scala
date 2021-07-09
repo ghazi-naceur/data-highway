@@ -3,11 +3,13 @@ package io.oss.data.highway.utils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, LocatedFileStatus, Path, RemoteIterator}
 
-import java.io.File
+import java.io.{BufferedWriter, File, OutputStreamWriter}
 import scala.annotation.tailrec
 import cats.implicits._
 import io.oss.data.highway.configs.{ConfigLoader, HadoopConfigs}
 import io.oss.data.highway.models.DataHighwayError.HdfsError
+
+import java.nio.charset.StandardCharsets
 
 trait HdfsUtils {
   val hadoopConf: HadoopConfigs = ConfigLoader().loadHadoopConf()
@@ -19,6 +21,17 @@ object HdfsUtils extends HdfsUtils {
   conf.set("fs.defaultFS", HdfsUtils.hadoopConf.host)
 
   val fs: FileSystem = FileSystem.get(conf)
+
+  def save(file: String, content: String): Either[Throwable, Unit] = {
+    Either.catchNonFatal {
+      val hdfsWritePath      = new Path(file)
+      val fsDataOutputStream = fs.create(hdfsWritePath, true)
+      val bufferedWriter =
+        new BufferedWriter(new OutputStreamWriter(fsDataOutputStream, StandardCharsets.UTF_8))
+      bufferedWriter.write(content)
+      bufferedWriter.close()
+    }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
+  }
 
   def mkdir(folder: String): Either[Throwable, Boolean] = {
     Either.catchNonFatal {

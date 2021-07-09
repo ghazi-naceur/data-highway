@@ -63,8 +63,8 @@ object Main {
         AvroSink.handleAvroChannel(in, out, Overwrite, fileSystem, JSON)
       case CsvToAvro(in, out, fileSystem) =>
         AvroSink.handleAvroChannel(in, out, Overwrite, fileSystem, CSV)
-      case KafkaToFile(in, out, kafkaMode) =>
-        KafkaSampler.consumeFromTopic(in, out, kafkaMode)
+      case KafkaToFile(in, out, fileSystem, kafkaMode) =>
+        KafkaSampler.consumeFromTopic(in, out, fileSystem, kafkaMode)
       case FileToKafka(in, out, fileSystem, kafkaMode) =>
         KafkaSink.publishToTopic(in, out, fileSystem, kafkaMode)
       case KafkaToKafka(in, out, fileSystem, kafkaMode) =>

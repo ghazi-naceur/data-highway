@@ -7,7 +7,7 @@ import io.oss.data.highway.models.{DataType, XLSX}
 import org.apache.commons.io.FileUtils
 import org.apache.log4j.Logger
 
-import java.nio.file.{Files, Path, Paths, StandardCopyOption}
+import java.nio.file.{Files, StandardCopyOption}
 import scala.annotation.tailrec
 import scala.io.Source
 import scala.util.Try

@@ -1,7 +1,7 @@
 package io.oss.data.highway.z.kafka.integration.tests
 
 import io.oss.data.highway.sinks.KafkaSampler
-import io.oss.data.highway.models.{Earliest, JSON, PureKafkaConsumer}
+import io.oss.data.highway.models.{Earliest, JSON, Local, PureKafkaConsumer}
 
 object KafkaStreamingConsumerTest {
 
@@ -10,11 +10,11 @@ object KafkaStreamingConsumerTest {
     val out =
       "/home/ghazi/workspace/data-highway/src/test/resources/output/files"
 
-    KafkaSampler.consumeFromTopic(in,
-                                  out,
-                                  PureKafkaConsumer("localhost:9092",
-                                                    "consumer-group",
-                                                    Earliest,
-                                                    Some(JSON)))
+    KafkaSampler.consumeFromTopic(
+      in,
+      out,
+      Local,
+      PureKafkaConsumer("localhost:9092", "consumer-group", Earliest, Some(JSON))
+    )
   }
 }
