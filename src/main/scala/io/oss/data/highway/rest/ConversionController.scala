@@ -37,16 +37,14 @@ object ConversionController {
     }
     .orNotFound
 
-  private def parseRouteBody(ioJson: Json,
-                             jsonElement: String = "route"): Route = {
+  private def parseRouteBody(ioJson: Json, jsonElement: String = "route"): Route = {
     ConfigSource
       .string(ioJson.asJson.toString())
       .at(jsonElement)
       .load[Route] match {
       case Right(value) => value
       case Left(exception) =>
-        throw new RuntimeException(
-          s"This request is incorrect due '$exception'")
+        throw new RuntimeException(s"This request is incorrect due '$exception'")
     }
   }
 }

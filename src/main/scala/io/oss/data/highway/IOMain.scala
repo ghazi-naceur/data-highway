@@ -12,7 +12,7 @@ import scala.io.Source
 object IOMain extends IOApp {
 
   // Needed by `BlazeServerBuilder`. Provided by `IOApp`.
-  implicit val cs: ContextShift[IO] = IO.contextShift(global)
+  implicit val cs: ContextShift[IO]      = IO.contextShift(global)
   override implicit val timer: Timer[IO] = IO.timer(global)
 
   override def run(args: List[String]): IO[ExitCode] = {
@@ -34,7 +34,8 @@ object IOMain extends IOApp {
       .getLines()
       .toList
     val head = lines.dropRight(1)
-    val lastElement = (lines.diff(head) ::: head.diff(lines)).head + s" version ${BuildInfo.version}"
+    val lastElement =
+      (lines.diff(head) ::: head.diff(lines)).head + s" version ${BuildInfo.version}"
     head :+ lastElement
   }
 }

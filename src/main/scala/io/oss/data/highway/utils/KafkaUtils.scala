@@ -21,15 +21,12 @@ object KafkaUtils {
     * @param brokerUrls The brokers urls
     * @return a List of Kafka topic names and info
     */
-  def listTopics(
-      brokerUrls: String): List[(String, util.List[PartitionInfo])] = {
+  def listTopics(brokerUrls: String): List[(String, util.List[PartitionInfo])] = {
     val props = new Properties()
     props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerUrls)
     props.put(ConsumerConfig.GROUP_ID_CONFIG, "list-topics-consumer-group")
-    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
-              classOf[StringDeserializer].getName)
-    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-              classOf[StringDeserializer].getName)
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, classOf[StringDeserializer].getName)
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, classOf[StringDeserializer].getName)
 
     val consumer = new KafkaConsumer[String, String](props)
     consumer.listTopics().asScala.toList
@@ -41,13 +38,12 @@ object KafkaUtils {
     * @param brokerUrls The kafka brokers urls
     * @return Unit, otherwise a Error
     */
-  private def createTopic(topic: String,
-                          brokerUrls: String): Either[Throwable, Unit] = {
+  private def createTopic(topic: String, brokerUrls: String): Either[Throwable, Unit] = {
     val props = new Properties()
     props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, brokerUrls)
     Try {
       val adminClient = AdminClient.create(props)
-      val newTopic = new NewTopic(topic, 1, 1.asInstanceOf[Short])
+      val newTopic    = new NewTopic(topic, 1, 1.asInstanceOf[Short])
       val createTopicsResult =
         adminClient.createTopics(Collections.singleton(newTopic))
       createTopicsResult.values().get(topic).get()
@@ -61,8 +57,7 @@ object KafkaUtils {
     * @param brokerUrls The kafka brokers urls
     * @return Unit, otherwise a Error
     */
-  def deleteTopic(topic: String,
-                  brokerUrls: String): Either[Throwable, Unit] = {
+  def deleteTopic(topic: String, brokerUrls: String): Either[Throwable, Unit] = {
     val props = new Properties()
     props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, brokerUrls)
     Try {
@@ -83,9 +78,7 @@ object KafkaUtils {
     * @param enableTopicCreation The topic creation flag
     * @return Any
     */
-  def verifyTopicExistence(topic: String,
-                           brokerUrls: String,
-                           enableTopicCreation: Boolean): Any = {
+  def verifyTopicExistence(topic: String, brokerUrls: String, enableTopicCreation: Boolean): Any = {
     val strings = listTopics(brokerUrls).map(_._1)
     if (!strings.contains(topic)) {
       if (enableTopicCreation) {
