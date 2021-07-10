@@ -650,6 +650,9 @@ Indexing data in Elasticsearch by **"file-to-elasticsearch"** :
     "type": "file-to-elasticsearch",
     "in": "your-input-folder-containing-json-files",
     "out": "elasticsearch-index",
+    "file-system": {
+      "type": "hdfs or local"
+    },
     "bulk-enabled": true/false
   }
 }
@@ -664,6 +667,9 @@ Extracting data from an Elasticsearch index by **"elasticsearch-to-file"**. You 
     "type": "elasticsearch-to-file",
     "in": "elasticsearch-index",
     "out": "your-output-folder-containing-json-files",
+    "file-system": {
+      "type": "hdfs or local"
+    },
     "search-query": {
       "type": "elasticsearch-search-query"
     }

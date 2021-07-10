@@ -2230,6 +2230,981 @@
 							"response": []
 						}
 					]
+				},
+				{
+					"name": "common-terms-query",
+					"item": [
+						{
+							"name": "common-terms-query_local",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"common-terms-query\",\n      \"field\": {\n        \"name\": \"gender\",\n        \"value\": \"Male\"\n      }\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "common-terms-query_hdfs",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"common-terms-query\",\n      \"field\": {\n        \"name\": \"gender\",\n        \"value\": \"Male\"\n      }\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "exists-query",
+					"item": [
+						{
+							"name": "exists-query_local",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"exists-query\",\n      \"field-name\": \"last_name\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "exists-query_hdfs",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"exists-query\",\n      \"field-name\": \"last_name\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "ids-query",
+					"item": [
+						{
+							"name": "ids-query_local",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"ids-query\",\n      \"ids\": [\"5NidkHoBNqj_cXAK7mv5\", \"59idkHoBNqj_cXAK7mv6\", \"-tijkHoBNqj_cXAKkWtj\"]\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "ids-query_hdfs",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"ids-query\",\n      \"ids\": [\"5NidkHoBNqj_cXAK7mv5\", \"59idkHoBNqj_cXAK7mv6\", \"-tijkHoBNqj_cXAKkWtj\"]\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "match-all-query",
+					"item": [
+						{
+							"name": "match-all-query_local",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"elasticsearch-search-query\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "match-all-query_hdfs",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"match-all-query\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "match-query",
+					"item": [
+						{
+							"name": "match-query_local",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"match-query\",\n      \"field\": {\n        \"name\": \"last_name\",\n        \"value\": \"Altham\"\n      }\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "match-query_hdfs",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"match-query\",\n      \"field\": {\n        \"name\": \"last_name\",\n        \"value\": \"Altham\"\n      }\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "more-like-this-query",
+					"item": [
+						{
+							"name": "more-like-this-query_local",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"more-like-this-query\",\n      \"like-fields\": {\n        \"fields\": [\"last_name\", \"first_name\", \"gender\"],\n        \"like-texts\": [\"Neighbour\", \"Reynold\", \"Male\"]\n      }\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "more-like-this-query_hdfs",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"more-like-this-query\",\n      \"like-fields\": {\n        \"fields\": [\"last_name\", \"first_name\", \"gender\"],\n        \"like-texts\": [\"Neighbour\", \"Reynold\", \"Male\"]\n      }\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "multi-match-query",
+					"item": [
+						{
+							"name": "multi-match-query_local",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"multi-match-query\",\n      \"values\": [\"Neighbour\", \"Reynold\", \"Male\"]\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "multi-match-query_hdfs",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"multi-match-query\",\n      \"values\": [\"Neighbour\", \"Reynold\", \"Male\"]\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "prefix-query",
+					"item": [
+						{
+							"name": "prefix-query_local",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"prefix-query\",\n      \"prefix\": {\n        \"field-name\": \"gender\",\n        \"value\": \"Female\"\n      }\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "prefix-query_hdfs",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"prefix-query\",\n      \"prefix\": {\n        \"field-name\": \"gender\",\n        \"value\": \"Female\"\n      }\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "query-string-query",
+					"item": [
+						{
+							"name": "query-string-query_local",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"query-string-query\",\n      \"query\": \"(Greson) OR (Meardon)\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "query-string-query_hdfs",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"query-string-query\",\n      \"query\": \"(Greson) OR (Meardon)\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "range-query",
+					"item": [
+						{
+							"name": "range-query_local",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"range-query\",\n      \"range-field\": {\n        \"range-type\": {\n          \"type\": \"float-range\"\n        },\n        \"name\": \"id\",\n        \"lte\": \"9\",\n        \"gte\": \"7\"\n      }\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "range-query_hdfs",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"range-query\",\n      \"range-field\": {\n        \"range-type\": {\n          \"type\": \"float-range\"\n        },\n        \"name\": \"id\",\n        \"lte\": \"9\",\n        \"gte\": \"7\"\n      }\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "regex-query",
+					"item": [
+						{
+							"name": "regex-query_local",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"regex-query\",\n      \"field\": {\n        \"name\": \"gender\",\n        \"value\": \"M.*e\"\n      }\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "regex-query_hdfs",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"regex-query\",\n      \"field\": {\n        \"name\": \"gender\",\n        \"value\": \"M.*e\"\n      }\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "simple-string-query",
+					"item": [
+						{
+							"name": "simple-string-query_local",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"simple-string-query\",\n      \"query\": \"Altham\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "simple-string-query_hdfs",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"simple-string-query\",\n      \"query\": \"Altham\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "term-query",
+					"item": [
+						{
+							"name": "term-query_local",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"term-query\",\n      \"field\": {\n        \"name\": \"gender\",\n        \"value\": \"Male\"\n      }\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "term-query_hdfs",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"term-query\",\n      \"field\": {\n        \"name\": \"gender\",\n        \"value\": \"Male\"\n      }\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "terms-query",
+					"item": [
+						{
+							"name": "terms-query_local",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"terms-query\",\n      \"field\": {\n        \"name\": \"gender\",\n        \"values\": [\"Male\", \"Female\"]\n      }\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "terms-query_hdfs",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"terms-query\",\n      \"field\": {\n        \"name\": \"gender\",\n        \"values\": [\"Male\", \"Female\"]\n      }\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "wildcard-query",
+					"item": [
+						{
+							"name": "wildcard-query_local",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"wildcard-query\",\n      \"field\": {\n        \"name\": \"last_name\",\n        \"value\": \"A*m\"\n      }\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "wildcard-query_hdfs",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"wildcard-query\",\n      \"field\": {\n        \"name\": \"last_name\",\n        \"value\": \"A*m\"\n      }\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						}
+					]
 				}
 			]
 		}
