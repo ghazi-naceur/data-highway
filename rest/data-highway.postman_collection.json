@@ -1802,6 +1802,76 @@
 					]
 				}
 			]
+		},
+		{
+			"name": "kafka-to-kafka",
+			"item": [
+				{
+					"name": "producers_with_streaming",
+					"item": [
+						{
+							"name": "kafka-to-kafka_pure-producer_with-stream",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"kafka-to-kafka\",\n    \"in\" : \"file_to_kafka_local_2\",\n    \"out\" : \"file_to_kafka_hdfs_2\",\n    \"kafka-mode\": {\n      \"type\": \"pure-kafka-streams-producer\",\n      \"brokers\" : \"localhost:9092\",\n      \"stream-app-id\": \"stream-app-name\",\n      \"offset\": {\n        \"type\": \"earliest\"\n      }\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "kafka-to-kafka_spark-kafka-plugin-producer_with-stream",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"kafka-to-kafka\",\n    \"in\" : \"file_to_kafka_local_2\",\n    \"out\" : \"file_to_kafka_hdfs_2\",\n    \"kafka-mode\": {\n      \"type\": \"spark-kafka-plugin-streams-producer\",\n      \"brokers\" : \"localhost:9092\",\n      \"offset\": {\n        \"type\": \"earliest\"\n      }\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
 		}
 	]
 }

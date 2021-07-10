@@ -34,8 +34,7 @@ case class CsvToAvro(in: String, out: String, fileSystem: FileSystem) extends Ro
 case class KafkaToFile(in: String, out: String, fileSystem: FileSystem, kafkaMode: KafkaMode)
     extends Route
 
-case class KafkaToKafka(in: String, out: String, fileSystem: FileSystem, kafkaMode: KafkaMode)
-    extends Route
+case class KafkaToKafka(in: String, out: String, kafkaMode: KafkaMode) extends Route
 
 case class FileToElasticsearch(in: String, out: String, bulkEnabled: Boolean) extends Route
 

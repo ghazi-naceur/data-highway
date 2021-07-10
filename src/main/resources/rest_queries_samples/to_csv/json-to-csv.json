@@ -3,6 +3,9 @@
   "route": {
     "type" : "json-to-csv",
     "in": "/input/json/data",
-    "out": "/output/csv/data"
+    "out": "/output/csv/data",
+    "file-system": {
+      "type": "*hdfs* or *local*"
+    }
   }
 }

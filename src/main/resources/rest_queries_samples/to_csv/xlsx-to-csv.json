@@ -3,6 +3,9 @@
   "route": {
     "type" : "xlsx-to-csv",
     "in": "/input/xlsx/data",
-    "out": "/output/csv/data"
+    "out": "/output/csv/data",
+    "file-system": {
+      "type": "*hdfs* or *local*"
+    }
   }
 }

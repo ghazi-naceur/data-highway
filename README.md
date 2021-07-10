@@ -405,6 +405,9 @@ Publishing data will be performed by **"pure-kafka-producer"** :
     "type": "file-to-kafka",
     "in": "your-input-folder-containing-json-files",
     "out": "your-output-kafka-topic",
+    "file-system": {
+      "type": "*hdfs* or *local*"
+    },
     "kafka-mode": {
       "type": "pure-kafka-producer",
       "brokers": "your-kafka-brokers-with-its-ports-separated-with-commas"
@@ -449,6 +452,9 @@ Publishing data will be performed by **"spark-kafka-plugin-producer"** :
     "type": "file-to-kafka",
     "in": "your-input-folder-containing-json-files",
     "out": "your-output-kafka-topic",
+    "file-system": {
+      "type": "*hdfs* or *local*"
+    },
     "kafka-mode": {
       "type": "spark-kafka-plugin-producer",
       "brokers": "your-kafka-brokers-with-its-ports-separated-with-commas"
@@ -504,6 +510,9 @@ Consuming data will be performed by **"pure-kafka-consumer"** :
     "type": "kafka-to-file",
     "in": "topic-name",
     "out": "your-output-folder-that-will-contain-your-generated-json-files",
+    "file-system": {
+      "type": "*hdfs* or *local*"
+    },
     "kafka-mode": {
       "type": "pure-kafka-consumer",
       "brokers": "your-kafka-brokers-with-its-ports-separated-with-commas",
@@ -568,6 +577,9 @@ Consuming data will be performed by **"spark-kafka-plugin-consumer"** :
     "type": "kafka-to-file",
     "in": "topic-name",
     "out": "your-output-folder-that-will-contain-your-generated-json-files",
+    "file-system": {
+      "type": "*hdfs* or *local*"
+    },
     "kafka-mode": {
       "type": "spark-kafka-plugin-consumer",
       "brokers": "your-kafka-brokers-with-its-ports-separated-with-commas",

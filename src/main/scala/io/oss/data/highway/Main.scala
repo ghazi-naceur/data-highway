@@ -67,8 +67,9 @@ object Main {
         KafkaSampler.consumeFromTopic(in, out, fileSystem, kafkaMode)
       case FileToKafka(in, out, fileSystem, kafkaMode) =>
         KafkaSink.publishToTopic(in, out, fileSystem, kafkaMode)
-      case KafkaToKafka(in, out, fileSystem, kafkaMode) =>
-        KafkaSink.publishToTopic(in, out, fileSystem, kafkaMode)
+      case KafkaToKafka(in, out, kafkaMode) =>
+        // todo split publishToTopic between FTK and KTK, and omit Local
+        KafkaSink.publishToTopic(in, out, Local, kafkaMode)
       case FileToElasticsearch(in, out, bulkEnabled) =>
         ElasticSink.handleElasticsearchChannel(in, out, bulkEnabled)
       case ElasticsearchToFile(in, out, searchQuery) =>

@@ -3,6 +3,9 @@
   "route": {
     "type" : "avro-to-csv",
     "in": "/input/avro/data",
-    "out": "/output/csv/data"
+    "out": "/output/csv/data",
+    "file-system": {
+      "type": "*hdfs* or *local*"
+    }
   }
 }
