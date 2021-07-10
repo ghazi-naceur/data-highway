@@ -2002,6 +2002,166 @@
 					]
 				}
 			]
+		},
+		{
+			"name": "elasticsearch_ops",
+			"item": [
+				{
+					"name": "index_creation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"route\": {\n    \"type\": \"elastic-ops\",\n    \"operation\": {\n      \"type\": \"index-creation\",\n      \"index-name\": \"persons-index\",\n      \"mapping\": \"{ \\\"properties\\\":{\\\"id\\\":{\\\"type\\\":\\\"float\\\"},\\\"first_name\\\":{\\\"type\\\":\\\"text\\\"},\\\"last_name\\\":{\\\"type\\\":\\\"text\\\"},\\\"gender\\\":{\\\"type\\\":\\\"keyword\\\"},\\\"email\\\":{\\\"type\\\":\\\"text\\\"},\\\"ip_address\\\":{\\\"type\\\":\\\"keyword\\\"}}}\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:5555/conversion/route",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5555",
+							"path": [
+								"conversion",
+								"route"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "index_mapping",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"route\": {\n    \"type\": \"elastic-ops\",\n    \"operation\": {\n      \"type\": \"index-mapping\",\n      \"index-name\": \"persons-index\",\n      \"mapping\": \"{ \\\"properties\\\":{\\\"id\\\":{\\\"type\\\":\\\"float\\\"},\\\"first_name\\\":{\\\"type\\\":\\\"text\\\"},\\\"last_name\\\":{\\\"type\\\":\\\"text\\\"},\\\"gender\\\":{\\\"type\\\":\\\"keyword\\\"},\\\"email\\\":{\\\"type\\\":\\\"text\\\"},\\\"ip_address\\\":{\\\"type\\\":\\\"keyword\\\"}}}\"    \n      }\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:5555/conversion/route",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5555",
+							"path": [
+								"conversion",
+								"route"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "index_deletion",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"route\": {\n    \"type\": \"elastic-ops\",\n    \"operation\": {\n      \"type\": \"index-deletion\",\n      \"index-name\": \"persons-index\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:5555/conversion/route",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5555",
+							"path": [
+								"conversion",
+								"route"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "to_elasticsearch",
+			"item": [
+				{
+					"name": "file-to-elasticsearch_local",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"route\": {\n    \"type\": \"file-to-elasticsearch\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/input\",\n    \"out\": \"persons-index\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"bulk-enabled\": true\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:5555/conversion/route",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5555",
+							"path": [
+								"conversion",
+								"route"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "file-to-elasticsearch_hdfs",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"route\": {\n    \"type\": \"file-to-elasticsearch\",\n    \"in\": \"hdfs://localhost:9000/data/file_to_elasticsearch/input\",\n    \"out\": \"persons-index\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"bulk-enabled\": true\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:5555/conversion/route",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5555",
+							"path": [
+								"conversion",
+								"route"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	]
 }

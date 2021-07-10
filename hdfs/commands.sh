@@ -90,3 +90,11 @@ hdfs dfs -mkdir -p /data/file_to_kafka/output
 hdfs dfs -rm -r /data/file_to_kafka/output/*
 hdfs dfs -rm -r /data/file_to_kafka/processed
 hadoop fs -copyFromLocal /home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/input/* /data/file_to_kafka/input
+
+##################   Elasticsearch   ##################
+
+hdfs dfs -mkdir -p /data/file_to_elasticsearch/input
+hdfs dfs -mkdir -p /data/file_to_elasticsearch/output
+hdfs dfs -rm -r /data/file_to_elasticsearch/output/*
+hdfs dfs -rm -r /data/file_to_elasticsearch/processed
+hadoop fs -copyFromLocal /home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/input/* /data/file_to_elasticsearch/input

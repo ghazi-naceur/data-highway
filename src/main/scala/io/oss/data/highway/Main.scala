@@ -70,8 +70,8 @@ object Main {
       case KafkaToKafka(in, out, kafkaMode) =>
         // todo split publishToTopic between FTK and KTK, and omit Local
         KafkaSink.publishToTopic(in, out, Local, kafkaMode)
-      case FileToElasticsearch(in, out, bulkEnabled) =>
-        ElasticSink.handleElasticsearchChannel(in, out, bulkEnabled)
+      case FileToElasticsearch(in, out, fileSystem, bulkEnabled) =>
+        ElasticSink.handleElasticsearchChannel(in, out, fileSystem, bulkEnabled)
       case ElasticsearchToFile(in, out, searchQuery) =>
         ElasticSampler.saveDocuments(in, out, searchQuery)
       case ElasticOps(operation) =>
