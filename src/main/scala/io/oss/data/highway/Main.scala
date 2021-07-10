@@ -72,8 +72,8 @@ object Main {
         KafkaSink.publishToTopic(in, out, Local, kafkaMode)
       case FileToElasticsearch(in, out, fileSystem, bulkEnabled) =>
         ElasticSink.handleElasticsearchChannel(in, out, fileSystem, bulkEnabled)
-      case ElasticsearchToFile(in, out, searchQuery) =>
-        ElasticSampler.saveDocuments(in, out, searchQuery)
+      case ElasticsearchToFile(in, out, fileSystem, searchQuery) =>
+        ElasticSampler.saveDocuments(in, out, fileSystem, searchQuery)
       case ElasticOps(operation) =>
         ElasticAdminOps.execute(operation)
       case _ =>

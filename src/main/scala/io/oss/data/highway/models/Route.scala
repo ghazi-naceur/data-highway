@@ -43,6 +43,11 @@ case class FileToElasticsearch(
     bulkEnabled: Boolean
 ) extends Route
 
-case class ElasticsearchToFile(in: String, out: String, searchQuery: SearchQuery) extends Route
+case class ElasticsearchToFile(
+    in: String,
+    out: String,
+    fileSystem: FileSystem,
+    searchQuery: SearchQuery
+) extends Route
 
 case class ElasticOps(operation: ElasticOperation) extends Route

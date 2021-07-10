@@ -4,7 +4,7 @@ import cats.implicits.toTraverseOps
 import com.sksamuel.elastic4s.{RequestFailure, RequestSuccess}
 import io.circe.Json
 import io.circe.syntax.EncoderOps
-import io.oss.data.highway.utils.{ElasticUtils, FilesUtils}
+import io.oss.data.highway.utils.{ElasticUtils, FilesUtils, HdfsUtils}
 import org.apache.log4j.Logger
 
 import scala.annotation.tailrec
@@ -18,11 +18,14 @@ import io.oss.data.highway.models.{
   ExistsQuery,
   Field,
   FieldValues,
+  FileSystem,
   FuzzyQuery,
   GenericRangeField,
+  HDFS,
   IdsQuery,
   JSON,
   LikeFields,
+  Local,
   MatchAllQuery,
   MatchQuery,
   MoreLikeThisQuery,
@@ -61,15 +64,14 @@ object ElasticSampler extends ElasticUtils {
       search(in).matchAllQuery()
     }.await match {
       case RequestSuccess(status, body, headers, result) =>
-        logger.info(
-          s"status: '$status', body: '$body', headers: '$headers', result: '$result'")
+        logger.info(s"status: '$status', body: '$body', headers: '$headers', result: '$result'")
         Right(
           result.hits.hits.toList
             .map(hits => hits.sourceAsMap.mapValues(_.toString))
-            .asJson)
+            .asJson
+        )
       case RequestFailure(status, body, headers, error) =>
-        logger.info(
-          s"status: '$status', body: '$body', headers: '$headers', result: '$error'")
+        logger.info(s"status: '$status', body: '$body', headers: '$headers', result: '$error'")
         Left(error.asException)
     }
   }
@@ -82,12 +84,9 @@ object ElasticSampler extends ElasticUtils {
   def searchWithMatchAllQuery(in: String): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
 
-    val result = esClient
-      .execute {
-        search(in).matchAllQuery() scroll "1m"
-      }
-      .await
-      .result
+    val result = esClient.execute {
+      search(in).matchAllQuery() scroll "1m"
+    }.await.result
 
     collectSearchHits(result)
   }
@@ -101,12 +100,9 @@ object ElasticSampler extends ElasticUtils {
   def searchWithMatchQuery(in: String, field: Field): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
 
-    val result = esClient
-      .execute {
-        search(in).matchQuery(field.name, field.value) scroll "1m"
-      }
-      .await
-      .result
+    val result = esClient.execute {
+      search(in).matchQuery(field.name, field.value) scroll "1m"
+    }.await.result
 
     collectSearchHits(result)
   }
@@ -119,22 +115,18 @@ object ElasticSampler extends ElasticUtils {
     */
   def searchWithMultiMatchQuery(
       in: String,
-      values: List[String]): Either[Throwable, List[SearchHit]] = {
+      values: List[String]
+  ): Either[Throwable, List[SearchHit]] = {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     val request = values.map(value => search(in).query(value).size(10000))
 
     Either.catchNonFatal {
-      esClient
-        .execute {
-          multi(
-            request
-          )
-        }
-        .await
-        .result
-        .successes
-        .toList
+      esClient.execute {
+        multi(
+          request
+        )
+      }.await.result.successes.toList
         .flatMap(searchResponse => {
           searchResponse.hits.hits
         })
@@ -151,12 +143,9 @@ object ElasticSampler extends ElasticUtils {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     val result =
-      esClient
-        .execute {
-          search(in).query(termQuery(field.name, field.value)) scroll "1m"
-        }
-        .await
-        .result
+      esClient.execute {
+        search(in).query(termQuery(field.name, field.value)) scroll "1m"
+      }.await.result
     collectSearchHits(result)
   }
 
@@ -166,17 +155,13 @@ object ElasticSampler extends ElasticUtils {
     * @param fieldValues The filter field name with multiple values
     * @return List of SearchHit
     */
-  def searchWithTermsQuery(in: String,
-                           fieldValues: FieldValues): List[SearchHit] = {
+  def searchWithTermsQuery(in: String, fieldValues: FieldValues): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     val result =
-      esClient
-        .execute {
-          search(in).query(termsQuery(fieldValues.name, fieldValues.values)) scroll "1m"
-        }
-        .await
-        .result
+      esClient.execute {
+        search(in).query(termsQuery(fieldValues.name, fieldValues.values)) scroll "1m"
+      }.await.result
     collectSearchHits(result)
   }
 
@@ -190,12 +175,9 @@ object ElasticSampler extends ElasticUtils {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     val result =
-      esClient
-        .execute {
-          search(in).query(commonTermsQuery(field.name, field.value)) scroll "1m"
-        }
-        .await
-        .result
+      esClient.execute {
+        search(in).query(commonTermsQuery(field.name, field.value)) scroll "1m"
+      }.await.result
     collectSearchHits(result)
   }
 
@@ -205,17 +187,13 @@ object ElasticSampler extends ElasticUtils {
     * @param strQuery The elasticsearch string query
     * @return List of SearchHit
     */
-  def searchWithQueryStringQuery(in: String,
-                                 strQuery: String): List[SearchHit] = {
+  def searchWithQueryStringQuery(in: String, strQuery: String): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     val result =
-      esClient
-        .execute {
-          search(in).query(queryStringQuery(strQuery)) scroll "1m"
-        }
-        .await
-        .result
+      esClient.execute {
+        search(in).query(queryStringQuery(strQuery)) scroll "1m"
+      }.await.result
     collectSearchHits(result)
   }
 
@@ -225,17 +203,13 @@ object ElasticSampler extends ElasticUtils {
     * @param strQuery The elasticsearch string query
     * @return List of SearchHit
     */
-  def searchWithSimpleStringQuery(in: String,
-                                  strQuery: String): List[SearchHit] = {
+  def searchWithSimpleStringQuery(in: String, strQuery: String): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     val result =
-      esClient
-        .execute {
-          search(in).query(simpleStringQuery(strQuery)) scroll "1m"
-        }
-        .await
-        .result
+      esClient.execute {
+        search(in).query(simpleStringQuery(strQuery)) scroll "1m"
+      }.await.result
     collectSearchHits(result)
   }
 
@@ -249,12 +223,9 @@ object ElasticSampler extends ElasticUtils {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     val result =
-      esClient
-        .execute {
-          search(in).query(prefixQuery(prefix.fieldName, prefix.value)) scroll "1m"
-        }
-        .await
-        .result
+      esClient.execute {
+        search(in).query(prefixQuery(prefix.fieldName, prefix.value)) scroll "1m"
+      }.await.result
     collectSearchHits(result)
   }
 
@@ -264,21 +235,18 @@ object ElasticSampler extends ElasticUtils {
     * @param likeFields The filter fields
     * @return List of SearchHit
     */
-  def searchWithMoreLikeThisQuery(in: String,
-                                  likeFields: LikeFields): List[SearchHit] = {
+  def searchWithMoreLikeThisQuery(in: String, likeFields: LikeFields): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
     import com.sksamuel.elastic4s.requests.searches.queries.MoreLikeThisQuery
 
     val result =
-      esClient
-        .execute {
-          search(in).query(
-            MoreLikeThisQuery(likeFields.fields, likeFields.likeTexts)
-              .minTermFreq(1)
-              .maxQueryTerms(12)) scroll "1m"
-        }
-        .await
-        .result
+      esClient.execute {
+        search(in).query(
+          MoreLikeThisQuery(likeFields.fields, likeFields.likeTexts)
+            .minTermFreq(1)
+            .maxQueryTerms(12)
+        ) scroll "1m"
+      }.await.result
     collectSearchHits(result)
   }
 
@@ -293,15 +261,11 @@ object ElasticSampler extends ElasticUtils {
     import com.sksamuel.elastic4s.requests.searches.queries.RangeQuery
     val rangeField = GenericRangeField.computeTypedRangeField(range)
     val result =
-      esClient
-        .execute {
-          search(in).query(
-            RangeQuery(rangeField.name,
-                       lte = rangeField.lte,
-                       gte = rangeField.gte)) scroll "1m"
-        }
-        .await
-        .result
+      esClient.execute {
+        search(in).query(
+          RangeQuery(rangeField.name, lte = rangeField.lte, gte = rangeField.gte)
+        ) scroll "1m"
+      }.await.result
     collectSearchHits(result)
   }
 
@@ -315,12 +279,9 @@ object ElasticSampler extends ElasticUtils {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     val result =
-      esClient
-        .execute {
-          search(in).query(existsQuery(fieldName)) scroll "1m"
-        }
-        .await
-        .result
+      esClient.execute {
+        search(in).query(existsQuery(fieldName)) scroll "1m"
+      }.await.result
     collectSearchHits(result)
   }
 
@@ -334,12 +295,9 @@ object ElasticSampler extends ElasticUtils {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     val result =
-      esClient
-        .execute {
-          search(in).query(wildcardQuery(field.name, field.value)) scroll "1m"
-        }
-        .await
-        .result
+      esClient.execute {
+        search(in).query(wildcardQuery(field.name, field.value)) scroll "1m"
+      }.await.result
     collectSearchHits(result)
   }
 
@@ -353,12 +311,9 @@ object ElasticSampler extends ElasticUtils {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     val result =
-      esClient
-        .execute {
-          search(in).query(regexQuery(field.name, field.value)) scroll "1m"
-        }
-        .await
-        .result
+      esClient.execute {
+        search(in).query(regexQuery(field.name, field.value)) scroll "1m"
+      }.await.result
     collectSearchHits(result)
   }
 
@@ -372,12 +327,9 @@ object ElasticSampler extends ElasticUtils {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     val result =
-      esClient
-        .execute {
-          search(in).query(fuzzyQuery(field.name, field.value)) scroll "1m"
-        }
-        .await
-        .result
+      esClient.execute {
+        search(in).query(fuzzyQuery(field.name, field.value)) scroll "1m"
+      }.await.result
     collectSearchHits(result)
   }
 
@@ -391,12 +343,9 @@ object ElasticSampler extends ElasticUtils {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     val result =
-      esClient
-        .execute {
-          search(in).query(idsQuery(ids)) scroll "1m"
-        }
-        .await
-        .result
+      esClient.execute {
+        search(in).query(idsQuery(ids)) scroll "1m"
+      }.await.result
     collectSearchHits(result)
   }
 
@@ -407,9 +356,11 @@ object ElasticSampler extends ElasticUtils {
     * @param fields The filter fields
     * @return List of SearchHit
     */
-  def searchWithBoolMatchPhraseQuery(in: String,
-                                     boolFilter: BoolFilter,
-                                     fields: List[Field]): List[SearchHit] = {
+  def searchWithBoolMatchPhraseQuery(
+      in: String,
+      boolFilter: BoolFilter,
+      fields: List[Field]
+  ): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     val query = boolQuery()
@@ -427,12 +378,9 @@ object ElasticSampler extends ElasticUtils {
     }
 
     val result =
-      esClient
-        .execute {
-          searchQuery
-        }
-        .await
-        .result
+      esClient.execute {
+        searchQuery
+      }.await.result
     collectSearchHits(result)
   }
 
@@ -441,66 +389,71 @@ object ElasticSampler extends ElasticUtils {
     *
     * @param in The Elasticsearch index
     * @param out The output base folder
+    * @param fileSystem The output file system
     * @param searchQuery The Elasticsearch query
     * @return List of Unit, otherwise an Error
     */
-  def saveDocuments(in: String,
-                    out: String,
-                    searchQuery: SearchQuery): Either[Throwable, List[Unit]] = {
+  def saveDocuments(
+      in: String,
+      out: String,
+      fileSystem: FileSystem,
+      searchQuery: SearchQuery
+  ): Either[Throwable, List[Unit]] = {
     searchQuery match {
       case MatchAllQuery =>
-        searchWithMatchAllQuery(in).traverse(saveSearchHit(out))
+        searchWithMatchAllQuery(in).traverse(saveSearchHit(out, fileSystem))
 
       case MatchQuery(field) =>
-        searchWithMatchQuery(in, field).traverse(saveSearchHit(out))
+        searchWithMatchQuery(in, field).traverse(saveSearchHit(out, fileSystem))
 
       case MultiMatchQuery(values) =>
         searchWithMultiMatchQuery(in, values).flatMap(hits => {
-          hits.traverse(saveSearchHit(out))
+          hits.traverse(saveSearchHit(out, fileSystem))
         })
 
       case TermQuery(field) =>
-        searchWithTermQuery(in, field).traverse(saveSearchHit(out))
+        searchWithTermQuery(in, field).traverse(saveSearchHit(out, fileSystem))
 
       case TermsQuery(fieldValues) =>
-        searchWithTermsQuery(in, fieldValues).traverse(saveSearchHit(out))
+        searchWithTermsQuery(in, fieldValues).traverse(saveSearchHit(out, fileSystem))
 
       case CommonTermsQuery(field) =>
-        searchWithCommonTermsQuery(in, field).traverse(saveSearchHit(out))
+        searchWithCommonTermsQuery(in, field).traverse(saveSearchHit(out, fileSystem))
 
       case QueryStringQuery(query) =>
-        searchWithQueryStringQuery(in, query).traverse(saveSearchHit(out))
+        searchWithQueryStringQuery(in, query).traverse(saveSearchHit(out, fileSystem))
 
       case SimpleStringQuery(query) =>
-        searchWithSimpleStringQuery(in, query).traverse(saveSearchHit(out))
+        searchWithSimpleStringQuery(in, query).traverse(saveSearchHit(out, fileSystem))
 
       case PrefixQuery(query) =>
-        searchWithPrefixQuery(in, query).traverse(saveSearchHit(out))
+        searchWithPrefixQuery(in, query).traverse(saveSearchHit(out, fileSystem))
 
       case MoreLikeThisQuery(likeFields) =>
-        searchWithMoreLikeThisQuery(in, likeFields).traverse(saveSearchHit(out))
+        searchWithMoreLikeThisQuery(in, likeFields).traverse(saveSearchHit(out, fileSystem))
 
       case RangeQuery(rangeField) =>
-        searchWithRangeQuery(in, rangeField).traverse(saveSearchHit(out))
+        searchWithRangeQuery(in, rangeField).traverse(saveSearchHit(out, fileSystem))
 
       case ExistsQuery(fieldName) =>
-        searchWithExistsQuery(in, fieldName).traverse(saveSearchHit(out))
+        searchWithExistsQuery(in, fieldName).traverse(saveSearchHit(out, fileSystem))
 
       case WildcardQuery(field) =>
-        searchWithWildcardQuery(in, field).traverse(saveSearchHit(out))
+        searchWithWildcardQuery(in, field).traverse(saveSearchHit(out, fileSystem))
 
       case RegexQuery(field) =>
-        searchWithRegexQuery(in, field).traverse(saveSearchHit(out))
+        searchWithRegexQuery(in, field).traverse(saveSearchHit(out, fileSystem))
 
       case FuzzyQuery(field) =>
-        searchWithFuzzyQuery(in, field).traverse(saveSearchHit(out))
+        searchWithFuzzyQuery(in, field).traverse(saveSearchHit(out, fileSystem))
 
       case IdsQuery(ids) =>
-        searchWithIdsQuery(in, ids).traverse(saveSearchHit(out))
+        searchWithIdsQuery(in, ids).traverse(saveSearchHit(out, fileSystem))
 
       case BoolMatchPhraseQuery(boolFilter, fields) =>
         searchWithBoolMatchPhraseQuery(in, boolFilter, fields).traverse(
-          saveSearchHit(out))
+          saveSearchHit(out, fileSystem)
+        )
 
       case _ => Either.catchNonFatal(List())
 
@@ -519,12 +472,9 @@ object ElasticSampler extends ElasticUtils {
   @tailrec
   def scrollOnDocs(scrollId: String, hits: List[SearchHit]): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-    val resp = esClient
-      .execute {
-        searchScroll(scrollId).keepAlive("1m")
-      }
-      .await
-      .result
+    val resp = esClient.execute {
+      searchScroll(scrollId).keepAlive("1m")
+    }.await.result
     if (resp.hits.hits.isEmpty) hits
     else {
       resp.scrollId match {
@@ -537,15 +487,25 @@ object ElasticSampler extends ElasticUtils {
   }
 
   private def saveSearchHit(
-      out: String): SearchHit => Either[Throwable, Unit] = {
-    (searchHit: SearchHit) =>
-      {
-        FilesUtils.save(
-          s"$out/${searchHit.index}",
-          s"es-${searchHit.id}-${UUID.randomUUID()}-${System
-            .currentTimeMillis()}.${JSON.extension}",
-          searchHit.sourceAsMap.mapValues(_.toString).asJson.noSpaces
-        )
+      out: String,
+      fileSystem: FileSystem
+  ): SearchHit => Either[Throwable, Unit] = { (searchHit: SearchHit) =>
+    {
+      fileSystem match {
+        case HDFS =>
+          HdfsUtils.save(
+            s"$out/${searchHit.index}/es-${searchHit.id}-${UUID.randomUUID()}-${System
+              .currentTimeMillis()}.${JSON.extension}",
+            searchHit.sourceAsMap.mapValues(_.toString).asJson.noSpaces
+          )
+        case Local =>
+          FilesUtils.save(
+            s"$out/${searchHit.index}",
+            s"es-${searchHit.id}-${UUID.randomUUID()}-${System
+              .currentTimeMillis()}.${JSON.extension}",
+            searchHit.sourceAsMap.mapValues(_.toString).asJson.noSpaces
+          )
       }
+    }
   }
 }

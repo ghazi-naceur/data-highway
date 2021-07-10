@@ -2162,6 +2162,76 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "from_elasticsearch",
+			"item": [
+				{
+					"name": "bool-match-query",
+					"item": [
+						{
+							"name": "bool-match-query_local",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"bool-match-phrase-query\",\n      \"bool-filter\": {\n        \"type\": \"must\"\n      },\n      \"fields\": [\n        {\n          \"name\": \"last_name\",\n          \"value\": \"Altham\"\n        },\n        {\n          \"name\": \"gender\",\n          \"value\": \"Male\"\n        }\n      ]\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "bool-match-query_hdfs",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"bool-match-phrase-query\",\n      \"bool-filter\": {\n        \"type\": \"must\"\n      },\n      \"fields\": [\n        {\n          \"name\": \"last_name\",\n          \"value\": \"Altham\"\n        },\n        {\n          \"name\": \"gender\",\n          \"value\": \"Male\"\n        }\n      ]\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
 		}
 	]
 }
