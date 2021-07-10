@@ -78,6 +78,7 @@ object KafkaSampler {
                 DataFrameUtils.sparkSession,
                 in,
                 out,
+                fileSystem,
                 brokers,
                 offset,
                 ext
@@ -186,6 +187,7 @@ object KafkaSampler {
     * @param session The Spark session
     * @param in The input kafka topic
     * @param out The output folder
+    * @param fileSystem The output file system
     * @param brokerUrls The kafka brokers urls
     * @param offset The kafka consumer offset
     * @param extension The output files extension
@@ -195,6 +197,7 @@ object KafkaSampler {
       session: SparkSession,
       in: String,
       out: String,
+      fileSystem: FileSystem,
       brokerUrls: String,
       offset: Offset,
       extension: String
@@ -203,24 +206,46 @@ object KafkaSampler {
     logger.info(
       s"Starting to sink '$extension' data provided by the input topic '$in' in the output folder pattern '$out/spark-kafka-streaming-plugin-*****$extension'"
     )
-    session.readStream
-      .format("kafka")
-      .option("kafka.bootstrap.servers", brokerUrls)
-      .option("startingOffsets", offset.value)
-      .option("subscribe", in)
-      .load()
-      .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
-      .as[(String, String)]
-      .select("value")
-      .writeStream
-      .format(extension)
-      .option("path", s"$out/spark-kafka-streaming-plugin-${System.currentTimeMillis()}")
-      .option(
-        "checkpointLocation",
-        s"/tmp/checkpoint/${UUID.randomUUID()}-${System.currentTimeMillis()}"
-      )
-      .start()
-      .awaitTermination()
+    fileSystem match {
+      case Local =>
+        session.readStream
+          .format("kafka")
+          .option("kafka.bootstrap.servers", brokerUrls)
+          .option("startingOffsets", offset.value)
+          .option("subscribe", in)
+          .load()
+          .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
+          .as[(String, String)]
+          .select("value")
+          .writeStream
+          .format(extension)
+          .option("path", s"$out/spark-kafka-streaming-plugin-${System.currentTimeMillis()}")
+          .option(
+            "checkpointLocation",
+            s"/tmp/checkpoint/${UUID.randomUUID()}-${System.currentTimeMillis()}"
+          )
+          .start()
+          .awaitTermination()
+      case HDFS =>
+        session.readStream
+          .format("kafka")
+          .option("kafka.bootstrap.servers", brokerUrls)
+          .option("startingOffsets", offset.value)
+          .option("subscribe", in)
+          .load()
+          .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
+          .as[(String, String)]
+          .select("value")
+          .writeStream
+          .format(extension)
+          .option("path", s"$out/spark-kafka-streaming-plugin-${System.currentTimeMillis()}")
+          .option(
+            "checkpointLocation",
+            s"${HdfsUtils.hadoopConf.host}/tmp/checkpoint/${UUID.randomUUID()}-${System.currentTimeMillis()}"
+          )
+          .start()
+          .awaitTermination()
+    }
   }
 
   /**

@@ -544,6 +544,9 @@ Consuming data will be performed by **"pure-kafka-streams-consumer"** :
     "type": "kafka-to-file",
     "in": "topic-name",
     "out": "your-output-folder-that-will-contain-your-generated-json-files",
+    "file-system": {
+      "type": "*hdfs* or *local*"
+    },
     "kafka-mode": {
       "type": "pure-kafka-streams-consumer",
       "brokers": "your-kafka-brokers-with-its-ports-separated-with-commas",
@@ -610,6 +613,9 @@ Consuming data will be performed by **"spark-kafka-plugin-streams-consumer"** :
     "type": "kafka-to-file",
     "in": "topic-name",
     "out": "your-output-folder-that-will-contain-your-generated-json-files",
+    "file-system": {
+      "type": "*hdfs* or *local*"
+    },
     "kafka-mode": {
       "type": "spark-kafka-plugin-streams-consumer",
       "brokers": "your-kafka-brokers-with-its-ports-separated-with-commas",
