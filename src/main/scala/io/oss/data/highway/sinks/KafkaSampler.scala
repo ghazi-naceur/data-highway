@@ -64,7 +64,7 @@ object KafkaSampler {
     val ext = computeOutputExtension(kafkaMode.dataType)
     kafkaMode match {
       case PureKafkaStreamsConsumer(brokers, streamAppId, offset, _) =>
-        sinkWithPureKafkaStreams(in, out, brokers, offset, ext, streamAppId)
+        sinkWithPureKafkaStreams(in, out, fileSystem, brokers, offset, ext, streamAppId)
 
       case PureKafkaConsumer(brokers, consGroup, offset, _) =>
         Either.catchNonFatal(scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
@@ -228,6 +228,7 @@ object KafkaSampler {
     *
     * @param in The input kafka topic
     * @param out The output folder
+    * @param fileSystem The output file system
     * @param brokerUrls The kafka brokers urls
     * @param offset The kafka consumer offset
     * @param extension The output files extension
@@ -237,22 +238,26 @@ object KafkaSampler {
   private def sinkWithPureKafkaStreams(
       in: String,
       out: String,
+      fileSystem: FileSystem,
       brokerUrls: String,
       offset: Offset,
       extension: String,
       streamAppId: String
   ): Either[Throwable, Unit] = {
     Try {
-      new File(out).mkdirs()
       val kafkaStreamEntity =
         KafkaTopicConsumer.consumeWithStream(streamAppId, in, offset, brokerUrls)
       kafkaStreamEntity.dataKStream.mapValues(data => {
-        val uuid: String =
-          s"${UUID.randomUUID()}-${System.currentTimeMillis()}"
-        FilesUtils
-          .save(out, s"kafka-streams-$uuid.$extension", data)
+        val uuid: String = s"${UUID.randomUUID()}-${System.currentTimeMillis()}"
+        fileSystem match {
+          case Local =>
+            FilesUtils.save(out, s"kafka-streams-$uuid.$extension", data)
+          case HDFS =>
+            HdfsUtils.save(s"$out/kafka-streams-$uuid.$extension", data)
+        }
         logger.info(
-          s"Successfully sinking '$extension' data provided by the input topic '$in' in the output folder pattern '$out/kafka-streams-*****$extension'"
+          s"Successfully sinking '$extension' data provided by the input topic '$in' in the output folder pattern " +
+            s"'$out/kafka-streams-*****$extension'"
         )
       })
       val streams = new KafkaStreams(kafkaStreamEntity.builder.build(), kafkaStreamEntity.props)
