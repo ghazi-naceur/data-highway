@@ -4,6 +4,9 @@
     "type": "elasticsearch-to-file",
     "in": "elasticsearch-index",
     "out": "your-output-folder-containing-json-files",
+    "file-system": {
+      "type": "hdfs or local"
+    },
     "search-query": {
       "type": "multi-match-query",
       "values": ["value-1", "value-2", "value-n"]

@@ -4,8 +4,11 @@
     "type": "elasticsearch-to-file",
     "in": "elasticsearch-index",
     "out": "your-output-folder-containing-json-files",
+    "file-system": {
+      "type": "hdfs or local"
+    },
     "search-query": {
-      "type": "elasticsearch-search-query"
+      "type": "match-all-query"
     }
   }
 }

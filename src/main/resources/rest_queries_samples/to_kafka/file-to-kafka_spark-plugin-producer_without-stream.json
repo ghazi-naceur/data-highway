@@ -4,6 +4,9 @@
     "type": "file-to-kafka",
     "in": "/json/files/input/folder",
     "out" : "output-kafka-topic-name",
+    "file-system": {
+      "type": "*hdfs* or *local*"
+    },
     "kafka-mode": {
       "type": "spark-kafka-plugin-producer",
       "brokers" : "kafka-broker:kafka-port"

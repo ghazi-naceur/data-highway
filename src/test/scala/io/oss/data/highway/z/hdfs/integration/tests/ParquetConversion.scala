@@ -2,7 +2,7 @@ package io.oss.data.highway.z.hdfs.integration.tests
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
 import io.oss.data.highway.sinks.ParquetSink
-import io.oss.data.highway.models.{AVRO, CSV, JSON, PARQUET}
+import io.oss.data.highway.models.{AVRO, CSV, JSON, Local, PARQUET}
 import io.oss.data.highway.utils.Constants.SEPARATOR
 import io.oss.data.highway.utils.DataFrameUtils
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
@@ -11,7 +11,7 @@ object ParquetConversion extends DatasetComparer {
 
   val folderAvroToParquet = "src/test/resources/avro_to_parquet-data/"
   val folderJsonToParquet = "src/test/resources/json_to_parquet-data/"
-  val folderCsvToParquet = "src/test/resources/csv_to_parquet-data/"
+  val folderCsvToParquet  = "src/test/resources/csv_to_parquet-data/"
 
   val hdfsAvroToParquet =
     "hdfs://localhost:9000/data-highway/avro_to_parquet-data/"
@@ -70,36 +70,23 @@ object ParquetConversion extends DatasetComparer {
   private def getExpected: DataFrame = {
     import spark.implicits._
     List(
-      (6.0,
-       "Marquita",
-       "Jarrad",
-       "mjarrad5@rakuten.co.jp",
-       "Female",
-       "247.246.40.151"),
+      (6.0, "Marquita", "Jarrad", "mjarrad5@rakuten.co.jp", "Female", "247.246.40.151"),
       (7.0, "Bordie", "Altham", "baltham6@hud.gov", "Male", "234.202.91.240"),
       (8.0, "Dom", "Greson", "dgreson7@somehting.com", "Male", "103.7.243.71"),
-      (9.0,
-       "Alphard",
-       "Meardon",
-       "ameardon8@comsenz.com",
-       "Male",
-       "37.31.17.200"),
-      (10.0,
-       "Reynold",
-       "Neighbour",
-       "rneighbour9@gravatar.com",
-       "Male",
-       "215.57.123.52")
+      (9.0, "Alphard", "Meardon", "ameardon8@comsenz.com", "Male", "37.31.17.200"),
+      (10.0, "Reynold", "Neighbour", "rneighbour9@gravatar.com", "Male", "215.57.123.52")
     ).toDF("id", "first_name", "last_name", "email", "gender", "ip_address")
   }
 
   def convertAvroToParquet(): Unit = {
     ParquetSink
-      .convertToParquet(hdfsAvroToParquet + "input/mock-data-2",
-                        hdfsAvroToParquet + "output/mock-data-2",
-                        hdfsAvroToParquet + "processed",
-                        SaveMode.Overwrite,
-                        AVRO)
+      .convertToParquet(
+        hdfsAvroToParquet + "input/mock-data-2",
+        hdfsAvroToParquet + "output/mock-data-2",
+        hdfsAvroToParquet + "processed",
+        SaveMode.Overwrite,
+        AVRO
+      )
     val actual = DataFrameUtils
       .loadDataFrame(hdfsAvroToParquet + "output/mock-data-2", PARQUET)
       .right
@@ -112,11 +99,13 @@ object ParquetConversion extends DatasetComparer {
 
   def convertJsonToParquet(): Unit = {
     ParquetSink
-      .convertToParquet(hdfsJsonToParquet + "input/mock-data-2",
-                        hdfsJsonToParquet + "output/mock-data-2",
-                        hdfsJsonToParquet + "processed",
-                        SaveMode.Overwrite,
-                        JSON)
+      .convertToParquet(
+        hdfsJsonToParquet + "input/mock-data-2",
+        hdfsJsonToParquet + "output/mock-data-2",
+        hdfsJsonToParquet + "processed",
+        SaveMode.Overwrite,
+        JSON
+      )
     val actual = DataFrameUtils
       .loadDataFrame(hdfsJsonToParquet + "output/mock-data-2", PARQUET)
       .right
@@ -129,11 +118,13 @@ object ParquetConversion extends DatasetComparer {
 
   def convertCsvToParquet(): Unit = {
     ParquetSink
-      .convertToParquet(hdfsCsvToParquet + "input/mock-data-2",
-                        hdfsCsvToParquet + "output/mock-data-2",
-                        hdfsCsvToParquet + "processed",
-                        SaveMode.Overwrite,
-                        CSV)
+      .convertToParquet(
+        hdfsCsvToParquet + "input/mock-data-2",
+        hdfsCsvToParquet + "output/mock-data-2",
+        hdfsCsvToParquet + "processed",
+        SaveMode.Overwrite,
+        CSV
+      )
     val actual = DataFrameUtils
       .loadDataFrame(hdfsCsvToParquet + "output/mock-data-2", PARQUET)
       .right

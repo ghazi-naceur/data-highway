@@ -39,34 +39,23 @@ object GenericRangeField {
   def computeTypedRangeField(range: RangeField): GenericRangeField = {
     range.rangeType match {
       case IntegerRange =>
-        IntRangeField(range.name,
-                      range.lte.map(_.toInt),
-                      range.gte.map(_.toInt))
+        IntRangeField(range.name, range.lte.map(_.toInt), range.gte.map(_.toInt))
       case FloatRange =>
-        DoubleRangeField(range.name,
-                         range.lte.map(_.toDouble),
-                         range.gte.map(_.toDouble))
+        DoubleRangeField(range.name, range.lte.map(_.toDouble), range.gte.map(_.toDouble))
       case LongRange =>
-        LongRangeField(range.name,
-                       range.lte.map(_.toLong),
-                       range.gte.map(_.toLong))
+        LongRangeField(range.name, range.lte.map(_.toLong), range.gte.map(_.toLong))
       case StringRange => StringRangeField(range.name, range.lte, range.gte)
     }
   }
 }
 
-case class IntRangeField(name: String, lte: Option[Int], gte: Option[Int])
-    extends GenericRangeField
+case class IntRangeField(name: String, lte: Option[Int], gte: Option[Int]) extends GenericRangeField
 
 case class LongRangeField(name: String, lte: Option[Long], gte: Option[Long])
     extends GenericRangeField
 
-case class DoubleRangeField(name: String,
-                            lte: Option[Double],
-                            gte: Option[Double])
+case class DoubleRangeField(name: String, lte: Option[Double], gte: Option[Double])
     extends GenericRangeField
 
-case class StringRangeField(name: String,
-                            lte: Option[String],
-                            gte: Option[String])
+case class StringRangeField(name: String, lte: Option[String], gte: Option[String])
     extends GenericRangeField

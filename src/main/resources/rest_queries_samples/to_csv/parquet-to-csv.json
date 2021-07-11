@@ -3,6 +3,9 @@
   "route": {
     "type" : "parquet-to-csv",
     "in": "/input/parquet/data",
-    "out": "/output/csv/data"
+    "out": "/output/csv/data",
+    "file-system": {
+      "type": "*hdfs* or *local*"
+    }
   }
 }

@@ -4,6 +4,9 @@
     "type" : "kafka-to-file",
     "in" : "input-kafka-topic-name",
     "out" : "/consumed/data/kafka/output/folder",
+    "file-system": {
+      "type": "*hdfs* or *local*"
+    },
     "kafka-mode" : {
       "type" : "pure-kafka-consumer",
       "brokers" : "kafka-broker:kafka-port",

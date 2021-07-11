@@ -4,16 +4,12 @@ import java.io.FileOutputStream
 
 import org.apache.poi.ss.usermodel.Sheet
 import org.apache.poi.ss.util.CellReference
-import org.apache.poi.xssf.usermodel.{
-  XSSFSheet,
-  XSSFTableStyleInfo,
-  XSSFWorkbook
-}
+import org.apache.poi.xssf.usermodel.{XSSFSheet, XSSFTableStyleInfo, XSSFWorkbook}
 
 object MockSheetCreator {
 
   def createXlsxSheet(sheetName: String): Sheet = {
-    val wb = new XSSFWorkbook()
+    val wb    = new XSSFWorkbook()
     val sheet = wb.createSheet(sheetName)
     feedSheet(wb, sheet)
   }
@@ -42,7 +38,7 @@ object MockSheetCreator {
     style.setShowRowStripes(true)
     style.setShowColumnStripes(true)
 
-    val row1 = sheet.createRow(0)
+    val row1  = sheet.createRow(0)
     val cell1 = row1.createCell(0)
     cell1.setCellValue("Field1")
     val cell2 = row1.createCell(1)
@@ -56,7 +52,7 @@ object MockSheetCreator {
     val cell6 = row1.createCell(5)
     cell6.setCellValue("Field5")
 
-    val row2 = sheet.createRow(1)
+    val row2  = sheet.createRow(1)
     val cell7 = row2.createCell(0)
     cell7.setCellValue("some-value")
     val cell8 = row2.createCell(1)

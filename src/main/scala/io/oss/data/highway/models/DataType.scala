@@ -17,8 +17,5 @@ case object AVRO extends DataType {
   override val extension: String = "avro"
 }
 case object XLSX extends DataType {
-  override val extension: String = "xls"
-}
-case object XLS extends DataType {
   override val extension: String = "xlsx"
 }

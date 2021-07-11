@@ -37,49 +37,47 @@ object Main {
   def apply(route: Route): Either[Throwable, Any] = {
     logger.info(s"${route.toString} route is activated ...")
     route match {
-      case CsvToParquet(in, out) =>
-        ParquetSink.handleParquetChannel(in, out, Overwrite, CSV)
-      case JsonToParquet(in, out) =>
-        ParquetSink.handleParquetChannel(in, out, Overwrite, JSON)
-      case AvroToParquet(in, out) =>
-        ParquetSink.handleParquetChannel(in, out, Overwrite, AVRO)
-      case XlsxToCsv(in, out) =>
-        CsvSink.handleXlsxCsvChannel(in,
-                                     out,
-                                     Seq(XLSX.extension, XLS.extension))
-      case ParquetToCsv(in, out) =>
-        CsvSink.handleCsvChannel(in, out, Overwrite, PARQUET)
-      case AvroToCsv(in, out) =>
-        CsvSink.handleCsvChannel(in, out, Overwrite, AVRO)
-      case JsonToCsv(in, out) =>
-        CsvSink.handleCsvChannel(in, out, Overwrite, JSON)
-      case ParquetToJson(in, out) =>
-        JsonSink.handleJsonChannel(in, out, Overwrite, PARQUET)
-      case AvroToJson(in, out) =>
-        JsonSink.handleJsonChannel(in, out, Overwrite, AVRO)
-      case CsvToJson(in, out) =>
-        JsonSink.handleJsonChannel(in, out, Overwrite, CSV)
-      case ParquetToAvro(in, out) =>
-        AvroSink.handleAvroChannel(in, out, Overwrite, PARQUET)
-      case JsonToAvro(in, out) =>
-        AvroSink.handleAvroChannel(in, out, Overwrite, JSON)
-      case CsvToAvro(in, out) =>
-        AvroSink.handleAvroChannel(in, out, Overwrite, CSV)
-      case KafkaToFile(in, out, kafkaMode) =>
-        KafkaSampler.consumeFromTopic(in, out, kafkaMode)
-      case FileToKafka(in, out, kafkaMode) =>
-        KafkaSink.publishToTopic(in, out, kafkaMode)
+      case CsvToParquet(in, out, fileSystem) =>
+        ParquetSink.handleParquetChannel(in, out, Overwrite, fileSystem, CSV)
+      case JsonToParquet(in, out, fileSystem) =>
+        ParquetSink.handleParquetChannel(in, out, Overwrite, fileSystem, JSON)
+      case AvroToParquet(in, out, fileSystem) =>
+        ParquetSink.handleParquetChannel(in, out, Overwrite, fileSystem, AVRO)
+      case XlsxToCsv(in, out, fileSystem) =>
+        CsvSink.handleCsvChannel(in, out, Overwrite, fileSystem, XLSX)
+      case ParquetToCsv(in, out, fileSystem) =>
+        CsvSink.handleCsvChannel(in, out, Overwrite, fileSystem, PARQUET)
+      case AvroToCsv(in, out, fileSystem) =>
+        CsvSink.handleCsvChannel(in, out, Overwrite, fileSystem, AVRO)
+      case JsonToCsv(in, out, fileSystem) =>
+        CsvSink.handleCsvChannel(in, out, Overwrite, fileSystem, JSON)
+      case ParquetToJson(in, out, fileSystem) =>
+        JsonSink.handleJsonChannel(in, out, Overwrite, fileSystem, PARQUET)
+      case AvroToJson(in, out, fileSystem) =>
+        JsonSink.handleJsonChannel(in, out, Overwrite, fileSystem, AVRO)
+      case CsvToJson(in, out, fileSystem) =>
+        JsonSink.handleJsonChannel(in, out, Overwrite, fileSystem, CSV)
+      case ParquetToAvro(in, out, fileSystem) =>
+        AvroSink.handleAvroChannel(in, out, Overwrite, fileSystem, PARQUET)
+      case JsonToAvro(in, out, fileSystem) =>
+        AvroSink.handleAvroChannel(in, out, Overwrite, fileSystem, JSON)
+      case CsvToAvro(in, out, fileSystem) =>
+        AvroSink.handleAvroChannel(in, out, Overwrite, fileSystem, CSV)
+      case KafkaToFile(in, out, fileSystem, kafkaMode) =>
+        KafkaSampler.consumeFromTopic(in, out, fileSystem, kafkaMode)
+      case FileToKafka(in, out, fileSystem, kafkaMode) =>
+        KafkaSink.publishToTopic(in, out, fileSystem, kafkaMode)
       case KafkaToKafka(in, out, kafkaMode) =>
-        KafkaSink.publishToTopic(in, out, kafkaMode)
-      case FileToElasticsearch(in, out, bulkEnabled) =>
-        ElasticSink.handleElasticsearchChannel(in, out, bulkEnabled)
-      case ElasticsearchToFile(in, out, searchQuery) =>
-        ElasticSampler.saveDocuments(in, out, searchQuery)
+        // todo split publishToTopic between FTK and KTK, and omit Local
+        KafkaSink.publishToTopic(in, out, Local, kafkaMode)
+      case FileToElasticsearch(in, out, fileSystem, bulkEnabled) =>
+        ElasticSink.handleElasticsearchChannel(in, out, fileSystem, bulkEnabled)
+      case ElasticsearchToFile(in, out, fileSystem, searchQuery) =>
+        ElasticSampler.saveDocuments(in, out, fileSystem, searchQuery)
       case ElasticOps(operation) =>
         ElasticAdminOps.execute(operation)
       case _ =>
-        throw new RuntimeException(
-          s"The provided route '$route' is not supported.")
+        throw new RuntimeException(s"The provided route '$route' is not supported.")
     }
   }
 }
