@@ -16,7 +16,7 @@ object ParquetSink {
     * Converts file to parquet
     *
     * @param in The input data path
-    * @param out The generated parquet file path
+    * @param out The output data path
     * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
@@ -47,11 +47,11 @@ object ParquetSink {
     * Converts files to parquet
     *
     * @param in The input data path
-    * @param out The generated parquet file path
+    * @param out The output data path
     * @param saveMode The file saving mode
-    * @param fileSystem The file system : It can be *Local* or *HDFS*
+    * @param fileSystem The file system : It can be Local or HDFS
     * @param inputDataType The type of the input data
-    * @return List of List of Path, otherwise an Error
+    * @return List of List of String, otherwise an Error
     */
   def handleParquetChannel(
       in: String,
@@ -72,12 +72,13 @@ object ParquetSink {
 
   /**
     * Handles data conversion for HDFS
+    *
     * @param in The input data path
     * @param basePath The base path for input and output folders
-    * @param out The generated parquet file path
+    * @param out The output data path
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
-    * @return List of List of Path, otherwise an Error
+    * @return List of List of String, otherwise an Error
     */
   private def handleHDFS(
       in: String,
@@ -110,12 +111,13 @@ object ParquetSink {
 
   /**
     * Handles data conversion for Local File System
+    *
     * @param in The input data path
     * @param basePath The base path for input and output folders
-    * @param out The generated parquet file path
+    * @param out The output data path
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
-    * @return List of List of Path, otherwise an Error
+    * @return List of List of String, otherwise an Error
     */
   private def handleLocalFS(
       in: String,

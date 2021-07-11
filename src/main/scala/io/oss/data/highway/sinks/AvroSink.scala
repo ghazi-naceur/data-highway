@@ -20,7 +20,7 @@ object AvroSink {
     * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
-    * @return a List of Path, otherwise an Error
+    * @return String, otherwise an Error
     */
   def convertToAvro(
       in: String,
@@ -48,9 +48,9 @@ object AvroSink {
     * Converts files to avro
     *
     * @param in The input data path
-    * @param out The generated avro file path
+    * @param out The output data path
     * @param saveMode The file saving mode
-    * @param fileSystem The file system : It can be *Local* or *HDFS*
+    * @param fileSystem The file system : It can be Local or HDFS
     * @param inputDataType The type of the input data
     * @return List of List of Path, otherwise an Error
     */
@@ -72,12 +72,13 @@ object AvroSink {
 
   /**
     * Handles data conversion for HDFS
+    *
     * @param in The input data path
     * @param basePath The base path for input and output folders
-    * @param out The generated parquet file path
+    * @param out The output data path
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
-    * @return List of List of Path, otherwise an Error
+    * @return List of List of String, otherwise an Error
     */
   private def handleHDFS(
       in: String,
@@ -92,16 +93,16 @@ object AvroSink {
       filtered <- HdfsUtils.verifyNotEmpty(folders)
       list <-
         filtered
-          .traverse(folder => {
-            val suffix = folder.split("/").last
+          .traverse(subfolder => {
+            val subFolderName = subfolder.split("/").last
             convertToAvro(
-              folder,
-              s"$out/$suffix",
+              subfolder,
+              s"$out/$subFolderName",
               basePath,
               saveMode,
               inputDataType
             ).flatMap(_ => {
-              HdfsUtils.movePathContent(folder, basePath)
+              HdfsUtils.movePathContent(subfolder, basePath)
             })
           })
       _ = HdfsUtils.cleanup(in)
@@ -113,10 +114,10 @@ object AvroSink {
     *
     * @param in The input data path
     * @param basePath The base path for input and output folders
-    * @param out The generated parquet file path
+    * @param out The output file path
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
-    * @return List of List of Path, otherwise an Error
+    * @return List of List of String, otherwise an Error
     */
   private def handleLocalFS(
       in: String,
@@ -131,11 +132,11 @@ object AvroSink {
       filtered <- FilesUtils.verifyNotEmpty(folders)
       list <-
         filtered
-          .traverse(folder => {
-            val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
+          .traverse(subFolder => {
+            val subFolderName = FilesUtils.reversePathSeparator(subFolder).split("/").last
             convertToAvro(
-              folder,
-              s"$out/$suffix",
+              subFolder,
+              s"$out/$subFolderName",
               basePath,
               saveMode,
               inputDataType

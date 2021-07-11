@@ -1,6 +1,5 @@
 package io.oss.data.highway.sinks
 
-import java.io.File
 import java.time.Duration
 import java.util.UUID
 import io.oss.data.highway.models.{
@@ -48,8 +47,9 @@ object KafkaSampler {
 
   /**
     * Consumes data from a topic
+    *
     * @param in The input source topic
-    * @param out The generated file
+    * @param out The output path
     * @param fileSystem The output file system
     * @param kafkaMode The Kafka Mode
     * @return a Unit, otherwise a Throwable
@@ -63,6 +63,7 @@ object KafkaSampler {
     KafkaUtils.verifyTopicExistence(in, kafkaMode.brokers, enableTopicCreation = false)
     val ext = computeOutputExtension(kafkaMode.dataType)
     kafkaMode match {
+
       case PureKafkaStreamsConsumer(brokers, streamAppId, offset, _) =>
         sinkWithPureKafkaStreams(in, out, fileSystem, brokers, offset, ext, streamAppId)
 
@@ -70,6 +71,7 @@ object KafkaSampler {
         Either.catchNonFatal(scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
           sinkWithPureKafka(in, out, fileSystem, brokers, offset, consGroup, ext)
         })
+
       case SparkKafkaPluginStreamsConsumer(brokers, offset, _) =>
         Either.catchNonFatal {
           val thread = new Thread {
@@ -87,8 +89,9 @@ object KafkaSampler {
           }
           thread.start()
         }
+
       case SparkKafkaPluginConsumer(brokers, offset, _) =>
-        // todo one-shot job
+        // one-shot job
         Either.catchNonFatal(
           sinkViaSparkKafkaPlugin(
             DataFrameUtils.sparkSession,
@@ -102,16 +105,18 @@ object KafkaSampler {
         )
       case _ =>
         throw new RuntimeException(
-          s"This mode is not supported while reading data. The supported Kafka Consume Mode are : '${PureKafkaConsumer.getClass.getName}' and '${SparkKafkaPluginConsumer.getClass.getName}'."
+          s"This mode is not supported while consuming data. The provided input kafka mode is : '$kafkaMode'"
         )
     }
   }
 
   /**
     * Computes the generated output files extension based on the output DataType
+    *
     * @param dataType The output files DataType
     * @return The output extension
     */
+  @deprecated("To be deleted. To set JSON as default.")
   private def computeOutputExtension(dataType: Option[DataType]): String = {
     dataType match {
       case optDataType @ Some(dataType)
@@ -152,7 +157,8 @@ object KafkaSampler {
       mutableOffset = Earliest
     }
     logger.info(
-      s"Starting to sink '$extension' data provided by the input topic '$in' in the output folder pattern '$out/spark-kafka-plugin-*****$extension'"
+      s"Starting to sink '$extension' data provided by the input topic '$in' in the output folder pattern" +
+        s" '$out/spark-kafka-plugin-*****$extension'"
     )
     session.read
       .format("kafka")
@@ -204,7 +210,8 @@ object KafkaSampler {
   ): Unit = {
     import session.implicits._
     logger.info(
-      s"Starting to sink '$extension' data provided by the input topic '$in' in the output folder pattern '$out/spark-kafka-streaming-plugin-*****$extension'"
+      s"Starting to sink '$extension' data provided by the input topic '$in' in the output folder pattern " +
+        s"'$out/spark-kafka-streaming-plugin-*****$extension'"
     )
     fileSystem match {
       case Local =>
@@ -329,7 +336,8 @@ object KafkaSampler {
               HdfsUtils.save(s"$out/simple-consumer-$uuid.$extension", data.value())
           }
           logger.info(
-            s"Successfully sinking '$extension' data provided by the input topic '$in' in the output folder pattern '$out/simple-consumer-*****$extension'"
+            s"Successfully sinking '$extension' data provided by the input topic '$in' in the output folder pattern " +
+              s"'$out/simple-consumer-*****$extension'"
           )
         }
         consumed.close() // Close it to rejoin again while rescheduling

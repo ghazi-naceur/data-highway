@@ -13,7 +13,7 @@ object ElasticSink extends ElasticUtils {
   val logger: Logger = Logger.getLogger(ElasticSink.getClass.getName)
 
   /**
-    * Send file to Elasticsearch
+    * Indexes file's content into Elasticsearch
     *
     * @param in The input data path
     * @param out The Elasticsearch index
@@ -38,6 +38,15 @@ object ElasticSink extends ElasticUtils {
     }
   }
 
+  /**
+    * Indexes data using an ES IndexQuery
+    *
+    * @param in The input data folder
+    * @param out The ES index
+    * @param basePath The base path of the input folder
+    * @param fileSystem The input file system : Local or HDFS
+    * @return Any
+    */
   private def indexWithIndexQuery(
       in: String,
       out: String,
@@ -66,6 +75,15 @@ object ElasticSink extends ElasticUtils {
     }
   }
 
+  /**
+    * Indexes data using an ES BulkQuery
+    *
+    * @param in The input data folder
+    * @param out The ES index
+    * @param basePath The base path of the input folder
+    * @param fileSystem The input file system : Local or HDFS
+    * @return Any
+    */
   private def indexWithBulkQuery(
       in: String,
       out: String,
@@ -129,7 +147,7 @@ object ElasticSink extends ElasticUtils {
     * @param out The elasticsearch index
     * @param fileSystem The input file system
     * @param bulkEnabled A flag to specify if the Elastic Bulk is enabled or not
-    * @return List of List of Unit, otherwise an Error
+    * @return List of Unit, otherwise an Throwable
     */
   def handleElasticsearchChannel(
       in: String,
@@ -151,7 +169,6 @@ object ElasticSink extends ElasticUtils {
                 })
               })
               .flatten
-          //todo
           _ = HdfsUtils.cleanup(in)
         } yield list
       case Local =>
@@ -163,7 +180,6 @@ object ElasticSink extends ElasticUtils {
               .traverse(folder => {
                 sendToElasticsearch(folder, out, basePath, fileSystem, bulkEnabled)
               })
-          // todo
           _ = FilesUtils.cleanup(in)
         } yield list
     }

@@ -40,6 +40,7 @@ object KafkaSink {
 
   /**
     * Publishes message to Kafka topic
+    *
     * @param input The input topic or the input path that contains json data to be send
     * @param topic The output topic
     * @param fileSystem The input file system : Local or HDFS
@@ -59,6 +60,7 @@ object KafkaSink {
     val prod = new KafkaProducer[String, String](props)
     KafkaUtils.verifyTopicExistence(topic, kafkaMode.brokers, enableTopicCreation = true)
     kafkaMode match {
+
       case PureKafkaStreamsProducer(brokers, streamAppId, offset, _) =>
         runStream(streamAppId, input, brokers, topic, offset)
 
@@ -91,6 +93,7 @@ object KafkaSink {
           }
           thread.start()
         }
+
       case SparkKafkaPluginProducer(brokers, _) =>
         Either.catchNonFatal(scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
           publishWithSparkKafkaPlugin(input, fileSystem, brokers, topic)
@@ -103,7 +106,7 @@ object KafkaSink {
         })
       case _ =>
         throw new RuntimeException(
-          s"This mode is not supported while producing data. The supported Kafka Consume Mode are : '${PureKafkaProducer.getClass.getName}' and '${SparkKafkaPluginProducer.getClass.getName}'."
+          s"This mode is not supported while producing data. The provided input kafka mode is '$kafkaMode'."
         )
     }
   }
@@ -146,6 +149,7 @@ object KafkaSink {
               HdfsUtils.movePathContent(path, basePath.toString)
             })
           })
+
       case Local =>
         val basePath = new File(jsonPath).getParent
         FilesUtils
@@ -271,7 +275,6 @@ object KafkaSink {
     Either.catchNonFatal {
       fileSystem match {
         case HDFS =>
-//      todo
           val basePath = new Path(jsonPath).getParent
           HdfsUtils
             .listFilesRecursively(jsonPath)
@@ -298,7 +301,7 @@ object KafkaSink {
     * @param fileSystem The input file system : Local or HDFS
     * @param topic The destination topic
     * @param producer The Kafka producer
-    * @return Unit, otherwise an Error
+    * @return List of String, otherwise a Throwable
     */
   private def publishFileContent(
       jsonPath: String,

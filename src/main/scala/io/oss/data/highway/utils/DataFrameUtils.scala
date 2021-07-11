@@ -9,9 +9,10 @@ object DataFrameUtils extends SparkUtils {
 
   /**
     * Loads a dataframe
+    *
     * @param in The input path
-    * @param dataType a datatype to be load : CSV, JSON, PARQUET or AVRO
-    * @return A DataFrame, otherwise an Error
+    * @param dataType a datatype to be load : CSV, JSON, PARQUET, AVRO or XLSX
+    * @return A DataFrame, otherwise a Throwable
     */
   def loadDataFrame(in: String, dataType: DataType): Either[Throwable, DataFrame] = {
     Either.catchNonFatal {

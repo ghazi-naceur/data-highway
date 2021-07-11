@@ -20,7 +20,7 @@ object JsonSink {
     * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
-    * @return a List of Path, otherwise an Error
+    * @return String, otherwise an Error
     */
   def convertToJson(
       in: String,
@@ -37,7 +37,8 @@ object JsonSink {
           .mode(saveMode)
           .json(out)
         logger.info(
-          s"Successfully converting '$inputDataType' data from input folder '$in' to '${JSON.getClass.getName}' and store it under output folder '$out'."
+          s"Successfully converting '$inputDataType' data from input folder '$in' to '${JSON.getClass.getName}' and " +
+            s"store it under output folder '$out'."
         )
         in
       })
@@ -46,9 +47,10 @@ object JsonSink {
   /**
     * Converts files to json
     *
-    * @param in       The input data path
-    * @param out      The generated json file path
+    * @param in The input data path
+    * @param out The output data path
     * @param saveMode The file saving mode
+    * @param fileSystem The file system : It can be Local or HDFS
     * @param inputDataType The type of the input data
     * @return List of List of Path, otherwise an Error
     */
@@ -71,12 +73,13 @@ object JsonSink {
 
   /**
     * Handles data conversion for HDFS
+    *
     * @param in The input data path
     * @param basePath The base path for input and output folders
-    * @param out The generated parquet file path
+    * @param out The output data path
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
-    * @return List of List of Path, otherwise an Error
+    * @return List of List of String, otherwise an Error
     */
   private def handleHDFS(
       in: String,
@@ -109,12 +112,13 @@ object JsonSink {
 
   /**
     * Handles data conversion for Local File System
+    *
     * @param in The input data path
     * @param basePath The base path for input and output folders
-    * @param out The generated parquet file path
+    * @param out The output data path
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
-    * @return List of List of Path, otherwise an Error
+    * @return List of List of String, otherwise an Error
     */
   private def handleLocalFS(
       in: String,

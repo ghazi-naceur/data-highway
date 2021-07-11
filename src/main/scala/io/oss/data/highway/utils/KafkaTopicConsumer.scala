@@ -17,6 +17,7 @@ object KafkaTopicConsumer {
 
   /**
     * Consumes from a kafka topic using a simple kafka consumer
+    *
     * @param topic The input source topic
     * @param brokerUrls The kafka brokers urls
     * @param offset The consumer offset
@@ -36,8 +37,7 @@ object KafkaTopicConsumer {
     props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, offset.value)
     props.put(ConsumerConfig.GROUP_ID_CONFIG, consumerGroup)
     Either.catchNonFatal {
-      val consumer: KafkaConsumer[String, String] =
-        new KafkaConsumer[String, String](props)
+      val consumer: KafkaConsumer[String, String] = new KafkaConsumer[String, String](props)
       consumer.subscribe(util.Arrays.asList(topic))
       logger.info(s"Successfully subscribing to '$topic' topic.")
       consumer
@@ -46,6 +46,7 @@ object KafkaTopicConsumer {
 
   /**
     * Consumes from a kafka topic using kafka streams
+    *
     * @param streamAppId The stream application id
     * @param topic The input source topic
     * @param offset The consumer offset

@@ -23,6 +23,7 @@ object FilesUtils {
     * @param extensions a Sequence of extensions
     * @return a list of files names without the extension, otherwise an Error
     */
+  @deprecated("used only in tests")
   def getFilesFromPath(
       path: String,
       extensions: Seq[String]
@@ -52,6 +53,12 @@ object FilesUtils {
         .flatMap(f => listFilesRecursively(f, extensions))
   }
 
+  /**
+    * Lists files inside a list of folders
+    *
+    * @param folders The input folders
+    * @return List of File, otherwise a Throwable
+    */
   def listFiles(folders: List[String]): Either[Throwable, List[File]] = {
     Either.catchNonFatal {
       folders.flatMap(subfolder => {
@@ -76,7 +83,7 @@ object FilesUtils {
     * Lists folders recursively from a path
     *
     * @param path The provided path
-    * @return a List of folders, otherwise an Error
+    * @return a List of String, otherwise an Error
     */
   def listFoldersRecursively(path: String): Either[ReadFileError, List[String]] = {
     @tailrec
@@ -107,6 +114,7 @@ object FilesUtils {
 
   /**
     * Saves content in the provided path
+    *
     * @param path The path
     * @param fileName The file name
     * @param content The file's content
@@ -123,11 +131,12 @@ object FilesUtils {
   }
 
   /**
-    * Moves only files from a path
+    * Moves files to processed zone
+    *
     * @param src The input path
     * @param basePath The base path
-    * @param zone The destination zone name
-    * @return List of Path, otherwise an Error
+    * @param zone The destination zone name, "processed" by default
+    * @return List of String, otherwise an Error
     */
   def movePathContent(
       src: String,
@@ -175,32 +184,10 @@ object FilesUtils {
     }.leftMap(thr => ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
-  def moveFiles(
-      src: String,
-      basePath: String,
-      zone: String = "processed"
-  ): Either[ReadFileError, List[String]] = {
-    Either.catchNonFatal {
-      val srcPath       = new File(src)
-      val subDestFolder = s"$basePath/$zone/${srcPath.getName}"
-      FileUtils.forceMkdir(new File(subDestFolder))
-      val files = srcPath.listFiles().filter(_.isFile).toList
-      files
-        .map(file => {
-          logger.info(s"Moving '${file.toPath}' to '$subDestFolder/${file.getName}'")
-          Files.move(
-            file.toPath,
-            new File(s"$subDestFolder/${file.getName}").toPath,
-            StandardCopyOption.REPLACE_EXISTING
-          )
-          s"$subDestFolder/${file.getName}"
-        })
-    }.leftMap(thr => ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
-  }
-
   /**
-    * Cleanups folder
-    * @param in The folder to be deleted
+    * Cleanups a folder
+    *
+    * @param in The folder to be cleaned
     * @return Array of Unit
     */
   def cleanup(in: String): Array[Unit] = {
@@ -212,7 +199,7 @@ object FilesUtils {
   /**
     * Get lines from json file
     *
-    * @param jsonPath The path that contains json data to be send
+    * @param jsonPath The json file
     * @return an Iterator of String
     */
   def getJsonLines(jsonPath: String): Iterator[String] = {
@@ -220,12 +207,24 @@ object FilesUtils {
     jsonFile.getLines
   }
 
+  /**
+    * Filters non-empty folders
+    *
+    * @param folders THe provided folders
+    * @return a List of String, otherwise a Throwable
+    */
   def verifyNotEmpty(folders: List[String]): Either[Throwable, List[String]] = {
     Either.catchNonFatal {
       folders.filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)
     }.leftMap(thr => ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
+  /**
+    * Gets the file name and its parent folder
+    *
+    * @param path The file path
+    * @return String
+    */
   def getFileNameAndParentFolderFromPath(path: String): String = {
     reversePathSeparator(path)
       .split("/")

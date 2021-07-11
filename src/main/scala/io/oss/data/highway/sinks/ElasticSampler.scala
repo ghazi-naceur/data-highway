@@ -54,6 +54,7 @@ object ElasticSampler extends ElasticUtils {
 
   /**
     * Gets the first 10 documents from an Index
+    *
     * @param in The Elasticsearch index
     * @return Json, otherwise an Error
     */
@@ -78,6 +79,7 @@ object ElasticSampler extends ElasticUtils {
 
   /**
     * Searches for documents using Elasticsearch MatchAllQuery
+    *
     * @param in The Elasticsearch index
     * @return List of SearchHit
     */
@@ -93,6 +95,7 @@ object ElasticSampler extends ElasticUtils {
 
   /**
     * Searches for documents using Elasticsearch MatchQuery
+    *
     * @param in The Elasticsearch index
     * @param field The filter field
     * @return List of SearchHit
@@ -109,6 +112,7 @@ object ElasticSampler extends ElasticUtils {
 
   /**
     * Searches for documents using Elasticsearch MultiMatchQuery
+    *
     * @param in The Elasticsearch index
     * @param values The list of values to search for
     * @return List of SearchHit
@@ -135,6 +139,7 @@ object ElasticSampler extends ElasticUtils {
 
   /**
     * Searches for documents using Elasticsearch TermQuery
+    *
     * @param in The Elasticsearch index
     * @param field The filter field
     * @return List of SearchHit
@@ -151,6 +156,7 @@ object ElasticSampler extends ElasticUtils {
 
   /**
     * Searches for documents using Elasticsearch TermsQuery
+    *
     * @param in The Elasticsearch index
     * @param fieldValues The filter field name with multiple values
     * @return List of SearchHit
@@ -167,6 +173,7 @@ object ElasticSampler extends ElasticUtils {
 
   /**
     * Searches for documents using Elasticsearch CommonTermsQuery
+    *
     * @param in The Elasticsearch index
     * @param field The filter field
     * @return List of SearchHit
@@ -183,6 +190,7 @@ object ElasticSampler extends ElasticUtils {
 
   /**
     * Searches for documents using Elasticsearch QueryStringQuery
+    *
     * @param in The Elasticsearch index
     * @param strQuery The elasticsearch string query
     * @return List of SearchHit
@@ -199,6 +207,7 @@ object ElasticSampler extends ElasticUtils {
 
   /**
     * Searches for documents using Elasticsearch SimpleStringQuery
+    *
     * @param in The Elasticsearch index
     * @param strQuery The elasticsearch string query
     * @return List of SearchHit
@@ -215,6 +224,7 @@ object ElasticSampler extends ElasticUtils {
 
   /**
     * Searches for documents using Elasticsearch PrefixQuery
+    *
     * @param in The Elasticsearch index
     * @param prefix The filter prefix
     * @return List of SearchHit
@@ -231,6 +241,7 @@ object ElasticSampler extends ElasticUtils {
 
   /**
     * Searches for documents using Elasticsearch MoreLikeThisQuery
+    *
     * @param in The Elasticsearch index
     * @param likeFields The filter fields
     * @return List of SearchHit
@@ -252,6 +263,7 @@ object ElasticSampler extends ElasticUtils {
 
   /**
     * Searches for documents using Elasticsearch RangeQuery
+    *
     * @param in The Elasticsearch index
     * @param range The filter range field
     * @return List of SearchHit
@@ -271,6 +283,7 @@ object ElasticSampler extends ElasticUtils {
 
   /**
     * Searches for documents using Elasticsearch ExistsQuery
+    *
     * @param in The Elasticsearch index
     * @param fieldName The filter field name
     * @return List of SearchHit
@@ -287,6 +300,7 @@ object ElasticSampler extends ElasticUtils {
 
   /**
     * Searches for documents using Elasticsearch ExistsQuery
+    *
     * @param in The Elasticsearch index
     * @param field The filter field name
     * @return List of SearchHit
@@ -303,6 +317,7 @@ object ElasticSampler extends ElasticUtils {
 
   /**
     * Searches for documents using Elasticsearch RegexQuery
+    *
     * @param in The Elasticsearch index
     * @param field The filter field name
     * @return List of SearchHit
@@ -319,6 +334,7 @@ object ElasticSampler extends ElasticUtils {
 
   /**
     * Searches for documents using Elasticsearch FuzzyQuery
+    *
     * @param in The Elasticsearch index
     * @param field The filter field name
     * @return List of SearchHit
@@ -335,6 +351,7 @@ object ElasticSampler extends ElasticUtils {
 
   /**
     * Searches for documents using Elasticsearch IdsQuery
+    *
     * @param in The Elasticsearch index
     * @param ids The filter Elasticsearch ids
     * @return List of SearchHit
@@ -351,6 +368,7 @@ object ElasticSampler extends ElasticUtils {
 
   /**
     * Searches for documents using Elasticsearch BoolMatchPhraseQuery
+    *
     * @param in The Elasticsearch index
     * @param boolFilter The bool filter. It could have one of these values : Must, MustNot or Should
     * @param fields The filter fields
@@ -460,6 +478,12 @@ object ElasticSampler extends ElasticUtils {
     }
   }
 
+  /**
+    * Collects search hits using the previous search response
+    *
+    * @param result The previous search response
+    * @return a List of SearchHit
+    */
   private def collectSearchHits(result: SearchResponse): List[SearchHit] = {
     result.scrollId match {
       case Some(scrollId) =>
@@ -469,6 +493,13 @@ object ElasticSampler extends ElasticUtils {
     }
   }
 
+  /**
+    * Scrolls recursively on Search hits using the ScrollId to collect hits
+    *
+    * @param scrollId The Scroll Id
+    * @param hits The ES records/documents
+    * @return a List of SearchHit
+    */
   @tailrec
   def scrollOnDocs(scrollId: String, hits: List[SearchHit]): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
@@ -486,6 +517,13 @@ object ElasticSampler extends ElasticUtils {
     }
   }
 
+  /**
+    * Saves an ES document as a Json file
+    *
+    * @param out The output folder
+    * @param fileSystem The output file system : Local or HDFS
+    * @return Unit, otherwise a Throwable
+    */
   private def saveSearchHit(
       out: String,
       fileSystem: FileSystem

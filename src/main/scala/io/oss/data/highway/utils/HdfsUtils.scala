@@ -22,6 +22,13 @@ object HdfsUtils extends HdfsUtils {
 
   val fs: FileSystem = FileSystem.get(conf)
 
+  /**
+    * Saves a content inside a file
+    *
+    * @param file The file path
+    * @param content The content to be saved
+    * @return Unit, otherwise a Throwable
+    */
   def save(file: String, content: String): Either[Throwable, Unit] = {
     Either.catchNonFatal {
       val hdfsWritePath      = new Path(file)
@@ -33,18 +40,37 @@ object HdfsUtils extends HdfsUtils {
     }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
+  /**
+    * Creates a folder
+    *
+    * @param folder The folder to be created
+    * @return Boolean, otherwise a Throwable
+    */
   def mkdir(folder: String): Either[Throwable, Boolean] = {
     Either.catchNonFatal {
       fs.mkdirs(new Path(folder))
     }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
+  /**
+    * Move files
+    *
+    * @param src The source folder
+    * @param dest The destination folder
+    * @return Boolean, otherwise a Throwable
+    */
   def move(src: String, dest: String): Either[Throwable, Boolean] = {
     Either.catchNonFatal {
       fs.rename(new Path(src), new Path(dest))
     }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
+  /**
+    * Cleanups a folder
+    *
+    * @param folder The folder to be cleaned
+    * @return Boolean, otherwise a Throwable
+    */
   def cleanup(folder: String): Either[Throwable, Boolean] = {
     Either.catchNonFatal {
       fs.delete(new Path(folder), true)
@@ -52,6 +78,12 @@ object HdfsUtils extends HdfsUtils {
     }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
+  /**
+    * Lists sub-folders inside a parent path
+    *
+    * @param path The provided parent folder
+    * @return List of String, otherwise a Throwable
+    */
   def listFolders(path: String): Either[Throwable, List[String]] = {
     Either.catchNonFatal {
       fs.listStatus(new Path(path))
@@ -61,6 +93,12 @@ object HdfsUtils extends HdfsUtils {
     }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
+  /**
+    * Lists files inside a folder
+    *
+    * @param path The provided folder
+    * @return LIst of String
+    */
   def listFiles(path: String): List[String] = {
     val iterator = HdfsUtils.fs.listFiles(new Path(path), true)
 
@@ -78,6 +116,7 @@ object HdfsUtils extends HdfsUtils {
 
   /**
     * Moves files from a path to another
+    *
     * @param src The input path
     * @param basePath The base path
     * @param zone The destination zone name
@@ -90,25 +129,25 @@ object HdfsUtils extends HdfsUtils {
   ): Either[Throwable, List[String]] = {
     Either.catchNonFatal {
       if (fs.getFileStatus(new Path(src)).isFile) {
-//        todo
-        val srcPath       = new File(src)
         val subDestFolder = s"$basePath/$zone/${src.split("/").takeRight(2).mkString("/")}"
-        HdfsUtils.mkdir(pathWithoutUriPrefix(subDestFolder.split("/").dropRight(1).mkString("/")))
+        HdfsUtils.mkdir(
+          getPathWithoutUriPrefix(subDestFolder.split("/").dropRight(1).mkString("/"))
+        )
         HdfsUtils.move(
           src,
-          pathWithoutUriPrefix(subDestFolder)
+          getPathWithoutUriPrefix(subDestFolder)
         )
         List(subDestFolder)
       } else {
         val srcPath       = new File(src)
         val subDestFolder = s"$basePath/$zone/${srcPath.getName}"
-        HdfsUtils.mkdir(pathWithoutUriPrefix(subDestFolder))
+        HdfsUtils.mkdir(getPathWithoutUriPrefix(subDestFolder))
         val files = HdfsUtils.listFiles(src)
         files
           .map(file => {
             HdfsUtils.move(
-              pathWithoutUriPrefix(file),
-              s"${pathWithoutUriPrefix(subDestFolder)}/${file.split("/").last}"
+              getPathWithoutUriPrefix(file),
+              s"${getPathWithoutUriPrefix(subDestFolder)}/${file.split("/").last}"
             )
             s"$subDestFolder/${file.split("/").last}"
           })
@@ -116,16 +155,34 @@ object HdfsUtils extends HdfsUtils {
     }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
-  def pathWithoutUriPrefix(path: String): String = {
+  /**
+    * Gets the path without the URI prefix 'hdfs://host:port'
+    *
+    * @param path The provided path
+    * @return String
+    */
+  def getPathWithoutUriPrefix(path: String): String = {
     "/" + path.replace("//", "/").split("/").drop(2).mkString("/")
   }
 
+  /**
+    * Filters non-empty folders
+    *
+    * @param folders The provided folders
+    * @return List of String, otherwise a Throwable
+    */
   def verifyNotEmpty(folders: List[String]): Either[Throwable, List[String]] = {
     Either.catchNonFatal {
       folders.filter(folder => HdfsUtils.fs.listFiles(new Path(folder), false).hasNext)
     }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
+  /**
+    * Lists files recursively from a path
+    *
+    * @param hdfsPath The provided folder
+    * @return List of String
+    */
   def listFilesRecursively(hdfsPath: String): List[String] = {
     fs.listStatus(new Path(hdfsPath))
       .flatMap { status =>
@@ -138,6 +195,11 @@ object HdfsUtils extends HdfsUtils {
       .sorted
   }
 
+  /**
+    * Gets json content from a json file
+    * @param jsonPath The provided json file path
+    * @return List of String
+    */
   def getJsonLines(jsonPath: String): List[String] = {
     val path   = new Path(jsonPath)
     val stream = fs.open(path)
