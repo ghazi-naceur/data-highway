@@ -156,7 +156,8 @@ object FilesUtils {
             s"$basePath/$zone/${srcPath.getName}"
         }
 
-        FileUtils.forceMkdir(new File(subDestFolder))
+//        FileUtils.forceMkdir(new File(subDestFolder))
+        Files.createDirectories(new File(subDestFolder).toPath)
         Files.move(
           new File(src).toPath,
           new File(subDestFolder + "/" + srcFileName).toPath,
@@ -172,7 +173,8 @@ object FilesUtils {
             s"$basePath/$zone/${srcPath.getName}"
         }
 
-        FileUtils.forceMkdir(new File(subDestFolder))
+//        FileUtils.forceMkdir(new File(subDestFolder))
+        Files.createDirectories(new File(subDestFolder).toPath)
         Files.move(
           new File(src).toPath,
           new File(subDestFolder).toPath,
