@@ -151,35 +151,39 @@ object FilesUtils {
 
         val subDestFolder = inputDataType match {
           case XLSX =>
-            s"$basePath/$zone/${srcPath.toURI.getPath.split("/").takeRight(2).mkString("/")}"
+            s"$basePath/$zone/${srcPath.toURI.getPath.split("/").takeRight(1).mkString("/")}"
           case _ =>
-            s"$basePath/$zone/${srcPath.getName}"
+//            s"$basePath/$zone/${srcPath.getName}"
+            s"$basePath/$zone"
         }
 
 //        FileUtils.forceMkdir(new File(subDestFolder))
         Files.createDirectories(new File(subDestFolder).toPath)
-        Files.move(
-          new File(src).toPath,
-          new File(subDestFolder + "/" + srcFileName).toPath,
-          StandardCopyOption.REPLACE_EXISTING
-        )
+        FileUtils.moveFile(new File(src), new File(subDestFolder + "/" + srcFileName))
+//        Files.move(
+//          new File(src).toPath,
+//          new File(subDestFolder + "/" + srcFileName).toPath,
+//          StandardCopyOption.REPLACE_EXISTING
+//        )
         List(subDestFolder)
       } else {
         val srcPath = new File(src)
         val subDestFolder = inputDataType match {
           case XLSX =>
-            s"$basePath/$zone/${srcPath.toURI.getPath.split("/").takeRight(2).mkString("/")}"
+            s"$basePath/$zone/${srcPath.toURI.getPath.split("/").takeRight(1).mkString("/")}"
           case _ =>
-            s"$basePath/$zone/${srcPath.getName}"
+//            s"$basePath/$zone/${srcPath.getName}"
+            s"$basePath/$zone"
         }
 
 //        FileUtils.forceMkdir(new File(subDestFolder))
-        Files.createDirectories(new File(subDestFolder).toPath)
-        Files.move(
-          new File(src).toPath,
-          new File(subDestFolder).toPath,
-          StandardCopyOption.REPLACE_EXISTING
-        )
+//        Files.createDirectories(new File(subDestFolder).toPath)
+        FileUtils.moveDirectoryToDirectory(new File(src), new File(subDestFolder), true)
+//        Files.move(
+//          new File(src).toPath,
+//          new File(subDestFolder).toPath,
+//          StandardCopyOption.REPLACE_EXISTING
+//        )
         List(subDestFolder)
       }
 
