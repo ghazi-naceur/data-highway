@@ -256,7 +256,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-parquet\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-parquet\",\n    \"in\": \"/app/data/csv_to_parquet/input\",\n    \"out\": \"/app/data/csv_to_parquet/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1078,7 +1078,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"xlsx-to-csv\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"xlsx-to-csv\",\n    \"in\": \"/app/data/xlsx_to_csv/input\",\n    \"out\": \"/app/data/xlsx_to_csv/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1540,6 +1540,36 @@
 					"name": "pure_producer_without_streaming",
 					"item": [
 						{
+							"name": "file-to-kafka_pure-producer_without-stream_docker",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"file-to-kafka\",\n    \"in\": \"/app/data/kafka/input\",\n    \"out\" : \"file_to_kafka_local_2\",\n    \"file-system\": {\n        \"type\": \"local\"\n    },\n    \"kafka-mode\": {\n      \"type\": \"pure-kafka-producer\",\n      \"brokers\" : \"localhost:9092\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "file-to-kafka_pure-producer_without-stream_local",
 							"request": {
 								"method": "POST",
@@ -1604,6 +1634,36 @@
 				{
 					"name": "spark_kafka_plugin_producer_without_streaming",
 					"item": [
+						{
+							"name": "file-to-kafka_spark_kafka_plugin-producer_without-stream_docker",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"type\": \"file-to-kafka\",\n    \"in\": \"/app/data/kafka/input\",\n    \"out\" : \"file_to_kafka_local_2\",\n    \"file-system\": {\n        \"type\": \"local\"\n    },\n    \"kafka-mode\": {\n      \"type\": \"spark-kafka-plugin-producer\",\n      \"brokers\" : \"localhost:9092\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						},
 						{
 							"name": "file-to-kafka_spark_kafka_plugin-producer_without-stream_local",
 							"request": {
@@ -2101,6 +2161,36 @@
 		{
 			"name": "to_elasticsearch",
 			"item": [
+				{
+					"name": "file-to-elasticsearch_docker",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"route\": {\n    \"type\": \"file-to-elasticsearch\",\n    \"in\": \"/app/data/elasticsearch/input\",\n    \"out\": \"persons-index\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"bulk-enabled\": true\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:5555/conversion/route",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5555",
+							"path": [
+								"conversion",
+								"route"
+							]
+						}
+					},
+					"response": []
+				},
 				{
 					"name": "file-to-elasticsearch_local",
 					"request": {

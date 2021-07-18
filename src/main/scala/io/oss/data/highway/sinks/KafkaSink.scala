@@ -168,7 +168,10 @@ object KafkaSink {
                       .option("topic", topic)
                       .save()
                   })
-                FilesUtils.movePathContent(new File(path).getAbsolutePath, basePath, JSON)
+                FilesUtils.movePathContent(
+                  new File(path).getAbsolutePath,
+                  s"$basePath/processed"
+                )
               })
           })
     }
@@ -323,7 +326,10 @@ object KafkaSink {
               producer.send(data)
               logger.info(s"Topic: '$topic' - Sent data: '$line'")
             })
-          FilesUtils.movePathContent(jsonPath, basePath, JSON)
+          FilesUtils.movePathContent(
+            jsonPath,
+            s"$basePath/processed/${new File(jsonPath).getParentFile.getName}"
+          )
 
         case HDFS =>
           HdfsUtils

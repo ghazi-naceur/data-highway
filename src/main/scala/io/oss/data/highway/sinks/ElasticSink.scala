@@ -70,7 +70,11 @@ object ElasticSink extends ElasticUtils {
             FilesUtils
               .getJsonLines(file.getAbsolutePath)
               .foreach(line => indexDocInEs(out, line))
-            FilesUtils.movePathContent(file.getAbsolutePath, basePath, JSON)
+            FilesUtils
+              .movePathContent(
+                file.getAbsolutePath,
+                s"$basePath/processed/${file.getParentFile.getName}"
+              )
           })
     }
   }
@@ -121,7 +125,10 @@ object ElasticSink extends ElasticUtils {
             esClient.execute {
               bulk(queries).refresh(RefreshPolicy.Immediate)
             }.await
-            FilesUtils.movePathContent(file.getAbsolutePath, basePath, JSON)
+            FilesUtils.movePathContent(
+              file.getAbsolutePath,
+              s"$basePath/processed/${file.getParentFile.getName}"
+            )
           })
     }
   }

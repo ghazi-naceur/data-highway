@@ -160,19 +160,26 @@ object CsvSink {
           FilesUtils
             .listFiles(filtered)
             .traverse(files => {
-              files.traverse(file => {
-                val fileNameWithParentFolder =
-                  FilesUtils.getFileNameAndParentFolderFromPath(file.toURI.getPath)
-                convertToCsv(
-                  file.toURI.getPath,
-                  s"$out/$fileNameWithParentFolder",
-                  basePath,
-                  saveMode,
-                  inputDataType
-                ).flatMap(subInputFolder => {
-                  FilesUtils.movePathContent(subInputFolder, basePath, inputDataType)
+              files
+                .traverse(file => {
+                  val fileNameWithParentFolder =
+                    FilesUtils.getFileNameAndParentFolderFromPath(file.toURI.getPath)
+                  convertToCsv(
+                    file.toURI.getPath,
+                    s"$out/$fileNameWithParentFolder",
+                    basePath,
+                    saveMode,
+                    inputDataType
+                  ).flatMap(subInputFolder => {
+                      FilesUtils
+                        .movePathContent(
+                          subInputFolder,
+                          s"$basePath/processed/${new File(
+                            subInputFolder
+                          ).getParentFile.toURI.getPath.split("/").takeRight(1).mkString("/")}"
+                        )
+                    })
                 })
-              })
             })
             .flatten
         case _ =>
@@ -185,7 +192,7 @@ object CsvSink {
               saveMode,
               inputDataType
             ).flatMap(subInputFolder => {
-              FilesUtils.movePathContent(subInputFolder, basePath, inputDataType)
+              FilesUtils.movePathContent(subInputFolder, s"$basePath/processed")
             })
           })
       }
