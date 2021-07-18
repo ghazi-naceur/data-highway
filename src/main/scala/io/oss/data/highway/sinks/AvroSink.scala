@@ -141,7 +141,7 @@ object AvroSink {
               saveMode,
               inputDataType
             ).flatMap(subInputFolder => {
-              FilesUtils.movePathContent(subInputFolder, basePath, inputDataType)
+              FilesUtils.movePathContent(subInputFolder, s"$basePath/processed")
             })
           })
       _ = FilesUtils.cleanup(in)

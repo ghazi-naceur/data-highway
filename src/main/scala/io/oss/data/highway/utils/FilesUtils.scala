@@ -3,11 +3,10 @@ package io.oss.data.highway.utils
 import java.io.{File, FileWriter}
 import io.oss.data.highway.models.DataHighwayError.ReadFileError
 import cats.syntax.either._
-import io.oss.data.highway.models.{DataType, XLSX}
 import org.apache.commons.io.FileUtils
 import org.apache.log4j.Logger
 
-import java.nio.file.{Files, StandardCopyOption}
+import java.nio.file.Files
 import scala.annotation.tailrec
 import scala.io.Source
 import scala.util.Try
@@ -134,56 +133,21 @@ object FilesUtils {
     * Moves files to processed zone
     *
     * @param src The input path
-    * @param basePath The base path
-    * @param zone The destination zone name, "processed" by default
+    * @param subDestFolder The sub destination path
     * @return List of String, otherwise an Error
     */
   def movePathContent(
       src: String,
-      basePath: String,
-      inputDataType: DataType,
-      zone: String = "processed"
+      subDestFolder: String
   ): Either[Throwable, List[String]] = {
     Either.catchNonFatal {
       if (new File(src).isFile) {
-        val srcPath     = new File(src).getParentFile
         val srcFileName = new File(src).getName
-
-        val subDestFolder = inputDataType match {
-          case XLSX =>
-            s"$basePath/$zone/${srcPath.toURI.getPath.split("/").takeRight(1).mkString("/")}"
-          case _ =>
-//            s"$basePath/$zone/${srcPath.getName}"
-            s"$basePath/$zone"
-        }
-
-//        FileUtils.forceMkdir(new File(subDestFolder))
         Files.createDirectories(new File(subDestFolder).toPath)
-        FileUtils.moveFile(new File(src), new File(subDestFolder + "/" + srcFileName))
-//        Files.move(
-//          new File(src).toPath,
-//          new File(subDestFolder + "/" + srcFileName).toPath,
-//          StandardCopyOption.REPLACE_EXISTING
-//        )
+        FileUtils.moveFile(new File(src), new File(s"$subDestFolder/$srcFileName"))
         List(subDestFolder)
       } else {
-        val srcPath = new File(src)
-        val subDestFolder = inputDataType match {
-          case XLSX =>
-            s"$basePath/$zone/${srcPath.toURI.getPath.split("/").takeRight(1).mkString("/")}"
-          case _ =>
-//            s"$basePath/$zone/${srcPath.getName}"
-            s"$basePath/$zone"
-        }
-
-//        FileUtils.forceMkdir(new File(subDestFolder))
-//        Files.createDirectories(new File(subDestFolder).toPath)
         FileUtils.moveDirectoryToDirectory(new File(src), new File(subDestFolder), true)
-//        Files.move(
-//          new File(src).toPath,
-//          new File(subDestFolder).toPath,
-//          StandardCopyOption.REPLACE_EXISTING
-//        )
         List(subDestFolder)
       }
 
