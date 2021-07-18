@@ -20,3 +20,6 @@ bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic file_to_
 bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic file_to_kafka_hdfs_2 --from-beginning
 
 bin/kafka-console-consumer.sh --zookeeper localhost:2181 --from-beginning --topic file_to_kafka_local_1
+
+5- List topics :
+bin/kafka-topics.sh --list --zookeeper localhost:2181
