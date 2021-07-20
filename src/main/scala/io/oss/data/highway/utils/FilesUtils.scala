@@ -130,7 +130,11 @@ object FilesUtils {
   }
 
   /**
-    * Moves files to processed zone
+    * Moves files from source to destination path
+    * if source is a file :
+    *   input/dataset/file.txt ===> processed/file.txt
+    * if source is a folder :
+    *   input/dataset ===> processed/dataset
     *
     * @param src The input path
     * @param subDestFolder The sub destination path
