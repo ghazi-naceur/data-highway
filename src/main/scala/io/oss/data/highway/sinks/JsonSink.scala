@@ -128,9 +128,9 @@ object JsonSink {
       inputDataType: DataType
   ): Either[Throwable, List[List[String]]] = {
     for {
-      folders <- FilesUtils.listFoldersRecursively(in)
+      folders <- FilesUtils.listNonEmptyFoldersRecursively(in)
       _ = logger.info("folders : " + folders)
-      filtered <- FilesUtils.verifyNotEmpty(folders)
+      filtered <- FilesUtils.filterNonEmptyFolders(folders)
       list <-
         filtered
           .traverse(folder => {

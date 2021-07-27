@@ -173,7 +173,7 @@ object KafkaSampler {
       .foreach(data =>
         fileSystem match {
           case Local =>
-            FilesUtils.save(
+            FilesUtils.createFile(
               out,
               s"spark-kafka-plugin-${UUID.randomUUID()}-${System.currentTimeMillis()}.$extension",
               data.toString()
@@ -283,7 +283,7 @@ object KafkaSampler {
         val uuid: String = s"${UUID.randomUUID()}-${System.currentTimeMillis()}"
         fileSystem match {
           case Local =>
-            FilesUtils.save(out, s"kafka-streams-$uuid.$extension", data)
+            FilesUtils.createFile(out, s"kafka-streams-$uuid.$extension", data)
           case HDFS =>
             HdfsUtils.save(s"$out/kafka-streams-$uuid.$extension", data)
         }
@@ -331,7 +331,7 @@ object KafkaSampler {
           fileSystem match {
             case Local =>
               FilesUtils
-                .save(out, s"simple-consumer-$uuid.$extension", data.value())
+                .createFile(out, s"simple-consumer-$uuid.$extension", data.value())
             case HDFS =>
               HdfsUtils.save(s"$out/simple-consumer-$uuid.$extension", data.value())
           }

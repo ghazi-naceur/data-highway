@@ -1,8 +1,9 @@
 package io.oss.data.highway.utils
 
 import java.io.{File, FileWriter}
-import io.oss.data.highway.models.DataHighwayError.ReadFileError
+import io.oss.data.highway.models.DataHighwayError.DataHighwayFileError
 import cats.syntax.either._
+import io.oss.data.highway.models.XLSX
 import org.apache.commons.io.FileUtils
 import org.apache.log4j.Logger
 
@@ -26,10 +27,10 @@ object FilesUtils {
   def getFilesFromPath(
       path: String,
       extensions: Seq[String]
-  ): Either[ReadFileError, List[String]] = {
+  ): Either[DataHighwayFileError, List[String]] = {
     Either.catchNonFatal {
       listFilesRecursively(new File(path), extensions).map(_.getPath).toList
-    }.leftMap(thr => ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }.leftMap(thr => DataHighwayFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   /**
@@ -63,7 +64,7 @@ object FilesUtils {
       folders.flatMap(subfolder => {
         new File(subfolder).listFiles
       })
-    }.leftMap(thr => ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }.leftMap(thr => DataHighwayFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   /**
@@ -79,12 +80,12 @@ object FilesUtils {
   }
 
   /**
-    * Lists folders recursively from a path
+    * Lists non-empty folders (contains at least 1 file) recursively from a path
     *
     * @param path The provided path
     * @return a List of String, otherwise an Error
     */
-  def listFoldersRecursively(path: String): Either[ReadFileError, List[String]] = {
+  def listNonEmptyFoldersRecursively(path: String): Either[DataHighwayFileError, List[String]] = {
     @tailrec
     def getFolders(path: List[File], results: List[File]): Seq[File] =
       path match {
@@ -99,7 +100,7 @@ object FilesUtils {
 
     Either.catchNonFatal {
       getFolders(new File(path) :: Nil, Nil).map(_.getPath).reverse.toList
-    }.leftMap(thr => ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }.leftMap(thr => DataHighwayFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   /**
@@ -112,21 +113,21 @@ object FilesUtils {
     path.replace("\\", "/")
 
   /**
-    * Saves content in the provided path
+    * Creates file
     *
     * @param path The path
     * @param fileName The file name
     * @param content The file's content
     * @return Unit, otherwise Error
     */
-  def save(path: String, fileName: String, content: String): Either[Throwable, Unit] = {
+  def createFile(path: String, fileName: String, content: String): Either[Throwable, Unit] = {
     Try {
       new File(path).mkdirs()
       val fileWriter = new FileWriter(new File(s"$path/$fileName"))
       fileWriter.write(content)
       fileWriter.close()
     }.toEither
-      .leftMap(thr => ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+      .leftMap(thr => DataHighwayFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   /**
@@ -155,7 +156,7 @@ object FilesUtils {
         List(subDestFolder)
       }
 
-    }.leftMap(thr => ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }.leftMap(thr => DataHighwayFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   /**
@@ -176,7 +177,7 @@ object FilesUtils {
     * @param jsonPath The json file
     * @return an Iterator of String
     */
-  def getJsonLines(jsonPath: String): Iterator[String] = {
+  def getLines(jsonPath: String): Iterator[String] = {
     val jsonFile = Source.fromFile(jsonPath)
     jsonFile.getLines
   }
@@ -187,23 +188,26 @@ object FilesUtils {
     * @param folders THe provided folders
     * @return a List of String, otherwise a Throwable
     */
-  def verifyNotEmpty(folders: List[String]): Either[Throwable, List[String]] = {
+  def filterNonEmptyFolders(folders: List[String]): Either[Throwable, List[String]] = {
     Either.catchNonFatal {
       folders.filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)
-    }.leftMap(thr => ReadFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }.leftMap(thr => DataHighwayFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   /**
-    * Gets the file name and its parent folder
+    * Gets the file name without extension and its parent folder
     *
     * @param path The file path
     * @return String
     */
-  def getFileNameAndParentFolderFromPath(path: String): String = {
+  def getFileNameAndParentFolderFromPath(
+      path: String,
+      extension: String = XLSX.extension
+  ): String = {
     reversePathSeparator(path)
       .split("/")
       .takeRight(2)
       .mkString("/")
-      .replace(".xlsx", "")
+      .replace(s".$extension", "")
   }
 }

@@ -152,9 +152,9 @@ object CsvSink {
       inputDataType: DataType
   ): Either[Throwable, List[List[String]]] = {
     for {
-      folders <- FilesUtils.listFoldersRecursively(in)
+      folders <- FilesUtils.listNonEmptyFoldersRecursively(in)
       _ = logger.info("folders : " + folders)
-      filtered <- FilesUtils.verifyNotEmpty(folders)
+      filtered <- FilesUtils.filterNonEmptyFolders(folders)
       res <- inputDataType match {
         case XLSX =>
           FilesUtils
@@ -171,14 +171,14 @@ object CsvSink {
                     saveMode,
                     inputDataType
                   ).flatMap(subInputFolder => {
-                      FilesUtils
-                        .movePathContent(
-                          subInputFolder,
-                          s"$basePath/processed/${new File(
-                            subInputFolder
-                          ).getParentFile.toURI.getPath.split("/").takeRight(1).mkString("/")}"
-                        )
-                    })
+                    FilesUtils
+                      .movePathContent(
+                        subInputFolder,
+                        s"$basePath/processed/${new File(
+                          subInputFolder
+                        ).getParentFile.toURI.getPath.split("/").takeRight(1).mkString("/")}"
+                      )
+                  })
                 })
             })
             .flatten

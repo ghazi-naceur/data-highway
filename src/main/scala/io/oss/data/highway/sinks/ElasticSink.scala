@@ -68,7 +68,7 @@ object ElasticSink extends ElasticUtils {
           .listFilesRecursively(new File(in), Seq(JSON.extension))
           .foreach(file => {
             FilesUtils
-              .getJsonLines(file.getAbsolutePath)
+              .getLines(file.getAbsolutePath)
               .foreach(line => indexDocInEs(out, line))
             FilesUtils
               .movePathContent(
@@ -117,7 +117,7 @@ object ElasticSink extends ElasticUtils {
           .listFilesRecursively(new File(in), Seq(JSON.extension))
           .foreach(file => {
             val queries = FilesUtils
-              .getJsonLines(file.getAbsolutePath)
+              .getLines(file.getAbsolutePath)
               .map(line => {
                 indexInto(out) doc line refresh RefreshPolicy.IMMEDIATE
               })
@@ -180,7 +180,7 @@ object ElasticSink extends ElasticUtils {
         } yield list
       case Local =>
         for {
-          folders <- FilesUtils.listFoldersRecursively(in)
+          folders <- FilesUtils.listNonEmptyFoldersRecursively(in)
           list <-
             folders
               .filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)

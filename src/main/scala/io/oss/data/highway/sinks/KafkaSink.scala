@@ -153,7 +153,7 @@ object KafkaSink {
       case Local =>
         val basePath = new File(jsonPath).getParent
         FilesUtils
-          .listFoldersRecursively(jsonPath)
+          .listNonEmptyFoldersRecursively(jsonPath)
           .map(paths => {
             paths
               .filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)
@@ -318,7 +318,7 @@ object KafkaSink {
       fileSystem match {
         case Local =>
           FilesUtils
-            .getJsonLines(jsonPath)
+            .getLines(jsonPath)
             .foreach(line => {
               val uuid = UUID.randomUUID().toString
               val data =

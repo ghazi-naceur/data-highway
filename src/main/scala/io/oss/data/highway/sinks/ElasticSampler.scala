@@ -537,7 +537,7 @@ object ElasticSampler extends ElasticUtils {
             searchHit.sourceAsMap.mapValues(_.toString).asJson.noSpaces
           )
         case Local =>
-          FilesUtils.save(
+          FilesUtils.createFile(
             s"$out/${searchHit.index}",
             s"es-${searchHit.id}-${UUID.randomUUID()}-${System
               .currentTimeMillis()}.${JSON.extension}",
