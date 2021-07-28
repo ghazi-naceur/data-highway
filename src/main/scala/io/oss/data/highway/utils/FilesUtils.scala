@@ -17,40 +17,23 @@ object FilesUtils {
   val logger: Logger = Logger.getLogger(FilesUtils.getClass)
 
   /**
-    * Gets files' names located in a provided path
-    *
-    * @param path The provided path
-    * @param extensions a Sequence of extensions
-    * @return a list of files names without the extension, otherwise an Error
-    */
-  @deprecated("used only in tests")
-  def getFilesFromPath(
-      path: String,
-      extensions: Seq[String]
-  ): Either[DataHighwayFileError, List[String]] = {
-    Either.catchNonFatal {
-      listFilesRecursively(new File(path), extensions).map(_.getPath).toList
-    }.leftMap(thr => DataHighwayFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
-  }
-
-  /**
     * Lists files recursively from a path
     *
     * @param path The provided path
-    * @param extensions a Sequence of extensions
+    * @param extension The input extension used to filter initial data
     * @return a Seq of files
     */
-  def listFilesRecursively(path: File, extensions: Seq[String]): Seq[File] = {
+  def listFilesRecursively(path: File, extension: String): Seq[File] = {
     val files = path.listFiles
     val result = files
       .filter(_.isFile)
       .filter(file => {
-        filterByExtension(file.getPath, extensions)
+        filterByExtension(file.getPath, extension)
       })
     result ++
       files
         .filter(_.isDirectory)
-        .flatMap(f => listFilesRecursively(f, extensions))
+        .flatMap(f => listFilesRecursively(f, extension))
   }
 
   /**
@@ -71,12 +54,12 @@ object FilesUtils {
     * Checks that the provided file has an extension that belongs to the provided ones
     *
     * @param file       The provided file
-    * @param extensions The provided extensions
+    * @param extension The input extension used to filter initial data
     * @return True if the file has a valid extension, otherwise False
     */
-  def filterByExtension(file: String, extensions: Seq[String]): Boolean = {
+  def filterByExtension(file: String, extension: String): Boolean = {
     val fileName = file.split("/").last
-    extensions.contains(fileName.substring(fileName.lastIndexOf(".") + 1))
+    extension.equals(fileName.substring(fileName.lastIndexOf(".") + 1))
   }
 
   /**

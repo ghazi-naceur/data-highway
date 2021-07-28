@@ -65,7 +65,7 @@ object ElasticSink extends ElasticUtils {
           })
       case Local =>
         FilesUtils
-          .listFilesRecursively(new File(in), Seq(JSON.extension))
+          .listFilesRecursively(new File(in), JSON.extension)
           .foreach(file => {
             FilesUtils
               .getLines(file.getAbsolutePath)
@@ -114,7 +114,7 @@ object ElasticSink extends ElasticUtils {
 
       case Local =>
         FilesUtils
-          .listFilesRecursively(new File(in), Seq(JSON.extension))
+          .listFilesRecursively(new File(in), JSON.extension)
           .foreach(file => {
             val queries = FilesUtils
               .getLines(file.getAbsolutePath)

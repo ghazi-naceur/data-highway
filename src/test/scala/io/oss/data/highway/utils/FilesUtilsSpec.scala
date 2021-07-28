@@ -11,13 +11,66 @@ import java.nio.file.Files
 
 class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with FSUtils {
 
+  "FilesUtils.listFilesRecursively" should "list files recursively from path" in {
+    val time    = System.currentTimeMillis().toString
+    val srcPath = s"/tmp/data-highway/input-$time/dataset"
+    Files.createDirectories(new File(srcPath).toPath)
+    Files.createDirectories(new File(srcPath + "/a").toPath)
+    Files.createFile(new File(srcPath + "/a/file1.xlsx").toPath)
+    Files.createFile(new File(srcPath + "/a/file2.xlsx").toPath)
+    Files.createDirectories(new File(srcPath + "/c").toPath)
+    Files.createFile(new File(srcPath + "/c/file5.xlsx").toPath)
+    Files.createFile(new File(srcPath + "/c/file6.xlsx").toPath)
+    Files.createDirectories(new File(srcPath + "/d").toPath)
+    Files.createFile(new File(srcPath + "/d/file7.xlsx").toPath)
+    Files.createFile(new File(srcPath + "/d/file9.xlsx").toPath)
+    val result = FilesUtils.listFilesRecursively(new File(srcPath), "xlsx")
+    result should contain theSameElementsAs Seq(
+      new File(srcPath + "/a/file1.xlsx"),
+      new File(srcPath + "/a/file2.xlsx"),
+      new File(srcPath + "/c/file5.xlsx"),
+      new File(srcPath + "/c/file6.xlsx"),
+      new File(srcPath + "/d/file7.xlsx"),
+      new File(srcPath + "/d/file9.xlsx")
+    )
+  }
+
+  "FilesUtils.listFiles" should "list files from folders" in {
+    val time    = System.currentTimeMillis().toString
+    val srcPath = s"/tmp/data-highway/input-$time/dataset"
+    Files.createDirectories(new File(srcPath).toPath)
+    Files.createDirectories(new File(srcPath + "/a").toPath)
+    Files.createFile(new File(srcPath + "/a/file1.xlsx").toPath)
+    Files.createFile(new File(srcPath + "/a/file2.xlsx").toPath)
+    Files.createDirectories(new File(srcPath + "/c").toPath)
+    Files.createFile(new File(srcPath + "/c/file5.xlsx").toPath)
+    Files.createFile(new File(srcPath + "/c/file6.xlsx").toPath)
+    Files.createDirectories(new File(srcPath + "/d").toPath)
+    Files.createFile(new File(srcPath + "/d/file7.xlsx").toPath)
+    Files.createFile(new File(srcPath + "/d/file9.xlsx").toPath)
+    val result = FilesUtils.listFiles(List(srcPath + "/a", srcPath + "/c", srcPath + "/d"))
+    result.right.get should contain theSameElementsAs List(
+      new File(srcPath + "/a/file1.xlsx"),
+      new File(srcPath + "/a/file2.xlsx"),
+      new File(srcPath + "/c/file5.xlsx"),
+      new File(srcPath + "/c/file6.xlsx"),
+      new File(srcPath + "/d/file7.xlsx"),
+      new File(srcPath + "/d/file9.xlsx")
+    )
+  }
+
+  "FilesUtils.listFiles" should "throw an exception" in {
+    val result = FilesUtils.listFiles(List(""))
+    result.left.get shouldBe a[DataHighwayFileError]
+  }
+
   "FilesUtils.filterByExtension" should "valid file's extension againt the provided ones : 1st test" in {
-    val bool = FilesUtils.filterByExtension("fkfj/ffkfj/fkfjkf/file.txt", Seq("txt", "lks"))
+    val bool = FilesUtils.filterByExtension("fkfj/ffkfj/fkfjkf/file.txt", "txt")
     bool shouldBe true
   }
 
   "FilesUtils.filterByExtension" should "valid file's extension againt the provided ones : 2nd test" in {
-    val bool = FilesUtils.filterByExtension("fkfj/ffkfj/fkfjkf/file.txt", Seq("txtt", "lks"))
+    val bool = FilesUtils.filterByExtension("fkfj/ffkfj/fkfjkf/file.txt", "txtt")
     bool shouldBe false
   }
 

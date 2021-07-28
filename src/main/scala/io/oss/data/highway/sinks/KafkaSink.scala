@@ -288,7 +288,7 @@ object KafkaSink {
         case Local =>
           val basePath = new File(jsonPath).getParent
           FilesUtils
-            .listFilesRecursively(new File(jsonPath), Seq(JSON.extension))
+            .listFilesRecursively(new File(jsonPath), JSON.extension)
             .foreach(file => {
               publishFileContent(file.getAbsolutePath, basePath, fileSystem, topic, producer)
             })
