@@ -4,7 +4,7 @@
     "type" : "csv-to-avro",
     "in": "/input/csv/data",
     "out": "/output/avro/data",
-    "file-system": {
+    "storage": {
       "type": "*hdfs* or *local*"
     }
   }

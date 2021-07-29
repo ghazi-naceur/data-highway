@@ -4,7 +4,7 @@
     "type" : "avro-to-parquet",
     "in": "/input/avro/data",
     "out": "/output/parquet/data",
-    "file-system": {
+    "storage": {
       "type": "hdfs or local"
     }
   }

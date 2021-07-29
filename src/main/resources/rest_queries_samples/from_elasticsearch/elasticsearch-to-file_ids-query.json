@@ -4,7 +4,7 @@
     "type": "elasticsearch-to-file",
     "in": "elasticsearch-index",
     "out": "your-output-folder-containing-json-files",
-    "file-system": {
+    "storage": {
       "type": "hdfs or local"
     },
     "search-query": {

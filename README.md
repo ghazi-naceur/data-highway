@@ -169,7 +169,7 @@ setting one of these following request bodies :
     "type": "parquet-to-json",
     "in": "your-input-folder-containing-parquet-files",
     "out": "your-output-folder-that-will-contain-your-generated-json-files",
-    "file-system": {
+    "storage": {
       "type": "*hdfs* or *local*"
     }
   }
@@ -184,7 +184,7 @@ setting one of these following request bodies :
     "type": "csv-to-json",
     "in": "your-input-folder-containing-csv-files",
     "out": "your-output-folder-that-will-contain-your-generated-json-files",
-    "file-system": {
+    "storage": {
       "type": "*hdfs* or *local*"
     }
   }
@@ -199,7 +199,7 @@ setting one of these following request bodies :
     "type": "avro-to-json",
     "in": "your-input-folder-containing-avro-files",
     "out": "your-output-folder-that-will-contain-your-generated-json-files",
-    "file-system": {
+    "storage": {
       "type": "*hdfs* or *local*"
     }
   }
@@ -221,7 +221,7 @@ setting one of these following request bodies :
     "type": "json-to-parquet",
     "in": "your-input-folder-containing-json-files",
     "out": "your-output-folder-that-will-contain-your-generated-parquet-files",
-    "file-system": {
+    "storage": {
       "type": "*hdfs* or *local*"
     }
   }
@@ -236,7 +236,7 @@ setting one of these following request bodies :
     "type": "csv-to-parquet",
     "in": "your-input-folder-containing-csv-files",
     "out": "your-output-folder-that-will-contain-your-generated-parquet-files",
-    "file-system": {
+    "storage": {
       "type": "*hdfs* or *local*"
     }
   }
@@ -251,7 +251,7 @@ setting one of these following request bodies :
     "type": "avro-to-parquet",
     "in": "your-input-folder-containing-avro-files",
     "out": "your-output-folder-that-will-contain-your-generated-parquet-files",
-    "file-system": {
+    "storage": {
       "type": "*hdfs* or *local*"
     }
   }
@@ -273,7 +273,7 @@ setting one of these following request bodies :
     "type": "json-to-csv",
     "in": "your-input-folder-containing-json-files",
     "out": "your-output-folder-that-will-contain-your-generated-csv-files",
-    "file-system": {
+    "storage": {
       "type": "*hdfs* or *local*"
     }
   }
@@ -288,7 +288,7 @@ setting one of these following request bodies :
     "type": "parquet-to-csv",
     "in": "your-input-folder-containing-parquet-files",
     "out": "your-output-folder-that-will-contain-your-generated-csv-files",
-    "file-system": {
+    "storage": {
       "type": "*hdfs* or *local*"
     }
   }
@@ -303,7 +303,7 @@ setting one of these following request bodies :
     "type": "avro-to-csv",
     "in": "your-input-folder-containing-avro-files",
     "out": "your-output-folder-that-will-contain-your-generated-csv-files",
-    "file-system": {
+    "storage": {
       "type": "*hdfs* or *local*"
     }
   }
@@ -320,7 +320,7 @@ It consists of converting the different sheets of an XLSX file to multiple csv f
     "type": "xlsx-to-csv",
     "in": "your-input-folder-containing-xlsx-files",
     "out": "your-output-folder-that-will-contain-your-generated-csv-files",
-    "file-system": {
+    "storage": {
       "type": "*hdfs* or *local*"
     }
   }
@@ -342,7 +342,7 @@ setting one of these following request bodies :
     "type": "parquet-to-avro",
     "in": "your-input-folder-containing-parquet-files",
     "out": "your-output-folder-that-will-contain-your-generated-avro-files",
-    "file-system": {
+    "storage": {
       "type": "*hdfs* or *local*"
     }
   }
@@ -357,7 +357,7 @@ setting one of these following request bodies :
     "type": "json-to-avro",
     "in": "your-input-folder-containing-json-files",
     "out": "your-output-folder-that-will-contain-your-generated-avro-files",
-    "file-system": {
+    "storage": {
       "type": "*hdfs* or *local*"
     }
   }
@@ -372,7 +372,7 @@ setting one of these following request bodies :
     "type": "csv-to-avro",
     "in": "your-input-folder-containing-csv-files",
     "out": "your-output-folder-that-will-contain-your-generated-avro-files",
-    "file-system": {
+    "storage": {
       "type": "*hdfs* or *local*"
     }
   }
@@ -405,7 +405,7 @@ Publishing data will be performed by **"pure-kafka-producer"** :
     "type": "file-to-kafka",
     "in": "your-input-folder-containing-json-files",
     "out": "your-output-kafka-topic",
-    "file-system": {
+    "storage": {
       "type": "*hdfs* or *local*"
     },
     "kafka-mode": {
@@ -452,7 +452,7 @@ Publishing data will be performed by **"spark-kafka-plugin-producer"** :
     "type": "file-to-kafka",
     "in": "your-input-folder-containing-json-files",
     "out": "your-output-kafka-topic",
-    "file-system": {
+    "storage": {
       "type": "*hdfs* or *local*"
     },
     "kafka-mode": {
@@ -510,7 +510,7 @@ Consuming data will be performed by **"pure-kafka-consumer"** :
     "type": "kafka-to-file",
     "in": "topic-name",
     "out": "your-output-folder-that-will-contain-your-generated-json-files",
-    "file-system": {
+    "storage": {
       "type": "*hdfs* or *local*"
     },
     "kafka-mode": {
@@ -544,7 +544,7 @@ Consuming data will be performed by **"pure-kafka-streams-consumer"** :
     "type": "kafka-to-file",
     "in": "topic-name",
     "out": "your-output-folder-that-will-contain-your-generated-json-files",
-    "file-system": {
+    "storage": {
       "type": "*hdfs* or *local*"
     },
     "kafka-mode": {
@@ -580,7 +580,7 @@ Consuming data will be performed by **"spark-kafka-plugin-consumer"** :
     "type": "kafka-to-file",
     "in": "topic-name",
     "out": "your-output-folder-that-will-contain-your-generated-json-files",
-    "file-system": {
+    "storage": {
       "type": "*hdfs* or *local*"
     },
     "kafka-mode": {
@@ -613,7 +613,7 @@ Consuming data will be performed by **"spark-kafka-plugin-streams-consumer"** :
     "type": "kafka-to-file",
     "in": "topic-name",
     "out": "your-output-folder-that-will-contain-your-generated-json-files",
-    "file-system": {
+    "storage": {
       "type": "*hdfs* or *local*"
     },
     "kafka-mode": {
@@ -650,7 +650,7 @@ Indexing data in Elasticsearch by **"file-to-elasticsearch"** :
     "type": "file-to-elasticsearch",
     "in": "your-input-folder-containing-json-files",
     "out": "elasticsearch-index",
-    "file-system": {
+    "storage": {
       "type": "hdfs or local"
     },
     "bulk-enabled": true/false
@@ -667,7 +667,7 @@ Extracting data from an Elasticsearch index by **"elasticsearch-to-file"**. You 
     "type": "elasticsearch-to-file",
     "in": "elasticsearch-index",
     "out": "your-output-folder-containing-json-files",
-    "file-system": {
+    "storage": {
       "type": "hdfs or local"
     },
     "search-query": {

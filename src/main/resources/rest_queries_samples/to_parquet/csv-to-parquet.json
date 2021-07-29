@@ -4,7 +4,7 @@
     "type" : "csv-to-parquet",
     "in": "/input/csv/data",
     "out": "/output/parquet/data",
-    "file-system": {
+    "storage": {
       "type": "hdfs or local"
     }
   }

@@ -24,7 +24,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-parquet\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-parquet\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -61,7 +61,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-parquet\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/avro_to_parquet-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/avro_to_parquet-data/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-parquet\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/avro_to_parquet-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/avro_to_parquet-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -98,7 +98,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-parquet\",\n    \"in\": \"hdfs://localhost:9000/data/avro_to_parquet/input\",\n    \"out\": \"hdfs://localhost:9000/data/avro_to_parquet/output\",\n    \"file-system\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-parquet\",\n    \"in\": \"hdfs://localhost:9000/data/avro_to_parquet/input\",\n    \"out\": \"hdfs://localhost:9000/data/avro_to_parquet/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -140,7 +140,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-parquet\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-parquet\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -177,7 +177,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-parquet\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/json_to_parquet-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/json_to_parquet-data/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-parquet\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/json_to_parquet-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/json_to_parquet-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -214,7 +214,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-parquet\",\n    \"in\": \"hdfs://localhost:9000/data/json_to_parquet/input\",\n    \"out\": \"hdfs://localhost:9000/data/json_to_parquet/output\",\n    \"file-system\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-parquet\",\n    \"in\": \"hdfs://localhost:9000/data/json_to_parquet/input\",\n    \"out\": \"hdfs://localhost:9000/data/json_to_parquet/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -256,7 +256,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-parquet\",\n    \"in\": \"/app/data/csv_to_parquet/input\",\n    \"out\": \"/app/data/csv_to_parquet/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-parquet\",\n    \"in\": \"/app/data/csv_to_parquet/input\",\n    \"out\": \"/app/data/csv_to_parquet/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -293,7 +293,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-parquet\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/csv_to_parquet-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/csv_to_parquet-data/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-parquet\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/csv_to_parquet-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/csv_to_parquet-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -330,7 +330,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-parquet\",\n    \"in\": \"hdfs://localhost:9000/data/csv_to_parquet/input\",\n    \"out\": \"hdfs://localhost:9000/data/csv_to_parquet/output\",\n    \"file-system\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-parquet\",\n    \"in\": \"hdfs://localhost:9000/data/csv_to_parquet/input\",\n    \"out\": \"hdfs://localhost:9000/data/csv_to_parquet/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -377,7 +377,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-avro\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-avro\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -414,7 +414,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-avro\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/csv_to_avro-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/csv_to_avro-data/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-avro\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/csv_to_avro-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/csv_to_avro-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -451,7 +451,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-avro\",\n    \"in\": \"hdfs://localhost:9000/data/csv_to_avro/input\",\n    \"out\": \"hdfs://localhost:9000/data/csv_to_avro/output\",\n    \"file-system\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-avro\",\n    \"in\": \"hdfs://localhost:9000/data/csv_to_avro/input\",\n    \"out\": \"hdfs://localhost:9000/data/csv_to_avro/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -493,7 +493,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-avro\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-avro\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -530,7 +530,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-avro\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/parquet_to_avro-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/parquet_to_avro-data/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-avro\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/parquet_to_avro-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/parquet_to_avro-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -567,7 +567,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-avro\",\n    \"in\": \"hdfs://localhost:9000/data/parquet_to_avro/input\",\n    \"out\": \"hdfs://localhost:9000/data/parquet_to_avro/output\",\n    \"file-system\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-avro\",\n    \"in\": \"hdfs://localhost:9000/data/parquet_to_avro/input\",\n    \"out\": \"hdfs://localhost:9000/data/parquet_to_avro/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -609,7 +609,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-avro\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-avro\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -646,7 +646,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-avro\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/json_to_avro-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/json_to_avro-data/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-avro\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/json_to_avro-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/json_to_avro-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -683,7 +683,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-avro\",\n    \"in\": \"hdfs://localhost:9000/data/json_to_avro/input\",\n    \"out\": \"hdfs://localhost:9000/data/json_to_avro/output\",\n    \"file-system\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-avro\",\n    \"in\": \"hdfs://localhost:9000/data/json_to_avro/input\",\n    \"out\": \"hdfs://localhost:9000/data/json_to_avro/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -730,7 +730,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-csv\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-csv\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -767,7 +767,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-csv\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/json_to_csv-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/json_to_csv-data/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-csv\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/json_to_csv-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/json_to_csv-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -804,7 +804,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-csv\",\n    \"in\": \"hdfs://localhost:9000/data/json_to_csv/input\",\n    \"out\": \"hdfs://localhost:9000/data/json_to_csv/output\",\n    \"file-system\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-csv\",\n    \"in\": \"hdfs://localhost:9000/data/json_to_csv/input\",\n    \"out\": \"hdfs://localhost:9000/data/json_to_csv/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -846,7 +846,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-csv\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-csv\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -883,7 +883,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-csv\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/parquet_to_csv-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/parquet_to_csv-data/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-csv\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/parquet_to_csv-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/parquet_to_csv-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -920,7 +920,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-csv\",\n    \"in\": \"hdfs://localhost:9000/data/parquet_to_csv/input\",\n    \"out\": \"hdfs://localhost:9000/data/parquet_to_csv/output\",\n    \"file-system\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-csv\",\n    \"in\": \"hdfs://localhost:9000/data/parquet_to_csv/input\",\n    \"out\": \"hdfs://localhost:9000/data/parquet_to_csv/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -962,7 +962,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-csv\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-csv\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -999,7 +999,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-csv\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/avro_to_csv-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/avro_to_csv-data/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-csv\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/avro_to_csv-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/avro_to_csv-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1036,7 +1036,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-csv\",\n    \"in\": \"hdfs://localhost:9000/data/avro_to_csv/input\",\n    \"out\": \"hdfs://localhost:9000/data/avro_to_csv/output\",\n    \"file-system\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-csv\",\n    \"in\": \"hdfs://localhost:9000/data/avro_to_csv/input\",\n    \"out\": \"hdfs://localhost:9000/data/avro_to_csv/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1078,7 +1078,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"xlsx-to-csv\",\n    \"in\": \"/app/data/xlsx_to_csv/input\",\n    \"out\": \"/app/data/xlsx_to_csv/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"xlsx-to-csv\",\n    \"in\": \"/app/data/xlsx_to_csv/input\",\n    \"out\": \"/app/data/xlsx_to_csv/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1115,7 +1115,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"xlsx-to-csv\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/xlsx_to_csv-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/xlsx_to_csv-data/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"xlsx-to-csv\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/xlsx_to_csv-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/xlsx_to_csv-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1152,7 +1152,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"xlsx-to-csv\",\n    \"in\": \"hdfs://localhost:9000/data/xlsx_to_csv/input\",\n    \"out\": \"hdfs://localhost:9000/data/xlsx_to_csv/output\",\n    \"file-system\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"xlsx-to-csv\",\n    \"in\": \"hdfs://localhost:9000/data/xlsx_to_csv/input\",\n    \"out\": \"hdfs://localhost:9000/data/xlsx_to_csv/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1199,7 +1199,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-json\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-json\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1236,7 +1236,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-json\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/avro_to_json-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/avro_to_json-data/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-json\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/avro_to_json-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/avro_to_json-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1273,7 +1273,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-json\",\n    \"in\": \"hdfs://localhost:9000/data/avro_to_json/input\",\n    \"out\": \"hdfs://localhost:9000/data/avro_to_json/output\",\n    \"file-system\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-json\",\n    \"in\": \"hdfs://localhost:9000/data/avro_to_json/input\",\n    \"out\": \"hdfs://localhost:9000/data/avro_to_json/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1315,7 +1315,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-json\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-json\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1352,7 +1352,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-json\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/csv_to_json-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/csv_to_json-data/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-json\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/csv_to_json-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/csv_to_json-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1389,7 +1389,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-json\",\n    \"in\": \"hdfs://localhost:9000/data/csv_to_json/input\",\n    \"out\": \"hdfs://localhost:9000/data/csv_to_json/output\",\n    \"file-system\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-json\",\n    \"in\": \"hdfs://localhost:9000/data/csv_to_json/input\",\n    \"out\": \"hdfs://localhost:9000/data/csv_to_json/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1431,7 +1431,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-json\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-json\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1468,7 +1468,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-json\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/parquet_to_json-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/parquet_to_json-data/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-json\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/parquet_to_json-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/parquet_to_json-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1505,7 +1505,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-json\",\n    \"in\": \"hdfs://localhost:9000/data/parquet_to_json/input\",\n    \"out\": \"hdfs://localhost:9000/data/parquet_to_json/output\",\n    \"file-system\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-json\",\n    \"in\": \"hdfs://localhost:9000/data/parquet_to_json/input\",\n    \"out\": \"hdfs://localhost:9000/data/parquet_to_json/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1552,7 +1552,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"file-to-kafka\",\n    \"in\": \"/app/data/kafka/input\",\n    \"out\" : \"file_to_kafka_local_2\",\n    \"file-system\": {\n        \"type\": \"local\"\n    },\n    \"kafka-mode\": {\n      \"type\": \"pure-kafka-producer\",\n      \"brokers\" : \"localhost:9092\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"file-to-kafka\",\n    \"in\": \"/app/data/kafka/input\",\n    \"out\" : \"file_to_kafka_local_2\",\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"kafka-mode\": {\n      \"type\": \"pure-kafka-producer\",\n      \"brokers\" : \"localhost:9092\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1582,7 +1582,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"file-to-kafka\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/input\",\n    \"out\" : \"file_to_kafka_local_1\",\n    \"file-system\": {\n        \"type\": \"local\"\n    },\n    \"kafka-mode\": {\n      \"type\": \"pure-kafka-producer\",\n      \"brokers\" : \"localhost:9092\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"file-to-kafka\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/input\",\n    \"out\" : \"file_to_kafka_local_1\",\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"kafka-mode\": {\n      \"type\": \"pure-kafka-producer\",\n      \"brokers\" : \"localhost:9092\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1612,7 +1612,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"file-to-kafka\",\n    \"in\": \"hdfs://localhost:9000/data/file_to_kafka/input\",\n    \"out\" : \"file_to_kafka_hdfs_1\",\n    \"file-system\": {\n        \"type\": \"hdfs\"\n    },\n    \"kafka-mode\": {\n      \"type\": \"pure-kafka-producer\",\n      \"brokers\" : \"localhost:9092\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"file-to-kafka\",\n    \"in\": \"hdfs://localhost:9000/data/file_to_kafka/input\",\n    \"out\" : \"file_to_kafka_hdfs_1\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"kafka-mode\": {\n      \"type\": \"pure-kafka-producer\",\n      \"brokers\" : \"localhost:9092\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1647,7 +1647,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"file-to-kafka\",\n    \"in\": \"/app/data/kafka/input\",\n    \"out\" : \"file_to_kafka_local_2\",\n    \"file-system\": {\n        \"type\": \"local\"\n    },\n    \"kafka-mode\": {\n      \"type\": \"spark-kafka-plugin-producer\",\n      \"brokers\" : \"localhost:9092\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"file-to-kafka\",\n    \"in\": \"/app/data/kafka/input\",\n    \"out\" : \"file_to_kafka_local_2\",\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"kafka-mode\": {\n      \"type\": \"spark-kafka-plugin-producer\",\n      \"brokers\" : \"localhost:9092\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1677,7 +1677,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"file-to-kafka\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/input\",\n    \"out\" : \"file_to_kafka_local_2\",\n    \"file-system\": {\n        \"type\": \"local\"\n    },\n    \"kafka-mode\": {\n      \"type\": \"spark-kafka-plugin-producer\",\n      \"brokers\" : \"localhost:9092\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"file-to-kafka\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/input\",\n    \"out\" : \"file_to_kafka_local_2\",\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"kafka-mode\": {\n      \"type\": \"spark-kafka-plugin-producer\",\n      \"brokers\" : \"localhost:9092\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1707,7 +1707,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"file-to-kafka\",\n    \"in\": \"hdfs://localhost:9000/data/file_to_kafka/input\",\n    \"out\" : \"file_to_kafka_hdfs_2\",\n    \"file-system\": {\n        \"type\": \"hdfs\"\n    },\n    \"kafka-mode\": {\n      \"type\": \"spark-kafka-plugin-producer\",\n      \"brokers\" : \"localhost:9092\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"file-to-kafka\",\n    \"in\": \"hdfs://localhost:9000/data/file_to_kafka/input\",\n    \"out\" : \"file_to_kafka_hdfs_2\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"kafka-mode\": {\n      \"type\": \"spark-kafka-plugin-producer\",\n      \"brokers\" : \"localhost:9092\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1747,7 +1747,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"kafka-to-file\",\n    \"in\" : \"file_to_kafka_local_2\",\n    \"out\" : \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    },\n    \"kafka-mode\" : {\n      \"type\" : \"pure-kafka-consumer\",\n      \"brokers\" : \"localhost:9092\",\n      \"consumer-group\" : \"consumer-group-name\",\n      \"offset\" : {\n        \"type\": \"earliest\"\n      },\n      \"data-type\" : {\n        \"type\" : \"json\"\n      }\n    }\n  }\n}\n"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"kafka-to-file\",\n    \"in\" : \"file_to_kafka_local_2\",\n    \"out\" : \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"kafka-mode\" : {\n      \"type\" : \"pure-kafka-consumer\",\n      \"brokers\" : \"localhost:9092\",\n      \"consumer-group\" : \"consumer-group-name\",\n      \"offset\" : {\n        \"type\": \"earliest\"\n      },\n      \"data-type\" : {\n        \"type\" : \"json\"\n      }\n    }\n  }\n}\n"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1777,7 +1777,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"kafka-to-file\",\n    \"in\" : \"file_to_kafka_hdfs_2\",\n    \"out\" : \"hdfs://localhost:9000/data/file_to_kafka/output\",\n    \"file-system\": {\n        \"type\": \"hdfs\"\n    },\n    \"kafka-mode\" : {\n      \"type\" : \"pure-kafka-consumer\",\n      \"brokers\" : \"localhost:9092\",\n      \"consumer-group\" : \"consumer-group-name\",\n      \"offset\" : {\n        \"type\": \"earliest\"\n      },\n      \"data-type\" : {\n        \"type\" : \"json\"\n      }\n    }\n  }\n}\n"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"kafka-to-file\",\n    \"in\" : \"file_to_kafka_hdfs_2\",\n    \"out\" : \"hdfs://localhost:9000/data/file_to_kafka/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"kafka-mode\" : {\n      \"type\" : \"pure-kafka-consumer\",\n      \"brokers\" : \"localhost:9092\",\n      \"consumer-group\" : \"consumer-group-name\",\n      \"offset\" : {\n        \"type\": \"earliest\"\n      },\n      \"data-type\" : {\n        \"type\" : \"json\"\n      }\n    }\n  }\n}\n"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1812,7 +1812,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"kafka-to-file\",\n    \"in\" : \"file_to_kafka_local_2\",\n    \"out\" : \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    },\n    \"kafka-mode\" : {\n      \"type\" : \"pure-kafka-streams-consumer\",\n      \"brokers\" : \"localhost:9092\",\n      \"stream-app-id\" : \"stream-app-name\",\n      \"offset\" : {\n        \"type\": \"earliest\"\n      },\n      \"data-type\" : {\n        \"type\" : \"json\"\n      }\n    }\n  }\n}\n"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"kafka-to-file\",\n    \"in\" : \"file_to_kafka_local_2\",\n    \"out\" : \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"kafka-mode\" : {\n      \"type\" : \"pure-kafka-streams-consumer\",\n      \"brokers\" : \"localhost:9092\",\n      \"stream-app-id\" : \"stream-app-name\",\n      \"offset\" : {\n        \"type\": \"earliest\"\n      },\n      \"data-type\" : {\n        \"type\" : \"json\"\n      }\n    }\n  }\n}\n"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1842,7 +1842,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"kafka-to-file\",\n    \"in\" : \"file_to_kafka_hdfs_2\",\n    \"out\" : \"hdfs://localhost:9000/data/file_to_kafka/output\",\n    \"file-system\": {\n        \"type\": \"hdfs\"\n    },\n    \"kafka-mode\" : {\n      \"type\" : \"pure-kafka-streams-consumer\",\n      \"brokers\" : \"localhost:9092\",\n      \"stream-app-id\" : \"stream-app-name\",\n      \"offset\" : {\n        \"type\": \"earliest\"\n      },\n      \"data-type\" : {\n        \"type\" : \"json\"\n      }\n    }\n  }\n}\n"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"kafka-to-file\",\n    \"in\" : \"file_to_kafka_hdfs_2\",\n    \"out\" : \"hdfs://localhost:9000/data/file_to_kafka/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"kafka-mode\" : {\n      \"type\" : \"pure-kafka-streams-consumer\",\n      \"brokers\" : \"localhost:9092\",\n      \"stream-app-id\" : \"stream-app-name\",\n      \"offset\" : {\n        \"type\": \"earliest\"\n      },\n      \"data-type\" : {\n        \"type\" : \"json\"\n      }\n    }\n  }\n}\n"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1877,7 +1877,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"kafka-to-file\",\n    \"in\" : \"file_to_kafka_local_2\",\n    \"out\" : \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    },\n    \"kafka-mode\" : {\n      \"type\" : \"spark-kafka-plugin-consumer\",\n      \"brokers\" : \"localhost:9092\",\n      \"offset\" : {\n        \"type\": \"earliest\"\n      },\n      \"data-type\" : {\n        \"type\" : \"json\"\n      }\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"kafka-to-file\",\n    \"in\" : \"file_to_kafka_local_2\",\n    \"out\" : \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"kafka-mode\" : {\n      \"type\" : \"spark-kafka-plugin-consumer\",\n      \"brokers\" : \"localhost:9092\",\n      \"offset\" : {\n        \"type\": \"earliest\"\n      },\n      \"data-type\" : {\n        \"type\" : \"json\"\n      }\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1907,7 +1907,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"kafka-to-file\",\n    \"in\" : \"file_to_kafka_hdfs_2\",\n    \"out\" : \"hdfs://localhost:9000/data/file_to_kafka/output\",\n    \"file-system\": {\n        \"type\": \"hdfs\"\n    },\n    \"kafka-mode\" : {\n      \"type\" : \"spark-kafka-plugin-consumer\",\n      \"brokers\" : \"localhost:9092\",\n      \"offset\" : {\n        \"type\": \"earliest\"\n      },\n      \"data-type\" : {\n        \"type\" : \"json\"\n      }\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"kafka-to-file\",\n    \"in\" : \"file_to_kafka_hdfs_2\",\n    \"out\" : \"hdfs://localhost:9000/data/file_to_kafka/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"kafka-mode\" : {\n      \"type\" : \"spark-kafka-plugin-consumer\",\n      \"brokers\" : \"localhost:9092\",\n      \"offset\" : {\n        \"type\": \"earliest\"\n      },\n      \"data-type\" : {\n        \"type\" : \"json\"\n      }\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1942,7 +1942,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"kafka-to-file\",\n    \"in\" : \"file_to_kafka_local_2\",\n    \"out\" : \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/output\",\n    \"file-system\": {\n        \"type\": \"local\"\n    },\n    \"kafka-mode\" : {\n      \"type\" : \"spark-kafka-plugin-streams-consumer\",\n      \"brokers\" : \"localhost:9092\",\n      \"offset\" : {\n        \"type\": \"earliest\"\n      },\n      \"data-type\" : {\n        \"type\" : \"json\"\n      }\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"kafka-to-file\",\n    \"in\" : \"file_to_kafka_local_2\",\n    \"out\" : \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"kafka-mode\" : {\n      \"type\" : \"spark-kafka-plugin-streams-consumer\",\n      \"brokers\" : \"localhost:9092\",\n      \"offset\" : {\n        \"type\": \"earliest\"\n      },\n      \"data-type\" : {\n        \"type\" : \"json\"\n      }\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1972,7 +1972,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"kafka-to-file\",\n    \"in\" : \"file_to_kafka_hdfs_2\",\n    \"out\" : \"hdfs://localhost:9000/data/file_to_kafka/output\",\n    \"file-system\": {\n        \"type\": \"hdfs\"\n    },\n    \"kafka-mode\" : {\n      \"type\" : \"spark-kafka-plugin-streams-consumer\",\n      \"brokers\" : \"localhost:9092\",\n      \"offset\" : {\n        \"type\": \"earliest\"\n      },\n      \"data-type\" : {\n        \"type\" : \"json\"\n      }\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\" : \"kafka-to-file\",\n    \"in\" : \"file_to_kafka_hdfs_2\",\n    \"out\" : \"hdfs://localhost:9000/data/file_to_kafka/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"kafka-mode\" : {\n      \"type\" : \"spark-kafka-plugin-streams-consumer\",\n      \"brokers\" : \"localhost:9092\",\n      \"offset\" : {\n        \"type\": \"earliest\"\n      },\n      \"data-type\" : {\n        \"type\" : \"json\"\n      }\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2174,7 +2174,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"route\": {\n    \"type\": \"file-to-elasticsearch\",\n    \"in\": \"/app/data/elasticsearch/input\",\n    \"out\": \"persons-index\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"bulk-enabled\": true\n  }\n}"
+							"raw": "{\n  \"route\": {\n    \"type\": \"file-to-elasticsearch\",\n    \"in\": \"/app/data/elasticsearch/input\",\n    \"out\": \"persons-index\",\n    \"storage\": {\n      \"type\": \"local\"\n    },\n    \"bulk-enabled\": true\n  }\n}"
 						},
 						"url": {
 							"raw": "http://localhost:5555/conversion/route",
@@ -2204,7 +2204,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"route\": {\n    \"type\": \"file-to-elasticsearch\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/input\",\n    \"out\": \"persons-index\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"bulk-enabled\": true\n  }\n}"
+							"raw": "{\n  \"route\": {\n    \"type\": \"file-to-elasticsearch\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/input\",\n    \"out\": \"persons-index\",\n    \"storage\": {\n      \"type\": \"local\"\n    },\n    \"bulk-enabled\": true\n  }\n}"
 						},
 						"url": {
 							"raw": "http://localhost:5555/conversion/route",
@@ -2234,7 +2234,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"route\": {\n    \"type\": \"file-to-elasticsearch\",\n    \"in\": \"hdfs://localhost:9000/data/file_to_elasticsearch/input\",\n    \"out\": \"persons-index\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"bulk-enabled\": true\n  }\n}"
+							"raw": "{\n  \"route\": {\n    \"type\": \"file-to-elasticsearch\",\n    \"in\": \"hdfs://localhost:9000/data/file_to_elasticsearch/input\",\n    \"out\": \"persons-index\",\n    \"storage\": {\n      \"type\": \"hdfs\"\n    },\n    \"bulk-enabled\": true\n  }\n}"
 						},
 						"url": {
 							"raw": "http://localhost:5555/conversion/route",
@@ -2272,7 +2272,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"bool-match-phrase-query\",\n      \"bool-filter\": {\n        \"type\": \"must\"\n      },\n      \"fields\": [\n        {\n          \"name\": \"last_name\",\n          \"value\": \"Altham\"\n        },\n        {\n          \"name\": \"gender\",\n          \"value\": \"Male\"\n        }\n      ]\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"storage\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"bool-match-phrase-query\",\n      \"bool-filter\": {\n        \"type\": \"must\"\n      },\n      \"fields\": [\n        {\n          \"name\": \"last_name\",\n          \"value\": \"Altham\"\n        },\n        {\n          \"name\": \"gender\",\n          \"value\": \"Male\"\n        }\n      ]\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2302,7 +2302,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"bool-match-phrase-query\",\n      \"bool-filter\": {\n        \"type\": \"must\"\n      },\n      \"fields\": [\n        {\n          \"name\": \"last_name\",\n          \"value\": \"Altham\"\n        },\n        {\n          \"name\": \"gender\",\n          \"value\": \"Male\"\n        }\n      ]\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"storage\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"bool-match-phrase-query\",\n      \"bool-filter\": {\n        \"type\": \"must\"\n      },\n      \"fields\": [\n        {\n          \"name\": \"last_name\",\n          \"value\": \"Altham\"\n        },\n        {\n          \"name\": \"gender\",\n          \"value\": \"Male\"\n        }\n      ]\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2337,7 +2337,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"common-terms-query\",\n      \"field\": {\n        \"name\": \"gender\",\n        \"value\": \"Male\"\n      }\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"storage\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"common-terms-query\",\n      \"field\": {\n        \"name\": \"gender\",\n        \"value\": \"Male\"\n      }\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2367,7 +2367,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"common-terms-query\",\n      \"field\": {\n        \"name\": \"gender\",\n        \"value\": \"Male\"\n      }\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"storage\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"common-terms-query\",\n      \"field\": {\n        \"name\": \"gender\",\n        \"value\": \"Male\"\n      }\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2402,7 +2402,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"exists-query\",\n      \"field-name\": \"last_name\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"storage\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"exists-query\",\n      \"field-name\": \"last_name\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2432,7 +2432,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"exists-query\",\n      \"field-name\": \"last_name\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"storage\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"exists-query\",\n      \"field-name\": \"last_name\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2467,7 +2467,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"ids-query\",\n      \"ids\": [\"5NidkHoBNqj_cXAK7mv5\", \"59idkHoBNqj_cXAK7mv6\", \"-tijkHoBNqj_cXAKkWtj\"]\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"storage\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"ids-query\",\n      \"ids\": [\"5NidkHoBNqj_cXAK7mv5\", \"59idkHoBNqj_cXAK7mv6\", \"-tijkHoBNqj_cXAKkWtj\"]\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2497,7 +2497,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"ids-query\",\n      \"ids\": [\"5NidkHoBNqj_cXAK7mv5\", \"59idkHoBNqj_cXAK7mv6\", \"-tijkHoBNqj_cXAKkWtj\"]\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"storage\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"ids-query\",\n      \"ids\": [\"5NidkHoBNqj_cXAK7mv5\", \"59idkHoBNqj_cXAK7mv6\", \"-tijkHoBNqj_cXAKkWtj\"]\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2532,7 +2532,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"elasticsearch-search-query\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"storage\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"elasticsearch-search-query\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2562,7 +2562,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"match-all-query\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"storage\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"match-all-query\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2597,7 +2597,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"match-query\",\n      \"field\": {\n        \"name\": \"last_name\",\n        \"value\": \"Altham\"\n      }\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"storage\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"match-query\",\n      \"field\": {\n        \"name\": \"last_name\",\n        \"value\": \"Altham\"\n      }\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2627,7 +2627,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"match-query\",\n      \"field\": {\n        \"name\": \"last_name\",\n        \"value\": \"Altham\"\n      }\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"storage\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"match-query\",\n      \"field\": {\n        \"name\": \"last_name\",\n        \"value\": \"Altham\"\n      }\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2662,7 +2662,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"more-like-this-query\",\n      \"like-fields\": {\n        \"fields\": [\"last_name\", \"first_name\", \"gender\"],\n        \"like-texts\": [\"Neighbour\", \"Reynold\", \"Male\"]\n      }\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"storage\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"more-like-this-query\",\n      \"like-fields\": {\n        \"fields\": [\"last_name\", \"first_name\", \"gender\"],\n        \"like-texts\": [\"Neighbour\", \"Reynold\", \"Male\"]\n      }\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2692,7 +2692,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"more-like-this-query\",\n      \"like-fields\": {\n        \"fields\": [\"last_name\", \"first_name\", \"gender\"],\n        \"like-texts\": [\"Neighbour\", \"Reynold\", \"Male\"]\n      }\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"storage\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"more-like-this-query\",\n      \"like-fields\": {\n        \"fields\": [\"last_name\", \"first_name\", \"gender\"],\n        \"like-texts\": [\"Neighbour\", \"Reynold\", \"Male\"]\n      }\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2727,7 +2727,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"multi-match-query\",\n      \"values\": [\"Neighbour\", \"Reynold\", \"Male\"]\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"storage\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"multi-match-query\",\n      \"values\": [\"Neighbour\", \"Reynold\", \"Male\"]\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2757,7 +2757,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"multi-match-query\",\n      \"values\": [\"Neighbour\", \"Reynold\", \"Male\"]\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"storage\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"multi-match-query\",\n      \"values\": [\"Neighbour\", \"Reynold\", \"Male\"]\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2792,7 +2792,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"prefix-query\",\n      \"prefix\": {\n        \"field-name\": \"gender\",\n        \"value\": \"Female\"\n      }\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"storage\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"prefix-query\",\n      \"prefix\": {\n        \"field-name\": \"gender\",\n        \"value\": \"Female\"\n      }\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2822,7 +2822,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"prefix-query\",\n      \"prefix\": {\n        \"field-name\": \"gender\",\n        \"value\": \"Female\"\n      }\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"storage\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"prefix-query\",\n      \"prefix\": {\n        \"field-name\": \"gender\",\n        \"value\": \"Female\"\n      }\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2857,7 +2857,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"query-string-query\",\n      \"query\": \"(Greson) OR (Meardon)\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"storage\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"query-string-query\",\n      \"query\": \"(Greson) OR (Meardon)\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2887,7 +2887,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"query-string-query\",\n      \"query\": \"(Greson) OR (Meardon)\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"storage\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"query-string-query\",\n      \"query\": \"(Greson) OR (Meardon)\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2922,7 +2922,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"range-query\",\n      \"range-field\": {\n        \"range-type\": {\n          \"type\": \"float-range\"\n        },\n        \"name\": \"id\",\n        \"lte\": \"9\",\n        \"gte\": \"7\"\n      }\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"storage\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"range-query\",\n      \"range-field\": {\n        \"range-type\": {\n          \"type\": \"float-range\"\n        },\n        \"name\": \"id\",\n        \"lte\": \"9\",\n        \"gte\": \"7\"\n      }\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2952,7 +2952,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"range-query\",\n      \"range-field\": {\n        \"range-type\": {\n          \"type\": \"float-range\"\n        },\n        \"name\": \"id\",\n        \"lte\": \"9\",\n        \"gte\": \"7\"\n      }\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"storage\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"range-query\",\n      \"range-field\": {\n        \"range-type\": {\n          \"type\": \"float-range\"\n        },\n        \"name\": \"id\",\n        \"lte\": \"9\",\n        \"gte\": \"7\"\n      }\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2987,7 +2987,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"regex-query\",\n      \"field\": {\n        \"name\": \"gender\",\n        \"value\": \"M.*e\"\n      }\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"storage\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"regex-query\",\n      \"field\": {\n        \"name\": \"gender\",\n        \"value\": \"M.*e\"\n      }\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -3017,7 +3017,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"regex-query\",\n      \"field\": {\n        \"name\": \"gender\",\n        \"value\": \"M.*e\"\n      }\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"storage\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"regex-query\",\n      \"field\": {\n        \"name\": \"gender\",\n        \"value\": \"M.*e\"\n      }\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -3052,7 +3052,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"simple-string-query\",\n      \"query\": \"Altham\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"storage\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"simple-string-query\",\n      \"query\": \"Altham\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -3082,7 +3082,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"simple-string-query\",\n      \"query\": \"Altham\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"storage\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"simple-string-query\",\n      \"query\": \"Altham\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -3117,7 +3117,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"term-query\",\n      \"field\": {\n        \"name\": \"gender\",\n        \"value\": \"Male\"\n      }\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"storage\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"term-query\",\n      \"field\": {\n        \"name\": \"gender\",\n        \"value\": \"Male\"\n      }\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -3147,7 +3147,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"term-query\",\n      \"field\": {\n        \"name\": \"gender\",\n        \"value\": \"Male\"\n      }\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"storage\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"term-query\",\n      \"field\": {\n        \"name\": \"gender\",\n        \"value\": \"Male\"\n      }\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -3182,7 +3182,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"terms-query\",\n      \"field\": {\n        \"name\": \"gender\",\n        \"values\": [\"Male\", \"Female\"]\n      }\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"storage\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"terms-query\",\n      \"field\": {\n        \"name\": \"gender\",\n        \"values\": [\"Male\", \"Female\"]\n      }\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -3212,7 +3212,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"terms-query\",\n      \"field\": {\n        \"name\": \"gender\",\n        \"values\": [\"Male\", \"Female\"]\n      }\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"storage\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"terms-query\",\n      \"field\": {\n        \"name\": \"gender\",\n        \"values\": [\"Male\", \"Female\"]\n      }\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -3247,7 +3247,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"file-system\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"wildcard-query\",\n      \"field\": {\n        \"name\": \"last_name\",\n        \"value\": \"A*m\"\n      }\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output\",\n    \"storage\": {\n      \"type\": \"local\"\n    },\n    \"search-query\": {\n      \"type\": \"wildcard-query\",\n      \"field\": {\n        \"name\": \"last_name\",\n        \"value\": \"A*m\"\n      }\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -3277,7 +3277,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"file-system\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"wildcard-query\",\n      \"field\": {\n        \"name\": \"last_name\",\n        \"value\": \"A*m\"\n      }\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"type\": \"elasticsearch-to-file\",\n    \"in\": \"persons-index\",\n    \"out\": \"hdfs://localhost:9000/data/file_to_elasticsearch/output\",\n    \"storage\": {\n      \"type\": \"hdfs\"\n    },\n    \"search-query\": {\n      \"type\": \"wildcard-query\",\n      \"field\": {\n        \"name\": \"last_name\",\n        \"value\": \"A*m\"\n      }\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",

@@ -4,7 +4,7 @@
     "type" : "json-to-avro",
     "in": "/input/json/data",
     "out": "/output/avro/data",
-    "file-system": {
+    "storage": {
       "type": "*hdfs* or *local*"
     }
   }

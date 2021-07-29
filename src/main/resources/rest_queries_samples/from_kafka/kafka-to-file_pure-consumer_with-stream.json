@@ -4,7 +4,7 @@
     "type" : "kafka-to-file",
     "in" : "input-kafka-topic-name",
     "out" : "/consumed/data/kafka/output/folder",
-    "file-system": {
+    "storage": {
       "type": "hdfs or local"
     },
     "kafka-mode" : {

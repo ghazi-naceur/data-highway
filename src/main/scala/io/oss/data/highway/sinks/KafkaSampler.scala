@@ -6,7 +6,6 @@ import io.oss.data.highway.models.{
   AVRO,
   DataType,
   Earliest,
-  FileSystem,
   HDFS,
   JSON,
   KafkaMode,
@@ -15,7 +14,8 @@ import io.oss.data.highway.models.{
   PureKafkaConsumer,
   PureKafkaStreamsConsumer,
   SparkKafkaPluginConsumer,
-  SparkKafkaPluginStreamsConsumer
+  SparkKafkaPluginStreamsConsumer,
+  Storage
 }
 import io.oss.data.highway.utils.{
   DataFrameUtils,
@@ -34,6 +34,7 @@ import monix.execution.Scheduler.{global => scheduler}
 import scala.concurrent.duration._
 import cats.implicits._
 import io.oss.data.highway.models.DataHighwayError.KafkaError
+import org.apache.hadoop.fs.FileSystem
 
 import scala.jdk.CollectionConverters._
 import scala.util.Try
@@ -41,7 +42,7 @@ import scala.util.Try
 /**
   * The aim of this object is to get data samples, from Kafka topics, and store it in files.
   */
-object KafkaSampler {
+object KafkaSampler extends HdfsUtils {
 
   val logger: Logger = Logger.getLogger(KafkaSampler.getClass)
 
@@ -50,14 +51,14 @@ object KafkaSampler {
     *
     * @param in The input source topic
     * @param out The output path
-    * @param fileSystem The output file system
+    * @param storage The output file system storage
     * @param kafkaMode The Kafka Mode
     * @return a Unit, otherwise a Throwable
     */
   def consumeFromTopic(
       in: String,
       out: String,
-      fileSystem: FileSystem,
+      storage: Storage,
       kafkaMode: KafkaMode
   ): Either[Throwable, Unit] = {
     KafkaUtils.verifyTopicExistence(in, kafkaMode.brokers, enableTopicCreation = false)
@@ -65,22 +66,22 @@ object KafkaSampler {
     kafkaMode match {
 
       case PureKafkaStreamsConsumer(brokers, streamAppId, offset, _) =>
-        sinkWithPureKafkaStreams(in, out, fileSystem, brokers, offset, ext, streamAppId)
+        sinkWithPureKafkaStreams(in, out, storage, brokers, offset, ext, streamAppId, fs)
 
       case PureKafkaConsumer(brokers, consGroup, offset, _) =>
         Either.catchNonFatal(scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
-          sinkWithPureKafka(in, out, fileSystem, brokers, offset, consGroup, ext)
+          sinkWithPureKafka(in, out, storage, brokers, offset, consGroup, ext, fs)
         })
 
       case SparkKafkaPluginStreamsConsumer(brokers, offset, _) =>
         Either.catchNonFatal {
           val thread = new Thread {
-            override def run() {
+            override def run(): Unit = {
               sinkViaSparkKafkaStreamsPlugin(
                 DataFrameUtils.sparkSession,
                 in,
                 out,
-                fileSystem,
+                storage,
                 brokers,
                 offset,
                 ext
@@ -97,10 +98,11 @@ object KafkaSampler {
             DataFrameUtils.sparkSession,
             in,
             out,
-            fileSystem,
+            storage,
             brokers,
             offset,
-            ext
+            ext,
+            fs
           )
         )
       case _ =>
@@ -133,7 +135,7 @@ object KafkaSampler {
     * @param session The Spark session
     * @param in The input kafka topic
     * @param out The output folder
-    * @param fileSystem The output file system
+    * @param storage The output file system storage
     * @param brokerUrls The kafka brokers urls
     * @param offset The kafka consumer offset
     * @param extension The output files extension
@@ -143,10 +145,11 @@ object KafkaSampler {
       session: SparkSession,
       in: String,
       out: String,
-      fileSystem: FileSystem,
+      storage: Storage,
       brokerUrls: String,
       offset: Offset,
-      extension: String
+      extension: String,
+      fs: FileSystem
   ): Unit = {
     import session.implicits._
     var mutableOffset = offset
@@ -171,7 +174,7 @@ object KafkaSampler {
       .select(to_json(struct("value")))
       .toJavaRDD
       .foreach(data =>
-        fileSystem match {
+        storage match {
           case Local =>
             FilesUtils.createFile(
               out,
@@ -180,6 +183,7 @@ object KafkaSampler {
             )
           case HDFS =>
             HdfsUtils.save(
+              fs,
               s"$out/spark-kafka-plugin-${UUID.randomUUID()}-${System.currentTimeMillis()}.$extension",
               data.toString()
             )
@@ -193,7 +197,7 @@ object KafkaSampler {
     * @param session The Spark session
     * @param in The input kafka topic
     * @param out The output folder
-    * @param fileSystem The output file system
+    * @param storage The output file system storage
     * @param brokerUrls The kafka brokers urls
     * @param offset The kafka consumer offset
     * @param extension The output files extension
@@ -203,7 +207,7 @@ object KafkaSampler {
       session: SparkSession,
       in: String,
       out: String,
-      fileSystem: FileSystem,
+      storage: Storage,
       brokerUrls: String,
       offset: Offset,
       extension: String
@@ -213,7 +217,7 @@ object KafkaSampler {
       s"Starting to sink '$extension' data provided by the input topic '$in' in the output folder pattern " +
         s"'$out/spark-kafka-streaming-plugin-*****$extension'"
     )
-    fileSystem match {
+    storage match {
       case Local =>
         session.readStream
           .format("kafka")
@@ -248,7 +252,7 @@ object KafkaSampler {
           .option("path", s"$out/spark-kafka-streaming-plugin-${System.currentTimeMillis()}")
           .option(
             "checkpointLocation",
-            s"${HdfsUtils.hadoopConf.host}/tmp/checkpoint/${UUID.randomUUID()}-${System.currentTimeMillis()}"
+            s"${hadoopConf.host}/tmp/checkpoint/${UUID.randomUUID()}-${System.currentTimeMillis()}"
           )
           .start()
           .awaitTermination()
@@ -260,7 +264,7 @@ object KafkaSampler {
     *
     * @param in The input kafka topic
     * @param out The output folder
-    * @param fileSystem The output file system
+    * @param storage The output file system storage
     * @param brokerUrls The kafka brokers urls
     * @param offset The kafka consumer offset
     * @param extension The output files extension
@@ -270,22 +274,23 @@ object KafkaSampler {
   private def sinkWithPureKafkaStreams(
       in: String,
       out: String,
-      fileSystem: FileSystem,
+      storage: Storage,
       brokerUrls: String,
       offset: Offset,
       extension: String,
-      streamAppId: String
+      streamAppId: String,
+      fs: FileSystem
   ): Either[Throwable, Unit] = {
     Try {
       val kafkaStreamEntity =
         KafkaTopicConsumer.consumeWithStream(streamAppId, in, offset, brokerUrls)
       kafkaStreamEntity.dataKStream.mapValues(data => {
         val uuid: String = s"${UUID.randomUUID()}-${System.currentTimeMillis()}"
-        fileSystem match {
+        storage match {
           case Local =>
             FilesUtils.createFile(out, s"kafka-streams-$uuid.$extension", data)
           case HDFS =>
-            HdfsUtils.save(s"$out/kafka-streams-$uuid.$extension", data)
+            HdfsUtils.save(fs, s"$out/kafka-streams-$uuid.$extension", data)
         }
         logger.info(
           s"Successfully sinking '$extension' data provided by the input topic '$in' in the output folder pattern " +
@@ -302,20 +307,23 @@ object KafkaSampler {
     *
     * @param in The input kafka topic
     * @param out The output folder
+    * @param storage The output file system storage
     * @param brokerUrls The kafka brokers urls
     * @param offset The kafka consumer offset
     * @param consumerGroup The consumer group
     * @param extension The output files extension
+    * @param fs The provided File System
     * @return a Unit, otherwise an Error
     */
   private def sinkWithPureKafka(
       in: String,
       out: String,
-      fileSystem: FileSystem,
+      storage: Storage,
       brokerUrls: String,
       offset: Offset,
       consumerGroup: String,
-      extension: String
+      extension: String,
+      fs: FileSystem
   ): Either[KafkaError, Unit] = {
     KafkaTopicConsumer
       .consume(in, brokerUrls, offset, consumerGroup)
@@ -328,12 +336,12 @@ object KafkaSampler {
           )
           val uuid: String =
             s"${UUID.randomUUID()}-${System.currentTimeMillis()}"
-          fileSystem match {
+          storage match {
             case Local =>
               FilesUtils
                 .createFile(out, s"simple-consumer-$uuid.$extension", data.value())
             case HDFS =>
-              HdfsUtils.save(s"$out/simple-consumer-$uuid.$extension", data.value())
+              HdfsUtils.save(fs, s"$out/simple-consumer-$uuid.$extension", data.value())
           }
           logger.info(
             s"Successfully sinking '$extension' data provided by the input topic '$in' in the output folder pattern " +

@@ -4,7 +4,7 @@
     "type" : "csv-to-json",
     "in": "/input/csv/data",
     "out": "/output/json/data",
-    "file-system": {
+    "storage": {
       "type": "*hdfs* or *local*"
     }
   }

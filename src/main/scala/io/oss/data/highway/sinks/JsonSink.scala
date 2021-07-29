@@ -1,14 +1,15 @@
 package io.oss.data.highway.sinks
 
-import io.oss.data.highway.models.{DataType, FileSystem, HDFS, JSON, Local}
+import io.oss.data.highway.models.{DataType, Storage, HDFS, JSON, Local}
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
+import org.apache.hadoop.fs.FileSystem
 import org.apache.log4j.Logger
 
 import java.io.File
 
-object JsonSink {
+object JsonSink extends HdfsUtils {
 
   val logger: Logger = Logger.getLogger(JsonSink.getClass.getName)
 
@@ -50,7 +51,7 @@ object JsonSink {
     * @param in The input data path
     * @param out The output data path
     * @param saveMode The file saving mode
-    * @param fileSystem The file system : It can be Local or HDFS
+    * @param storage The file system storage : It can be Local or HDFS
     * @param inputDataType The type of the input data
     * @return List of List of Path, otherwise an Error
     */
@@ -58,16 +59,16 @@ object JsonSink {
       in: String,
       out: String,
       saveMode: SaveMode,
-      fileSystem: FileSystem,
+      storage: Storage,
       inputDataType: DataType
   ): Either[Throwable, List[List[String]]] = {
     val basePath = new File(in).getParent
 
-    fileSystem match {
+    storage match {
       case Local =>
         handleLocalFS(in, basePath, out, saveMode, inputDataType)
       case HDFS =>
-        handleHDFS(in, basePath, out, saveMode, inputDataType)
+        handleHDFS(in, basePath, out, saveMode, inputDataType, fs)
     }
   }
 
@@ -79,6 +80,7 @@ object JsonSink {
     * @param out The output data path
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
+    * @param fs The provided File System storage
     * @return List of List of String, otherwise an Error
     */
   private def handleHDFS(
@@ -86,12 +88,13 @@ object JsonSink {
       basePath: String,
       out: String,
       saveMode: SaveMode,
-      inputDataType: DataType
+      inputDataType: DataType,
+      fs: FileSystem
   ): Either[Throwable, List[List[String]]] = {
     for {
-      folders <- HdfsUtils.listFolders(in)
+      folders <- HdfsUtils.listFolders(fs, in)
       _ = logger.info("folders : " + folders)
-      filtered <- HdfsUtils.verifyNotEmpty(folders)
+      filtered <- HdfsUtils.verifyNotEmpty(fs, folders)
       list <-
         filtered
           .traverse(folder => {
@@ -103,10 +106,10 @@ object JsonSink {
               saveMode,
               inputDataType
             ).flatMap(_ => {
-              HdfsUtils.movePathContent(folder, basePath)
+              HdfsUtils.movePathContent(fs, folder, basePath)
             })
           })
-      _ = HdfsUtils.cleanup(in)
+      _ = HdfsUtils.cleanup(fs, in)
     } yield list
   }
 
