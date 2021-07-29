@@ -51,6 +51,7 @@ libraryDependencies ++= Seq(
   "com.github.mrpowers"    %% "spark-fast-tests"         % "0.23.0"         % "test",
   "org.apache.hadoop"       % "hadoop-hdfs-client"       % hadoopVersion,
   "org.apache.hadoop"       % "hadoop-common"            % hadoopVersion,
+  "org.apache.hadoop"       % "hadoop-minicluster"       % hadoopVersion    % Test,
   "org.apache.kafka"       %% "kafka"                    % kafkaVersion,
   "org.apache.kafka"       %% "kafka-streams-scala"      % kafkaVersion,
   "org.apache.spark"       %% "spark-sql-kafka-0-10"     % kafkaVersion,
