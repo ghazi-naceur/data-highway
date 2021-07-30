@@ -215,20 +215,21 @@ object KafkaSampler extends HdfsUtils {
       s"Starting to sink '$extension' data provided by the input topic '$in' in the output folder pattern " +
         s"'$out/spark-kafka-streaming-plugin-*****$extension'"
     )
+    val stream = session.readStream
+      .format("kafka")
+      .option("kafka.bootstrap.servers", brokerUrls)
+      .option("startingOffsets", offset.value)
+      .option("subscribe", in)
+      .load()
+      .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
+      .as[(String, String)]
+      .select("value")
+      .writeStream
+      .format(extension)
+      .option("path", s"$out/spark-kafka-streaming-plugin-${System.currentTimeMillis()}")
     storage match {
       case Local =>
-        session.readStream
-          .format("kafka")
-          .option("kafka.bootstrap.servers", brokerUrls)
-          .option("startingOffsets", offset.value)
-          .option("subscribe", in)
-          .load()
-          .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
-          .as[(String, String)]
-          .select("value")
-          .writeStream
-          .format(extension)
-          .option("path", s"$out/spark-kafka-streaming-plugin-${System.currentTimeMillis()}")
+        stream
           .option(
             "checkpointLocation",
             s"/tmp/checkpoint/${UUID.randomUUID()}-${System.currentTimeMillis()}"
@@ -236,18 +237,7 @@ object KafkaSampler extends HdfsUtils {
           .start()
           .awaitTermination()
       case HDFS =>
-        session.readStream
-          .format("kafka")
-          .option("kafka.bootstrap.servers", brokerUrls)
-          .option("startingOffsets", offset.value)
-          .option("subscribe", in)
-          .load()
-          .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
-          .as[(String, String)]
-          .select("value")
-          .writeStream
-          .format(extension)
-          .option("path", s"$out/spark-kafka-streaming-plugin-${System.currentTimeMillis()}")
+        stream
           .option(
             "checkpointLocation",
             s"${hadoopConf.host}/tmp/checkpoint/${UUID.randomUUID()}-${System.currentTimeMillis()}"
