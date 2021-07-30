@@ -135,7 +135,7 @@ object KafkaSink extends HdfsUtils {
         val basePath = new Path(jsonPath).getParent
         HdfsUtils
           .listFolders(fs, jsonPath)
-          .flatMap(paths => HdfsUtils.verifyNotEmpty(fs, paths))
+          .flatMap(paths => HdfsUtils.filterNonEmptyFolders(fs, paths))
           .map(paths => {
             paths.map(path => {
               DataFrameUtils
@@ -340,7 +340,7 @@ object KafkaSink extends HdfsUtils {
 
         case HDFS =>
           HdfsUtils
-            .getJsonLines(fs, jsonPath)
+            .getLines(fs, jsonPath)
             .foreach(line => {
               val uuid = UUID.randomUUID().toString
               val data =

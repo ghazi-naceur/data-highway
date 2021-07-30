@@ -98,7 +98,7 @@ object CsvSink extends HdfsUtils {
     for {
       folders <- HdfsUtils.listFolders(fs, in)
       _ = logger.info("folders : " + folders)
-      filtered <- HdfsUtils.verifyNotEmpty(fs, folders)
+      filtered <- HdfsUtils.filterNonEmptyFolders(fs, folders)
       res <- inputDataType match {
         case XLSX =>
           filtered

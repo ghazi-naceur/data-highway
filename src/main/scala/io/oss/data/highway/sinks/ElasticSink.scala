@@ -59,7 +59,7 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
           .listFilesRecursively(fs, in)
           .foreach(file => {
             HdfsUtils
-              .getJsonLines(fs, file)
+              .getLines(fs, file)
               .foreach(line => indexDocInEs(out, line))
             HdfsUtils.movePathContent(fs, file, basePath)
           })
@@ -102,7 +102,7 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
           .listFilesRecursively(fs, in)
           .foreach(file => {
             val queries = HdfsUtils
-              .getJsonLines(fs, file)
+              .getLines(fs, file)
               .map(line => {
                 indexInto(out) doc line refresh RefreshPolicy.IMMEDIATE
               })

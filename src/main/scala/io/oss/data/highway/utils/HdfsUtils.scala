@@ -177,7 +177,10 @@ object HdfsUtils extends HdfsUtils {
     * @param folders The provided folders
     * @return List of String, otherwise a Throwable
     */
-  def verifyNotEmpty(fs: FileSystem, folders: List[String]): Either[Throwable, List[String]] = {
+  def filterNonEmptyFolders(
+      fs: FileSystem,
+      folders: List[String]
+  ): Either[Throwable, List[String]] = {
     Either.catchNonFatal {
       folders.filter(folder => fs.listFiles(new Path(folder), false).hasNext)
     }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
@@ -209,7 +212,7 @@ object HdfsUtils extends HdfsUtils {
     * @param jsonPath The provided json file path
     * @return List of String
     */
-  def getJsonLines(fs: FileSystem, jsonPath: String): List[String] = {
+  def getLines(fs: FileSystem, jsonPath: String): List[String] = {
     val path   = new Path(jsonPath)
     val stream = fs.open(path)
     Stream
