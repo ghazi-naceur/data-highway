@@ -13,9 +13,6 @@
       "consumer-group" : "consumer-group-name",
       "offset" : {
         "type": "offset-to-consume-from"
-      },
-      "data-type" : {
-        "type" : "json"
       }
     }
   }

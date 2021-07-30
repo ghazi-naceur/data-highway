@@ -12,9 +12,6 @@
       "brokers" : "kafka-broker-url:kafka-port",
       "offset" : {
         "type": "offset-to-consume-from"
-      },
-      "data-type" : {
-        "type" : "json"
       }
     }
   }

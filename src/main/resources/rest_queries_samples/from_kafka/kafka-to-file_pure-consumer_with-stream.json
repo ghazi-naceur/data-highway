@@ -13,9 +13,6 @@
       "stream-app-id" : "stream-app-name",
       "offset" : {
         "type": "offset-to-consume-from"
-      },
-      "data-type" : {
-        "type" : "json"
       }
     }
   }

@@ -3,8 +3,6 @@ package io.oss.data.highway.sinks
 import java.time.Duration
 import java.util.UUID
 import io.oss.data.highway.models.{
-  AVRO,
-  DataType,
   Earliest,
   HDFS,
   JSON,
@@ -17,13 +15,7 @@ import io.oss.data.highway.models.{
   SparkKafkaPluginStreamsConsumer,
   Storage
 }
-import io.oss.data.highway.utils.{
-  DataFrameUtils,
-  FilesUtils,
-  HdfsUtils,
-  KafkaTopicConsumer,
-  KafkaUtils
-}
+import io.oss.data.highway.utils.{FilesUtils, HdfsUtils, KafkaTopicConsumer, KafkaUtils}
 import org.apache.spark.sql.functions.to_json
 import org.apache.kafka.streams.KafkaStreams
 import org.apache.log4j.Logger
@@ -34,17 +26,18 @@ import monix.execution.Scheduler.{global => scheduler}
 import scala.concurrent.duration._
 import cats.implicits._
 import io.oss.data.highway.models.DataHighwayError.KafkaError
+import io.oss.data.highway.utils.DataFrameUtils.sparkSession
 import org.apache.hadoop.fs.FileSystem
 
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
 /**
-  * The aim of this object is to get data samples, from Kafka topics, and store it in files.
+  * The aim of this object is to get data records samples, from Kafka topics, and store it in files.
   */
 object KafkaSampler extends HdfsUtils {
 
-  val logger: Logger = Logger.getLogger(KafkaSampler.getClass)
+  val logger: Logger = Logger.getLogger(KafkaSampler.getClass.getName)
 
   /**
     * Consumes data from a topic
@@ -62,69 +55,32 @@ object KafkaSampler extends HdfsUtils {
       kafkaMode: KafkaMode
   ): Either[Throwable, Unit] = {
     KafkaUtils.verifyTopicExistence(in, kafkaMode.brokers, enableTopicCreation = false)
-    val ext = computeOutputExtension(kafkaMode.dataType)
+
     kafkaMode match {
-
-      case PureKafkaStreamsConsumer(brokers, streamAppId, offset, _) =>
-        sinkWithPureKafkaStreams(in, out, storage, brokers, offset, ext, streamAppId, fs)
-
-      case PureKafkaConsumer(brokers, consGroup, offset, _) =>
+      case PureKafkaStreamsConsumer(brokers, streamAppId, offset) =>
+        sinkWithPureKafkaStreams(in, out, storage, brokers, offset, streamAppId, fs)
+      case PureKafkaConsumer(brokers, consGroup, offset) =>
+        // todo repetitive re-subscription ===> maybe make it one-shot job
+        // todo start the app with a new "consumer-group"
         Either.catchNonFatal(scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
-          sinkWithPureKafka(in, out, storage, brokers, offset, consGroup, ext, fs)
+          sinkWithPureKafka(in, out, storage, brokers, offset, consGroup, fs)
         })
-
-      case SparkKafkaPluginStreamsConsumer(brokers, offset, _) =>
+      case SparkKafkaPluginStreamsConsumer(brokers, offset) =>
         Either.catchNonFatal {
-          val thread = new Thread {
-            override def run(): Unit = {
-              sinkViaSparkKafkaStreamsPlugin(
-                DataFrameUtils.sparkSession,
-                in,
-                out,
-                storage,
-                brokers,
-                offset,
-                ext
-              )
-            }
-          }
+          val thread = new Thread(() => {
+            sinkViaSparkKafkaStreamsPlugin(sparkSession, in, out, storage, brokers, offset)
+          })
           thread.start()
         }
-
-      case SparkKafkaPluginConsumer(brokers, offset, _) =>
+      case SparkKafkaPluginConsumer(brokers, offset) =>
         // one-shot job
         Either.catchNonFatal(
-          sinkViaSparkKafkaPlugin(
-            DataFrameUtils.sparkSession,
-            in,
-            out,
-            storage,
-            brokers,
-            offset,
-            ext
-          )
+          sinkViaSparkKafkaPlugin(sparkSession, in, out, storage, brokers, offset)
         )
       case _ =>
         throw new RuntimeException(
           s"This mode is not supported while consuming data. The provided input kafka mode is : '$kafkaMode'"
         )
-    }
-  }
-
-  /**
-    * Computes the generated output files extension based on the output DataType
-    *
-    * @param dataType The output files DataType
-    * @return The output extension
-    */
-  @deprecated("To be deleted. To set JSON as default.")
-  private def computeOutputExtension(dataType: Option[DataType]): String = {
-    dataType match {
-      case optDataType @ Some(dataType)
-          if optDataType.contains(JSON) || optDataType.contains(AVRO) =>
-        dataType.extension
-      case None => JSON.extension
-      case _    => JSON.extension
     }
   }
 
@@ -137,7 +93,6 @@ object KafkaSampler extends HdfsUtils {
     * @param storage The output file system storage
     * @param brokerUrls The kafka brokers urls
     * @param offset The kafka consumer offset
-    * @param extension The output files extension
     * @return Unit
     */
   private def sinkViaSparkKafkaPlugin(
@@ -146,8 +101,7 @@ object KafkaSampler extends HdfsUtils {
       out: String,
       storage: Storage,
       brokerUrls: String,
-      offset: Offset,
-      extension: String
+      offset: Offset
   ): Unit = {
     import session.implicits._
     var mutableOffset = offset
@@ -158,8 +112,8 @@ object KafkaSampler extends HdfsUtils {
       mutableOffset = Earliest
     }
     logger.info(
-      s"Starting to sink '$extension' data provided by the input topic '$in' in the output folder pattern" +
-        s" '$out/spark-kafka-plugin-*****$extension'"
+      s"Starting to sink '${JSON.extension}' data provided by the input topic '$in' in the output folder pattern" +
+        s" '$out/spark-kafka-plugin-*****${JSON.extension}'"
     )
     session.read
       .format("kafka")
@@ -176,13 +130,13 @@ object KafkaSampler extends HdfsUtils {
           case Local =>
             FilesUtils.createFile(
               out,
-              s"spark-kafka-plugin-${UUID.randomUUID()}-${System.currentTimeMillis()}.$extension",
+              s"spark-kafka-plugin-${UUID.randomUUID()}-${System.currentTimeMillis()}.${JSON.extension}",
               data.toString()
             )
           case HDFS =>
             HdfsUtils.save(
               fs,
-              s"$out/spark-kafka-plugin-${UUID.randomUUID()}-${System.currentTimeMillis()}.$extension",
+              s"$out/spark-kafka-plugin-${UUID.randomUUID()}-${System.currentTimeMillis()}.${JSON.extension}",
               data.toString()
             )
         }
@@ -198,7 +152,6 @@ object KafkaSampler extends HdfsUtils {
     * @param storage The output file system storage
     * @param brokerUrls The kafka brokers urls
     * @param offset The kafka consumer offset
-    * @param extension The output files extension
     * @return Unit
     */
   private def sinkViaSparkKafkaStreamsPlugin(
@@ -207,13 +160,12 @@ object KafkaSampler extends HdfsUtils {
       out: String,
       storage: Storage,
       brokerUrls: String,
-      offset: Offset,
-      extension: String
+      offset: Offset
   ): Unit = {
     import session.implicits._
     logger.info(
-      s"Starting to sink '$extension' data provided by the input topic '$in' in the output folder pattern " +
-        s"'$out/spark-kafka-streaming-plugin-*****$extension'"
+      s"Starting to sink '${JSON.extension}' data provided by the input topic '$in' in the output folder pattern " +
+        s"'$out/spark-kafka-streaming-plugin-*****${JSON.extension}'"
     )
     val stream = session.readStream
       .format("kafka")
@@ -225,7 +177,7 @@ object KafkaSampler extends HdfsUtils {
       .as[(String, String)]
       .select("value")
       .writeStream
-      .format(extension)
+      .format(JSON.extension)
       .option("path", s"$out/spark-kafka-streaming-plugin-${System.currentTimeMillis()}")
     storage match {
       case Local =>
@@ -255,7 +207,6 @@ object KafkaSampler extends HdfsUtils {
     * @param storage The output file system storage
     * @param brokerUrls The kafka brokers urls
     * @param offset The kafka consumer offset
-    * @param extension The output files extension
     * @param streamAppId The identifier of the streaming application
     * @return a Unit, otherwise an Error
     */
@@ -265,7 +216,6 @@ object KafkaSampler extends HdfsUtils {
       storage: Storage,
       brokerUrls: String,
       offset: Offset,
-      extension: String,
       streamAppId: String,
       fs: FileSystem
   ): Either[Throwable, Unit] = {
@@ -276,13 +226,13 @@ object KafkaSampler extends HdfsUtils {
         val uuid: String = s"${UUID.randomUUID()}-${System.currentTimeMillis()}"
         storage match {
           case Local =>
-            FilesUtils.createFile(out, s"kafka-streams-$uuid.$extension", data)
+            FilesUtils.createFile(out, s"kafka-streams-$uuid.${JSON.extension}", data)
           case HDFS =>
-            HdfsUtils.save(fs, s"$out/kafka-streams-$uuid.$extension", data)
+            HdfsUtils.save(fs, s"$out/kafka-streams-$uuid.${JSON.extension}", data)
         }
         logger.info(
-          s"Successfully sinking '$extension' data provided by the input topic '$in' in the output folder pattern " +
-            s"'$out/kafka-streams-*****$extension'"
+          s"Successfully sinking '${JSON.extension}' data provided by the input topic '$in' in the output folder pattern " +
+            s"'$out/kafka-streams-*****${JSON.extension}'"
         )
       })
       val streams = new KafkaStreams(kafkaStreamEntity.builder.build(), kafkaStreamEntity.props)
@@ -299,7 +249,6 @@ object KafkaSampler extends HdfsUtils {
     * @param brokerUrls The kafka brokers urls
     * @param offset The kafka consumer offset
     * @param consumerGroup The consumer group
-    * @param extension The output files extension
     * @param fs The provided File System
     * @return a Unit, otherwise an Error
     */
@@ -310,7 +259,6 @@ object KafkaSampler extends HdfsUtils {
       brokerUrls: String,
       offset: Offset,
       consumerGroup: String,
-      extension: String,
       fs: FileSystem
   ): Either[KafkaError, Unit] = {
     KafkaTopicConsumer
@@ -327,13 +275,13 @@ object KafkaSampler extends HdfsUtils {
           storage match {
             case Local =>
               FilesUtils
-                .createFile(out, s"simple-consumer-$uuid.$extension", data.value())
+                .createFile(out, s"simple-consumer-$uuid.${JSON.extension}", data.value())
             case HDFS =>
-              HdfsUtils.save(fs, s"$out/simple-consumer-$uuid.$extension", data.value())
+              HdfsUtils.save(fs, s"$out/simple-consumer-$uuid.${JSON.extension}", data.value())
           }
           logger.info(
-            s"Successfully sinking '$extension' data provided by the input topic '$in' in the output folder pattern " +
-              s"'$out/simple-consumer-*****$extension'"
+            s"Successfully sinking '${JSON.extension}' data provided by the input topic '$in' in the output folder pattern " +
+              s"'$out/simple-consumer-*****${JSON.extension}'"
           )
         }
         consumed.close() // Close it to rejoin again while rescheduling

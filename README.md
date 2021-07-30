@@ -519,17 +519,11 @@ Consuming data will be performed by **"pure-kafka-consumer"** :
       "consumer-group": "consumer-group-name",
       "offset": {
         "type": "offset-to-consume-from"
-      },
-      "data-type": {
-        "type": "the-desired-datatype-of-the-generated-files"
       }
     }
   }
 }
 ```
-- **"data-type"** is an optional field. Its accepted values are json and avro (json is the default value, if not set).
-  It will be set as an extension for the generated output files.
-  
 - **"brokers"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
 
 - **"offset"** could have one of these values **earliest** and **latest**
@@ -553,17 +547,11 @@ Consuming data will be performed by **"pure-kafka-streams-consumer"** :
       "stream-app-id": "stream-app-name",
       "offset": {
         "type": "offset-to-consume-from"
-      },
-      "data-type": {
-        "type": "the-desired-datatype-of-the-generated-files"
       }
     }
   }
 }
 ```
-- **"data-type"** is an optional field. Its accepted values are json and avro (json is the default value, if not set).
-  It will be set as an extension for the generated output files.
-
 - **"brokers"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
 
 - **"offset"** could have one of these values **earliest** and **latest**
@@ -588,17 +576,11 @@ Consuming data will be performed by **"spark-kafka-plugin-consumer"** :
       "brokers": "your-kafka-brokers-with-its-ports-separated-with-commas",
       "offset": {
         "type": "offset-to-consume-from"
-      },
-      "data-type": {
-        "type": "the-desired-datatype-of-the-generated-files"
       }
     }
   }
 }
 ```
-- **"data-type"** is an optional field. Its accepted values are json and avro (json is the default value, if not set).
-  It will be set as an extension for the generated output files.
-
 - **"brokers"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
 
 - **"offset"** could have one of these values **earliest** and **latest**
@@ -621,17 +603,11 @@ Consuming data will be performed by **"spark-kafka-plugin-streams-consumer"** :
       "brokers": "your-kafka-brokers-with-its-ports-separated-with-commas",
       "offset": {
         "type": "earliest"
-      },
-      "data-type": {
-        "type": "the-desired-datatype-of-the-generated-files"
       }
     }
   }
 }
 ```
-- **"data-type"** is an optional field. Its accepted values are json and avro (json is the default value, if not set).
-  It will be set as an extension for the generated output files.
-
 - **"brokers"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
 
 - **"offset"** could have one of these values **earliest** and **latest**
