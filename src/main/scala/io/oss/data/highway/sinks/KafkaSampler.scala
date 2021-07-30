@@ -101,8 +101,7 @@ object KafkaSampler extends HdfsUtils {
             storage,
             brokers,
             offset,
-            ext,
-            fs
+            ext
           )
         )
       case _ =>
@@ -148,8 +147,7 @@ object KafkaSampler extends HdfsUtils {
       storage: Storage,
       brokerUrls: String,
       offset: Offset,
-      extension: String,
-      fs: FileSystem
+      extension: String
   ): Unit = {
     import session.implicits._
     var mutableOffset = offset
