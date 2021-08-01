@@ -3,7 +3,7 @@ FROM ubuntu:18.04
 RUN apt-get update && apt-get install --no-install-recommends -y tzdata && \
  apt install --no-install-recommends -y openjdk-8-jdk openjdk-8-jre wget curl
 
-ARG DATA_HIGHWAY_VERSION=0.2
+ARG DATA_HIGHWAY_VERSION=0.3-rc
 RUN mkdir -p /app/config && \
   mkdir -p /app/data/spark/input && \
   mkdir -p /app/data/spark/output && \
@@ -24,7 +24,7 @@ RUN  apt-get update  &&  apt-get -y install git && \
     cd data-highway && \
     git branch && \
     git fetch --all && \
-    git checkout patch-docker_folder-generation
+    git checkout master
 
 RUN cd /application/data-highway && \
     export PATH="/usr/local/sbt/bin:$PATH" && mkdir -p "/usr/local/sbt" && wget -qO - --no-check-certificate "https://github.com/sbt/sbt/releases/download/v1.5.5/sbt-1.5.5.tgz" | tar xz -C /usr/local/sbt --strip-components=1 && \
@@ -33,7 +33,7 @@ RUN cd /application/data-highway && \
     sbt compile && \
     sbt assembly
 
-RUN mv /application/data-highway/target/scala-2.12/data-highway-0.2.jar /app/jar && \
+RUN mv /application/data-highway/target/scala-2.12/data-highway-${DATA_HIGHWAY_VERSION}.jar /app/jar && \
   rm -R /application
 
 ARG SPARK_VERSION=2.4.6

@@ -8,6 +8,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 import java.nio.file.Files
+import java.util.UUID
 
 class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with FSUtils {
 
@@ -117,7 +118,7 @@ class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach w
   }
 
   "FilesUtils.create" should "throw an exception" in {
-    val result = FilesUtils.createFile("", "file.txt", "some content")
+    val result = FilesUtils.createFile("", "", "some content")
     result.left.get shouldBe a[DataHighwayFileError]
   }
 
@@ -164,10 +165,10 @@ class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach w
   }
 
   "FilesUtils.cleanup" should "delete the path content" in {
-    val time    = System.currentTimeMillis().toString
-    val srcPath = s"/tmp/data-highway/input-$time/dataset"
+    val uuid    = UUID.randomUUID().toString
+    val srcPath = s"/tmp/data-highway/input-$uuid/dataset"
     Files.createDirectories(new File(srcPath).toPath)
-    Files.createFile(new File(srcPath + "/file.txt").toPath)
+    Files.createFile(new File(srcPath + s"/file-*$uuid.txt").toPath)
     FilesUtils.cleanup(srcPath)
     FilesUtils
       .listFiles(List(srcPath))
