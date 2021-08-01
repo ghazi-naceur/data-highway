@@ -4,7 +4,7 @@
     "type" : "kafka-to-file",
     "in" : "input-kafka-topic-name",
     "out" : "/consumed/data/kafka/output/folder",
-    "file-system": {
+    "storage": {
       "type": "hdfs or local"
     },
     "kafka-mode" : {
@@ -12,9 +12,6 @@
       "brokers" : "kafka-broker-url:kafka-port",
       "offset" : {
         "type": "offset-to-consume-from"
-      },
-      "data-type" : {
-        "type" : "json"
       }
     }
   }

@@ -4,7 +4,7 @@
     "type" : "json-to-parquet",
     "in": "/input/json/data",
     "out": "/output/parquet/data",
-    "file-system": {
+    "storage": {
       "type": "hdfs or local"
     }
   }

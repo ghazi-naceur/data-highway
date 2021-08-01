@@ -4,7 +4,7 @@
     "type" : "kafka-to-file",
     "in" : "input-kafka-topic-name",
     "out" : "/consumed/data/kafka/output/folder",
-    "file-system": {
+    "storage": {
       "type": "*hdfs* or *local*"
     },
     "kafka-mode" : {
@@ -13,9 +13,6 @@
       "consumer-group" : "consumer-group-name",
       "offset" : {
         "type": "offset-to-consume-from"
-      },
-      "data-type" : {
-        "type" : "json"
       }
     }
   }

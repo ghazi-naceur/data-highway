@@ -4,7 +4,7 @@
     "type": "file-to-kafka",
     "in": "/json/files/input/folder",
     "out" : "output-kafka-topic-name",
-    "file-system": {
+    "storage": {
       "type": "*hdfs* or *local*"
     },
     "kafka-mode": {

@@ -1,6 +1,6 @@
 package io.oss.data.highway.sinks
 
-import io.oss.data.highway.models.{FileSystem, HDFS, JSON, Local}
+import io.oss.data.highway.models.{HDFS, JSON, Local, Storage}
 import io.oss.data.highway.utils.{ElasticUtils, FilesUtils, HdfsUtils}
 import org.apache.log4j.Logger
 import cats.implicits._
@@ -8,7 +8,7 @@ import com.sksamuel.elastic4s.requests.common.RefreshPolicy
 
 import java.io.File
 
-object ElasticSink extends ElasticUtils {
+object ElasticSink extends ElasticUtils with HdfsUtils {
 
   val logger: Logger = Logger.getLogger(ElasticSink.getClass.getName)
 
@@ -18,7 +18,7 @@ object ElasticSink extends ElasticUtils {
     * @param in The input data path
     * @param out The Elasticsearch index
     * @param basePath The base path for input, output and processed folders
-    * @param fileSystem The input file system
+    * @param storage The input file system storage
     * @param bulkEnabled The flag to enable/disable the elastic Bulk
     * @return a Unit, otherwise an Error
     */
@@ -26,14 +26,14 @@ object ElasticSink extends ElasticUtils {
       in: String,
       out: String,
       basePath: String,
-      fileSystem: FileSystem,
+      storage: Storage,
       bulkEnabled: Boolean
   ): Either[Throwable, Unit] = {
     Either.catchNonFatal {
       if (!bulkEnabled)
-        indexWithIndexQuery(in, out, basePath, fileSystem)
+        indexWithIndexQuery(in, out, basePath, storage)
       else
-        indexWithBulkQuery(in, out, basePath, fileSystem)
+        indexWithBulkQuery(in, out, basePath, storage)
       logger.info(s"Successfully indexing data from '$in' into the '$out' index.")
     }
   }
@@ -44,31 +44,31 @@ object ElasticSink extends ElasticUtils {
     * @param in The input data folder
     * @param out The ES index
     * @param basePath The base path of the input folder
-    * @param fileSystem The input file system : Local or HDFS
+    * @param storage The input file system storage : Local or HDFS
     * @return Any
     */
   private def indexWithIndexQuery(
       in: String,
       out: String,
       basePath: String,
-      fileSystem: FileSystem
+      storage: Storage
   ): Any = {
-    fileSystem match {
+    storage match {
       case HDFS =>
         HdfsUtils
-          .listFilesRecursively(in)
+          .listFilesRecursively(fs, in)
           .foreach(file => {
             HdfsUtils
-              .getJsonLines(file)
+              .getLines(fs, file)
               .foreach(line => indexDocInEs(out, line))
-            HdfsUtils.movePathContent(file, basePath)
+            HdfsUtils.movePathContent(fs, file, basePath)
           })
       case Local =>
         FilesUtils
-          .listFilesRecursively(new File(in), Seq(JSON.extension))
+          .listFilesRecursively(new File(in), JSON.extension)
           .foreach(file => {
             FilesUtils
-              .getJsonLines(file.getAbsolutePath)
+              .getLines(file.getAbsolutePath)
               .foreach(line => indexDocInEs(out, line))
             FilesUtils
               .movePathContent(
@@ -85,39 +85,39 @@ object ElasticSink extends ElasticUtils {
     * @param in The input data folder
     * @param out The ES index
     * @param basePath The base path of the input folder
-    * @param fileSystem The input file system : Local or HDFS
+    * @param storage The input file system storage : Local or HDFS
     * @return Any
     */
   private def indexWithBulkQuery(
       in: String,
       out: String,
       basePath: String,
-      fileSystem: FileSystem
+      storage: Storage
   ): Any = {
     import com.sksamuel.elastic4s.ElasticDsl._
 
-    fileSystem match {
+    storage match {
       case HDFS =>
         HdfsUtils
-          .listFilesRecursively(in)
+          .listFilesRecursively(fs, in)
           .foreach(file => {
             val queries = HdfsUtils
-              .getJsonLines(file)
+              .getLines(fs, file)
               .map(line => {
                 indexInto(out) doc line refresh RefreshPolicy.IMMEDIATE
               })
             esClient.execute {
               bulk(queries).refresh(RefreshPolicy.Immediate)
             }.await
-            HdfsUtils.movePathContent(file, basePath)
+            HdfsUtils.movePathContent(fs, file, basePath)
           })
 
       case Local =>
         FilesUtils
-          .listFilesRecursively(new File(in), Seq(JSON.extension))
+          .listFilesRecursively(new File(in), JSON.extension)
           .foreach(file => {
             val queries = FilesUtils
-              .getJsonLines(file.getAbsolutePath)
+              .getLines(file.getAbsolutePath)
               .map(line => {
                 indexInto(out) doc line refresh RefreshPolicy.IMMEDIATE
               })
@@ -152,40 +152,40 @@ object ElasticSink extends ElasticUtils {
     *
     * @param in The input data path
     * @param out The elasticsearch index
-    * @param fileSystem The input file system
+    * @param storage The input file system storage
     * @param bulkEnabled A flag to specify if the Elastic Bulk is enabled or not
     * @return List of Unit, otherwise an Throwable
     */
   def handleElasticsearchChannel(
       in: String,
       out: String,
-      fileSystem: FileSystem,
+      storage: Storage,
       bulkEnabled: Boolean
   ): Either[Throwable, List[Unit]] = {
     val basePath = new File(in).getParent
 
-    fileSystem match {
+    storage match {
       case HDFS =>
         for {
           list <-
             HdfsUtils
-              .listFolders(in)
+              .listFolders(fs, in)
               .traverse(folders => {
                 folders.traverse(folder => {
-                  sendToElasticsearch(folder, out, basePath, fileSystem, bulkEnabled)
+                  sendToElasticsearch(folder, out, basePath, storage, bulkEnabled)
                 })
               })
               .flatten
-          _ = HdfsUtils.cleanup(in)
+          _ = HdfsUtils.cleanup(fs, in)
         } yield list
       case Local =>
         for {
-          folders <- FilesUtils.listFoldersRecursively(in)
+          folders <- FilesUtils.listNonEmptyFoldersRecursively(in)
           list <-
             folders
               .filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)
               .traverse(folder => {
-                sendToElasticsearch(folder, out, basePath, fileSystem, bulkEnabled)
+                sendToElasticsearch(folder, out, basePath, storage, bulkEnabled)
               })
           _ = FilesUtils.cleanup(in)
         } yield list

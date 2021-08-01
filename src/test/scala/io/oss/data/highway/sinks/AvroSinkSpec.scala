@@ -55,7 +55,7 @@ class AvroSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
       })
   }
 
-  "AvroSink.saveParquetAsAvro" should "save a parquet as an avro file" in {
+  "AvroSink" should "convert parquet dataframe to avro" in {
     AvroSink
       .convertToAvro(
         folderParquetToAvro + "input/mock-data-2",
@@ -74,7 +74,7 @@ class AvroSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
     assertSmallDatasetEquality(actual, getExpected, ignoreNullable = true)
   }
 
-  "AvroSink.saveJsonAsAvro" should "save a json as an avro file" in {
+  "AvroSink" should "convert json dataframe to avro" in {
     AvroSink
       .convertToAvro(
         folderJsonToAvro + "input/mock-data-2",
@@ -94,7 +94,7 @@ class AvroSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
     assertSmallDatasetEquality(actual, getExpected, ignoreNullable = true)
   }
 
-  "AvroSink.saveCsvAsAvro" should "save a csv as an avro file" in {
+  "AvroSink" should "convert csv dataframe to avro" in {
     AvroSink
       .convertToAvro(
         folderCsvToAvro + "input/mock-data-2",

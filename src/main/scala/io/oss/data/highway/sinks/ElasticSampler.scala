@@ -18,7 +18,7 @@ import io.oss.data.highway.models.{
   ExistsQuery,
   Field,
   FieldValues,
-  FileSystem,
+  Storage,
   FuzzyQuery,
   GenericRangeField,
   HDFS,
@@ -48,7 +48,7 @@ import io.oss.data.highway.models.{
 
 import java.util.UUID
 
-object ElasticSampler extends ElasticUtils {
+object ElasticSampler extends ElasticUtils with HdfsUtils {
 
   val logger: Logger = Logger.getLogger(ElasticSampler.getClass.getName)
 
@@ -407,70 +407,70 @@ object ElasticSampler extends ElasticUtils {
     *
     * @param in The Elasticsearch index
     * @param out The output base folder
-    * @param fileSystem The output file system
+    * @param storage The output file system storage
     * @param searchQuery The Elasticsearch query
     * @return List of Unit, otherwise an Error
     */
   def saveDocuments(
       in: String,
       out: String,
-      fileSystem: FileSystem,
+      storage: Storage,
       searchQuery: SearchQuery
   ): Either[Throwable, List[Unit]] = {
     searchQuery match {
       case MatchAllQuery =>
-        searchWithMatchAllQuery(in).traverse(saveSearchHit(out, fileSystem))
+        searchWithMatchAllQuery(in).traverse(saveSearchHit(out, storage))
 
       case MatchQuery(field) =>
-        searchWithMatchQuery(in, field).traverse(saveSearchHit(out, fileSystem))
+        searchWithMatchQuery(in, field).traverse(saveSearchHit(out, storage))
 
       case MultiMatchQuery(values) =>
         searchWithMultiMatchQuery(in, values).flatMap(hits => {
-          hits.traverse(saveSearchHit(out, fileSystem))
+          hits.traverse(saveSearchHit(out, storage))
         })
 
       case TermQuery(field) =>
-        searchWithTermQuery(in, field).traverse(saveSearchHit(out, fileSystem))
+        searchWithTermQuery(in, field).traverse(saveSearchHit(out, storage))
 
       case TermsQuery(fieldValues) =>
-        searchWithTermsQuery(in, fieldValues).traverse(saveSearchHit(out, fileSystem))
+        searchWithTermsQuery(in, fieldValues).traverse(saveSearchHit(out, storage))
 
       case CommonTermsQuery(field) =>
-        searchWithCommonTermsQuery(in, field).traverse(saveSearchHit(out, fileSystem))
+        searchWithCommonTermsQuery(in, field).traverse(saveSearchHit(out, storage))
 
       case QueryStringQuery(query) =>
-        searchWithQueryStringQuery(in, query).traverse(saveSearchHit(out, fileSystem))
+        searchWithQueryStringQuery(in, query).traverse(saveSearchHit(out, storage))
 
       case SimpleStringQuery(query) =>
-        searchWithSimpleStringQuery(in, query).traverse(saveSearchHit(out, fileSystem))
+        searchWithSimpleStringQuery(in, query).traverse(saveSearchHit(out, storage))
 
       case PrefixQuery(query) =>
-        searchWithPrefixQuery(in, query).traverse(saveSearchHit(out, fileSystem))
+        searchWithPrefixQuery(in, query).traverse(saveSearchHit(out, storage))
 
       case MoreLikeThisQuery(likeFields) =>
-        searchWithMoreLikeThisQuery(in, likeFields).traverse(saveSearchHit(out, fileSystem))
+        searchWithMoreLikeThisQuery(in, likeFields).traverse(saveSearchHit(out, storage))
 
       case RangeQuery(rangeField) =>
-        searchWithRangeQuery(in, rangeField).traverse(saveSearchHit(out, fileSystem))
+        searchWithRangeQuery(in, rangeField).traverse(saveSearchHit(out, storage))
 
       case ExistsQuery(fieldName) =>
-        searchWithExistsQuery(in, fieldName).traverse(saveSearchHit(out, fileSystem))
+        searchWithExistsQuery(in, fieldName).traverse(saveSearchHit(out, storage))
 
       case WildcardQuery(field) =>
-        searchWithWildcardQuery(in, field).traverse(saveSearchHit(out, fileSystem))
+        searchWithWildcardQuery(in, field).traverse(saveSearchHit(out, storage))
 
       case RegexQuery(field) =>
-        searchWithRegexQuery(in, field).traverse(saveSearchHit(out, fileSystem))
+        searchWithRegexQuery(in, field).traverse(saveSearchHit(out, storage))
 
       case FuzzyQuery(field) =>
-        searchWithFuzzyQuery(in, field).traverse(saveSearchHit(out, fileSystem))
+        searchWithFuzzyQuery(in, field).traverse(saveSearchHit(out, storage))
 
       case IdsQuery(ids) =>
-        searchWithIdsQuery(in, ids).traverse(saveSearchHit(out, fileSystem))
+        searchWithIdsQuery(in, ids).traverse(saveSearchHit(out, storage))
 
       case BoolMatchPhraseQuery(boolFilter, fields) =>
         searchWithBoolMatchPhraseQuery(in, boolFilter, fields).traverse(
-          saveSearchHit(out, fileSystem)
+          saveSearchHit(out, storage)
         )
 
       case _ => Either.catchNonFatal(List())
@@ -521,23 +521,24 @@ object ElasticSampler extends ElasticUtils {
     * Saves an ES document as a Json file
     *
     * @param out The output folder
-    * @param fileSystem The output file system : Local or HDFS
+    * @param storage The output file system : Local or HDFS
     * @return Unit, otherwise a Throwable
     */
   private def saveSearchHit(
       out: String,
-      fileSystem: FileSystem
+      storage: Storage
   ): SearchHit => Either[Throwable, Unit] = { (searchHit: SearchHit) =>
     {
-      fileSystem match {
+      storage match {
         case HDFS =>
           HdfsUtils.save(
+            fs,
             s"$out/${searchHit.index}/es-${searchHit.id}-${UUID.randomUUID()}-${System
               .currentTimeMillis()}.${JSON.extension}",
             searchHit.sourceAsMap.mapValues(_.toString).asJson.noSpaces
           )
         case Local =>
-          FilesUtils.save(
+          FilesUtils.createFile(
             s"$out/${searchHit.index}",
             s"es-${searchHit.id}-${UUID.randomUUID()}-${System
               .currentTimeMillis()}.${JSON.extension}",
