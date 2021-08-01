@@ -1,5 +1,6 @@
 package io.oss.data.highway.sinks
 
+import io.oss.data.highway.models.DataHighwayError.KafkaError
 import io.oss.data.highway.models.{Earliest, Local}
 import io.oss.data.highway.utils.FilesUtils
 import net.manub.embeddedkafka.{EmbeddedKafka, EmbeddedKafkaConfig}
@@ -60,6 +61,38 @@ class KafkaSinkSpec extends AnyWordSpecLike with Matchers with EmbeddedKafka {
     EmbeddedKafka.stop()
   }
 
+  "KafkaSink.publishFileContent" should {
+    "throw an exception" in {
+      val userDefinedConfig = EmbeddedKafkaConfig(kafkaPort = 0, zooKeeperPort = 0)
+      withRunningKafkaOnFoundPort(userDefinedConfig) { implicit actualConfig =>
+        import scala.collection.JavaConverters.mapAsJavaMapConverter
+        val port = actualConfig.kafkaPort
+        val map: Map[String, AnyRef] = Map[String, String](
+          ProducerConfig.BOOTSTRAP_SERVERS_CONFIG -> s"localhost:$port",
+          ProducerConfig.MAX_BLOCK_MS_CONFIG      -> 10000.toString,
+          ProducerConfig.RETRY_BACKOFF_MS_CONFIG  -> 1000.toString
+        ) ++ actualConfig.customProducerProperties
+
+        val producer = new KafkaProducer[String, String](
+          map.asJava,
+          new StringSerializer(),
+          new StringSerializer()
+        )
+        val result = KafkaSink.publishFileContent(
+          "",
+          "",
+          Local,
+          "",
+          producer,
+          null
+        )
+
+        result.left.get shouldBe a[KafkaError]
+      }
+    }
+    EmbeddedKafka.stop()
+  }
+
   "KafkaSink.runStream" should {
     "run stream using Kafka Streams and send content from one topic to another" in {
       val userDefinedConfig = EmbeddedKafkaConfig(kafkaPort = 0, zooKeeperPort = 0)
@@ -68,6 +101,17 @@ class KafkaSinkSpec extends AnyWordSpecLike with Matchers with EmbeddedKafka {
         publishStringMessageToKafka("topic-3", "{\"some-key\":\"some value\"}")
         KafkaSink.runStream("stream-app-2", "topic-3", s"localhost:$port", "topic-4", Earliest)
         consumeFirstStringMessageFrom("topic-4") shouldBe "{\"some-key\":\"some value\"}"
+      }
+    }
+    EmbeddedKafka.stop()
+  }
+
+  "KafkaSink.runStream" should {
+    "throw an exception" in {
+      val userDefinedConfig = EmbeddedKafkaConfig(kafkaPort = 0, zooKeeperPort = 0)
+      withRunningKafkaOnFoundPort(userDefinedConfig) { implicit actualConfig =>
+        val result = KafkaSink.runStream("", "", "", "", Earliest)
+        result.left.get shouldBe a[KafkaError]
       }
     }
     EmbeddedKafka.stop()

@@ -1,5 +1,6 @@
 package io.oss.data.highway.sinks
 
+import io.oss.data.highway.models.DataHighwayError.KafkaError
 import io.oss.data.highway.models.{Earliest, Local}
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
 import net.manub.embeddedkafka.{EmbeddedKafka, EmbeddedKafkaConfig}
@@ -30,6 +31,17 @@ class KafkaSamplerSpec extends AnyWordSpecLike with Matchers with EmbeddedKafka 
 
         val result = FilesUtils.listFiles(List(s"/tmp/data-highway/kafka-to-file/$time"))
         result.right.get.size shouldBe 3
+      }
+    }
+    EmbeddedKafka.stop()
+  }
+
+  "KafkaSampler.sinkWithPureKafka" should {
+    "throw an exception" in {
+      val userDefinedConfig = EmbeddedKafkaConfig(kafkaPort = 0, zooKeeperPort = 0)
+      withRunningKafkaOnFoundPort(userDefinedConfig) { implicit actualConfig =>
+        val result = KafkaSampler.sinkWithPureKafka("", "", Local, "", Earliest, "", null)
+        result.left.get shouldBe a[KafkaError]
       }
     }
     EmbeddedKafka.stop()

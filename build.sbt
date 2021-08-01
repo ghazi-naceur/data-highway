@@ -55,7 +55,7 @@ libraryDependencies ++= Seq(
   "org.apache.kafka"        %% "kafka"                   % kafkaVersion,
   "org.apache.kafka"        %% "kafka-streams-scala"     % kafkaVersion,
   "org.apache.spark"        %% "spark-sql-kafka-0-10"    % kafkaVersion,
-  "io.github.embeddedkafka" %% "embedded-kafka"          % "2.4.0"          % Test,
+  "io.github.embeddedkafka" %% "embedded-kafka"          % kafkaVersion     % Test,
   "org.slf4j"                % "slf4j-log4j12"           % "1.7.25",
   "commons-logging"          % "commons-logging"         % "1.2",
   "org.http4s"              %% "http4s-dsl"              % http4sVersion,

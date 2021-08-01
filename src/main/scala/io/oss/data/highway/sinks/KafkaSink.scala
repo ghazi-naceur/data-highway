@@ -252,7 +252,7 @@ object KafkaSink extends HdfsUtils {
       sys.ShutdownHookThread {
         streams.close(Duration.ofSeconds(10))
       }
-    }
+    }.leftMap(thr => KafkaError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   /**
