@@ -60,11 +60,9 @@ object KafkaSink extends HdfsUtils {
     val prod = new KafkaProducer[String, String](props)
     KafkaUtils.verifyTopicExistence(topic, kafkaMode.brokers, enableTopicCreation = true)
     kafkaMode match {
-
-      case PureKafkaStreamsProducer(brokers, streamAppId, offset, _) =>
+      case PureKafkaStreamsProducer(brokers, streamAppId, offset) =>
         runStream(streamAppId, input, brokers, topic, offset)
-
-      case PureKafkaProducer(_, _) =>
+      case PureKafkaProducer(_) =>
         Either.catchNonFatal {
           scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
             publishPathContent(input, topic, storage, prod, fs)
@@ -76,25 +74,21 @@ object KafkaSink extends HdfsUtils {
             }
           }
         }
-
-      case SparkKafkaPluginStreamsProducer(brokers, offset, _) =>
+      case SparkKafkaPluginStreamsProducer(brokers, offset) =>
         Either.catchNonFatal {
-          val thread = new Thread {
-            override def run(): Unit = {
-              publishWithSparkKafkaStreamsPlugin(
-                input,
-                prod,
-                brokers,
-                topic,
-                checkpointFolder,
-                offset
-              )
-            }
-          }
+          val thread = new Thread(() => {
+            publishWithSparkKafkaStreamsPlugin(
+              input,
+              prod,
+              brokers,
+              topic,
+              checkpointFolder,
+              offset
+            )
+          })
           thread.start()
         }
-
-      case SparkKafkaPluginProducer(brokers, _) =>
+      case SparkKafkaPluginProducer(brokers) =>
         Either.catchNonFatal(scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
           publishWithSparkKafkaPlugin(input, storage, brokers, topic, fs)
           storage match {
@@ -114,27 +108,27 @@ object KafkaSink extends HdfsUtils {
   /**
     * Publishes message via [[io.oss.data.highway.models.SparkKafkaPluginProducer]]
     *
-    * @param jsonPath The path that contains json data to be send
+    * @param inputPath The path that contains json data to be send
     * @param storage The input file system storage : Local or HDFS
     * @param brokers The kafka brokers urls
-    * @param topic The output topic
+    * @param outputTopic The output topic
     * @param fs The provided File System
     * @return Unit, otherwise an Error
     */
-  private def publishWithSparkKafkaPlugin(
-      jsonPath: String,
+  private[sinks] def publishWithSparkKafkaPlugin(
+      inputPath: String,
       storage: Storage,
       brokers: String,
-      topic: String,
+      outputTopic: String,
       fs: FileSystem
   ): Either[Throwable, Unit] = {
     import org.apache.spark.sql.functions.{to_json, struct}
-    logger.info(s"Sending data through Spark Kafka Plugin to '$topic'.")
+    logger.info(s"Sending data through Spark Kafka Plugin to '$outputTopic'.")
     storage match {
       case HDFS =>
-        val basePath = new Path(jsonPath).getParent
+        val basePath = new Path(inputPath).getParent
         HdfsUtils
-          .listFolders(fs, jsonPath)
+          .listFolders(fs, inputPath)
           .flatMap(paths => HdfsUtils.filterNonEmptyFolders(fs, paths))
           .map(paths => {
             paths.map(path => {
@@ -145,7 +139,7 @@ object KafkaSink extends HdfsUtils {
                     .write
                     .format("kafka")
                     .option("kafka.bootstrap.servers", brokers)
-                    .option("topic", topic)
+                    .option("topic", outputTopic)
                     .save()
                 })
               HdfsUtils.movePathContent(fs, path, basePath.toString)
@@ -153,9 +147,9 @@ object KafkaSink extends HdfsUtils {
           })
 
       case Local =>
-        val basePath = new File(jsonPath).getParent
+        val basePath = new File(inputPath).getParent
         FilesUtils
-          .listNonEmptyFoldersRecursively(jsonPath)
+          .listNonEmptyFoldersRecursively(inputPath)
           .map(paths => {
             paths
               .filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)
@@ -167,7 +161,7 @@ object KafkaSink extends HdfsUtils {
                       .write
                       .format("kafka")
                       .option("kafka.bootstrap.servers", brokers)
-                      .option("topic", topic)
+                      .option("topic", outputTopic)
                       .save()
                   })
                 FilesUtils.movePathContent(
@@ -182,16 +176,16 @@ object KafkaSink extends HdfsUtils {
   /**
     * Publishes a message via Spark [[io.oss.data.highway.models.SparkKafkaPluginStreamsProducer]]
     *
-    * @param input The path that contains json data to be send
+    * @param inputTopic The input Kafka topic
     * @param producer The Kafka Producer
     * @param bootstrapServers The kafka brokers urls
-    * @param outputTopic The output topic
+    * @param outputTopic The output Kafka topic
     * @param checkpointFolder The checkpoint folder
     * @param offset The Kafka offset from where the message consumption will begin
     * @return Unit, otherwise an Error
     */
   private def publishWithSparkKafkaStreamsPlugin(
-      input: String,
+      inputTopic: String,
       producer: KafkaProducer[String, String],
       bootstrapServers: String,
       outputTopic: String,
@@ -203,7 +197,7 @@ object KafkaSink extends HdfsUtils {
         .format("kafka")
         .option("kafka.bootstrap.servers", bootstrapServers)
         .option("startingOffsets", offset.value)
-        .option("subscribe", input)
+        .option("subscribe", inputTopic)
         .load()
         .selectExpr("CAST(value AS STRING)")
         .writeStream
@@ -221,17 +215,17 @@ object KafkaSink extends HdfsUtils {
     * Runs Kafka stream via [[io.oss.data.highway.models.PureKafkaStreamsProducer]]
     *
     * @param streamAppId The Kafka stream application id
-    * @param intermediateTopic The Kafka intermediate topic
+    * @param inputTopic The Kafka input topic
     * @param bootstrapServers The kafka brokers urls
-    * @param streamsOutputTopic The Kafka output topic
+    * @param outputTopic The Kafka output topic
     * @param offset The Kafka offset from where the message consumption will begin
     * @return ShutdownHookThread, otherwise an Error
     */
-  private def runStream(
+  private[sinks] def runStream(
       streamAppId: String,
-      intermediateTopic: String,
+      inputTopic: String,
       bootstrapServers: String,
-      streamsOutputTopic: String,
+      outputTopic: String,
       offset: Offset
   ): Either[Throwable, ShutdownHookThread] = {
     Either.catchNonFatal {
@@ -247,13 +241,11 @@ object KafkaSink extends HdfsUtils {
 
       val builder = new StreamsBuilder
 
-      val dataKStream = builder.stream[String, String](intermediateTopic)
-      dataKStream.to(streamsOutputTopic)
+      val dataKStream = builder.stream[String, String](inputTopic)
+      dataKStream.to(outputTopic)
 
       val streams = new KafkaStreams(builder.build(), props)
-      logger.info(
-        s"Sending data through Kafka streams to '$intermediateTopic' topic - Sent data: '$streamsOutputTopic'."
-      )
+      logger.info(s"Sending data through Kafka streams from '$inputTopic' to '$outputTopic'.")
 
       streams.start()
 
@@ -273,7 +265,7 @@ object KafkaSink extends HdfsUtils {
     * @param fs The provided File System
     * @return Any, otherwise an Error
     */
-  private def publishPathContent(
+  private[sinks] def publishPathContent(
       jsonPath: String,
       topic: String,
       storage: Storage,
@@ -312,13 +304,14 @@ object KafkaSink extends HdfsUtils {
     * @param fs The provided File System
     * @return List of String, otherwise a Throwable
     */
-  private def publishFileContent(
+  private[sinks] def publishFileContent(
       jsonPath: String,
       basePath: String,
       storage: Storage,
       topic: String,
       producer: KafkaProducer[String, String],
-      fs: FileSystem
+      fs: FileSystem,
+      zone: String = "processed"
   ): Either[KafkaError, List[String]] = {
     logger.info(s"Sending data of '$jsonPath'")
     Either.catchNonFatal {
@@ -335,7 +328,7 @@ object KafkaSink extends HdfsUtils {
             })
           FilesUtils.movePathContent(
             jsonPath,
-            s"$basePath/processed/${new File(jsonPath).getParentFile.getName}"
+            s"$basePath/$zone/${new File(jsonPath).getParentFile.getName}"
           )
 
         case HDFS =>
