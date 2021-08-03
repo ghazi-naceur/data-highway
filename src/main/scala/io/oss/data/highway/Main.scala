@@ -3,6 +3,7 @@ package io.oss.data.highway
 import io.oss.data.highway.configs.ConfigLoader
 import io.oss.data.highway.sinks.{
   AvroSink,
+  CassandraSink,
   CsvSink,
   ElasticAdminOps,
   ElasticSampler,
@@ -13,7 +14,7 @@ import io.oss.data.highway.sinks.{
   ParquetSink
 }
 import io.oss.data.highway.models._
-import org.apache.spark.sql.SaveMode.Overwrite
+import org.apache.spark.sql.SaveMode.{Append, Overwrite}
 import org.apache.log4j.{BasicConfigurator, Logger}
 
 object Main {
@@ -76,6 +77,8 @@ object Main {
         ElasticSampler.saveDocuments(in, out, fileSystem, searchQuery)
       case ElasticOps(operation) =>
         ElasticAdminOps.execute(operation)
+      case FileToCassandra(in, cassandra) =>
+        CassandraSink.insert(in, cassandra.keyspace, cassandra.table, Append)
       case _ =>
         throw new RuntimeException(s"The provided route '$route' is not supported.")
     }

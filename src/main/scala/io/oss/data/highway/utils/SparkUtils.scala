@@ -13,6 +13,9 @@ trait SparkUtils {
       .master(sparkConf.masterUrl)
       .getOrCreate()
     ss.sparkContext.setLogLevel(sparkConf.logLevel.value)
+    ss.conf
+      .set(s"spark.sql.catalog.cass100", "com.datastax.spark.connector.datasource.CassandraCatalog")
+    ss.conf.set(s"spark.sql.catalog.cass100.spark.cassandra.connection.host", "127.0.0.100")
     ss
   }
 }
