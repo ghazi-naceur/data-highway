@@ -2,7 +2,7 @@ package io.oss.data.highway.utils
 
 import org.apache.spark.sql.DataFrame
 import cats.syntax.either._
-import io.oss.data.highway.models.{AVRO, CASSANDRA, CSV, DataType, JSON, PARQUET, XLSX}
+import io.oss.data.highway.models.{AVRO, Cassandra, CSV, DataType, JSON, PARQUET, XLSX}
 import io.oss.data.highway.utils.Constants.SEPARATOR
 
 object DataFrameUtils extends SparkUtils {
@@ -40,7 +40,7 @@ object DataFrameUtils extends SparkUtils {
             .option("treatEmptyValuesAsNulls", "true")
             .option("inferSchema", "true")
             .load(in)
-        case CASSANDRA(keyspace, table) =>
+        case Cassandra(keyspace, table) =>
           sparkSession.read
             .format("org.apache.spark.sql.cassandra")
             .option("keyspace", keyspace)

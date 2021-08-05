@@ -77,8 +77,8 @@ object Main {
         ElasticSampler.saveDocuments(in, out, fileSystem, searchQuery)
       case ElasticOps(operation) =>
         ElasticAdminOps.execute(operation)
-      case FileToCassandra(in, cassandra) =>
-        CassandraSink.insert(in, cassandra.keyspace, cassandra.table, Append)
+      case FileToCassandra(in, cassandra, storage, dataType) =>
+        CassandraSink.handleCassandraChannel(in, cassandra, Append, storage, dataType)
       case _ =>
         throw new RuntimeException(s"The provided route '$route' is not supported.")
     }

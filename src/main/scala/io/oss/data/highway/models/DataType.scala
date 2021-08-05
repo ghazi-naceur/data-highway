@@ -19,6 +19,6 @@ case object AVRO extends DataType {
 case object XLSX extends DataType {
   override val extension: String = "xlsx"
 }
-case class CASSANDRA(keyspace: String, table: String) extends DataType {
+case class Cassandra(keyspace: String, table: String) extends DataType {
   override val extension: String = ""
 }
