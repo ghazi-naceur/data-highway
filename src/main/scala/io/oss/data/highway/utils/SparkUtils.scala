@@ -1,11 +1,11 @@
 package io.oss.data.highway.utils
 
-import io.oss.data.highway.configs.{ConfigLoader, SparkConfigs}
+import io.oss.data.highway.configs.{CassandraConfigs, ConfigLoader, SparkConfigs}
 import org.apache.spark.sql.SparkSession
 
 trait SparkUtils {
-
-  val sparkConf: SparkConfigs = ConfigLoader().loadSparkConf()
+  val sparkConf: SparkConfigs         = ConfigLoader().loadSparkConf()
+  val cassandraConf: CassandraConfigs = ConfigLoader().loadCassandraConf()
   val sparkSession: SparkSession = {
     val ss = SparkSession
       .builder()
@@ -13,9 +13,8 @@ trait SparkUtils {
       .master(sparkConf.masterUrl)
       .getOrCreate()
     ss.sparkContext.setLogLevel(sparkConf.logLevel.value)
-    ss.conf
-      .set(s"spark.sql.catalog.cass100", "com.datastax.spark.connector.datasource.CassandraCatalog")
-    ss.conf.set(s"spark.sql.catalog.cass100.spark.cassandra.connection.host", "127.0.0.100")
+    ss.conf.set("spark.cassandra.connection.host", cassandraConf.host)
+    ss.conf.set("spark.cassandra.connection.port", cassandraConf.port)
     ss
   }
 }

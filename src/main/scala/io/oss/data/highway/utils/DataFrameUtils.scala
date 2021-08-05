@@ -42,7 +42,7 @@ object DataFrameUtils extends SparkUtils {
             .load(in)
         case CASSANDRA(keyspace, table) =>
           sparkSession.read
-            .format("cassandra")
+            .format("org.apache.spark.sql.cassandra")
             .option("keyspace", keyspace)
             .option("table", table)
             .load()

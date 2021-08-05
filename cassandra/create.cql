@@ -17,3 +17,5 @@ CREATE TABLE data_entities.persons(
 );
 
 select * from data_entities.persons;
+
+DROP TABLE data_entities.persons;

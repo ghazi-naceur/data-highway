@@ -28,7 +28,7 @@ object CassandraSink extends HdfsUtils {
       .loadDataFrame(inputPath, CSV)
       .map(df => {
         df.write
-          .format("cassandra")
+          .format("org.apache.spark.sql.cassandra")
           .option("keyspace", keyspace)
           .option("table", table)
           .mode(saveMode)
