@@ -7,7 +7,7 @@ import io.oss.data.highway.models.XLSX
 import org.apache.commons.io.FileUtils
 import org.apache.log4j.Logger
 
-import java.nio.file.Files
+import java.nio.file.{Files, StandardCopyOption}
 import scala.annotation.tailrec
 import scala.io.Source
 import scala.util.Try
@@ -121,22 +121,31 @@ object FilesUtils {
     *   input/dataset ===> processed/dataset
     *
     * @param src The input path
-    * @param subDestFolder The sub destination path
+    * @param processedFolder The sub destination path
     * @return List of String, otherwise an Error
     */
   def movePathContent(
       src: String,
-      subDestFolder: String
+      processedFolder: String
   ): Either[Throwable, List[String]] = {
     Either.catchNonFatal {
       if (new File(src).isFile) {
         val srcFileName = new File(src).getName
-        Files.createDirectories(new File(subDestFolder).toPath)
-        FileUtils.moveFile(new File(src), new File(s"$subDestFolder/$srcFileName"))
-        List(subDestFolder)
+        Files.createDirectories(new File(processedFolder).toPath)
+        if (new File(s"$processedFolder/$srcFileName").exists()) {
+          FileUtils.forceDelete(new File(s"$processedFolder/$srcFileName"))
+          FileUtils.moveFile(new File(src), new File(s"$processedFolder/$srcFileName"))
+        } else
+          FileUtils.moveFile(new File(src), new File(s"$processedFolder/$srcFileName"))
+        List(processedFolder)
       } else {
-        FileUtils.moveDirectoryToDirectory(new File(src), new File(subDestFolder), true)
-        List(subDestFolder)
+        val subfolderName = new File(src).getName
+        if (new File(s"$processedFolder/$subfolderName").exists()) {
+          FileUtils.deleteDirectory(new File(s"$processedFolder/$subfolderName"))
+          FileUtils.moveDirectoryToDirectory(new File(src), new File(processedFolder), false)
+        } else
+          FileUtils.moveDirectoryToDirectory(new File(src), new File(processedFolder), true)
+        List(processedFolder)
       }
 
     }.leftMap(thr => DataHighwayFileError(thr.getMessage, thr.getCause, thr.getStackTrace))

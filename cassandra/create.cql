@@ -7,6 +7,10 @@ describe tables;
 describe table data_entities.persons;
 
 USE data_entities;
+
+#####################################
+
+DROP TABLE data_entities.persons;
 CREATE TABLE data_entities.persons(
    id double PRIMARY KEY,
    first_name text,
@@ -15,7 +19,5 @@ CREATE TABLE data_entities.persons(
    gender text,
    ip_address text
 );
-
 select * from data_entities.persons;
-
-DROP TABLE data_entities.persons;
+select count(*) from data_entities.persons ;

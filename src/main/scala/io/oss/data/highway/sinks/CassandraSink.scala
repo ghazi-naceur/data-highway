@@ -1,6 +1,6 @@
 package io.oss.data.highway.sinks
 
-import io.oss.data.highway.models.{Cassandra, DataType, HDFS, Local, Storage}
+import io.oss.data.highway.models.{Cassandra, DataType, HDFS, Local, Storage, XLSX}
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils}
 import org.apache.log4j.Logger
 import org.apache.spark.sql.SaveMode
@@ -42,7 +42,7 @@ object CassandraSink extends HdfsUtils {
   }
 
   /**
-    * Send data from input path to Cassandra
+    * Sends data from input path to Cassandra
     *
     * @param in THe input path
     * @param cassandra The Cassandra Configs
@@ -90,20 +90,39 @@ object CassandraSink extends HdfsUtils {
       folders <- HdfsUtils.listFolders(fs, in)
       _ = logger.info("folders : " + folders)
       filtered <- HdfsUtils.filterNonEmptyFolders(fs, folders)
-      list <-
-        filtered
-          .traverse(subfolder => {
-            insert(
-              subfolder,
-              cassandra,
-              saveMode,
-              inputDataType
-            ).flatMap(_ => {
-              HdfsUtils.movePathContent(fs, subfolder, basePath)
+      res <- inputDataType match {
+        case XLSX =>
+          filtered
+            .traverse(subfolder => {
+              HdfsUtils
+                .listFiles(fs, subfolder)
+                .traverse(file => {
+                  insert(
+                    file,
+                    cassandra,
+                    saveMode,
+                    inputDataType
+                  )
+                })
+                .flatMap(_ => {
+                  HdfsUtils.movePathContent(fs, subfolder, basePath)
+                })
             })
-          })
+        case _ =>
+          filtered
+            .traverse(subfolder => {
+              insert(
+                subfolder,
+                cassandra,
+                saveMode,
+                inputDataType
+              ).flatMap(_ => {
+                HdfsUtils.movePathContent(fs, subfolder, basePath)
+              })
+            })
+      }
       _ = HdfsUtils.cleanup(fs, in)
-    } yield list
+    } yield res
   }
 
   /**
@@ -127,19 +146,43 @@ object CassandraSink extends HdfsUtils {
       folders <- FilesUtils.listNonEmptyFoldersRecursively(in)
       _ = logger.info("folders : " + folders)
       filtered <- FilesUtils.filterNonEmptyFolders(folders)
-      list <-
-        filtered
-          .traverse(subFolder => {
-            insert(
-              subFolder,
-              cassandra,
-              saveMode,
-              inputDataType
-            ).flatMap(subInputFolder => {
-              FilesUtils.movePathContent(subInputFolder, s"$basePath/processed")
+      res <- inputDataType match {
+        case XLSX =>
+          FilesUtils
+            .listFiles(filtered)
+            .traverse(files => {
+              files.traverse(file => {
+                insert(
+                  file.toURI.getPath,
+                  cassandra,
+                  saveMode,
+                  inputDataType
+                ).flatMap(subInputFolder => {
+                  FilesUtils
+                    .movePathContent(
+                      subInputFolder,
+                      s"$basePath/processed/${new File(
+                        subInputFolder
+                      ).getParentFile.toURI.getPath.split("/").takeRight(1).mkString("/")}"
+                    )
+                })
+              })
             })
-          })
+            .flatten
+        case _ =>
+          filtered
+            .traverse(subFolder => {
+              insert(
+                subFolder,
+                cassandra,
+                saveMode,
+                inputDataType
+              ).flatMap(subInputFolder => {
+                FilesUtils.movePathContent(subInputFolder, s"$basePath/processed")
+              })
+            })
+      }
       _ = FilesUtils.cleanup(in)
-    } yield list
+    } yield res
   }
 }

@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets
 
 trait HdfsUtils {
   val hadoopConf: HadoopConfigs = ConfigLoader().loadHadoopConf()
-  val conf                      = new Configuration()
+  val conf: Configuration       = new Configuration()
   conf.set("fs.defaultFS", HdfsUtils.hadoopConf.host)
   val fs: FileSystem = FileSystem.get(conf)
 }
