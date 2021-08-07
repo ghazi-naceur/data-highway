@@ -20,7 +20,7 @@ object CassandraSink extends HdfsUtils {
     * @param cassandra The Cassandra configs
     * @param saveMode The save mode
     * @param inputDataType The type of the input data
-    * @return a Unit, otherwise a CassandraError
+    * @return a String, otherwise a CassandraError
     */
   def insert(
       inputPath: String,

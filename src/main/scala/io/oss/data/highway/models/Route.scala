@@ -54,3 +54,5 @@ case class ElasticOps(operation: ElasticOperation) extends Route
 
 case class FileToCassandra(in: String, cassandra: Cassandra, storage: Storage, dataType: DataType)
     extends Route
+
+case class CassandraToFile(cassandra: Cassandra, out: String, dataType: DataType) extends Route

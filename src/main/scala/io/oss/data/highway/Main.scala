@@ -3,6 +3,7 @@ package io.oss.data.highway
 import io.oss.data.highway.configs.ConfigLoader
 import io.oss.data.highway.sinks.{
   AvroSink,
+  CassandraSampler,
   CassandraSink,
   CsvSink,
   ElasticAdminOps,
@@ -17,6 +18,7 @@ import io.oss.data.highway.models._
 import org.apache.spark.sql.SaveMode.{Append, Overwrite}
 import org.apache.log4j.{BasicConfigurator, Logger}
 
+// todo to be renamed as Dispatcher
 object Main {
 
   val logger: Logger = Logger.getLogger(Main.getClass.getName)
@@ -79,6 +81,8 @@ object Main {
         ElasticAdminOps.execute(operation)
       case FileToCassandra(in, cassandra, storage, dataType) =>
         CassandraSink.handleCassandraChannel(in, cassandra, Append, storage, dataType)
+      case CassandraToFile(cassandra, out, dataType) =>
+        CassandraSampler.handleCassandraChannel(out, cassandra, Append, dataType)
       case _ =>
         throw new RuntimeException(s"The provided route '$route' is not supported.")
     }

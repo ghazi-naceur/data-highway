@@ -3662,6 +3662,41 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "from_cassandra",
+			"item": [
+				{
+					"name": "cassandra-to-file_local-csv",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"route\": {\n    \"type\": \"cassandra-to-file\",\n    \"cassandra\": {\n      \"keyspace\": \"data_entities\",\n      \"table\": \"persons\"\n    },\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/csv_to_json-data/output\",\n    \"data-type\": {\n        \"type\": \"avro\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:5555/conversion/route",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5555",
+							"path": [
+								"conversion",
+								"route"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	]
 }
