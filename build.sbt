@@ -40,7 +40,7 @@ val hadoopVersion    = "3.3.0"
 libraryDependencies ++= Seq(
   "com.github.pureconfig"   %% "pureconfig"                % "0.13.0",
   "org.scalatest"           %% "scalatest"                 % scalatestVersion,
-  "org.scalatest"           %% "scalatest"                 % scalatestVersion % "test",
+  "org.scalatest"           %% "scalatest"                 % scalatestVersion % Test,
   "org.typelevel"           %% "cats-core"                 % catsVersion,
   "org.typelevel"           %% "cats-effect"               % catsVersion,
   "org.apache.spark"        %% "spark-core"                % sparkVersion exclude ("org.slf4j", "slf4j-log4j12"),
@@ -49,7 +49,7 @@ libraryDependencies ++= Seq(
   "org.apache.spark"        %% "spark-avro"                % sparkVersion exclude ("org.slf4j", "slf4j-log4j12"),
   "org.apache.spark"        %% "spark-streaming"           % sparkVersion exclude ("org.slf4j", "slf4j-log4j12"),
   "com.datastax.spark"      %% "spark-cassandra-connector" % "2.5.0",
-  "com.github.mrpowers"     %% "spark-fast-tests"          % "0.23.0"         % "test",
+  "com.github.mrpowers"     %% "spark-fast-tests"          % "0.23.0"         % Test,
   "org.apache.hadoop"        % "hadoop-hdfs-client"        % hadoopVersion,
   "org.apache.hadoop"        % "hadoop-common"             % hadoopVersion,
   "org.apache.hadoop"        % "hadoop-minicluster"        % hadoopVersion    % Test,
