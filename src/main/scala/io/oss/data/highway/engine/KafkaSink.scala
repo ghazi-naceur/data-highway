@@ -1,4 +1,4 @@
-package io.oss.data.highway.sinks
+package io.oss.data.highway.engine
 
 import java.time.Duration
 import org.apache.kafka.clients.producer._
@@ -115,7 +115,7 @@ object KafkaSink extends HdfsUtils {
     * @param fs The provided File System
     * @return Unit, otherwise an Error
     */
-  private[sinks] def publishWithSparkKafkaPlugin(
+  private[engine] def publishWithSparkKafkaPlugin(
       inputPath: String,
       storage: Storage,
       brokers: String,
@@ -221,7 +221,7 @@ object KafkaSink extends HdfsUtils {
     * @param offset The Kafka offset from where the message consumption will begin
     * @return ShutdownHookThread, otherwise an Error
     */
-  private[sinks] def runStream(
+  private[engine] def runStream(
       streamAppId: String,
       inputTopic: String,
       bootstrapServers: String,
@@ -265,7 +265,7 @@ object KafkaSink extends HdfsUtils {
     * @param fs The provided File System
     * @return Any, otherwise an Error
     */
-  private[sinks] def publishPathContent(
+  private[engine] def publishPathContent(
       jsonPath: String,
       topic: String,
       storage: Storage,
@@ -304,7 +304,7 @@ object KafkaSink extends HdfsUtils {
     * @param fs The provided File System
     * @return List of String, otherwise a Throwable
     */
-  private[sinks] def publishFileContent(
+  private[engine] def publishFileContent(
       jsonPath: String,
       basePath: String,
       storage: Storage,

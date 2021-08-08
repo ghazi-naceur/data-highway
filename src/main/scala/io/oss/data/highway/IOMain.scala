@@ -3,7 +3,7 @@ package io.oss.data.highway
 import cats.effect._
 import io.oss.data.highway.build.info.BuildInfo
 import org.http4s.server.blaze._
-import io.oss.data.highway.rest.ConversionController
+import io.oss.data.highway.controllers.ConversionController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration

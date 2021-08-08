@@ -1,4 +1,4 @@
-package io.oss.data.highway.sinks
+package io.oss.data.highway.engine
 
 import io.oss.data.highway.models.{HDFS, JSON, Local, Storage}
 import io.oss.data.highway.utils.{ElasticUtils, FilesUtils, HdfsUtils}

@@ -1,4 +1,4 @@
-package io.oss.data.highway.sinks
+package io.oss.data.highway.engine
 
 import java.io.File
 import java.nio.file.{Files, Paths}
@@ -12,15 +12,11 @@ import org.scalatest.matchers.should.Matchers
 
 import scala.reflect.io.Directory
 
-class ParquetSinkSpec
-    extends AnyFlatSpec
-    with Matchers
-    with BeforeAndAfterEach
-    with DatasetComparer {
+class JsonSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with DatasetComparer {
 
-  val folderCsvToParquet  = "src/test/resources/csv_to_parquet-data/"
-  val folderJsonToParquet = "src/test/resources/json_to_parquet-data/"
-  val folderAvroToParquet = "src/test/resources/avro_to_parquet-data/"
+  val folderParquetToJson = "src/test/resources/parquet_to_json-data/"
+  val folderCsvToJson     = "src/test/resources/csv_to_json-data/"
+  val folderAvroToJson    = "src/test/resources/avro_to_json-data/"
   val getExpected: DataFrame = {
     import spark.implicits._
     List(
@@ -41,12 +37,12 @@ class ParquetSinkSpec
   }
 
   override def beforeEach(): Unit = {
-    deleteFolderWithItsContent(folderCsvToParquet)
-    deleteFolderWithItsContent(folderJsonToParquet)
-    deleteFolderWithItsContent(folderAvroToParquet)
+    deleteFoldersWithContents(folderParquetToJson)
+    deleteFoldersWithContents(folderAvroToJson)
+    deleteFoldersWithContents(folderCsvToJson)
   }
 
-  private def deleteFolderWithItsContent(path: String): Unit = {
+  private def deleteFoldersWithContents(path: String): Unit = {
     new File(path + "output").listFiles.toList
       .filterNot(_.getName.endsWith(".gitkeep"))
       .foreach(file => {
@@ -57,56 +53,58 @@ class ParquetSinkSpec
       })
   }
 
-  "ParquetSink.saveCsvAsParquet" should "save a csv as a parquet file" in {
-    ParquetSink
-      .convertToParquet(
-        folderCsvToParquet + "input/mock-data-2",
-        folderCsvToParquet + "output/mock-data-2",
-        folderCsvToParquet + "processed",
+  "JsonSink.saveParquetAsJson" should "save a parquet as a json file" in {
+    JsonSink
+      .convertToJson(
+        folderParquetToJson + "input/mock-data-2",
+        folderParquetToJson + "output/mock-data-2",
+        folderParquetToJson + "processed",
         SaveMode.Overwrite,
-        CSV
+        PARQUET
       )
     val actual =
       DataFrameUtils
-        .loadDataFrame(folderCsvToParquet + "output/mock-data-2", PARQUET)
+        .loadDataFrame(folderParquetToJson + "output/mock-data-2", JSON)
         .right
         .get
         .orderBy("id")
+        .select("id", "first_name", "last_name", "email", "gender", "ip_address")
 
     assertSmallDatasetEquality(actual, getExpected, ignoreNullable = true)
   }
 
-  "ParquetSink.saveAvroAsParquet" should "save a avro as a parquet file" in {
-    ParquetSink
-      .convertToParquet(
-        folderAvroToParquet + "input/mock-data-2",
-        folderAvroToParquet + "output/mock-data-2",
-        folderAvroToParquet + "processed",
+  "JsonSink.saveAvroAsJson" should "save an avro as a json file" in {
+    JsonSink
+      .convertToJson(
+        folderAvroToJson + "input/mock-data-2",
+        folderAvroToJson + "output/mock-data-2",
+        folderAvroToJson + "processed",
         SaveMode.Overwrite,
         AVRO
       )
     val actual =
       DataFrameUtils
-        .loadDataFrame(folderAvroToParquet + "output/mock-data-2", PARQUET)
+        .loadDataFrame(folderAvroToJson + "output/mock-data-2", JSON)
         .right
         .get
         .orderBy("id")
+        .select("id", "first_name", "last_name", "email", "gender", "ip_address")
 
     assertSmallDatasetEquality(actual, getExpected, ignoreNullable = true)
   }
 
-  "ParquetSink.saveJsonAsParquet" should "save a json as a parquet file" in {
-    ParquetSink
-      .convertToParquet(
-        folderJsonToParquet + "input/mock-data-2",
-        folderJsonToParquet + "output/mock-data-2",
-        folderJsonToParquet + "processed",
+  "JsonSink.saveCsvAsJson" should "save a csv as a json file" in {
+    JsonSink
+      .convertToJson(
+        folderCsvToJson + "input/mock-data-2",
+        folderCsvToJson + "output/mock-data-2",
+        folderCsvToJson + "processed",
         SaveMode.Overwrite,
-        JSON
+        CSV
       )
     val actual =
       DataFrameUtils
-        .loadDataFrame(folderJsonToParquet + "output/mock-data-2", PARQUET)
+        .loadDataFrame(folderCsvToJson + "output/mock-data-2", JSON)
         .right
         .get
         .orderBy("id")

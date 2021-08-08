@@ -1,11 +1,11 @@
-package io.oss.data.highway.rest
+package io.oss.data.highway.controllers
 
 import cats.data.Kleisli
 import cats.effect._
 import io.circe.Json
 import org.http4s.implicits._
 import io.circe.syntax._
-import io.oss.data.highway.Main
+import io.oss.data.highway.engine.Dispatcher
 import io.oss.data.highway.models.Route
 import org.apache.log4j.Logger
 import org.http4s._
@@ -28,7 +28,7 @@ object ConversionController {
         logger.info("POST Request received : " + req.toString())
         val ioResponse = req.asJson.map(request => {
           val decodedRoute = parseRouteBody(request)
-          Main.apply(decodedRoute)
+          Dispatcher.apply(decodedRoute)
         })
         ioResponse.flatMap {
           case Right(_)        => Ok(200)

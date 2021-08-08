@@ -1,6 +1,6 @@
-package io.oss.data.highway.sinks
+package io.oss.data.highway.engine
 
-import io.oss.data.highway.models.{AVRO, DataType, Storage, HDFS, Local}
+import io.oss.data.highway.models.{DataType, HDFS, Local, PARQUET, Storage}
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
@@ -9,21 +9,21 @@ import org.apache.log4j.Logger
 
 import java.io.File
 
-object AvroSink extends HdfsUtils {
+object ParquetSink extends HdfsUtils {
 
-  val logger: Logger = Logger.getLogger(AvroSink.getClass.getName)
+  val logger: Logger = Logger.getLogger(ParquetSink.getClass.getName)
 
   /**
-    * Converts file to avro
+    * Converts file to parquet
     *
     * @param in The input data path
-    * @param out The generated avro file path
+    * @param out The output data path
     * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
-    * @return String, otherwise an Error
+    * @return a List of Path, otherwise an Error
     */
-  def convertToAvro(
+  def convertToParquet(
       in: String,
       out: String,
       basePath: String,
@@ -34,11 +34,10 @@ object AvroSink extends HdfsUtils {
       .loadDataFrame(in, inputDataType)
       .map(df => {
         df.write
-          .format(AVRO.extension)
           .mode(saveMode)
-          .save(out)
+          .parquet(out)
         logger.info(
-          s"Successfully converting '$inputDataType' data from input folder '$in' to '${AVRO.getClass.getName}' and " +
+          s"Successfully converting '$inputDataType' data from input folder '$in' to '${PARQUET.getClass.getName}' and " +
             s"store it under output folder '$out'."
         )
         in
@@ -46,16 +45,16 @@ object AvroSink extends HdfsUtils {
   }
 
   /**
-    * Converts files to avro
+    * Converts files to parquet
     *
     * @param in The input data path
     * @param out The output data path
     * @param saveMode The file saving mode
     * @param storage The file system storage : It can be Local or HDFS
     * @param inputDataType The type of the input data
-    * @return List of List of Path, otherwise an Error
+    * @return List of List of String, otherwise an Error
     */
-  def handleAvroChannel(
+  def handleParquetChannel(
       in: String,
       out: String,
       saveMode: SaveMode,
@@ -63,6 +62,7 @@ object AvroSink extends HdfsUtils {
       inputDataType: DataType
   ): Either[Throwable, List[List[String]]] = {
     val basePath = new File(in).getParent
+
     storage match {
       case Local =>
         handleLocalFS(in, basePath, out, saveMode, inputDataType)
@@ -96,16 +96,16 @@ object AvroSink extends HdfsUtils {
       filtered <- HdfsUtils.filterNonEmptyFolders(fs, folders)
       list <-
         filtered
-          .traverse(subfolder => {
-            val subFolderName = subfolder.split("/").last
-            convertToAvro(
-              subfolder,
-              s"$out/$subFolderName",
+          .traverse(folder => {
+            val suffix = folder.split("/").last
+            convertToParquet(
+              folder,
+              s"$out/$suffix",
               basePath,
               saveMode,
               inputDataType
             ).flatMap(_ => {
-              HdfsUtils.movePathContent(fs, subfolder, basePath)
+              HdfsUtils.movePathContent(fs, folder, basePath)
             })
           })
       _ = HdfsUtils.cleanup(fs, in)
@@ -117,7 +117,7 @@ object AvroSink extends HdfsUtils {
     *
     * @param in The input data path
     * @param basePath The base path for input and output folders
-    * @param out The output file path
+    * @param out The output data path
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
     * @return List of List of String, otherwise an Error
@@ -135,11 +135,11 @@ object AvroSink extends HdfsUtils {
       filtered <- FilesUtils.filterNonEmptyFolders(folders)
       list <-
         filtered
-          .traverse(subFolder => {
-            val subFolderName = FilesUtils.reversePathSeparator(subFolder).split("/").last
-            convertToAvro(
-              subFolder,
-              s"$out/$subFolderName",
+          .traverse(folder => {
+            val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
+            convertToParquet(
+              folder,
+              s"$out/$suffix",
               basePath,
               saveMode,
               inputDataType

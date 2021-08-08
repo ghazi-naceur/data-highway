@@ -1,4 +1,4 @@
-package io.oss.data.highway.sinks
+package io.oss.data.highway.engine
 
 import io.oss.data.highway.models.{Cassandra, DataType}
 import io.oss.data.highway.utils.DataFrameUtils

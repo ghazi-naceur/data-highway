@@ -1,4 +1,4 @@
-package io.oss.data.highway.sinks
+package io.oss.data.highway.engine
 
 import com.sksamuel.elastic4s.requests.indexes.{CreateIndexResponse, PutMappingResponse}
 import com.sksamuel.elastic4s.requests.indexes.admin.DeleteIndexResponse

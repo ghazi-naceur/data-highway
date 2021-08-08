@@ -1,6 +1,6 @@
-package io.oss.data.highway.sinks
+package io.oss.data.highway.engine
 
-import io.oss.data.highway.models.{DataType, Storage, HDFS, JSON, Local}
+import io.oss.data.highway.models.{AVRO, DataType, Storage, HDFS, Local}
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
@@ -9,21 +9,21 @@ import org.apache.log4j.Logger
 
 import java.io.File
 
-object JsonSink extends HdfsUtils {
+object AvroSink extends HdfsUtils {
 
-  val logger: Logger = Logger.getLogger(JsonSink.getClass.getName)
+  val logger: Logger = Logger.getLogger(AvroSink.getClass.getName)
 
   /**
-    * Converts file to json
+    * Converts file to avro
     *
     * @param in The input data path
-    * @param out The generated json file path
+    * @param out The generated avro file path
     * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
     * @return String, otherwise an Error
     */
-  def convertToJson(
+  def convertToAvro(
       in: String,
       out: String,
       basePath: String,
@@ -33,12 +33,12 @@ object JsonSink extends HdfsUtils {
     DataFrameUtils
       .loadDataFrame(in, inputDataType)
       .map(df => {
-        df.coalesce(1)
-          .write
+        df.write
+          .format(AVRO.extension)
           .mode(saveMode)
-          .json(out)
+          .save(out)
         logger.info(
-          s"Successfully converting '$inputDataType' data from input folder '$in' to '${JSON.getClass.getName}' and " +
+          s"Successfully converting '$inputDataType' data from input folder '$in' to '${AVRO.getClass.getName}' and " +
             s"store it under output folder '$out'."
         )
         in
@@ -46,7 +46,7 @@ object JsonSink extends HdfsUtils {
   }
 
   /**
-    * Converts files to json
+    * Converts files to avro
     *
     * @param in The input data path
     * @param out The output data path
@@ -55,7 +55,7 @@ object JsonSink extends HdfsUtils {
     * @param inputDataType The type of the input data
     * @return List of List of Path, otherwise an Error
     */
-  def handleJsonChannel(
+  def handleAvroChannel(
       in: String,
       out: String,
       saveMode: SaveMode,
@@ -63,7 +63,6 @@ object JsonSink extends HdfsUtils {
       inputDataType: DataType
   ): Either[Throwable, List[List[String]]] = {
     val basePath = new File(in).getParent
-
     storage match {
       case Local =>
         handleLocalFS(in, basePath, out, saveMode, inputDataType)
@@ -80,7 +79,7 @@ object JsonSink extends HdfsUtils {
     * @param out The output data path
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
-    * @param fs The provided File System storage
+    * @param fs The provided File System
     * @return List of List of String, otherwise an Error
     */
   private def handleHDFS(
@@ -97,16 +96,16 @@ object JsonSink extends HdfsUtils {
       filtered <- HdfsUtils.filterNonEmptyFolders(fs, folders)
       list <-
         filtered
-          .traverse(folder => {
-            val suffix = folder.split("/").last
-            convertToJson(
-              folder,
-              s"$out/$suffix",
+          .traverse(subfolder => {
+            val subFolderName = subfolder.split("/").last
+            convertToAvro(
+              subfolder,
+              s"$out/$subFolderName",
               basePath,
               saveMode,
               inputDataType
             ).flatMap(_ => {
-              HdfsUtils.movePathContent(fs, folder, basePath)
+              HdfsUtils.movePathContent(fs, subfolder, basePath)
             })
           })
       _ = HdfsUtils.cleanup(fs, in)
@@ -118,7 +117,7 @@ object JsonSink extends HdfsUtils {
     *
     * @param in The input data path
     * @param basePath The base path for input and output folders
-    * @param out The output data path
+    * @param out The output file path
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
     * @return List of List of String, otherwise an Error
@@ -136,11 +135,11 @@ object JsonSink extends HdfsUtils {
       filtered <- FilesUtils.filterNonEmptyFolders(folders)
       list <-
         filtered
-          .traverse(folder => {
-            val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
-            convertToJson(
-              folder,
-              s"$out/$suffix",
+          .traverse(subFolder => {
+            val subFolderName = FilesUtils.reversePathSeparator(subFolder).split("/").last
+            convertToAvro(
+              subFolder,
+              s"$out/$subFolderName",
               basePath,
               saveMode,
               inputDataType

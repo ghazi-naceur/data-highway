@@ -1,4 +1,4 @@
-package io.oss.data.highway.sinks
+package io.oss.data.highway.engine
 
 import io.oss.data.highway.models.DataHighwayError.KafkaError
 import io.oss.data.highway.models.{Earliest, Local}

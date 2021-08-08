@@ -1,6 +1,6 @@
-package io.oss.data.highway.sinks
+package io.oss.data.highway.engine
 
-import io.oss.data.highway.models.{DataType, HDFS, Local, PARQUET, Storage}
+import io.oss.data.highway.models.{DataType, Storage, HDFS, JSON, Local}
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
@@ -9,21 +9,21 @@ import org.apache.log4j.Logger
 
 import java.io.File
 
-object ParquetSink extends HdfsUtils {
+object JsonSink extends HdfsUtils {
 
-  val logger: Logger = Logger.getLogger(ParquetSink.getClass.getName)
+  val logger: Logger = Logger.getLogger(JsonSink.getClass.getName)
 
   /**
-    * Converts file to parquet
+    * Converts file to json
     *
     * @param in The input data path
-    * @param out The output data path
+    * @param out The generated json file path
     * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
-    * @return a List of Path, otherwise an Error
+    * @return String, otherwise an Error
     */
-  def convertToParquet(
+  def convertToJson(
       in: String,
       out: String,
       basePath: String,
@@ -33,11 +33,12 @@ object ParquetSink extends HdfsUtils {
     DataFrameUtils
       .loadDataFrame(in, inputDataType)
       .map(df => {
-        df.write
+        df.coalesce(1)
+          .write
           .mode(saveMode)
-          .parquet(out)
+          .json(out)
         logger.info(
-          s"Successfully converting '$inputDataType' data from input folder '$in' to '${PARQUET.getClass.getName}' and " +
+          s"Successfully converting '$inputDataType' data from input folder '$in' to '${JSON.getClass.getName}' and " +
             s"store it under output folder '$out'."
         )
         in
@@ -45,16 +46,16 @@ object ParquetSink extends HdfsUtils {
   }
 
   /**
-    * Converts files to parquet
+    * Converts files to json
     *
     * @param in The input data path
     * @param out The output data path
     * @param saveMode The file saving mode
     * @param storage The file system storage : It can be Local or HDFS
     * @param inputDataType The type of the input data
-    * @return List of List of String, otherwise an Error
+    * @return List of List of Path, otherwise an Error
     */
-  def handleParquetChannel(
+  def handleJsonChannel(
       in: String,
       out: String,
       saveMode: SaveMode,
@@ -79,7 +80,7 @@ object ParquetSink extends HdfsUtils {
     * @param out The output data path
     * @param saveMode The file saving mode
     * @param inputDataType The type of the input data
-    * @param fs The provided File System
+    * @param fs The provided File System storage
     * @return List of List of String, otherwise an Error
     */
   private def handleHDFS(
@@ -98,7 +99,7 @@ object ParquetSink extends HdfsUtils {
         filtered
           .traverse(folder => {
             val suffix = folder.split("/").last
-            convertToParquet(
+            convertToJson(
               folder,
               s"$out/$suffix",
               basePath,
@@ -137,7 +138,7 @@ object ParquetSink extends HdfsUtils {
         filtered
           .traverse(folder => {
             val suffix = FilesUtils.reversePathSeparator(folder).split("/").last
-            convertToParquet(
+            convertToJson(
               folder,
               s"$out/$suffix",
               basePath,

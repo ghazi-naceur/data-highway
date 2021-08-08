@@ -1,4 +1,4 @@
-package io.oss.data.highway.sinks
+package io.oss.data.highway.engine
 
 import java.time.Duration
 import java.util.UUID
@@ -102,7 +102,7 @@ object KafkaSampler extends HdfsUtils {
     * @param offset The kafka consumer offset
     * @return Unit
     */
-  private[sinks] def sinkViaSparkKafkaPlugin(
+  private[engine] def sinkViaSparkKafkaPlugin(
       session: SparkSession,
       inputTopic: String,
       outputPath: String,
@@ -161,7 +161,7 @@ object KafkaSampler extends HdfsUtils {
     * @param offset The kafka consumer offset
     * @return Unit
     */
-  private[sinks] def sinkViaSparkKafkaStreamsPlugin(
+  private[engine] def sinkViaSparkKafkaStreamsPlugin(
       session: SparkSession,
       inputTopic: String,
       outputPath: String,
@@ -217,7 +217,7 @@ object KafkaSampler extends HdfsUtils {
     * @param streamAppId The identifier of the streaming application
     * @return a Unit, otherwise an Error
     */
-  private[sinks] def sinkWithPureKafkaStreams(
+  private[engine] def sinkWithPureKafkaStreams(
       inputTopic: String,
       outputPath: String,
       storage: Storage,
@@ -259,7 +259,7 @@ object KafkaSampler extends HdfsUtils {
     * @param fs The provided File System
     * @return a Unit, otherwise an Error
     */
-  private[sinks] def sinkWithPureKafka(
+  private[engine] def sinkWithPureKafka(
       inputTopic: String,
       outputPath: String,
       storage: Storage,

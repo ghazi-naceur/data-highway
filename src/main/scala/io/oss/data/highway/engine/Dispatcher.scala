@@ -1,27 +1,13 @@
-package io.oss.data.highway
+package io.oss.data.highway.engine
 
 import io.oss.data.highway.configs.ConfigLoader
-import io.oss.data.highway.sinks.{
-  AvroSink,
-  CassandraSampler,
-  CassandraSink,
-  CsvSink,
-  ElasticAdminOps,
-  ElasticSampler,
-  ElasticSink,
-  JsonSink,
-  KafkaSampler,
-  KafkaSink,
-  ParquetSink
-}
 import io.oss.data.highway.models._
-import org.apache.spark.sql.SaveMode.{Append, Overwrite}
 import org.apache.log4j.{BasicConfigurator, Logger}
+import org.apache.spark.sql.SaveMode.{Append, Overwrite}
 
-// todo to be renamed as Dispatcher
-object Main {
+object Dispatcher {
 
-  val logger: Logger = Logger.getLogger(Main.getClass.getName)
+  val logger: Logger = Logger.getLogger(Dispatcher.getClass.getName)
 
   def main(args: Array[String]): Unit = {
     BasicConfigurator.configure()

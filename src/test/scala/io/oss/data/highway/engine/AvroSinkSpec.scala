@@ -1,4 +1,4 @@
-package io.oss.data.highway.sinks
+package io.oss.data.highway.engine
 
 import java.io.File
 import java.nio.file.{Files, Paths}
