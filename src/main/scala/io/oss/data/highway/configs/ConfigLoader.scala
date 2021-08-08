@@ -87,4 +87,26 @@ case class ConfigLoader() {
         )
     }
   }
+
+  /**
+    * Loads Cassandra configurations
+    * @return CassandraConfigs, otherwise throws a RuntimeException
+    */
+  def loadCassandraConf(): CassandraConfigs = {
+    import pureconfig._
+    import pureconfig.generic.auto._ // To be kept, even though intellij didn't recognize its usage
+
+    implicit val offsetConvert: ConfigReader[LogLevel] =
+      deriveEnumerationReader[LogLevel]
+
+    ConfigSource.default
+      .at("cassandra")
+      .load[CassandraConfigs] match {
+      case Right(conf) => conf
+      case Left(thr) =>
+        throw new RuntimeException(
+          s"Error when trying to load Cassandra configuration : ${thr.toList.mkString("\n")}"
+        )
+    }
+  }
 }

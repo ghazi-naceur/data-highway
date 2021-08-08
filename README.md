@@ -12,6 +12,8 @@ You can as well :
 * Consume data from Kafka (**kafka-to-file**)
 * Index data in Elasticsearch (**file-to-elasticsearch**)
 * Extract data from Elasticsearch (**elasticsearch-to-file**)
+* Send data to Cassandra (**file-to-cassandra**)
+* Extract rows from Cassandra (**cassandra-to-file**)
 
 **Environment :**
 
@@ -21,6 +23,7 @@ You can as well :
 - Scala 2.12.12
 - Spark 2.4.6
 - Elasticsearch 7.10.2
+- Cassandra 4.0.0
 
 ## Table of contents :
 * [A- Getting started](#A--getting-started-)
@@ -51,7 +54,10 @@ You can as well :
     * [6- Consume data from Kafka](#6--consume-data-from-kafka-)
         * [a- Pure Kafka Consumer](#a--pure-kafka-consumer-)
         * [b- Spark Kafka Plugin Consumer](#b--spark-kafka-plugin-consumer-)
-    * [7- Index data in Elasticsearch](#7--index-data-in-elasticsearch-)
+    * [7- Insert data in Cassandra](#7--insert-data-in-cassandra-)
+      * [a- File to Cassandra](#a--file-to-cassandra-)
+      * [b- Cassandra to File](#b--cassandra-to-file-)
+    * [8- Index data in Elasticsearch](#7--index-data-in-elasticsearch-)
         * [a- File to Elasticsearch](#a--file-to-elasticsearch-)
         * [b- Elasticsearch to File](#b--elasticsearch-to-file-)
         * [c- Elasticsearch operations](#c--elasticsearch-operations-)
@@ -86,6 +92,14 @@ You have as well a route dedicated to indexing data in Elasticsearch :
 You can extract data from your Elasticsearch index :
 
 ![image](https://github.com/ghazi-naceur/data-highway/blob/master/src/main/resources/screenshots/6-elasticsearch_file.png?raw=true)
+
+You have as well a route dedicated to inserting rows into your Cassandra table :
+
+![image](https://github.com/ghazi-naceur/data-highway/blob/master/src/main/resources/screenshots/7-file_cassandra.png?raw=true)
+
+You can retrieve rows from your Cassandra table :
+
+![image](https://github.com/ghazi-naceur/data-highway/blob/master/src/main/resources/screenshots/8-cassandra_file.png?raw=true)
 
 ## 2- Run data-highway jar :
 
@@ -612,7 +626,49 @@ Consuming data will be performed by **"spark-kafka-plugin-streams-consumer"** :
 
 - **"offset"** could have one of these values **earliest** and **latest**
 
-## 7- Index data in Elasticsearch :
+## 7- Index data in Cassandra :
+
+Set the `route` in your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and
+setting one of these following request bodies :
+
+##### a- File to Cassandra :
+```json
+{
+  "route": {
+    "type": "file-to-cassandra",
+    "in": "your-input-folder-path",
+    "cassandra": {
+      "keyspace": "your-keyspace",
+      "table": "your-table"
+    },
+    "storage": {
+      "type": "local or hdfs"
+    },
+    "data-type": {
+      "type": "csv, json, avro, parquet, xlsx"
+    }
+  }
+}
+```
+
+##### b- Cassandra to File :
+```json
+{
+  "route": {
+    "type": "cassandra-to-file",
+    "cassandra": {
+      "keyspace": "your-keyspace",
+      "table": "your-table"
+    },
+    "out": "your-output-folder-path",
+    "data-type": {
+      "type": "csv, json, avro, parquet, xlsx"
+    }
+  }
+}
+```
+
+## 8- Index data in Elasticsearch :
 
 Set the `route` in your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and
 setting one of these following request bodies :
