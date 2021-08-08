@@ -626,7 +626,7 @@ Consuming data will be performed by **"spark-kafka-plugin-streams-consumer"** :
 
 - **"offset"** could have one of these values **earliest** and **latest**
 
-## 7- Index data in Cassandra :
+## 7- Insert data in Cassandra :
 
 Set the `route` in your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and
 setting one of these following request bodies :
