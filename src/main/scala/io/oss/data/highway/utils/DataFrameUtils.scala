@@ -2,7 +2,7 @@ package io.oss.data.highway.utils
 
 import org.apache.spark.sql.{DataFrame, SaveMode}
 import cats.syntax.either._
-import io.oss.data.highway.models.{AVRO, CSV, Cassandra, DataType, JSON, PARQUET, XLSX}
+import io.oss.data.highway.models.{AVRO, CSV, CassandraDB, DataType, JSON, PARQUET, XLSX}
 import io.oss.data.highway.utils.Constants.SEPARATOR
 
 import java.util.UUID
@@ -42,7 +42,7 @@ object DataFrameUtils extends SparkUtils {
             .option("treatEmptyValuesAsNulls", "true")
             .option("inferSchema", "true")
             .load(in)
-        case Cassandra(keyspace, table) =>
+        case CassandraDB(keyspace, table) =>
           sparkSession.read
             .format("org.apache.spark.sql.cassandra")
             .option("keyspace", keyspace)
@@ -106,7 +106,7 @@ object DataFrameUtils extends SparkUtils {
             .save(
               s"$out/generated_xlsx-${UUID.randomUUID().toString}-${System.currentTimeMillis().toString}.xlsx"
             )
-        case Cassandra(keyspace, table) =>
+        case CassandraDB(keyspace, table) =>
           df.write
             .format("org.apache.spark.sql.cassandra")
             .option("keyspace", keyspace)

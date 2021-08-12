@@ -1,6 +1,6 @@
 package io.oss.data.highway.engine
 
-import io.oss.data.highway.models.{Cassandra, DataType, HDFS, Local, Storage, XLSX}
+import io.oss.data.highway.models.{CassandraDB, DataType, HDFS, Local, Storage, XLSX}
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils}
 import org.apache.log4j.Logger
 import org.apache.spark.sql.SaveMode
@@ -24,7 +24,7 @@ object CassandraSink extends HdfsUtils {
     */
   def insert(
       inputPath: String,
-      cassandra: Cassandra,
+      cassandra: CassandraDB,
       saveMode: SaveMode,
       inputDataType: DataType
   ): Either[Throwable, String] = {
@@ -53,7 +53,7 @@ object CassandraSink extends HdfsUtils {
     */
   def handleCassandraChannel(
       in: String,
-      cassandra: Cassandra,
+      cassandra: CassandraDB,
       saveMode: SaveMode,
       storage: Storage,
       inputDataType: DataType
@@ -81,7 +81,7 @@ object CassandraSink extends HdfsUtils {
   private def handleHDFS(
       in: String,
       basePath: String,
-      cassandra: Cassandra,
+      cassandra: CassandraDB,
       saveMode: SaveMode,
       inputDataType: DataType,
       fs: FileSystem
@@ -138,7 +138,7 @@ object CassandraSink extends HdfsUtils {
   private def handleLocalFS(
       in: String,
       basePath: String,
-      cassandra: Cassandra,
+      cassandra: CassandraDB,
       saveMode: SaveMode,
       inputDataType: DataType
   ): Either[Throwable, List[List[String]]] = {

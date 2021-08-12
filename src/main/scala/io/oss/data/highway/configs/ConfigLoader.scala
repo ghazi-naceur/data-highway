@@ -2,7 +2,7 @@ package io.oss.data.highway.configs
 
 import cats.syntax.either._
 import io.oss.data.highway.models.DataHighwayError.BulkErrorAccumulator
-import io.oss.data.highway.models.{LogLevel, Offset, Route}
+import io.oss.data.highway.models.{LogLevel, Offset, RouteBis}
 import pureconfig.generic.semiauto._
 
 case class ConfigLoader() {
@@ -11,7 +11,7 @@ case class ConfigLoader() {
     * Loads Data Highway Route configurations
     * @return a Route, otherwise a BulkErrorAccumulator
     */
-  def loadConf(): Either[BulkErrorAccumulator, Route] = {
+  def loadConf(): Either[BulkErrorAccumulator, RouteBis] = {
     import pureconfig._
     import pureconfig.generic.auto._ // To be kept, even though intellij didn't recognize its usage
 
@@ -20,7 +20,7 @@ case class ConfigLoader() {
 
     ConfigSource.default
       .at("route")
-      .load[Route]
+      .load[RouteBis]
       .leftMap(thrs => BulkErrorAccumulator(thrs))
   }
 

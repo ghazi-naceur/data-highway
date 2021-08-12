@@ -1,6 +1,6 @@
 package io.oss.data.highway.engine
 
-import io.oss.data.highway.models.{Cassandra, DataType}
+import io.oss.data.highway.models.{CassandraDB, DataType}
 import io.oss.data.highway.utils.{Constants, DataFrameUtils}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
@@ -17,7 +17,7 @@ object CassandraSampler {
     */
   def handleCassandraChannel(
       out: String,
-      cassandra: Cassandra,
+      cassandra: CassandraDB,
       saveMode: SaveMode,
       dataType: DataType
   ): Either[Throwable, Unit] = {
