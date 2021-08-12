@@ -65,7 +65,7 @@ class AvroSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
         PARQUET
       )
     val actual = DataFrameUtils
-      .loadDataFrame(folderParquetToAvro + "output/mock-data-2", AVRO)
+      .loadDataFrame(AVRO, folderParquetToAvro + "output/mock-data-2")
       .right
       .get
       .orderBy("id")
@@ -85,7 +85,7 @@ class AvroSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
       )
     val actual =
       DataFrameUtils
-        .loadDataFrame(folderJsonToAvro + "output/mock-data-2", AVRO)
+        .loadDataFrame(AVRO, folderJsonToAvro + "output/mock-data-2")
         .right
         .get
         .orderBy("id")
@@ -105,7 +105,7 @@ class AvroSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
       )
     val actual =
       DataFrameUtils
-        .loadDataFrame(folderCsvToAvro + "output/mock-data-2", AVRO)
+        .loadDataFrame(AVRO, folderCsvToAvro + "output/mock-data-2")
         .right
         .get
         .orderBy("id")

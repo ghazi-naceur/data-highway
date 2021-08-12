@@ -31,7 +31,7 @@ object AvroSink extends HdfsUtils {
       inputDataType: DataType
   ): Either[Throwable, String] = {
     DataFrameUtils
-      .loadDataFrame(in, inputDataType)
+      .loadDataFrame(inputDataType, in)
       .map(df => {
         df.write
           .format(AVRO.extension)

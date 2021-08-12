@@ -16,7 +16,7 @@ object DataFrameUtils extends SparkUtils {
     * @param dataType a datatype to be load : CSV, JSON, PARQUET, AVRO, Cassandra or XLSX
     * @return A DataFrame, otherwise a Throwable
     */
-  def loadDataFrame(in: String, dataType: DataType): Either[Throwable, DataFrame] = {
+  def loadDataFrame(dataType: DataType, in: String): Either[Throwable, DataFrame] = {
     Either.catchNonFatal {
       dataType match {
         case JSON =>

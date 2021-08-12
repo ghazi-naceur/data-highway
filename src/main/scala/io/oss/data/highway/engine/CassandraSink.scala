@@ -29,7 +29,7 @@ object CassandraSink extends HdfsUtils {
       inputDataType: DataType
   ): Either[Throwable, String] = {
     DataFrameUtils
-      .loadDataFrame(inputPath, inputDataType)
+      .loadDataFrame(inputDataType, inputPath)
       .map(df => {
         df.write
           .format("org.apache.spark.sql.cassandra")

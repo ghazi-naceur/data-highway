@@ -69,6 +69,18 @@ object Dispatcher {
         CassandraSink.handleCassandraChannel(in, cassandra, Append, storage, dataType)
       case CassandraToFile(cassandra, out, dataType) =>
         CassandraSampler.handleCassandraChannel(out, cassandra, Append, dataType)
+      case RouteBis(input: File, output: File, storage: Option[Storage]) =>
+        BasicSink.handleChannel(input, output, storage, Overwrite)
+      case RouteBis(input: File, output: CassandraBis, storage: Option[Storage]) => Right()
+      case RouteBis(input: CassandraBis, output: File, storage: Option[Storage]) => Right()
+      case RouteBis(input: File, output: Kafka, storage: Option[Storage]) =>
+        Right() // todo only json is supported, make other types supported too
+      case RouteBis(input: Kafka, output: File, storage: Option[Storage]) =>
+        Right() // todo only json is supported, make other types supported too
+      case RouteBis(input: File, output: Elasticsearch, storage: Option[Storage]) =>
+        Right() // todo only json is supported, make other types supported too
+      case RouteBis(input: Elasticsearch, output: File, storage: Option[Storage]) =>
+        Right() // todo only json is supported, make other types supported too
       case _ =>
         throw new RuntimeException(s"The provided route '$route' is not supported.")
     }

@@ -75,7 +75,7 @@ class CsvSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with
       )
     val actual =
       DataFrameUtils
-        .loadDataFrame(folderParquetToCsvData + "output/mock-data-2", CSV)
+        .loadDataFrame(CSV, folderParquetToCsvData + "output/mock-data-2")
         .right
         .get
         .orderBy("id")
@@ -95,7 +95,7 @@ class CsvSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with
       )
     val actual =
       DataFrameUtils
-        .loadDataFrame(folderJsonToCsvData + "output/mock-data-2", CSV)
+        .loadDataFrame(CSV, folderJsonToCsvData + "output/mock-data-2")
         .right
         .get
         .orderBy("id")
@@ -115,7 +115,7 @@ class CsvSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with
       )
     val actual =
       DataFrameUtils
-        .loadDataFrame(folderAvroToCsvData + "output/mock-data-2", CSV)
+        .loadDataFrame(CSV, folderAvroToCsvData + "output/mock-data-2")
         .right
         .get
         .orderBy("id")
@@ -135,7 +135,7 @@ class CsvSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with
       )
     val actual =
       DataFrameUtils
-        .loadDataFrame(folderXlsxCsvData + "output/folder1/mock-xlsx-data-13", CSV)
+        .loadDataFrame(CSV, folderXlsxCsvData + "output/folder1/mock-xlsx-data-13")
         .right
         .get
         .orderBy("id")

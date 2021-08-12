@@ -31,7 +31,7 @@ object JsonSink extends HdfsUtils {
       inputDataType: DataType
   ): Either[Throwable, String] = {
     DataFrameUtils
-      .loadDataFrame(in, inputDataType)
+      .loadDataFrame(inputDataType, in)
       .map(df => {
         df.coalesce(1)
           .write

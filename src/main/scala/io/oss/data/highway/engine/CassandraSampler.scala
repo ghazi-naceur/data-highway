@@ -1,7 +1,7 @@
 package io.oss.data.highway.engine
 
 import io.oss.data.highway.models.{Cassandra, DataType}
-import io.oss.data.highway.utils.DataFrameUtils
+import io.oss.data.highway.utils.{Constants, DataFrameUtils}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
 
@@ -22,7 +22,7 @@ object CassandraSampler {
       dataType: DataType
   ): Either[Throwable, Unit] = {
     DataFrameUtils
-      .loadDataFrame("", cassandra)
+      .loadDataFrame(cassandra, Constants.EMPTY)
       .traverse(df => DataFrameUtils.saveDataFrame(df, dataType, out, saveMode))
       .flatten
   }

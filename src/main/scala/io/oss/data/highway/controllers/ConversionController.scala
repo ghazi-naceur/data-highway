@@ -6,7 +6,7 @@ import io.circe.Json
 import org.http4s.implicits._
 import io.circe.syntax._
 import io.oss.data.highway.engine.Dispatcher
-import io.oss.data.highway.models.Route
+import io.oss.data.highway.models.{Route, RouteBis}
 import org.apache.log4j.Logger
 import org.http4s._
 import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
@@ -37,11 +37,11 @@ object ConversionController {
     }
     .orNotFound
 
-  private def parseRouteBody(ioJson: Json, jsonElement: String = "route"): Route = {
+  private def parseRouteBody(ioJson: Json, jsonElement: String = "route-bis"): Route = {
     ConfigSource
       .string(ioJson.asJson.toString())
       .at(jsonElement)
-      .load[Route] match {
+      .load[RouteBis] match {
       case Right(value) => value
       case Left(exception) =>
         throw new RuntimeException(s"This request is incorrect due '$exception'")

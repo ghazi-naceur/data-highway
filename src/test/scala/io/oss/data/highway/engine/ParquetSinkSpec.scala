@@ -68,7 +68,7 @@ class ParquetSinkSpec
       )
     val actual =
       DataFrameUtils
-        .loadDataFrame(folderCsvToParquet + "output/mock-data-2", PARQUET)
+        .loadDataFrame(PARQUET, folderCsvToParquet + "output/mock-data-2")
         .right
         .get
         .orderBy("id")
@@ -87,7 +87,7 @@ class ParquetSinkSpec
       )
     val actual =
       DataFrameUtils
-        .loadDataFrame(folderAvroToParquet + "output/mock-data-2", PARQUET)
+        .loadDataFrame(PARQUET, folderAvroToParquet + "output/mock-data-2")
         .right
         .get
         .orderBy("id")
@@ -106,7 +106,7 @@ class ParquetSinkSpec
       )
     val actual =
       DataFrameUtils
-        .loadDataFrame(folderJsonToParquet + "output/mock-data-2", PARQUET)
+        .loadDataFrame(PARQUET, folderJsonToParquet + "output/mock-data-2")
         .right
         .get
         .orderBy("id")

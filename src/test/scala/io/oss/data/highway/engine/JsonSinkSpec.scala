@@ -64,7 +64,7 @@ class JsonSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
       )
     val actual =
       DataFrameUtils
-        .loadDataFrame(folderParquetToJson + "output/mock-data-2", JSON)
+        .loadDataFrame(JSON, folderParquetToJson + "output/mock-data-2")
         .right
         .get
         .orderBy("id")
@@ -84,7 +84,7 @@ class JsonSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
       )
     val actual =
       DataFrameUtils
-        .loadDataFrame(folderAvroToJson + "output/mock-data-2", JSON)
+        .loadDataFrame(JSON, folderAvroToJson + "output/mock-data-2")
         .right
         .get
         .orderBy("id")
@@ -104,7 +104,7 @@ class JsonSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
       )
     val actual =
       DataFrameUtils
-        .loadDataFrame(folderCsvToJson + "output/mock-data-2", JSON)
+        .loadDataFrame(JSON, folderCsvToJson + "output/mock-data-2")
         .right
         .get
         .orderBy("id")

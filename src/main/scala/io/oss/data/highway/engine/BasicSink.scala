@@ -2,104 +2,115 @@ package io.oss.data.highway.engine
 
 import java.io.File
 import io.oss.data.highway.models._
-import io.oss.data.highway.utils.Constants._
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils}
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
+import io.oss.data.highway.models
+import io.oss.data.highway.models.DataHighwayError.DataHighwayFileError
 import io.oss.data.highway.models.{DataType, HDFS, Local, Storage}
 import org.apache.hadoop.fs.FileSystem
 import org.apache.log4j.Logger
 
-object CsvSink extends HdfsUtils {
+object BasicSink extends HdfsUtils {
 
-  val logger: Logger = Logger.getLogger(CsvSink.getClass.getName)
+  val logger: Logger = Logger.getLogger(BasicSink.getClass.getName)
 
   /**
-    * Converts file to csv
+    * Converts file
     *
-    * @param in The input data path
-    * @param out The generated csv file path
+    * @param inputDataType The input data type path
+    * @param inputPath The input path
+    * @param outputDataType The input data type path
+    * @param outputPath The input path
     * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
-    * @param inputDataType The type of the input data
-    * @return String, otherwise an Error
+    * @return Path as String, otherwise an Throwable
     */
-  def convertToCsv(
-      in: String,
-      out: String,
+  def convert(
+      inputDataType: DataType,
+      inputPath: String,
+      outputDataType: DataType,
+      outputPath: String,
       basePath: String,
-      saveMode: SaveMode,
-      inputDataType: DataType
+      saveMode: SaveMode
   ): Either[Throwable, String] = {
     DataFrameUtils
-      .loadDataFrame(inputDataType, in)
+      .loadDataFrame(inputDataType, inputPath)
       .map(df => {
-        df.coalesce(1)
-          .write
-          .mode(saveMode)
-          .option("inferSchema", "true")
-          .option("header", "true")
-          .option("sep", SEPARATOR)
-          .csv(out)
-        logger.info(
-          s"Successfully converting '$inputDataType' data from input folder '$in' to '${CSV.getClass.getName}' and " +
-            s"store it under output folder '$out'."
-        )
-        in
+        DataFrameUtils.saveDataFrame(df, outputDataType, outputPath, saveMode)
+        inputPath
       })
   }
 
   /**
-    * Converts files to csv
+    * Converts files
     *
-    * @param in The input data path
-    * @param out The output data path
-    * @param saveMode The file saving mode
+    * @param input The input DataHighway File Entity
+    * @param output The output DataHighway File Entity
     * @param storage The file system storage : It can be Local or HDFS
-    * @param inputDataType The type of the input data
-    * @return List of List of String, otherwise Error
+    * @param saveMode The file saving mode
+    * @return List of List of Path as String, otherwise Throwable
     */
-  def handleCsvChannel(
-      in: String,
-      out: String,
-      saveMode: SaveMode,
-      storage: Storage,
-      inputDataType: DataType
+  def handleChannel(
+      input: models.File,
+      output: models.File,
+      storage: Option[Storage],
+      saveMode: SaveMode
   ): Either[Throwable, List[List[String]]] = {
-    val basePath = new File(in).getParent
-
+    val basePath = new File(input.path).getParent
     storage match {
-      case Local =>
-        handleLocalFS(in, basePath, out, saveMode, inputDataType)
-      case HDFS =>
-        handleHDFS(in, basePath, out, saveMode, inputDataType, fs)
+      case Some(value) =>
+        value match {
+          case Local =>
+            handleLocalFS(
+              input,
+              output,
+              basePath,
+              saveMode
+            )
+          case HDFS =>
+            handleHDFS(
+              input,
+              output,
+              basePath,
+              saveMode,
+              fs
+            )
+        }
+      case None =>
+        Left(
+          DataHighwayFileError(
+            "MissingFileSystemStorage",
+            new RuntimeException("Missing 'storage' field"),
+            Array[StackTraceElement]()
+          )
+        )
     }
+
   }
 
   /**
     * Handles data conversion for HDFS
     *
-    * @param in The input data path
-    * @param basePath The base path for input and output folders
-    * @param out The output data path
+    * @param input The input DataHighway File Entity
+    * @param output The output DataHighway File Entity
+    * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
-    * @param inputDataType The type of the input data
     * @param fs The provided File System
-    * @return List of List of String, otherwise an Error
+    * @return List of List of Path as String, otherwise Throwable
     */
   private def handleHDFS(
-      in: String,
+      input: models.File,
+      output: models.File,
       basePath: String,
-      out: String,
       saveMode: SaveMode,
-      inputDataType: DataType,
       fs: FileSystem
   ): Either[Throwable, List[List[String]]] = {
     for {
-      folders <- HdfsUtils.listFolders(fs, in)
+      folders <- HdfsUtils.listFolders(fs, input.path)
       _ = logger.info("folders : " + folders)
       filtered <- HdfsUtils.filterNonEmptyFolders(fs, folders)
-      res <- inputDataType match {
+      res <- input.dataType match {
         case XLSX =>
           filtered
             .traverse(subFolder => {
@@ -107,12 +118,13 @@ object CsvSink extends HdfsUtils {
                 .listFiles(fs, subFolder)
                 .traverse(file => {
                   val fileNameWithParentFolder = FilesUtils.getFileNameAndParentFolderFromPath(file)
-                  convertToCsv(
+                  convert(
+                    input.dataType,
                     file,
-                    s"$out/$fileNameWithParentFolder",
+                    output.dataType,
+                    s"${output.path}/$fileNameWithParentFolder",
                     basePath,
-                    saveMode,
-                    inputDataType
+                    saveMode
                   )
                 })
                 .flatMap(_ => {
@@ -123,43 +135,42 @@ object CsvSink extends HdfsUtils {
           filtered
             .traverse(subFolder => {
               val subFolderName = subFolder.split("/").last
-              convertToCsv(
+              convert(
+                input.dataType,
                 subFolder,
-                s"$out/$subFolderName",
+                output.dataType,
+                s"${output.path}/$subFolderName",
                 basePath,
-                saveMode,
-                inputDataType
+                saveMode
               ).flatMap(_ => {
                 HdfsUtils.movePathContent(fs, subFolder, basePath)
               })
             })
       }
-      _ = HdfsUtils.cleanup(fs, in)
+      _ = HdfsUtils.cleanup(fs, input.path)
     } yield res
   }
 
   /**
     * Handles data conversion for Local File System
     *
-    * @param in The input data path
-    * @param basePath The base path for input and output folders
-    * @param out The output data path
+    * @param input The input DataHighway File Entity
+    * @param output The output DataHighway File Entity
+    * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
-    * @param inputDataType The type of the input data
-    * @return List of List of String, otherwise an Error
+    * @return List of List of Path as String, otherwise Throwable
     */
   private def handleLocalFS(
-      in: String,
+      input: models.File,
+      output: models.File,
       basePath: String,
-      out: String,
-      saveMode: SaveMode,
-      inputDataType: DataType
+      saveMode: SaveMode
   ): Either[Throwable, List[List[String]]] = {
     for {
-      folders <- FilesUtils.listNonEmptyFoldersRecursively(in)
-      _ = logger.info("folders : " + folders)
+      folders <- FilesUtils.listNonEmptyFoldersRecursively(input.path)
+      _ = logger.info("Folders to be processed : " + folders)
       filtered <- FilesUtils.filterNonEmptyFolders(folders)
-      res <- inputDataType match {
+      res <- input.dataType match {
         case XLSX =>
           FilesUtils
             .listFiles(filtered)
@@ -168,12 +179,13 @@ object CsvSink extends HdfsUtils {
                 .traverse(file => {
                   val fileNameWithParentFolder =
                     FilesUtils.getFileNameAndParentFolderFromPath(file.toURI.getPath)
-                  convertToCsv(
+                  convert(
+                    input.dataType,
                     file.toURI.getPath,
-                    s"$out/$fileNameWithParentFolder",
+                    output.dataType,
+                    s"${output.path}/$fileNameWithParentFolder",
                     basePath,
-                    saveMode,
-                    inputDataType
+                    saveMode
                   ).flatMap(subInputFolder => {
                     FilesUtils
                       .movePathContent(
@@ -189,18 +201,19 @@ object CsvSink extends HdfsUtils {
         case _ =>
           filtered.traverse(subFolder => {
             val subFolderName = FilesUtils.reversePathSeparator(subFolder).split("/").last
-            convertToCsv(
+            convert(
+              input.dataType,
               subFolder,
-              s"$out/$subFolderName",
+              output.dataType,
+              s"${output.path}/$subFolderName",
               basePath,
-              saveMode,
-              inputDataType
+              saveMode
             ).flatMap(subInputFolder => {
               FilesUtils.movePathContent(subInputFolder, s"$basePath/processed")
             })
           })
       }
-      _ = FilesUtils.cleanup(in)
+      _ = FilesUtils.cleanup(input.path)
     } yield res
   }
 }

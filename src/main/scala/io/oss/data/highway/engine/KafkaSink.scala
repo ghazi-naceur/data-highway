@@ -133,7 +133,7 @@ object KafkaSink extends HdfsUtils {
           .map(paths => {
             paths.map(path => {
               DataFrameUtils
-                .loadDataFrame(path, JSON)
+                .loadDataFrame(JSON, path)
                 .map(df => {
                   df.select(to_json(struct("*")).as("value"))
                     .write
@@ -155,7 +155,7 @@ object KafkaSink extends HdfsUtils {
               .filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)
               .map(path => {
                 DataFrameUtils
-                  .loadDataFrame(path, JSON)
+                  .loadDataFrame(JSON, path)
                   .map(df => {
                     df.select(to_json(struct("*")).as("value"))
                       .write
