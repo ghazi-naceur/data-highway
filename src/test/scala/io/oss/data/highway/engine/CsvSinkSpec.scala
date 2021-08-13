@@ -14,10 +14,10 @@ import scala.reflect.io.Directory
 
 class CsvSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with DatasetComparer {
 
-  val folderParquetToCsvData = "src/test/resources/parquet_to_csv-data/"
-  val folderJsonToCsvData    = "src/test/resources/json_to_csv-data/"
-  val folderAvroToCsvData    = "src/test/resources/avro_to_csv-data/"
-  val folderXlsxCsvData      = "src/test/resources/xlsx_to_csv-data/"
+  val folderParquetToCsvData = "src/test/resources/data/parquet/"
+  val folderJsonToCsvData    = "src/test/resources/data/json/"
+  val folderAvroToCsvData    = "src/test/resources/data/avro/"
+  val folderXlsxCsvData      = "src/test/resources/data/xlsx/"
   val extensions             = Seq("xlsx", "xls")
   val getExpected: DataFrame = {
     import spark.implicits._
@@ -64,15 +64,14 @@ class CsvSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with
       })
   }
 
-  "CsvSink.convertToCsv" should "save a parquet as a csv file" in {
-    CsvSink
-      .convertToCsv(
-        folderParquetToCsvData + "input/mock-data-2",
-        folderParquetToCsvData + "output/mock-data-2",
-        folderJsonToCsvData + "processed",
-        SaveMode.Overwrite,
-        PARQUET
-      )
+  "BasicSink.convert" should "save a parquet as a csv file" in {
+    BasicSink.convert(
+      PARQUET,
+      folderParquetToCsvData + "input/mock-data-2",
+      CSV,
+      folderParquetToCsvData + "output/mock-data-2",
+      SaveMode.Overwrite
+    )
     val actual =
       DataFrameUtils
         .loadDataFrame(CSV, folderParquetToCsvData + "output/mock-data-2")
@@ -84,15 +83,14 @@ class CsvSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with
     assertSmallDatasetEquality(actual, getExpected, ignoreNullable = true)
   }
 
-  "CsvSink.convertToCsv" should "save a json as a csv file" in {
-    CsvSink
-      .convertToCsv(
-        folderJsonToCsvData + "input/mock-data-2",
-        folderJsonToCsvData + "output/mock-data-2",
-        folderJsonToCsvData + "processed",
-        SaveMode.Overwrite,
-        JSON
-      )
+  "BasicSink.convert" should "save a json as a csv file" in {
+    BasicSink.convert(
+      JSON,
+      folderJsonToCsvData + "input/mock-data-2",
+      CSV,
+      folderJsonToCsvData + "output/mock-data-2",
+      SaveMode.Overwrite
+    )
     val actual =
       DataFrameUtils
         .loadDataFrame(CSV, folderJsonToCsvData + "output/mock-data-2")
@@ -104,15 +102,14 @@ class CsvSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with
     assertSmallDatasetEquality(actual, getExpected, ignoreNullable = true)
   }
 
-  "CsvSink.convertToCsv" should "save a avro as a csv file" in {
-    CsvSink
-      .convertToCsv(
-        folderAvroToCsvData + "input/mock-data-2",
-        folderAvroToCsvData + "output/mock-data-2",
-        folderAvroToCsvData + "processed",
-        SaveMode.Overwrite,
-        AVRO
-      )
+  "BasicSink.convert" should "save a avro as a csv file" in {
+    BasicSink.convert(
+      AVRO,
+      folderAvroToCsvData + "input/mock-data-2",
+      CSV,
+      folderAvroToCsvData + "output/mock-data-2",
+      SaveMode.Overwrite
+    )
     val actual =
       DataFrameUtils
         .loadDataFrame(CSV, folderAvroToCsvData + "output/mock-data-2")
@@ -124,15 +121,14 @@ class CsvSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with
     assertSmallDatasetEquality(actual, getExpected, ignoreNullable = true)
   }
 
-  "CsvSink.convertToCsv" should "save a xlsx as a csv file" in {
-    CsvSink
-      .convertToCsv(
-        folderXlsxCsvData + "input/folder1/mock-xlsx-data-13.xlsx",
-        folderXlsxCsvData + "output/folder1/mock-xlsx-data-13",
-        folderXlsxCsvData + "processed",
-        SaveMode.Overwrite,
-        XLSX
-      )
+  "BasicSink.convert" should "save a xlsx as a csv file" in {
+    BasicSink.convert(
+      XLSX,
+      folderXlsxCsvData + "input/folder1/mock-xlsx-data-13.xlsx",
+      CSV,
+      folderXlsxCsvData + "output/folder1/mock-xlsx-data-13",
+      SaveMode.Overwrite
+    )
     val actual =
       DataFrameUtils
         .loadDataFrame(CSV, folderXlsxCsvData + "output/folder1/mock-xlsx-data-13")

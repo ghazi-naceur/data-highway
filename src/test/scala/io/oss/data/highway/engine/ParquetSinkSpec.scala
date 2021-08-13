@@ -18,9 +18,9 @@ class ParquetSinkSpec
     with BeforeAndAfterEach
     with DatasetComparer {
 
-  val folderCsvToParquet  = "src/test/resources/csv_to_parquet-data/"
-  val folderJsonToParquet = "src/test/resources/json_to_parquet-data/"
-  val folderAvroToParquet = "src/test/resources/avro_to_parquet-data/"
+  val folderCsvToParquet  = "src/test/resources/data/csv/"
+  val folderJsonToParquet = "src/test/resources/data/json/"
+  val folderAvroToParquet = "src/test/resources/data/avro/"
   val getExpected: DataFrame = {
     import spark.implicits._
     List(
@@ -57,15 +57,14 @@ class ParquetSinkSpec
       })
   }
 
-  "ParquetSink.saveCsvAsParquet" should "save a csv as a parquet file" in {
-    ParquetSink
-      .convertToParquet(
-        folderCsvToParquet + "input/mock-data-2",
-        folderCsvToParquet + "output/mock-data-2",
-        folderCsvToParquet + "processed",
-        SaveMode.Overwrite,
-        CSV
-      )
+  "BasicSink.convert" should "save a csv as a parquet file" in {
+    BasicSink.convert(
+      CSV,
+      folderCsvToParquet + "input/mock-data-2",
+      PARQUET,
+      folderCsvToParquet + "output/mock-data-2",
+      SaveMode.Overwrite
+    )
     val actual =
       DataFrameUtils
         .loadDataFrame(PARQUET, folderCsvToParquet + "output/mock-data-2")
@@ -76,15 +75,14 @@ class ParquetSinkSpec
     assertSmallDatasetEquality(actual, getExpected, ignoreNullable = true)
   }
 
-  "ParquetSink.saveAvroAsParquet" should "save a avro as a parquet file" in {
-    ParquetSink
-      .convertToParquet(
-        folderAvroToParquet + "input/mock-data-2",
-        folderAvroToParquet + "output/mock-data-2",
-        folderAvroToParquet + "processed",
-        SaveMode.Overwrite,
-        AVRO
-      )
+  "BasicSink.convert" should "save a avro as a parquet file" in {
+    BasicSink.convert(
+      AVRO,
+      folderAvroToParquet + "input/mock-data-2",
+      PARQUET,
+      folderAvroToParquet + "output/mock-data-2",
+      SaveMode.Overwrite
+    )
     val actual =
       DataFrameUtils
         .loadDataFrame(PARQUET, folderAvroToParquet + "output/mock-data-2")
@@ -95,15 +93,14 @@ class ParquetSinkSpec
     assertSmallDatasetEquality(actual, getExpected, ignoreNullable = true)
   }
 
-  "ParquetSink.saveJsonAsParquet" should "save a json as a parquet file" in {
-    ParquetSink
-      .convertToParquet(
-        folderJsonToParquet + "input/mock-data-2",
-        folderJsonToParquet + "output/mock-data-2",
-        folderJsonToParquet + "processed",
-        SaveMode.Overwrite,
-        JSON
-      )
+  "BasicSink.convert" should "save a json as a parquet file" in {
+    BasicSink.convert(
+      JSON,
+      folderJsonToParquet + "input/mock-data-2",
+      PARQUET,
+      folderJsonToParquet + "output/mock-data-2",
+      SaveMode.Overwrite
+    )
     val actual =
       DataFrameUtils
         .loadDataFrame(PARQUET, folderJsonToParquet + "output/mock-data-2")

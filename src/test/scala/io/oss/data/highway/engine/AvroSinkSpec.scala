@@ -14,9 +14,9 @@ import scala.reflect.io.Directory
 
 class AvroSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with DatasetComparer {
 
-  val folderParquetToAvro = "src/test/resources/parquet_to_avro-data/"
-  val folderJsonToAvro    = "src/test/resources/json_to_avro-data/"
-  val folderCsvToAvro     = "src/test/resources/csv_to_avro-data/"
+  val folderParquetToAvro = "src/test/resources/data/parquet/"
+  val folderJsonToAvro    = "src/test/resources/data/json/"
+  val folderCsvToAvro     = "src/test/resources/data/csv/"
 
   lazy val spark: SparkSession = {
     SparkSession
@@ -55,14 +55,14 @@ class AvroSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
       })
   }
 
-  "AvroSink" should "convert parquet dataframe to avro" in {
-    AvroSink
-      .convertToAvro(
+  "BasicSink.convert" should "convert parquet dataframe to avro" in {
+    BasicSink
+      .convert(
+        PARQUET,
         folderParquetToAvro + "input/mock-data-2",
+        AVRO,
         folderParquetToAvro + "output/mock-data-2",
-        folderParquetToAvro + "processed",
-        SaveMode.Overwrite,
-        PARQUET
+        SaveMode.Overwrite
       )
     val actual = DataFrameUtils
       .loadDataFrame(AVRO, folderParquetToAvro + "output/mock-data-2")
@@ -74,14 +74,14 @@ class AvroSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
     assertSmallDatasetEquality(actual, getExpected, ignoreNullable = true)
   }
 
-  "AvroSink" should "convert json dataframe to avro" in {
-    AvroSink
-      .convertToAvro(
+  "BasicSink.convert" should "convert json dataframe to avro" in {
+    BasicSink
+      .convert(
+        JSON,
         folderJsonToAvro + "input/mock-data-2",
+        AVRO,
         folderJsonToAvro + "output/mock-data-2",
-        folderJsonToAvro + "processed",
-        SaveMode.Overwrite,
-        JSON
+        SaveMode.Overwrite
       )
     val actual =
       DataFrameUtils
@@ -94,14 +94,14 @@ class AvroSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
     assertSmallDatasetEquality(actual, getExpected, ignoreNullable = true)
   }
 
-  "AvroSink" should "convert csv dataframe to avro" in {
-    AvroSink
-      .convertToAvro(
+  "BasicSink.convert" should "convert csv dataframe to avro" in {
+    BasicSink
+      .convert(
+        CSV,
         folderCsvToAvro + "input/mock-data-2",
+        AVRO,
         folderCsvToAvro + "output/mock-data-2",
-        folderCsvToAvro + "processed",
-        SaveMode.Overwrite,
-        CSV
+        SaveMode.Overwrite
       )
     val actual =
       DataFrameUtils

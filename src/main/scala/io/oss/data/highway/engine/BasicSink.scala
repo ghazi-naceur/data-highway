@@ -22,7 +22,6 @@ object BasicSink extends HdfsUtils {
     * @param inputPath The input path
     * @param outputDataType The input data type path
     * @param outputPath The input path
-    * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
     * @return Path as String, otherwise an Throwable
     */
@@ -31,7 +30,6 @@ object BasicSink extends HdfsUtils {
       inputPath: String,
       outputDataType: DataType,
       outputPath: String,
-      basePath: String,
       saveMode: SaveMode
   ): Either[Throwable, String] = {
     DataFrameUtils
@@ -123,7 +121,6 @@ object BasicSink extends HdfsUtils {
                     file,
                     output.dataType,
                     s"${output.path}/$fileNameWithParentFolder",
-                    basePath,
                     saveMode
                   )
                 })
@@ -140,7 +137,6 @@ object BasicSink extends HdfsUtils {
                 subFolder,
                 output.dataType,
                 s"${output.path}/$subFolderName",
-                basePath,
                 saveMode
               ).flatMap(_ => {
                 HdfsUtils.movePathContent(fs, subFolder, basePath)
@@ -184,7 +180,6 @@ object BasicSink extends HdfsUtils {
                     file.toURI.getPath,
                     output.dataType,
                     s"${output.path}/$fileNameWithParentFolder",
-                    basePath,
                     saveMode
                   ).flatMap(subInputFolder => {
                     FilesUtils
@@ -206,7 +201,6 @@ object BasicSink extends HdfsUtils {
               subFolder,
               output.dataType,
               s"${output.path}/$subFolderName",
-              basePath,
               saveMode
             ).flatMap(subInputFolder => {
               FilesUtils.movePathContent(subInputFolder, s"$basePath/processed")

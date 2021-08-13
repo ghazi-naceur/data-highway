@@ -14,9 +14,9 @@ import scala.reflect.io.Directory
 
 class JsonSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with DatasetComparer {
 
-  val folderParquetToJson = "src/test/resources/parquet_to_json-data/"
-  val folderCsvToJson     = "src/test/resources/csv_to_json-data/"
-  val folderAvroToJson    = "src/test/resources/avro_to_json-data/"
+  val folderParquetToJson = "src/test/resources/data/parquet/"
+  val folderCsvToJson     = "src/test/resources/data/csv/"
+  val folderAvroToJson    = "src/test/resources/data/avro/"
   val getExpected: DataFrame = {
     import spark.implicits._
     List(
@@ -53,15 +53,14 @@ class JsonSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
       })
   }
 
-  "JsonSink.saveParquetAsJson" should "save a parquet as a json file" in {
-    JsonSink
-      .convertToJson(
-        folderParquetToJson + "input/mock-data-2",
-        folderParquetToJson + "output/mock-data-2",
-        folderParquetToJson + "processed",
-        SaveMode.Overwrite,
-        PARQUET
-      )
+  "BasicSink.convert" should "save a parquet as a json file" in {
+    BasicSink.convert(
+      PARQUET,
+      folderParquetToJson + "input/mock-data-2",
+      JSON,
+      folderParquetToJson + "output/mock-data-2",
+      SaveMode.Overwrite
+    )
     val actual =
       DataFrameUtils
         .loadDataFrame(JSON, folderParquetToJson + "output/mock-data-2")
@@ -73,15 +72,14 @@ class JsonSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
     assertSmallDatasetEquality(actual, getExpected, ignoreNullable = true)
   }
 
-  "JsonSink.saveAvroAsJson" should "save an avro as a json file" in {
-    JsonSink
-      .convertToJson(
-        folderAvroToJson + "input/mock-data-2",
-        folderAvroToJson + "output/mock-data-2",
-        folderAvroToJson + "processed",
-        SaveMode.Overwrite,
-        AVRO
-      )
+  "BasicSink.convert" should "save an avro as a json file" in {
+    BasicSink.convert(
+      AVRO,
+      folderAvroToJson + "input/mock-data-2",
+      JSON,
+      folderAvroToJson + "output/mock-data-2",
+      SaveMode.Overwrite
+    )
     val actual =
       DataFrameUtils
         .loadDataFrame(JSON, folderAvroToJson + "output/mock-data-2")
@@ -93,15 +91,14 @@ class JsonSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
     assertSmallDatasetEquality(actual, getExpected, ignoreNullable = true)
   }
 
-  "JsonSink.saveCsvAsJson" should "save a csv as a json file" in {
-    JsonSink
-      .convertToJson(
-        folderCsvToJson + "input/mock-data-2",
-        folderCsvToJson + "output/mock-data-2",
-        folderCsvToJson + "processed",
-        SaveMode.Overwrite,
-        CSV
-      )
+  "BasicSink.convert" should "save a csv as a json file" in {
+    BasicSink.convert(
+      CSV,
+      folderCsvToJson + "input/mock-data-2",
+      JSON,
+      folderCsvToJson + "output/mock-data-2",
+      SaveMode.Overwrite
+    )
     val actual =
       DataFrameUtils
         .loadDataFrame(JSON, folderCsvToJson + "output/mock-data-2")
