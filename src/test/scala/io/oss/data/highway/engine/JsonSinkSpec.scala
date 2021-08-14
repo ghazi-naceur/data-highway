@@ -19,7 +19,7 @@ class JsonSinkSpec
     deleteFolderWithItsContent(jsonFolder + "output")
   }
 
-  "BasicSink.convert" should "save a parquet as a json file" in {
+  "BasicSink.convert" should "convert parquet to json" in {
     BasicSink.convert(
       PARQUET,
       parquetFolder + "input/mock-data-2",
@@ -38,7 +38,7 @@ class JsonSinkSpec
     assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
   }
 
-  "BasicSink.convert" should "save an avro as a json file" in {
+  "BasicSink.convert" should "convertn avro to json" in {
     BasicSink.convert(
       AVRO,
       avroFolder + "input/mock-data-2",
@@ -57,7 +57,7 @@ class JsonSinkSpec
     assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
   }
 
-  "BasicSink.convert" should "save a csv as a json file" in {
+  "BasicSink.convert" should "convert csv to json" in {
     BasicSink.convert(
       CSV,
       csvFolder + "input/mock-data-2",
@@ -76,7 +76,7 @@ class JsonSinkSpec
     assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
   }
 
-  "BasicSink.convert" should "save a xlsx as a json file" in {
+  "BasicSink.convert" should "convert xlsx to json" in {
     BasicSink.convert(
       XLSX,
       xlsxFolder + "input/folder1/mock-xlsx-data-13.xlsx",

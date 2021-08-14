@@ -19,7 +19,7 @@ class ParquetSinkSpec
     deleteFolderWithItsContent(parquetFolder + "output")
   }
 
-  "BasicSink.convert" should "save a csv as a parquet file" in {
+  "BasicSink.convert" should "convert csv to parquet" in {
     BasicSink.convert(
       CSV,
       csvFolder + "input/mock-data-2",
@@ -37,7 +37,7 @@ class ParquetSinkSpec
     assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
   }
 
-  "BasicSink.convert" should "save a avro as a parquet file" in {
+  "BasicSink.convert" should "convert avro to parquet" in {
     BasicSink.convert(
       AVRO,
       avroFolder + "input/mock-data-2",
@@ -55,7 +55,7 @@ class ParquetSinkSpec
     assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
   }
 
-  "BasicSink.convert" should "save a json as a parquet file" in {
+  "BasicSink.convert" should "convert json to parquet" in {
     BasicSink.convert(
       JSON,
       jsonFolder + "input/mock-data-2",
@@ -74,7 +74,7 @@ class ParquetSinkSpec
     assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
   }
 
-  "BasicSink.convert" should "save a xlsx as a parquet file" in {
+  "BasicSink.convert" should "convert xlsx to parquet" in {
     BasicSink.convert(
       XLSX,
       xlsxFolder + "input/folder1/mock-xlsx-data-13.xlsx",

@@ -19,7 +19,7 @@ class CsvSinkSpec
     deleteFolderWithItsContent(csvFolder + "output")
   }
 
-  "BasicSink.convert" should "save a parquet as a csv file" in {
+  "BasicSink.convert" should "convert parquet to csv" in {
     BasicSink.convert(
       PARQUET,
       parquetFolder + "input/mock-data-2",
@@ -38,7 +38,7 @@ class CsvSinkSpec
     assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
   }
 
-  "BasicSink.convert" should "save a json as a csv file" in {
+  "BasicSink.convert" should "convert json to csv" in {
     BasicSink.convert(
       JSON,
       jsonFolder + "input/mock-data-2",
@@ -57,7 +57,7 @@ class CsvSinkSpec
     assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
   }
 
-  "BasicSink.convert" should "save a avro as a csv file" in {
+  "BasicSink.convert" should "convert avro to csv" in {
     BasicSink.convert(
       AVRO,
       avroFolder + "input/mock-data-2",
@@ -76,7 +76,7 @@ class CsvSinkSpec
     assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
   }
 
-  "BasicSink.convert" should "save a xlsx as a csv file" in {
+  "BasicSink.convert" should "convert xlsx to csv" in {
     BasicSink.convert(
       XLSX,
       xlsxFolder + "input/folder1/mock-xlsx-data-13.xlsx",

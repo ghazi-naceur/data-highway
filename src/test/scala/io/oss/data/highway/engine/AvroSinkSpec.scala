@@ -19,7 +19,7 @@ class AvroSinkSpec
     deleteFolderWithItsContent(avroFolder + "output")
   }
 
-  "BasicSink.convert" should "convert parquet dataframe to avro" in {
+  "BasicSink.convert" should "convert parquet to avro" in {
     BasicSink
       .convert(
         PARQUET,
@@ -38,7 +38,7 @@ class AvroSinkSpec
     assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
   }
 
-  "BasicSink.convert" should "convert json dataframe to avro" in {
+  "BasicSink.convert" should "convert json to avro" in {
     BasicSink
       .convert(
         JSON,
@@ -58,7 +58,7 @@ class AvroSinkSpec
     assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
   }
 
-  "BasicSink.convert" should "convert csv dataframe to avro" in {
+  "BasicSink.convert" should "convert csv to avro" in {
     BasicSink
       .convert(
         CSV,
@@ -78,7 +78,7 @@ class AvroSinkSpec
     assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
   }
 
-  "BasicSink.convert" should "save a xlsx as a avro file" in {
+  "BasicSink.convert" should "convert xlsx to avro" in {
     BasicSink.convert(
       XLSX,
       xlsxFolder + "input/folder1/mock-xlsx-data-13.xlsx",
