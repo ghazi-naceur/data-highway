@@ -9,10 +9,10 @@
 			"name": "to_parquet",
 			"item": [
 				{
-					"name": "avro_to_parquet",
+					"name": "file_to_parquet",
 					"item": [
 						{
-							"name": "avro-to-parquet_docker",
+							"name": "file-to-parquet_docker",
 							"request": {
 								"method": "POST",
 								"header": [
@@ -24,7 +24,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-parquet\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"/app/data/spark/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"/app/data/spark/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -49,7 +49,7 @@
 							"response": []
 						},
 						{
-							"name": "avro-to-parquet_local",
+							"name": "file-to-parquet_local",
 							"request": {
 								"method": "POST",
 								"header": [
@@ -61,7 +61,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-parquet\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/avro_to_parquet-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/avro_to_parquet-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/avro/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/parquet/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -86,7 +86,7 @@
 							"response": []
 						},
 						{
-							"name": "avro-to-parquet_hdfs",
+							"name": "file-to-parquet_hdfs",
 							"request": {
 								"method": "POST",
 								"header": [
@@ -98,239 +98,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-parquet\",\n    \"in\": \"hdfs://localhost:9000/data/avro_to_parquet/input\",\n    \"out\": \"hdfs://localhost:9000/data/avro_to_parquet/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						}
-					]
-				},
-				{
-					"name": "json_to_parquet",
-					"item": [
-						{
-							"name": "json-to-parquet_docker",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-parquet\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "json-to-parquet_local",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-parquet\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/json_to_parquet-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/json_to_parquet-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "json-to-parquet_hdfs",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-parquet\",\n    \"in\": \"hdfs://localhost:9000/data/json_to_parquet/input\",\n    \"out\": \"hdfs://localhost:9000/data/json_to_parquet/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						}
-					]
-				},
-				{
-					"name": "csv_to_parquet",
-					"item": [
-						{
-							"name": "csv-to-parquet_docker",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-parquet\",\n    \"in\": \"/app/data/csv_to_parquet/input\",\n    \"out\": \"/app/data/csv_to_parquet/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "csv-to-parquet_local",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-parquet\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/csv_to_parquet-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/csv_to_parquet-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "csv-to-parquet_hdfs",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-parquet\",\n    \"in\": \"hdfs://localhost:9000/data/csv_to_parquet/input\",\n    \"out\": \"hdfs://localhost:9000/data/csv_to_parquet/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/avro/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/parquet/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -362,10 +130,10 @@
 			"name": "to_avro",
 			"item": [
 				{
-					"name": "csv_to_avro",
+					"name": "file_to_avro",
 					"item": [
 						{
-							"name": "csv-to-avro_docker",
+							"name": "file-to-avro_docker",
 							"request": {
 								"method": "POST",
 								"header": [
@@ -377,7 +145,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-avro\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"/app/data/spark/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"/app/data/spark/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -402,7 +170,7 @@
 							"response": []
 						},
 						{
-							"name": "csv-to-avro_local",
+							"name": "file-to-avro_local",
 							"request": {
 								"method": "POST",
 								"header": [
@@ -414,7 +182,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-avro\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/csv_to_avro-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/csv_to_avro-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/parquet/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/avro/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -439,7 +207,7 @@
 							"response": []
 						},
 						{
-							"name": "csv-to-avro_hdfs",
+							"name": "file-to-avro_hdfs",
 							"request": {
 								"method": "POST",
 								"header": [
@@ -451,239 +219,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-avro\",\n    \"in\": \"hdfs://localhost:9000/data/csv_to_avro/input\",\n    \"out\": \"hdfs://localhost:9000/data/csv_to_avro/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						}
-					]
-				},
-				{
-					"name": "parquet_to_avro",
-					"item": [
-						{
-							"name": "parquet-to-avro_docker",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-avro\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "parquet-to-avro_local",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-avro\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/parquet_to_avro-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/parquet_to_avro-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "parquet-to-avro_hdfs",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-avro\",\n    \"in\": \"hdfs://localhost:9000/data/parquet_to_avro/input\",\n    \"out\": \"hdfs://localhost:9000/data/parquet_to_avro/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						}
-					]
-				},
-				{
-					"name": "json_to_avro",
-					"item": [
-						{
-							"name": "json-to-avro_docker",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-avro\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "json-to-avro_local",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-avro\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/json_to_avro-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/json_to_avro-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "json-to-avro_hdfs",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-avro\",\n    \"in\": \"hdfs://localhost:9000/data/json_to_avro/input\",\n    \"out\": \"hdfs://localhost:9000/data/json_to_avro/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/parquet/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/avro/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -715,10 +251,10 @@
 			"name": "to_csv",
 			"item": [
 				{
-					"name": "json_to_csv",
+					"name": "file_to_csv",
 					"item": [
 						{
-							"name": "json-to-csv_docker",
+							"name": "file-to-csv_docker",
 							"request": {
 								"method": "POST",
 								"header": [
@@ -730,7 +266,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-csv\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/app/data/spark/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"/app/data/spark/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -755,7 +291,7 @@
 							"response": []
 						},
 						{
-							"name": "json-to-csv_local",
+							"name": "file-to-csv_local",
 							"request": {
 								"method": "POST",
 								"header": [
@@ -767,7 +303,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-csv\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/json_to_csv-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/json_to_csv-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/parquet/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/csv/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -792,7 +328,7 @@
 							"response": []
 						},
 						{
-							"name": "json-to-csv_hdfs",
+							"name": "file-to-csv_hdfs",
 							"request": {
 								"method": "POST",
 								"header": [
@@ -804,355 +340,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"json-to-csv\",\n    \"in\": \"hdfs://localhost:9000/data/json_to_csv/input\",\n    \"out\": \"hdfs://localhost:9000/data/json_to_csv/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						}
-					]
-				},
-				{
-					"name": "parquet_to_csv",
-					"item": [
-						{
-							"name": "parquet-to-csv_docker",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-csv\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "parquet-to-csv_local",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-csv\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/parquet_to_csv-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/parquet_to_csv-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "parquet-to-csv_hdfs",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-csv\",\n    \"in\": \"hdfs://localhost:9000/data/parquet_to_csv/input\",\n    \"out\": \"hdfs://localhost:9000/data/parquet_to_csv/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						}
-					]
-				},
-				{
-					"name": "avro_to_csv",
-					"item": [
-						{
-							"name": "avro-to-csv_docker",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-csv\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "avro-to-csv_local",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-csv\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/avro_to_csv-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/avro_to_csv-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "avro-to-csv_hdfs",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-csv\",\n    \"in\": \"hdfs://localhost:9000/data/avro_to_csv/input\",\n    \"out\": \"hdfs://localhost:9000/data/avro_to_csv/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						}
-					]
-				},
-				{
-					"name": "xlsx_to_csv",
-					"item": [
-						{
-							"name": "xlsx-to-csv_docker",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"xlsx-to-csv\",\n    \"in\": \"/app/data/xlsx_to_csv/input\",\n    \"out\": \"/app/data/xlsx_to_csv/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "xlsx-to-csv_local",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"xlsx-to-csv\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/xlsx_to_csv-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/xlsx_to_csv-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "xlsx-to-csv_hdfs",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"xlsx-to-csv\",\n    \"in\": \"hdfs://localhost:9000/data/xlsx_to_csv/input\",\n    \"out\": \"hdfs://localhost:9000/data/xlsx_to_csv/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/parquet/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/csv/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1184,10 +372,10 @@
 			"name": "to_json",
 			"item": [
 				{
-					"name": "avro_to_json",
+					"name": "file_to_json",
 					"item": [
 						{
-							"name": "avro-to-json_docker",
+							"name": "file-to-json_docker",
 							"request": {
 								"method": "POST",
 								"header": [
@@ -1199,7 +387,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-json\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"/app/data/spark/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/app/data/spark/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1224,7 +412,7 @@
 							"response": []
 						},
 						{
-							"name": "avro-to-json_local",
+							"name": "file-to-json_local",
 							"request": {
 								"method": "POST",
 								"header": [
@@ -1236,7 +424,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-json\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/avro_to_json-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/avro_to_json-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/parquet/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/json/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1261,7 +449,7 @@
 							"response": []
 						},
 						{
-							"name": "avro-to-json_hdfs",
+							"name": "file-to-json_hdfs",
 							"request": {
 								"method": "POST",
 								"header": [
@@ -1273,239 +461,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"avro-to-json\",\n    \"in\": \"hdfs://localhost:9000/data/avro_to_json/input\",\n    \"out\": \"hdfs://localhost:9000/data/avro_to_json/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						}
-					]
-				},
-				{
-					"name": "csv_to_json",
-					"item": [
-						{
-							"name": "csv-to-json_docker",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-json\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "csv-to-json_local",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-json\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/csv_to_json-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/csv_to_json-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "csv-to-json_hdfs",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"csv-to-json\",\n    \"in\": \"hdfs://localhost:9000/data/csv_to_json/input\",\n    \"out\": \"hdfs://localhost:9000/data/csv_to_json/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						}
-					]
-				},
-				{
-					"name": "parquet_to_json",
-					"item": [
-						{
-							"name": "parquet-to-json_docker",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-json\",\n    \"in\": \"/app/data/spark/input\",\n    \"out\": \"/app/data/spark/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "parquet-to-json_local",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-json\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/parquet_to_json-data/input\",\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/parquet_to_json-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null,
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "parquet-to-json_hdfs",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"parquet-to-json\",\n    \"in\": \"hdfs://localhost:9000/data/parquet_to_json/input\",\n    \"out\": \"hdfs://localhost:9000/data/parquet_to_json/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/parquet/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"hdfs://localhost:9000/json/csv/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -3434,7 +2390,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"route\": {\n    \"type\": \"file-to-cassandra\",\n    \"in\": \"/app/data/cassandra/input\",\n    \"cassandra\": {\n      \"keyspace\": \"data_entities\",\n      \"table\": \"persons\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+							"raw": "{\n  \"route\": {\n    \"type\": \"file-to-cassandra\",\n    \"in\": \"/app/data/csv_to_parquet/input\",\n    \"cassandra\": {\n      \"keyspace\": \"data_entities\",\n      \"table\": \"persons\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"data-type\": {\n        \"type\": \"csv\"\n    }\n  }\n}"
 						},
 						"url": {
 							"raw": "http://localhost:5555/conversion/route",
@@ -3680,6 +2636,131 @@
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"route\": {\n    \"type\": \"cassandra-to-file\",\n    \"cassandra\": {\n      \"keyspace\": \"data_entities\",\n      \"table\": \"persons\"\n    },\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/csv_to_json-data/output\",\n    \"data-type\": {\n        \"type\": \"avro\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:5555/conversion/route",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5555",
+							"path": [
+								"conversion",
+								"route"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "cassandra-to-file_hdfs-csv",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"route\": {\n    \"type\": \"cassandra-to-file\",\n    \"cassandra\": {\n      \"keyspace\": \"data_entities\",\n      \"table\": \"persons\"\n    },\n    \"out\": \"hdfs://localhost:9000/data/csv_to_json/output\",\n    \"data-type\": {\n        \"type\": \"json\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:5555/conversion/route",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5555",
+							"path": [
+								"conversion",
+								"route"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "cassandra-to-file_docker-csv",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"route\": {\n    \"type\": \"cassandra-to-file\",\n    \"cassandra\": {\n      \"keyspace\": \"data_entities\",\n      \"table\": \"persons\"\n    },\n    \"out\": \"hdfs://localhost:9000/data/csv_to_json/output\",\n    \"data-type\": {\n        \"type\": \"json\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:5555/conversion/route",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5555",
+							"path": [
+								"conversion",
+								"route"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "file_to_file",
+			"item": [
+				{
+					"name": "file-to-file",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"route-bis\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/json_to_csv-data/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/json_to_csv-data/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:5555/conversion/route",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5555",
+							"path": [
+								"conversion",
+								"route"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "file-to-cassandra",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"route-bis\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n        \"type\": \"json\"\n        },\n        \"path\": \"/tmp/json_files\"\n    },\n    \"output\": {\n        \"type\": \"cassandra-bis\",\n        \"keyspace\": \"custom-keyspace\",\n        \"table\": \"custom-table\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 						},
 						"url": {
 							"raw": "http://localhost:5555/conversion/route",
