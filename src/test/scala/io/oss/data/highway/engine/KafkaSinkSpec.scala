@@ -2,7 +2,7 @@ package io.oss.data.highway.engine
 
 import io.oss.data.highway.models.DataHighwayError.KafkaError
 import io.oss.data.highway.models.{Earliest, Local}
-import io.oss.data.highway.utils.FilesUtils
+import io.oss.data.highway.utils.{TestHelper, FilesUtils}
 import net.manub.embeddedkafka.{EmbeddedKafka, EmbeddedKafkaConfig}
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig}
 import org.apache.kafka.common.serialization.StringSerializer
@@ -13,7 +13,16 @@ import wordspec._
 import java.io.{BufferedWriter, File, FileWriter}
 import java.nio.file.Files
 
-class KafkaSinkSpec extends AnyWordSpecLike with Matchers with EmbeddedKafka {
+class KafkaSinkSpec
+    extends AnyWordSpecLike
+    with Matchers
+    with BeforeAndAfterEach
+    with EmbeddedKafka
+    with TestHelper {
+
+  override def afterEach(): Unit = {
+    deleteFolderWithItsContent("/tmp/data-highway")
+  }
 
   "KafkaSink.publishFileContent" should {
     "publish file content using Pure Kafka Producer" in {

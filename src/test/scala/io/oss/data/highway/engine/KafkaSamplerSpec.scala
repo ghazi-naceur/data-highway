@@ -2,12 +2,22 @@ package io.oss.data.highway.engine
 
 import io.oss.data.highway.models.DataHighwayError.KafkaError
 import io.oss.data.highway.models.{Earliest, Local}
-import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
+import io.oss.data.highway.utils.{DataFrameUtils, TestHelper, FilesUtils}
 import net.manub.embeddedkafka.{EmbeddedKafka, EmbeddedKafkaConfig}
+import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 
-class KafkaSamplerSpec extends AnyWordSpecLike with Matchers with EmbeddedKafka {
+class KafkaSamplerSpec
+    extends AnyWordSpecLike
+    with BeforeAndAfterEach
+    with Matchers
+    with EmbeddedKafka
+    with TestHelper {
+
+  override def afterEach(): Unit = {
+    deleteFolderWithItsContent("/tmp/data-highway")
+  }
 
   "KafkaSampler.sinkWithPureKafka" should {
     "sink topic content using Pure Kafka Consumer" in {

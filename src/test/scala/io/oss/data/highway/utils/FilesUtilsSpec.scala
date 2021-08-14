@@ -1,16 +1,21 @@
 package io.oss.data.highway.utils
 
 import io.oss.data.highway.models.DataHighwayError.DataHighwayFileError
+import org.scalactic.source.Position
 
 import java.io.{BufferedWriter, File, FileWriter}
-import org.scalatest.BeforeAndAfterEach
+import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 import java.nio.file.Files
 import java.util.UUID
 
-class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with FSUtils {
+class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with TestHelper {
+
+  override protected def after(fun: => Any)(implicit pos: Position): Unit = {
+    deleteFolderWithItsContent(hdfsEntity.hdfsUri + "/tmp/data-highway")
+  }
 
   "FilesUtils.listFilesRecursively" should "list files recursively from path" in {
     val time    = System.currentTimeMillis().toString

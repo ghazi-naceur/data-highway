@@ -1,23 +1,30 @@
 package io.oss.data.highway.utils
 
 import io.oss.data.highway.models.DataHighwayError.HdfsError
-import org.scalatest.BeforeAndAfterEach
+import org.scalactic.source.Position
+import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class HdfsUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with FSUtils {
+import java.util.UUID
+
+class HdfsUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with TestHelper {
+
+  override protected def after(fun: => Any)(implicit pos: Position): Unit = {
+    deleteFolderWithItsContent(hdfsEntity.hdfsUri + "/tmp/data-highway")
+  }
 
   "HdfsUtils.save" should "save a file" in {
     val time = System.currentTimeMillis().toString
     HdfsUtils
       .save(
         hdfsEntity.fs,
-        hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/files/file.txt",
+        hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/files/file.txt",
         "some content"
       )
     val files =
-      HdfsUtils.listFiles(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/files")
-    files.head shouldBe hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/files/file.txt"
+      HdfsUtils.listFiles(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/files")
+    files.head shouldBe hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/files/file.txt"
   }
 
   "HdfsUtils.save" should "throw an exception" in {
@@ -29,7 +36,7 @@ class HdfsUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wi
   "HdfsUtils.mkdir" should "create a folder" in {
     val time = System.currentTimeMillis().toString
     val result = HdfsUtils
-      .mkdir(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/files")
+      .mkdir(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/files")
     result.right.get shouldBe true
   }
 
@@ -44,29 +51,29 @@ class HdfsUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wi
     HdfsUtils
       .save(
         hdfsEntity.fs,
-        hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset/file.json",
+        hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset/file.json",
         "{\"some-key\":\"some value\"}"
       )
     HdfsUtils
       .save(
         hdfsEntity.fs,
-        hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset/file2.json",
+        hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset/file2.json",
         "{\"some-key\":\"some value\"}"
       )
     HdfsUtils
-      .mkdir(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/processed")
+      .mkdir(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/processed")
     val result = HdfsUtils
       .move(
         hdfsEntity.fs,
-        s"/tmp/data-highway-$time/input/dataset",
-        s"/tmp/data-highway-$time/processed"
+        s"/tmp/data-highway/$time/input/dataset",
+        s"/tmp/data-highway/$time/processed"
       )
     val files = HdfsUtils
-      .listFiles(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/processed/dataset")
+      .listFiles(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/processed/dataset")
     result.right.get shouldBe true
     files should contain theSameElementsAs List(
-      hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/processed/dataset/file.json",
-      hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/processed/dataset/file2.json"
+      hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/processed/dataset/file.json",
+      hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/processed/dataset/file2.json"
     )
   }
 
@@ -80,19 +87,19 @@ class HdfsUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wi
     HdfsUtils
       .save(
         hdfsEntity.fs,
-        hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset/file.json",
+        hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset/file.json",
         "{\"some-key\":\"some value\"}"
       )
     HdfsUtils
       .save(
         hdfsEntity.fs,
-        hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset/file2.json",
+        hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset/file2.json",
         "{\"some-key\":\"some value\"}"
       )
     val result =
-      HdfsUtils.cleanup(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input")
+      HdfsUtils.cleanup(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input")
     val files = HdfsUtils
-      .listFiles(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input")
+      .listFiles(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input")
     result.right.get shouldBe true
     files shouldBe List()
   }
@@ -107,22 +114,22 @@ class HdfsUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wi
     HdfsUtils
       .save(
         hdfsEntity.fs,
-        hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset/file.json",
+        hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset/file.json",
         "{\"some-key\":\"some value\"}"
       )
-    HdfsUtils.mkdir(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/processed")
-    HdfsUtils.mkdir(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/output")
-    HdfsUtils.mkdir(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/pending")
-    HdfsUtils.mkdir(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/rejected")
+    HdfsUtils.mkdir(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/processed")
+    HdfsUtils.mkdir(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/output")
+    HdfsUtils.mkdir(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/pending")
+    HdfsUtils.mkdir(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/rejected")
 
     val result = HdfsUtils
-      .listFolders(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway-$time")
+      .listFolders(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway/$time")
     result.right.get should contain theSameElementsAs List(
-      hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input",
-      hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/processed",
-      hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/output",
-      hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/pending",
-      hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/rejected"
+      hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input",
+      hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/processed",
+      hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/output",
+      hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/pending",
+      hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/rejected"
     )
   }
 
@@ -136,20 +143,20 @@ class HdfsUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wi
     HdfsUtils
       .save(
         hdfsEntity.fs,
-        hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset/file.json",
+        hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset/file.json",
         "{\"some-key\":\"some value\"}"
       )
     HdfsUtils
       .save(
         hdfsEntity.fs,
-        hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset/file2.json",
+        hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset/file2.json",
         "{\"some-key\":\"some value\"}"
       )
     val result = HdfsUtils
-      .listFiles(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset")
+      .listFiles(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset")
     result should contain theSameElementsAs List(
-      hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset/file.json",
-      hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset/file2.json"
+      hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset/file.json",
+      hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset/file2.json"
     )
   }
 
@@ -158,32 +165,32 @@ class HdfsUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wi
     HdfsUtils
       .save(
         hdfsEntity.fs,
-        hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset/file.json",
+        hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset/file.json",
         "{\"some-key\":\"some value\"}"
       )
     HdfsUtils
       .save(
         hdfsEntity.fs,
-        hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset/file2.json",
+        hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset/file2.json",
         "{\"some-key\":\"some value\"}"
       )
 
     val result = HdfsUtils
       .movePathContent(
         hdfsEntity.fs,
-        hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset",
-        hdfsEntity.hdfsUri + s"/tmp/data-highway-$time"
+        hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset",
+        hdfsEntity.hdfsUri + s"/tmp/data-highway/$time"
       )
     result.right.get should contain theSameElementsAs List(
-      hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/processed/dataset/file.json",
-      hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/processed/dataset/file2.json"
+      hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/processed/dataset/file.json",
+      hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/processed/dataset/file2.json"
     )
 
     val files = HdfsUtils
-      .listFiles(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/processed/dataset")
+      .listFiles(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/processed/dataset")
     files should contain theSameElementsAs List(
-      hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/processed/dataset/file.json",
-      hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/processed/dataset/file2.json"
+      hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/processed/dataset/file.json",
+      hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/processed/dataset/file2.json"
     )
   }
 
@@ -204,32 +211,32 @@ class HdfsUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wi
     HdfsUtils
       .save(
         hdfsEntity.fs,
-        hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset1/file.json",
+        hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset1/file.json",
         "{\"some-key\":\"some value\"}"
       )
 
     HdfsUtils
       .save(
         hdfsEntity.fs,
-        hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset2/file.json",
+        hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset2/file.json",
         "{\"some-key\":\"some value\"}"
       )
-    HdfsUtils.mkdir(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset3")
-    HdfsUtils.mkdir(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset4")
-    HdfsUtils.mkdir(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset5")
+    HdfsUtils.mkdir(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset3")
+    HdfsUtils.mkdir(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset4")
+    HdfsUtils.mkdir(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset5")
 
     val folders = List(
-      hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset1",
-      hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset2",
-      hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset3",
-      hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset4",
-      hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset5"
+      hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset1",
+      hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset2",
+      hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset3",
+      hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset4",
+      hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset5"
     )
     val result = HdfsUtils
       .filterNonEmptyFolders(hdfsEntity.fs, folders)
     result.right.get should contain theSameElementsAs List(
-      hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset1",
-      hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset2"
+      hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset1",
+      hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset2"
     )
   }
 
@@ -243,47 +250,47 @@ class HdfsUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wi
     HdfsUtils
       .save(
         hdfsEntity.fs,
-        hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset1/file.json",
+        hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset1/file.json",
         "{\"some-key\":\"some value\"}"
       )
     HdfsUtils
       .save(
         hdfsEntity.fs,
-        hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset1/file2.json",
+        hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset1/file2.json",
         "{\"some-key\":\"some value\"}"
       )
     HdfsUtils
       .save(
         hdfsEntity.fs,
-        hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset2/file.json",
+        hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset2/file.json",
         "{\"some-key\":\"some value\"}"
       )
-    HdfsUtils.mkdir(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset3")
-    HdfsUtils.mkdir(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset4")
-    HdfsUtils.mkdir(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset5")
+    HdfsUtils.mkdir(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset3")
+    HdfsUtils.mkdir(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset4")
+    HdfsUtils.mkdir(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset5")
 
     val result = HdfsUtils
-      .listFilesRecursively(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input")
+      .listFilesRecursively(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input")
     result should contain theSameElementsAs List(
-      s"/tmp/data-highway-$time/input/dataset1/file.json",
-      s"/tmp/data-highway-$time/input/dataset1/file2.json",
-      s"/tmp/data-highway-$time/input/dataset2/file.json"
+      s"/tmp/data-highway/$time/input/dataset1/file.json",
+      s"/tmp/data-highway/$time/input/dataset1/file2.json",
+      s"/tmp/data-highway/$time/input/dataset2/file.json"
     )
   }
 
   "HdfsUtils.getLines" should "get json content from a json file" in {
-    val time = System.currentTimeMillis().toString
+    val time = System.currentTimeMillis().toString + UUID.randomUUID().toString
     HdfsUtils
       .save(
         hdfsEntity.fs,
-        hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset/file.json",
+        hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset/file.json",
         "{\"some-key\":\"some value\"}\n{\"some-key\":\"some value\"}\n{\"some-key\":\"some value\"}"
       )
 
     val result = HdfsUtils
       .getLines(
         hdfsEntity.fs,
-        hdfsEntity.hdfsUri + s"/tmp/data-highway-$time/input/dataset/file.json"
+        hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset/file.json"
       )
     result should contain theSameElementsAs List(
       "{\"some-key\":\"some value\"}",
