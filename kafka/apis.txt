@@ -1,25 +1,25 @@
 
 1- Create topics :
-bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 3 --partitions 3 --topic file_to_kafka_local_1
-bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 3 --partitions 3 --topic file_to_kafka_local_2
-bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 3 --partitions 3 --topic file_to_kafka_hdfs_1
-bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 3 --partitions 3 --topic file_to_kafka_hdfs_2
+kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 3 --partitions 3 --topic file_to_kafka_local_1
+kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 3 --partitions 3 --topic file_to_kafka_local_2
+kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 3 --partitions 3 --topic file_to_kafka_hdfs_1
+kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 3 --partitions 3 --topic file_to_kafka_hdfs_2
 
 2- Describe topics :
-bin/kafka-topics.sh --describe --zookeeper localhost:2181 --topic file_to_kafka_local_1
+kafka-topics.sh --describe --zookeeper localhost:2181 --topic file_to_kafka_local_1
 
 3- Produce messages :
-bin/kafka-console-producer.sh --broker-list localhost:9092,localhost:9093,localhost:9094 --topic file_to_kafka_local_1
-bin/kafka-console-producer.sh --broker-list localhost:9092 --topic file_to_kafka_local_1
-bin/kafka-console-producer.sh --broker-list localhost:9092 --topic file_to_kafka_local_2
+kafka-console-producer.sh --broker-list localhost:9092,localhost:9093,localhost:9094 --topic file_to_kafka_local_1
+kafka-console-producer.sh --broker-list localhost:9092 --topic file_to_kafka_local_1
+kafka-console-producer.sh --broker-list localhost:9092 --topic file_to_kafka_local_2
 
 4- Consume messages :
-bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic file_to_kafka_local_1 --from-beginning
-bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic file_to_kafka_local_2 --from-beginning
-bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic file_to_kafka_hdfs_1 --from-beginning
-bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic file_to_kafka_hdfs_2 --from-beginning
+kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic file_to_kafka_local_1 --from-beginning
+kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic file_to_kafka_local_2 --from-beginning
+kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic file_to_kafka_hdfs_1 --from-beginning
+kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic file_to_kafka_hdfs_2 --from-beginning
 
-bin/kafka-console-consumer.sh --zookeeper localhost:2181 --from-beginning --topic file_to_kafka_local_1
+kafka-console-consumer.sh --zookeeper localhost:2181 --from-beginning --topic file_to_kafka_local_1
 
 5- List topics :
-bin/kafka-topics.sh --list --zookeeper localhost:2181
+kafka-topics.sh --list --zookeeper localhost:2181

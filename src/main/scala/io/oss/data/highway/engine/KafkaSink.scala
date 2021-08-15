@@ -7,7 +7,7 @@ import java.util.{Properties, UUID}
 import io.oss.data.highway.models.{
   HDFS,
   JSON,
-  KafkaMode,
+  Kafka,
   Local,
   Offset,
   PureKafkaProducer,
@@ -22,85 +22,137 @@ import org.apache.kafka.streams.scala.StreamsBuilder
 import org.apache.kafka.streams.{KafkaStreams, StreamsConfig}
 import org.apache.log4j.Logger
 import cats.implicits._
-import io.oss.data.highway.models.DataHighwayError.KafkaError
+import io.oss.data.highway.models
+import io.oss.data.highway.models.DataHighwayError.{DataHighwayFileError, KafkaError}
 import monix.execution.Scheduler.{global => scheduler}
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.kafka.clients.consumer.ConsumerConfig
 
 import scala.concurrent.duration._
 import java.io.File
+import java.nio.file.Files
 import scala.sys.ShutdownHookThread
 
 object KafkaSink extends HdfsUtils {
 
-  val logger: Logger            = Logger.getLogger(KafkaSink.getClass.getName)
-  val generated: String         = s"${UUID.randomUUID()}-${System.currentTimeMillis().toString}"
-  val intermediateTopic: String = s"intermediate-topic-$generated"
-  val checkpointFolder: String  = s"/tmp/data-highway/checkpoint-$generated"
+  val logger: Logger           = Logger.getLogger(KafkaSink.getClass.getName)
+  val generated: String        = s"${UUID.randomUUID()}-${System.currentTimeMillis().toString}"
+  val checkpointFolder: String = s"/tmp/data-highway/checkpoint-$generated"
 
   /**
-    * Publishes message to Kafka topic
+    * Publishes files' content to Kafka topic
     *
-    * @param input The input topic or the input path that contains json data to be send
-    * @param topic The output topic
+    * @param input The input File entity that contains data to be send
+    * @param output The output Kafka entity
     * @param storage The input file system storage : Local or HDFS
-    * @param kafkaMode The Kafka launch mode
-    * @return Any, otherwise an Error
+    * @return Any, otherwise a Throwable
     */
-  def publishToTopic(
-      input: String,
-      topic: String,
-      storage: Storage,
-      kafkaMode: KafkaMode
+  def publishFilesContentToTopic(
+      input: models.File,
+      output: Kafka,
+      storage: Option[Storage]
   ): Either[Throwable, Any] = {
-    val props = new Properties()
-    props.put("bootstrap.servers", kafkaMode.brokers)
-    props.put("key.serializer", classOf[StringSerializer].getName)
-    props.put("value.serializer", classOf[StringSerializer].getName)
-    val prod = new KafkaProducer[String, String](props)
-    KafkaUtils.verifyTopicExistence(topic, kafkaMode.brokers, enableTopicCreation = true)
-    kafkaMode match {
-      case PureKafkaStreamsProducer(brokers, streamAppId, offset) =>
-        runStream(streamAppId, input, brokers, topic, offset)
-      case PureKafkaProducer(_) =>
-        Either.catchNonFatal {
-          scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
-            publishPathContent(input, topic, storage, prod, fs)
-            storage match {
-              case Local =>
-                FilesUtils.cleanup(input)
-              case HDFS =>
-                HdfsUtils.cleanup(fs, input)
+    (storage, output.kafkaMode) match {
+      case (Some(filesystem), Some(km)) =>
+        val props = new Properties()
+        props.put("bootstrap.servers", km.brokers)
+        props.put("key.serializer", classOf[StringSerializer].getName)
+        props.put("value.serializer", classOf[StringSerializer].getName)
+        val prod = new KafkaProducer[String, String](props)
+        KafkaUtils
+          .verifyTopicExistence(output.topic, km.brokers, enableTopicCreation = true)
+        km match {
+          case PureKafkaProducer(_) =>
+            Either.catchNonFatal {
+              scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
+                publishPathContent(input.path, output.topic, filesystem, prod, fs)
+                filesystem match {
+                  case Local =>
+                    FilesUtils.cleanup(input.path)
+                  case HDFS =>
+                    HdfsUtils.cleanup(fs, input.path)
+                }
+              }
             }
-          }
-        }
-      case SparkKafkaPluginStreamsProducer(brokers, offset) =>
-        Either.catchNonFatal {
-          val thread = new Thread(() => {
-            publishWithSparkKafkaStreamsPlugin(
-              input,
-              prod,
-              brokers,
-              topic,
-              checkpointFolder,
-              offset
+          case SparkKafkaPluginProducer(brokers) =>
+            Either.catchNonFatal(scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
+              publishWithSparkKafkaPlugin(input.path, filesystem, brokers, output.topic, fs)
+              filesystem match {
+                case Local =>
+                  Files.createDirectories(new File(input.path).toPath)
+                case HDFS =>
+                  HdfsUtils.cleanup(fs, input.path)
+              }
+            })
+          case _ =>
+            throw new RuntimeException(
+              s"This mode is not supported while publishing files' content to Kafka topic. The supported modes are " +
+                s"${PureKafkaProducer.getClass} and ${SparkKafkaPluginProducer.getClass}." +
+                s" The provided input kafka mode is '${output.kafkaMode}'."
             )
-          })
-          thread.start()
         }
-      case SparkKafkaPluginProducer(brokers) =>
-        Either.catchNonFatal(scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
-          publishWithSparkKafkaPlugin(input, storage, brokers, topic, fs)
-          storage match {
-            case Local =>
-              FilesUtils.cleanup(input)
-            case HDFS =>
-              HdfsUtils.cleanup(fs, input)
-          }
-        })
       case _ =>
-        throw new RuntimeException(
-          s"This mode is not supported while producing data. The provided input kafka mode is '$kafkaMode'."
+        Left(
+          DataHighwayFileError(
+            "MissingFileSystemStorage",
+            new RuntimeException("Missing 'storage' field"),
+            Array[StackTraceElement]()
+          )
+        )
+    }
+  }
+
+  /**
+    * Mirrors kafka topic
+    *
+    * @param input The input Kafka entity
+    * @param output The output Kafka entity
+    * @return Any, otherwise a Throwable
+    */
+  def mirrorTopic(
+      input: Kafka,
+      output: Kafka
+  ): Either[Throwable, Any] = {
+    input.kafkaMode match {
+      case Some(km) =>
+        val props = new Properties()
+        props.put("bootstrap.servers", km.brokers)
+        props.put("key.serializer", classOf[StringSerializer].getName)
+        props.put("value.serializer", classOf[StringSerializer].getName)
+        val prod = new KafkaProducer[String, String](props)
+        KafkaUtils
+          .verifyTopicExistence(output.topic, km.brokers, enableTopicCreation = true)
+        km match {
+          case PureKafkaStreamsProducer(brokers, streamAppId, offset) =>
+            runStream(streamAppId, input.topic, brokers, output.topic, offset)
+          case SparkKafkaPluginStreamsProducer(brokers, offset) =>
+            Either.catchNonFatal {
+              val thread = new Thread(() => {
+                publishWithSparkKafkaStreamsPlugin(
+                  input.topic,
+                  prod,
+                  brokers,
+                  output.topic,
+                  checkpointFolder,
+                  offset
+                )
+              })
+              thread.start()
+            }
+          case _ =>
+            throw new RuntimeException(
+              s"This mode is not supported while mirroring a Kafka topic. The supported modes are " +
+                s"${PureKafkaStreamsProducer.getClass} and ${SparkKafkaPluginStreamsProducer.getClass}." +
+                s" The provided input kafka mode is '${input.kafkaMode}'."
+            )
+        }
+      case None =>
+        Left(
+          DataHighwayFileError(
+            "MissingFileSystemStorage",
+            new RuntimeException("Missing 'storage' field"),
+            Array[StackTraceElement]()
+          )
         )
     }
   }

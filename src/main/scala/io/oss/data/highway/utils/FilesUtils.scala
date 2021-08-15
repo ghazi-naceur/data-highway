@@ -7,7 +7,7 @@ import io.oss.data.highway.models.XLSX
 import org.apache.commons.io.FileUtils
 import org.apache.log4j.Logger
 
-import java.nio.file.{Files, StandardCopyOption}
+import java.nio.file.Files
 import scala.annotation.tailrec
 import scala.io.Source
 import scala.util.Try
@@ -143,8 +143,9 @@ object FilesUtils {
         if (new File(s"$processedFolder/$subfolderName").exists()) {
           FileUtils.deleteDirectory(new File(s"$processedFolder/$subfolderName"))
           FileUtils.moveDirectoryToDirectory(new File(src), new File(processedFolder), false)
-        } else
+        } else {
           FileUtils.moveDirectoryToDirectory(new File(src), new File(processedFolder), true)
+        }
         List(processedFolder)
       }
 

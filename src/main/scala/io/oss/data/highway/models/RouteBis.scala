@@ -45,4 +45,4 @@ case class Cassandra(keyspace: String, table: String)                    extends
 case class Elasticsearch(index: String, bulkEnabled: Boolean, searchQuery: Option[SearchQuery])
     extends Input
     with Output
-case class Kafka(topic: String, kafkaMode: KafkaMode) extends Input with Output
+case class Kafka(topic: String, kafkaMode: Option[KafkaMode]) extends Input with Output

@@ -28,11 +28,11 @@ object Dispatcher {
     route match {
       case KafkaToFile(in, out, storage, kafkaMode) =>
         KafkaSampler.consumeFromTopic(in, out, storage, kafkaMode)
-      case FileToKafka(in, out, storage, kafkaMode) =>
-        KafkaSink.publishToTopic(in, out, storage, kafkaMode)
-      case KafkaToKafka(in, out, kafkaMode) =>
-        // todo split publishToTopic between FTK and KTK, and omit Local
-        KafkaSink.publishToTopic(in, out, Local, kafkaMode)
+//      case FileToKafka(in, out, storage, kafkaMode) =>
+//        KafkaSink.publishFilesContentToTopic(in, out, storage, kafkaMode)
+//      case KafkaToKafka(in, out, kafkaMode) =>
+//         todo split publishToTopic between FTK and KTK, and omit Local
+//        KafkaSink.publishFilesContentToTopic(in, out, Local, kafkaMode)
       case ElasticOps(operation) =>
         ElasticAdminOps.execute(operation)
       case Route(input: File, output: File, storage: Option[Storage]) =>
@@ -58,7 +58,9 @@ object Dispatcher {
             Left(new RuntimeException("Only JSON data type is supported."))
         }
       case Route(input: File, output: Kafka, storage: Option[Storage]) =>
-        Right() // todo only json is supported, make other types supported too
+        KafkaSink.publishFilesContentToTopic(input, output, storage)
+      case Route(input: Kafka, output: Kafka, storage: Option[Storage]) =>
+        KafkaSink.mirrorTopic(input, output)
       case Route(input: Kafka, output: File, storage: Option[Storage]) =>
         Right() // todo only json is supported, make other types supported too
       case _ =>

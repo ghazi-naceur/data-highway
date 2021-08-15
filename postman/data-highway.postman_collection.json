@@ -490,41 +490,11 @@
 			]
 		},
 		{
-			"name": "to_kafka",
+			"name": "file_to_kafka",
 			"item": [
 				{
 					"name": "pure_producer_without_streaming",
 					"item": [
-						{
-							"name": "file-to-kafka_pure-producer_without-stream_docker",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"file-to-kafka\",\n    \"in\": \"/app/data/kafka/input\",\n    \"out\" : \"file_to_kafka_local_2\",\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"kafka-mode\": {\n      \"type\": \"pure-kafka-producer\",\n      \"brokers\" : \"localhost:9092\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									]
-								}
-							},
-							"response": []
-						},
 						{
 							"name": "file-to-kafka_pure-producer_without-stream_local",
 							"request": {
@@ -538,37 +508,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"file-to-kafka\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/input\",\n    \"out\" : \"file_to_kafka_local_1\",\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"kafka-mode\": {\n      \"type\": \"pure-kafka-producer\",\n      \"brokers\" : \"localhost:9092\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "file-to-kafka_pure-producer_without-stream_hdfs",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"file-to-kafka\",\n    \"in\": \"hdfs://localhost:9000/data/file_to_kafka/input\",\n    \"out\" : \"file_to_kafka_hdfs_1\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"kafka-mode\": {\n      \"type\": \"pure-kafka-producer\",\n      \"brokers\" : \"localhost:9092\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/kafka/input\"\n    },\n    \"output\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\": {\n            \"type\": \"pure-kafka-producer\",\n            \"brokers\" : \"localhost:9092\"\n        }\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -591,36 +531,6 @@
 					"name": "spark_kafka_plugin_producer_without_streaming",
 					"item": [
 						{
-							"name": "file-to-kafka_spark_kafka_plugin-producer_without-stream_docker",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"file-to-kafka\",\n    \"in\": \"/app/data/kafka/input\",\n    \"out\" : \"file_to_kafka_local_2\",\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"kafka-mode\": {\n      \"type\": \"spark-kafka-plugin-producer\",\n      \"brokers\" : \"localhost:9092\"\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									]
-								}
-							},
-							"response": []
-						},
-						{
 							"name": "file-to-kafka_spark_kafka_plugin-producer_without-stream_local",
 							"request": {
 								"method": "POST",
@@ -633,7 +543,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"file-to-kafka\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/input\",\n    \"out\" : \"file_to_kafka_local_2\",\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"kafka-mode\": {\n      \"type\": \"spark-kafka-plugin-producer\",\n      \"brokers\" : \"localhost:9092\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/kafka/input\"\n    },\n    \"output\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_2\",\n        \"kafka-mode\": {\n            \"type\": \"spark-kafka-plugin-producer\",\n            \"brokers\" : \"localhost:9092\"\n        }\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -649,9 +559,19 @@
 								}
 							},
 							"response": []
-						},
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "kafka_to_kafka",
+			"item": [
+				{
+					"name": "pure_consumer_with_streaming",
+					"item": [
 						{
-							"name": "file-to-kafka_spark_kafka_plugin_without-stream_hdfs",
+							"name": "kafka-to-kafka_pure-producer_with-stream",
 							"request": {
 								"method": "POST",
 								"header": [
@@ -663,7 +583,42 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"file-to-kafka\",\n    \"in\": \"hdfs://localhost:9000/data/file_to_kafka/input\",\n    \"out\" : \"file_to_kafka_hdfs_2\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"kafka-mode\": {\n      \"type\": \"spark-kafka-plugin-producer\",\n      \"brokers\" : \"localhost:9092\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\": {\n            \"type\": \"pure-kafka-streams-producer\",\n            \"brokers\" : \"localhost:9092\",\n            \"stream-app-id\" : \"stream-app-name-2\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_3\"\n    }\n  }\n}\n"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "spark_kafka_plugin_consumer_with_streaming",
+					"item": [
+						{
+							"name": "kafka-to-kafka_spark_kafka_plugin-producer_with-stream",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"spark-kafka-plugin-streams-producer\",\n            \"brokers\" : \"localhost:9092\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_3\"\n    }\n  }\n}\n"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -783,101 +738,6 @@
 					]
 				},
 				{
-					"name": "pure_consumer_with_streaming",
-					"item": [
-						{
-							"name": "kafka-to-file_pure-consumer_with-stream_docker",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"kafka-to-file\",\n    \"in\" : \"file_to_kafka_local_2\",\n    \"out\" : \"/app/data/kafka/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"kafka-mode\" : {\n      \"type\" : \"pure-kafka-streams-consumer\",\n      \"brokers\" : \"localhost:9092\",\n      \"stream-app-id\" : \"stream-app-name-2\",\n      \"offset\" : {\n        \"type\": \"earliest\"\n      }\n    }\n  }\n}\n"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "kafka-to-file_pure-consumer_with-stream_local",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"kafka-to-file\",\n    \"in\" : \"file_to_kafka_local_2\",\n    \"out\" : \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"kafka-mode\" : {\n      \"type\" : \"pure-kafka-streams-consumer\",\n      \"brokers\" : \"localhost:9092\",\n      \"stream-app-id\" : \"stream-app-name-2\",\n      \"offset\" : {\n        \"type\": \"earliest\"\n      }\n    }\n  }\n}\n"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "kafka-to-file_pure-consumer_with-stream_hdfs",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"kafka-to-file\",\n    \"in\" : \"file_to_kafka_local_2\",\n    \"out\" : \"hdfs://localhost:9000/data/file_to_kafka/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"kafka-mode\" : {\n      \"type\" : \"pure-kafka-streams-consumer\",\n      \"brokers\" : \"localhost:9092\",\n      \"stream-app-id\" : \"stream-app-name-2\",\n      \"offset\" : {\n        \"type\": \"earliest\"\n      }\n    }\n  }\n}\n"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									]
-								}
-							},
-							"response": []
-						}
-					]
-				},
-				{
 					"name": "spark_kafka_plugin_consumer_without_streaming",
 					"item": [
 						{
@@ -954,171 +814,6 @@
 								"body": {
 									"mode": "raw",
 									"raw": "{\n  \"route\": {\n    \"type\" : \"kafka-to-file\",\n    \"in\" : \"file_to_kafka_local_2\",\n    \"out\" : \"hdfs://localhost:9000/data/file_to_kafka/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"kafka-mode\" : {\n      \"type\" : \"spark-kafka-plugin-consumer\",\n      \"brokers\" : \"localhost:9092\",\n      \"offset\" : {\n        \"type\": \"earliest\"\n      }\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									]
-								}
-							},
-							"response": []
-						}
-					]
-				},
-				{
-					"name": "spark_kafka_plugin_consumer_with_streaming",
-					"item": [
-						{
-							"name": "kafka-to-file_spark_kafka_plugin-consumer_with-stream_docker",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"kafka-to-file\",\n    \"in\" : \"file_to_kafka_local_2\",\n    \"out\" : \"/app/data/kafka/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"kafka-mode\" : {\n      \"type\" : \"spark-kafka-plugin-streams-consumer\",\n      \"brokers\" : \"localhost:9092\",\n      \"offset\" : {\n        \"type\": \"earliest\"\n      }\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "kafka-to-file_spark_kafka_plugin-consumer_with-stream_local",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"kafka-to-file\",\n    \"in\" : \"file_to_kafka_local_2\",\n    \"out\" : \"/home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/output\",\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"kafka-mode\" : {\n      \"type\" : \"spark-kafka-plugin-streams-consumer\",\n      \"brokers\" : \"localhost:9092\",\n      \"offset\" : {\n        \"type\": \"earliest\"\n      }\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "kafka-to-file_spark_kafka_plugin_with-stream_hdfs",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\" : \"kafka-to-file\",\n    \"in\" : \"file_to_kafka_local_2\",\n    \"out\" : \"hdfs://localhost:9000/data/file_to_kafka/output\",\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"kafka-mode\" : {\n      \"type\" : \"spark-kafka-plugin-streams-consumer\",\n      \"brokers\" : \"localhost:9092\",\n      \"offset\" : {\n        \"type\": \"earliest\"\n      }\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									]
-								}
-							},
-							"response": []
-						}
-					]
-				}
-			]
-		},
-		{
-			"name": "kafka-to-kafka",
-			"item": [
-				{
-					"name": "producers_with_streaming",
-					"item": [
-						{
-							"name": "kafka-to-kafka_pure-producer_with-stream",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"kafka-to-kafka\",\n    \"in\" : \"file_to_kafka_local_2\",\n    \"out\" : \"file_to_kafka_hdfs_2\",\n    \"kafka-mode\": {\n      \"type\": \"pure-kafka-streams-producer\",\n      \"brokers\" : \"localhost:9092\",\n      \"stream-app-id\": \"stream-app-name\",\n      \"offset\": {\n        \"type\": \"earliest\"\n      }\n    }\n  }\n}"
-								},
-								"url": {
-									"raw": "http://localhost:5555/conversion/route",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "5555",
-									"path": [
-										"conversion",
-										"route"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "kafka-to-kafka_spark-kafka-plugin-producer_with-stream",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"type\": \"kafka-to-kafka\",\n    \"in\" : \"file_to_kafka_local_2\",\n    \"out\" : \"file_to_kafka_hdfs_2\",\n    \"kafka-mode\": {\n      \"type\": \"spark-kafka-plugin-streams-producer\",\n      \"brokers\" : \"localhost:9092\",\n      \"offset\": {\n        \"type\": \"earliest\"\n      }\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
