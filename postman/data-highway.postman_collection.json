@@ -2473,6 +2473,36 @@
 			"name": "from_cassandra",
 			"item": [
 				{
+					"name": "cassandra-to-file_docker-csv",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"/data/spark/avro/input\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:5555/conversion/route",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5555",
+							"path": [
+								"conversion",
+								"route"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "cassandra-to-file_local-csv",
 					"request": {
 						"method": "POST",
@@ -2485,7 +2515,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"route\": {\n    \"type\": \"cassandra-to-file\",\n    \"cassandra\": {\n      \"keyspace\": \"data_entities\",\n      \"table\": \"persons\"\n    },\n    \"out\": \"/home/ghazi/workspace/data-highway/src/test/resources/csv_to_json-data/output\",\n    \"data-type\": {\n        \"type\": \"avro\"\n    }\n  }\n}"
+							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/json/output\"\n    }\n  }\n}"
 						},
 						"url": {
 							"raw": "http://localhost:5555/conversion/route",
@@ -2515,102 +2545,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"route\": {\n    \"type\": \"cassandra-to-file\",\n    \"cassandra\": {\n      \"keyspace\": \"data_entities\",\n      \"table\": \"persons\"\n    },\n    \"out\": \"hdfs://localhost:9000/data/csv_to_json/output\",\n    \"data-type\": {\n        \"type\": \"json\"\n    }\n  }\n}"
-						},
-						"url": {
-							"raw": "http://localhost:5555/conversion/route",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5555",
-							"path": [
-								"conversion",
-								"route"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "cassandra-to-file_docker-csv",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"route\": {\n    \"type\": \"cassandra-to-file\",\n    \"cassandra\": {\n      \"keyspace\": \"data_entities\",\n      \"table\": \"persons\"\n    },\n    \"out\": \"hdfs://localhost:9000/data/csv_to_json/output\",\n    \"data-type\": {\n        \"type\": \"json\"\n    }\n  }\n}"
-						},
-						"url": {
-							"raw": "http://localhost:5555/conversion/route",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5555",
-							"path": [
-								"conversion",
-								"route"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "file_to_file",
-			"item": [
-				{
-					"name": "file-to-file",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"route-bis\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/json_to_csv-data/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/json_to_csv-data/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
-						},
-						"url": {
-							"raw": "http://localhost:5555/conversion/route",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5555",
-							"path": [
-								"conversion",
-								"route"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "file-to-cassandra",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"route-bis\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n        \"type\": \"json\"\n        },\n        \"path\": \"/tmp/json_files\"\n    },\n    \"output\": {\n        \"type\": \"cassandra-bis\",\n        \"keyspace\": \"custom-keyspace\",\n        \"table\": \"custom-table\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/avro/output\"\n    }\n  }\n}"
 						},
 						"url": {
 							"raw": "http://localhost:5555/conversion/route",
