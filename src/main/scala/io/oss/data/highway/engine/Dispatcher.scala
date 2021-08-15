@@ -26,32 +26,6 @@ object Dispatcher {
   def apply(route: RouteBis): Either[Throwable, Any] = {
     logger.info(s"${route.toString} route is activated ...")
     route match {
-      case CsvToParquet(in, out, storage) =>
-        ParquetSink.handleParquetChannel(in, out, Overwrite, storage, CSV)
-      case JsonToParquet(in, out, storage) =>
-        ParquetSink.handleParquetChannel(in, out, Overwrite, storage, JSON)
-      case AvroToParquet(in, out, storage) =>
-        ParquetSink.handleParquetChannel(in, out, Overwrite, storage, AVRO)
-      case XlsxToCsv(in, out, storage) =>
-        CsvSink.handleCsvChannel(in, out, Overwrite, storage, XLSX)
-      case ParquetToCsv(in, out, storage) =>
-        CsvSink.handleCsvChannel(in, out, Overwrite, storage, PARQUET)
-      case AvroToCsv(in, out, storage) =>
-        CsvSink.handleCsvChannel(in, out, Overwrite, storage, AVRO)
-      case JsonToCsv(in, out, storage) =>
-        CsvSink.handleCsvChannel(in, out, Overwrite, storage, JSON)
-      case ParquetToJson(in, out, storage) =>
-        JsonSink.handleJsonChannel(in, out, Overwrite, storage, PARQUET)
-      case AvroToJson(in, out, storage) =>
-        JsonSink.handleJsonChannel(in, out, Overwrite, storage, AVRO)
-      case CsvToJson(in, out, storage) =>
-        JsonSink.handleJsonChannel(in, out, Overwrite, storage, CSV)
-      case ParquetToAvro(in, out, storage) =>
-        AvroSink.handleAvroChannel(in, out, Overwrite, storage, PARQUET)
-      case JsonToAvro(in, out, storage) =>
-        AvroSink.handleAvroChannel(in, out, Overwrite, storage, JSON)
-      case CsvToAvro(in, out, storage) =>
-        AvroSink.handleAvroChannel(in, out, Overwrite, storage, CSV)
       case KafkaToFile(in, out, storage, kafkaMode) =>
         KafkaSampler.consumeFromTopic(in, out, storage, kafkaMode)
       case FileToKafka(in, out, storage, kafkaMode) =>

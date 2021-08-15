@@ -14,7 +14,7 @@ import java.util.UUID
 class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with TestHelper {
 
   override protected def after(fun: => Any)(implicit pos: Position): Unit = {
-    deleteFolderWithItsContent(hdfsEntity.hdfsUri + "/tmp/data-highway")
+    deleteFolderWithItsContent("/tmp/data-highway")
   }
 
   "FilesUtils.listFilesRecursively" should "list files recursively from path" in {
