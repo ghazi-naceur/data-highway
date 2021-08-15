@@ -1,10 +1,12 @@
 package io.oss.data.highway.engine
 
-import io.oss.data.highway.models.{HDFS, JSON, Local, Storage}
+import io.oss.data.highway.models.{Elasticsearch, HDFS, JSON, Local, Storage}
 import io.oss.data.highway.utils.{ElasticUtils, FilesUtils, HdfsUtils}
 import org.apache.log4j.Logger
 import cats.implicits._
 import com.sksamuel.elastic4s.requests.common.RefreshPolicy
+import io.oss.data.highway.models
+import io.oss.data.highway.models.DataHighwayError.DataHighwayFileError
 
 import java.io.File
 
@@ -15,61 +17,59 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
   /**
     * Indexes file's content into Elasticsearch
     *
-    * @param in The input data path
-    * @param out The Elasticsearch index
+    * @param input The input data path
+    * @param output The output Elasticsearch entity
     * @param basePath The base path for input, output and processed folders
     * @param storage The input file system storage
-    * @param bulkEnabled The flag to enable/disable the elastic Bulk
     * @return a Unit, otherwise an Error
     */
-  def sendToElasticsearch(
-      in: String,
-      out: String,
+  private def sendToElasticsearch(
+      input: String,
+      output: Elasticsearch,
       basePath: String,
-      storage: Storage,
-      bulkEnabled: Boolean
+      storage: Storage
   ): Either[Throwable, Unit] = {
     Either.catchNonFatal {
-      if (!bulkEnabled)
-        indexWithIndexQuery(in, out, basePath, storage)
+      if (!output.bulkEnabled)
+        indexWithIndexQuery(input, output.index, basePath, storage)
       else
-        indexWithBulkQuery(in, out, basePath, storage)
-      logger.info(s"Successfully indexing data from '$in' into the '$out' index.")
+        indexWithBulkQuery(input, output.index, basePath, storage)
+      logger.info(s"Successfully indexing data from '$input' into the '$output' index.")
     }
   }
 
   /**
     * Indexes data using an ES IndexQuery
     *
-    * @param in The input data folder
-    * @param out The ES index
+    * @param input The input data folder
+    * @param output The output Elasticsearch entity
     * @param basePath The base path of the input folder
     * @param storage The input file system storage : Local or HDFS
     * @return Any
     */
   private def indexWithIndexQuery(
-      in: String,
-      out: String,
+      input: String,
+      output: String,
       basePath: String,
       storage: Storage
   ): Any = {
     storage match {
       case HDFS =>
         HdfsUtils
-          .listFilesRecursively(fs, in)
+          .listFilesRecursively(fs, input)
           .foreach(file => {
             HdfsUtils
               .getLines(fs, file)
-              .foreach(line => indexDocInEs(out, line))
+              .foreach(line => indexDocInEs(output, line))
             HdfsUtils.movePathContent(fs, file, basePath)
           })
       case Local =>
         FilesUtils
-          .listFilesRecursively(new File(in), JSON.extension)
+          .listFilesRecursively(new File(input), JSON.extension)
           .foreach(file => {
             FilesUtils
               .getLines(file.getAbsolutePath)
-              .foreach(line => indexDocInEs(out, line))
+              .foreach(line => indexDocInEs(output, line))
             FilesUtils
               .movePathContent(
                 file.getAbsolutePath,
@@ -148,47 +148,56 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
   }
 
   /**
-    * Send files to Elasticsearch
+    * Indexes files to Elasticsearch
     *
-    * @param in The input data path
-    * @param out The elasticsearch index
+    * @param input The input File entity
+    * @param output The output Elasticsearch entity
     * @param storage The input file system storage
-    * @param bulkEnabled A flag to specify if the Elastic Bulk is enabled or not
     * @return List of Unit, otherwise an Throwable
     */
   def handleElasticsearchChannel(
-      in: String,
-      out: String,
-      storage: Storage,
-      bulkEnabled: Boolean
+      input: models.File,
+      output: Elasticsearch,
+      storage: Option[Storage]
   ): Either[Throwable, List[Unit]] = {
-    val basePath = new File(in).getParent
+    val basePath = new File(input.path).getParent
 
     storage match {
-      case HDFS =>
-        for {
-          list <-
-            HdfsUtils
-              .listFolders(fs, in)
-              .traverse(folders => {
-                folders.traverse(folder => {
-                  sendToElasticsearch(folder, out, basePath, storage, bulkEnabled)
-                })
-              })
-              .flatten
-          _ = HdfsUtils.cleanup(fs, in)
-        } yield list
-      case Local =>
-        for {
-          folders <- FilesUtils.listNonEmptyFoldersRecursively(in)
-          list <-
-            folders
-              .filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)
-              .traverse(folder => {
-                sendToElasticsearch(folder, out, basePath, storage, bulkEnabled)
-              })
-          _ = FilesUtils.cleanup(in)
-        } yield list
+      case Some(value) =>
+        value match {
+          case HDFS =>
+            for {
+              list <-
+                HdfsUtils
+                  .listFolders(fs, input.path)
+                  .traverse(folders => {
+                    folders.traverse(folder => {
+                      sendToElasticsearch(folder, output, basePath, value)
+                    })
+                  })
+                  .flatten
+              _ = HdfsUtils.cleanup(fs, input.path)
+            } yield list
+          case Local =>
+            for {
+              folders <- FilesUtils.listNonEmptyFoldersRecursively(input.path)
+              list <-
+                folders
+                  .filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)
+                  .traverse(folder => {
+                    sendToElasticsearch(folder, output, basePath, value)
+                  })
+              _ = FilesUtils.cleanup(input.path)
+            } yield list
+        }
+      case None =>
+        Left(
+          DataHighwayFileError(
+            "MissingFileSystemStorage",
+            new RuntimeException("Missing 'storage' field"),
+            Array[StackTraceElement]()
+          )
+        )
     }
   }
 }

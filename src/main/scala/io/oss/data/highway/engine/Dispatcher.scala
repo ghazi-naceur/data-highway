@@ -33,8 +33,8 @@ object Dispatcher {
       case KafkaToKafka(in, out, kafkaMode) =>
         // todo split publishToTopic between FTK and KTK, and omit Local
         KafkaSink.publishToTopic(in, out, Local, kafkaMode)
-      case FileToElasticsearch(in, out, storage, bulkEnabled) =>
-        ElasticSink.handleElasticsearchChannel(in, out, storage, bulkEnabled)
+//      case FileToElasticsearch(in, out, storage, bulkEnabled) =>
+//        ElasticSink.handleElasticsearchChannel(in, out, storage, bulkEnabled)
       case ElasticsearchToFile(in, out, storage, searchQuery) =>
         ElasticSampler.saveDocuments(in, out, storage, searchQuery)
       case ElasticOps(operation) =>
@@ -45,13 +45,19 @@ object Dispatcher {
         CassandraSink.handleCassandraChannel(input, output, storage, Append)
       case Route(input: Cassandra, output: File, _) =>
         CassandraSampler.extractRows(input, output.dataType, output.path, Append)
+      case Route(input: File, output: Elasticsearch, storage: Option[Storage]) =>
+        input.dataType match {
+          case JSON =>
+            ElasticSink.handleElasticsearchChannel(input, output, storage)
+          case _ =>
+            // todo Implement all data types support
+            Left(new RuntimeException("Only JSON data type is supported."))
+        }
+      case Route(input: Elasticsearch, output: File, storage: Option[Storage]) =>
+        Right() // todo only json is supported, make other types supported too
       case Route(input: File, output: Kafka, storage: Option[Storage]) =>
         Right() // todo only json is supported, make other types supported too
       case Route(input: Kafka, output: File, storage: Option[Storage]) =>
-        Right() // todo only json is supported, make other types supported too
-      case Route(input: File, output: Elasticsearch, storage: Option[Storage]) =>
-        Right() // todo only json is supported, make other types supported too
-      case Route(input: Elasticsearch, output: File, storage: Option[Storage]) =>
         Right() // todo only json is supported, make other types supported too
       case _ =>
         throw new RuntimeException(s"The provided route '$route' is not supported.")
