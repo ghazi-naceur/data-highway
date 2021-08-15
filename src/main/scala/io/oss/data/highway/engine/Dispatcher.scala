@@ -33,10 +33,6 @@ object Dispatcher {
       case KafkaToKafka(in, out, kafkaMode) =>
         // todo split publishToTopic between FTK and KTK, and omit Local
         KafkaSink.publishToTopic(in, out, Local, kafkaMode)
-//      case FileToElasticsearch(in, out, storage, bulkEnabled) =>
-//        ElasticSink.handleElasticsearchChannel(in, out, storage, bulkEnabled)
-      case ElasticsearchToFile(in, out, storage, searchQuery) =>
-        ElasticSampler.saveDocuments(in, out, storage, searchQuery)
       case ElasticOps(operation) =>
         ElasticAdminOps.execute(operation)
       case Route(input: File, output: File, storage: Option[Storage]) =>
@@ -54,7 +50,13 @@ object Dispatcher {
             Left(new RuntimeException("Only JSON data type is supported."))
         }
       case Route(input: Elasticsearch, output: File, storage: Option[Storage]) =>
-        Right() // todo only json is supported, make other types supported too
+        output.dataType match {
+          case JSON =>
+            ElasticSampler.saveDocuments(input, output, storage)
+          case _ =>
+            // todo Implement all data types support
+            Left(new RuntimeException("Only JSON data type is supported."))
+        }
       case Route(input: File, output: Kafka, storage: Option[Storage]) =>
         Right() // todo only json is supported, make other types supported too
       case Route(input: Kafka, output: File, storage: Option[Storage]) =>

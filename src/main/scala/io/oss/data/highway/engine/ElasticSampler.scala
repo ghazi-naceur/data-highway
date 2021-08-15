@@ -11,14 +11,16 @@ import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext.Implicits.global
 import cats.syntax.either._
 import com.sksamuel.elastic4s.requests.searches.{SearchHit, SearchResponse}
+import io.oss.data.highway.models.DataHighwayError.DataHighwayFileError
 import io.oss.data.highway.models.{
   BoolFilter,
   BoolMatchPhraseQuery,
   CommonTermsQuery,
+  Elasticsearch,
   ExistsQuery,
   Field,
   FieldValues,
-  Storage,
+  File,
   FuzzyQuery,
   GenericRangeField,
   HDFS,
@@ -41,6 +43,7 @@ import io.oss.data.highway.models.{
   SearchQuery,
   Should,
   SimpleStringQuery,
+  Storage,
   TermQuery,
   TermsQuery,
   WildcardQuery
@@ -83,7 +86,7 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     * @param in The Elasticsearch index
     * @return List of SearchHit
     */
-  def searchWithMatchAllQuery(in: String): List[SearchHit] = {
+  private def searchWithMatchAllQuery(in: String): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     val result = esClient.execute {
@@ -100,7 +103,7 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     * @param field The filter field
     * @return List of SearchHit
     */
-  def searchWithMatchQuery(in: String, field: Field): List[SearchHit] = {
+  private def searchWithMatchQuery(in: String, field: Field): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     val result = esClient.execute {
@@ -117,7 +120,7 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     * @param values The list of values to search for
     * @return List of SearchHit
     */
-  def searchWithMultiMatchQuery(
+  private def searchWithMultiMatchQuery(
       in: String,
       values: List[String]
   ): Either[Throwable, List[SearchHit]] = {
@@ -144,7 +147,7 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     * @param field The filter field
     * @return List of SearchHit
     */
-  def searchWithTermQuery(in: String, field: Field): List[SearchHit] = {
+  private def searchWithTermQuery(in: String, field: Field): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     val result =
@@ -161,7 +164,7 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     * @param fieldValues The filter field name with multiple values
     * @return List of SearchHit
     */
-  def searchWithTermsQuery(in: String, fieldValues: FieldValues): List[SearchHit] = {
+  private def searchWithTermsQuery(in: String, fieldValues: FieldValues): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     val result =
@@ -178,7 +181,7 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     * @param field The filter field
     * @return List of SearchHit
     */
-  def searchWithCommonTermsQuery(in: String, field: Field): List[SearchHit] = {
+  private def searchWithCommonTermsQuery(in: String, field: Field): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     val result =
@@ -195,7 +198,7 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     * @param strQuery The elasticsearch string query
     * @return List of SearchHit
     */
-  def searchWithQueryStringQuery(in: String, strQuery: String): List[SearchHit] = {
+  private def searchWithQueryStringQuery(in: String, strQuery: String): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     val result =
@@ -212,7 +215,7 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     * @param strQuery The elasticsearch string query
     * @return List of SearchHit
     */
-  def searchWithSimpleStringQuery(in: String, strQuery: String): List[SearchHit] = {
+  private def searchWithSimpleStringQuery(in: String, strQuery: String): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     val result =
@@ -229,7 +232,7 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     * @param prefix The filter prefix
     * @return List of SearchHit
     */
-  def searchWithPrefixQuery(in: String, prefix: Prefix): List[SearchHit] = {
+  private def searchWithPrefixQuery(in: String, prefix: Prefix): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     val result =
@@ -246,7 +249,7 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     * @param likeFields The filter fields
     * @return List of SearchHit
     */
-  def searchWithMoreLikeThisQuery(in: String, likeFields: LikeFields): List[SearchHit] = {
+  private def searchWithMoreLikeThisQuery(in: String, likeFields: LikeFields): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
     import com.sksamuel.elastic4s.requests.searches.queries.MoreLikeThisQuery
 
@@ -268,7 +271,7 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     * @param range The filter range field
     * @return List of SearchHit
     */
-  def searchWithRangeQuery(in: String, range: RangeField): List[SearchHit] = {
+  private def searchWithRangeQuery(in: String, range: RangeField): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
     import com.sksamuel.elastic4s.requests.searches.queries.RangeQuery
     val rangeField = GenericRangeField.computeTypedRangeField(range)
@@ -288,7 +291,7 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     * @param fieldName The filter field name
     * @return List of SearchHit
     */
-  def searchWithExistsQuery(in: String, fieldName: String): List[SearchHit] = {
+  private def searchWithExistsQuery(in: String, fieldName: String): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     val result =
@@ -305,7 +308,7 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     * @param field The filter field name
     * @return List of SearchHit
     */
-  def searchWithWildcardQuery(in: String, field: Field): List[SearchHit] = {
+  private def searchWithWildcardQuery(in: String, field: Field): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     val result =
@@ -322,7 +325,7 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     * @param field The filter field name
     * @return List of SearchHit
     */
-  def searchWithRegexQuery(in: String, field: Field): List[SearchHit] = {
+  private def searchWithRegexQuery(in: String, field: Field): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     val result =
@@ -339,7 +342,7 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     * @param field The filter field name
     * @return List of SearchHit
     */
-  def searchWithFuzzyQuery(in: String, field: Field): List[SearchHit] = {
+  private def searchWithFuzzyQuery(in: String, field: Field): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     val result =
@@ -356,7 +359,7 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     * @param ids The filter Elasticsearch ids
     * @return List of SearchHit
     */
-  def searchWithIdsQuery(in: String, ids: List[String]): List[SearchHit] = {
+  private def searchWithIdsQuery(in: String, ids: List[String]): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
 
     val result =
@@ -374,7 +377,7 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     * @param fields The filter fields
     * @return List of SearchHit
     */
-  def searchWithBoolMatchPhraseQuery(
+  private def searchWithBoolMatchPhraseQuery(
       in: String,
       boolFilter: BoolFilter,
       fields: List[Field]
@@ -405,76 +408,105 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
   /**
     * Saves documents found in Elasticsearch index
     *
-    * @param in The Elasticsearch index
-    * @param out The output base folder
+    * @param input The Elasticsearch index
+    * @param output The output base folder
     * @param storage The output file system storage
-    * @param searchQuery The Elasticsearch query
     * @return List of Unit, otherwise an Error
     */
   def saveDocuments(
-      in: String,
-      out: String,
-      storage: Storage,
-      searchQuery: SearchQuery
+      input: Elasticsearch,
+      output: File,
+      storage: Option[Storage]
   ): Either[Throwable, List[Unit]] = {
-    searchQuery match {
-      case MatchAllQuery =>
-        searchWithMatchAllQuery(in).traverse(saveSearchHit(out, storage))
+    storage match {
+      case Some(filesystem) =>
+        input.searchQuery match {
+          case Some(query) =>
+            query match {
+              case MatchAllQuery =>
+                searchWithMatchAllQuery(input.index)
+                  .traverse(saveSearchHit(output.path, filesystem))
 
-      case MatchQuery(field) =>
-        searchWithMatchQuery(in, field).traverse(saveSearchHit(out, storage))
+              case MatchQuery(field) =>
+                searchWithMatchQuery(input.index, field)
+                  .traverse(saveSearchHit(output.path, filesystem))
 
-      case MultiMatchQuery(values) =>
-        searchWithMultiMatchQuery(in, values).flatMap(hits => {
-          hits.traverse(saveSearchHit(out, storage))
-        })
+              case MultiMatchQuery(values) =>
+                searchWithMultiMatchQuery(input.index, values).flatMap(hits => {
+                  hits.traverse(saveSearchHit(output.path, filesystem))
+                })
 
-      case TermQuery(field) =>
-        searchWithTermQuery(in, field).traverse(saveSearchHit(out, storage))
+              case TermQuery(field) =>
+                searchWithTermQuery(input.index, field)
+                  .traverse(saveSearchHit(output.path, filesystem))
 
-      case TermsQuery(fieldValues) =>
-        searchWithTermsQuery(in, fieldValues).traverse(saveSearchHit(out, storage))
+              case TermsQuery(fieldValues) =>
+                searchWithTermsQuery(input.index, fieldValues)
+                  .traverse(saveSearchHit(output.path, filesystem))
 
-      case CommonTermsQuery(field) =>
-        searchWithCommonTermsQuery(in, field).traverse(saveSearchHit(out, storage))
+              case CommonTermsQuery(field) =>
+                searchWithCommonTermsQuery(input.index, field)
+                  .traverse(saveSearchHit(output.path, filesystem))
 
-      case QueryStringQuery(query) =>
-        searchWithQueryStringQuery(in, query).traverse(saveSearchHit(out, storage))
+              case QueryStringQuery(query) =>
+                searchWithQueryStringQuery(input.index, query)
+                  .traverse(saveSearchHit(output.path, filesystem))
 
-      case SimpleStringQuery(query) =>
-        searchWithSimpleStringQuery(in, query).traverse(saveSearchHit(out, storage))
+              case SimpleStringQuery(query) =>
+                searchWithSimpleStringQuery(input.index, query)
+                  .traverse(saveSearchHit(output.path, filesystem))
 
-      case PrefixQuery(query) =>
-        searchWithPrefixQuery(in, query).traverse(saveSearchHit(out, storage))
+              case PrefixQuery(query) =>
+                searchWithPrefixQuery(input.index, query)
+                  .traverse(saveSearchHit(output.path, filesystem))
 
-      case MoreLikeThisQuery(likeFields) =>
-        searchWithMoreLikeThisQuery(in, likeFields).traverse(saveSearchHit(out, storage))
+              case MoreLikeThisQuery(likeFields) =>
+                searchWithMoreLikeThisQuery(input.index, likeFields)
+                  .traverse(saveSearchHit(output.path, filesystem))
 
-      case RangeQuery(rangeField) =>
-        searchWithRangeQuery(in, rangeField).traverse(saveSearchHit(out, storage))
+              case RangeQuery(rangeField) =>
+                searchWithRangeQuery(input.index, rangeField)
+                  .traverse(saveSearchHit(output.path, filesystem))
 
-      case ExistsQuery(fieldName) =>
-        searchWithExistsQuery(in, fieldName).traverse(saveSearchHit(out, storage))
+              case ExistsQuery(fieldName) =>
+                searchWithExistsQuery(input.index, fieldName)
+                  .traverse(saveSearchHit(output.path, filesystem))
 
-      case WildcardQuery(field) =>
-        searchWithWildcardQuery(in, field).traverse(saveSearchHit(out, storage))
+              case WildcardQuery(field) =>
+                searchWithWildcardQuery(input.index, field)
+                  .traverse(saveSearchHit(output.path, filesystem))
 
-      case RegexQuery(field) =>
-        searchWithRegexQuery(in, field).traverse(saveSearchHit(out, storage))
+              case RegexQuery(field) =>
+                searchWithRegexQuery(input.index, field)
+                  .traverse(saveSearchHit(output.path, filesystem))
 
-      case FuzzyQuery(field) =>
-        searchWithFuzzyQuery(in, field).traverse(saveSearchHit(out, storage))
+              case FuzzyQuery(field) =>
+                searchWithFuzzyQuery(input.index, field)
+                  .traverse(saveSearchHit(output.path, filesystem))
 
-      case IdsQuery(ids) =>
-        searchWithIdsQuery(in, ids).traverse(saveSearchHit(out, storage))
+              case IdsQuery(ids) =>
+                searchWithIdsQuery(input.index, ids)
+                  .traverse(saveSearchHit(output.path, filesystem))
 
-      case BoolMatchPhraseQuery(boolFilter, fields) =>
-        searchWithBoolMatchPhraseQuery(in, boolFilter, fields).traverse(
-          saveSearchHit(out, storage)
+              case BoolMatchPhraseQuery(boolFilter, fields) =>
+                searchWithBoolMatchPhraseQuery(input.index, boolFilter, fields).traverse(
+                  saveSearchHit(output.path, filesystem)
+                )
+
+              case _ => Either.catchNonFatal(List())
+
+            }
+          case None =>
+            Left(new RuntimeException("Missing SearchQuery in the Elasticsearch entity"))
+        }
+      case None =>
+        Left(
+          DataHighwayFileError(
+            "MissingFileSystemStorage",
+            new RuntimeException("Missing 'storage' field"),
+            Array[StackTraceElement]()
+          )
         )
-
-      case _ => Either.catchNonFatal(List())
-
     }
   }
 
@@ -501,7 +533,7 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     * @return a List of SearchHit
     */
   @tailrec
-  def scrollOnDocs(scrollId: String, hits: List[SearchHit]): List[SearchHit] = {
+  private def scrollOnDocs(scrollId: String, hits: List[SearchHit]): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
     val resp = esClient.execute {
       searchScroll(scrollId).keepAlive("1m")

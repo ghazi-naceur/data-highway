@@ -42,5 +42,7 @@ sealed trait Output
 case class Route(input: Input, output: Output, storage: Option[Storage]) extends RouteBis
 case class File(dataType: DataType, path: String)                        extends Input with Output
 case class Cassandra(keyspace: String, table: String)                    extends Input with Output
-case class Elasticsearch(index: String, bulkEnabled: Boolean)            extends Input with Output
-case class Kafka(topic: String, kafkaMode: KafkaMode)                    extends Input with Output
+case class Elasticsearch(index: String, bulkEnabled: Boolean, searchQuery: Option[SearchQuery])
+    extends Input
+    with Output
+case class Kafka(topic: String, kafkaMode: KafkaMode) extends Input with Output
