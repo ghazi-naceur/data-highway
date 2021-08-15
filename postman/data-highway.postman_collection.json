@@ -2390,7 +2390,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"route\": {\n    \"type\": \"file-to-cassandra\",\n    \"in\": \"/app/data/csv_to_parquet/input\",\n    \"cassandra\": {\n      \"keyspace\": \"data_entities\",\n      \"table\": \"persons\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"data-type\": {\n        \"type\": \"csv\"\n    }\n  }\n}"
+							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"/data/spark/avro/input\"\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 						},
 						"url": {
 							"raw": "http://localhost:5555/conversion/route",
@@ -2420,157 +2420,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"route\": {\n    \"type\": \"file-to-cassandra\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/csv_to_json-data/input\",\n    \"cassandra\": {\n      \"keyspace\": \"data_entities\",\n      \"table\": \"persons\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"data-type\": {\n        \"type\": \"csv\"\n    }\n  }\n}"
-						},
-						"url": {
-							"raw": "http://localhost:5555/conversion/route",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5555",
-							"path": [
-								"conversion",
-								"route"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "file-to-cassandra_local-avro",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"route\": {\n    \"type\": \"file-to-cassandra\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/avro_to_json-data/input\",\n    \"cassandra\": {\n      \"keyspace\": \"data_entities\",\n      \"table\": \"persons\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"data-type\": {\n        \"type\": \"avro\"\n    }\n  }\n}"
-						},
-						"url": {
-							"raw": "http://localhost:5555/conversion/route",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5555",
-							"path": [
-								"conversion",
-								"route"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "file-to-cassandra_local-parquet",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"route\": {\n    \"type\": \"file-to-cassandra\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/parquet_to_json-data/input\",\n    \"cassandra\": {\n      \"keyspace\": \"data_entities\",\n      \"table\": \"persons\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"data-type\": {\n        \"type\": \"parquet\"\n    }\n  }\n}"
-						},
-						"url": {
-							"raw": "http://localhost:5555/conversion/route",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5555",
-							"path": [
-								"conversion",
-								"route"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "file-to-cassandra_local-json",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"route\": {\n    \"type\": \"file-to-cassandra\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/json_to_parquet-data/input\",\n    \"cassandra\": {\n      \"keyspace\": \"data_entities\",\n      \"table\": \"persons\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"data-type\": {\n        \"type\": \"json\"\n    }\n  }\n}"
-						},
-						"url": {
-							"raw": "http://localhost:5555/conversion/route",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5555",
-							"path": [
-								"conversion",
-								"route"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "file-to-cassandra_local-xlsx",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"route\": {\n    \"type\": \"file-to-cassandra\",\n    \"in\": \"/home/ghazi/workspace/data-highway/src/test/resources/xlsx_to_csv-data/input\",\n    \"cassandra\": {\n      \"keyspace\": \"data_entities\",\n      \"table\": \"persons\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"data-type\": {\n        \"type\": \"xlsx\"\n    }\n  }\n}"
-						},
-						"url": {
-							"raw": "http://localhost:5555/conversion/route",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5555",
-							"path": [
-								"conversion",
-								"route"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "file-to-cassandra_hdfs-csv",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"route\": {\n    \"type\": \"file-to-cassandra\",\n    \"in\": \"hdfs://localhost:9000/data/csv_to_json/input\",\n    \"cassandra\": {\n      \"keyspace\": \"data_entities\",\n      \"table\": \"persons\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"data-type\": {\n        \"type\": \"csv\"\n    }\n  }\n}"
+							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/avro/input\"\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 						},
 						"url": {
 							"raw": "http://localhost:5555/conversion/route",
@@ -2600,7 +2450,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"route\": {\n    \"type\": \"file-to-cassandra\",\n    \"in\": \"hdfs://localhost:9000/data/xlsx_to_csv/input\",\n    \"cassandra\": {\n      \"keyspace\": \"data_entities\",\n      \"table\": \"persons\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"data-type\": {\n        \"type\": \"xlsx\"\n    }\n  }\n}"
+							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/avro/input\"\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 						},
 						"url": {
 							"raw": "http://localhost:5555/conversion/route",

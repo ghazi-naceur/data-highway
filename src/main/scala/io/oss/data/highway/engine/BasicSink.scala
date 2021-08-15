@@ -106,7 +106,7 @@ object BasicSink extends HdfsUtils {
   ): Either[Throwable, List[List[String]]] = {
     for {
       folders <- HdfsUtils.listFolders(fs, input.path)
-      _ = logger.info("folders : " + folders)
+      _ = logger.info("Folders to be processed : " + folders)
       filtered <- HdfsUtils.filterNonEmptyFolders(fs, folders)
       res <- input.dataType match {
         case XLSX =>

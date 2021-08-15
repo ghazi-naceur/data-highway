@@ -1,28 +1,6 @@
 package io.oss.data.highway.models
 
-import pureconfig.generic.semiauto.deriveEnumerationReader
-
 sealed trait RouteBis
-
-case class XlsxToCsv(in: String, out: String, storage: Storage) extends RouteBis
-
-case class CsvToParquet(in: String, out: String, storage: Storage) extends RouteBis
-
-case class JsonToParquet(in: String, out: String, storage: Storage) extends RouteBis
-
-case class AvroToParquet(in: String, out: String, storage: Storage) extends RouteBis
-
-case class ParquetToCsv(in: String, out: String, storage: Storage) extends RouteBis
-
-case class AvroToCsv(in: String, out: String, storage: Storage) extends RouteBis
-
-case class JsonToCsv(in: String, out: String, storage: Storage) extends RouteBis
-
-case class ParquetToJson(in: String, out: String, storage: Storage) extends RouteBis
-
-case class AvroToJson(in: String, out: String, storage: Storage) extends RouteBis
-
-case class CsvToJson(in: String, out: String, storage: Storage) extends RouteBis
 
 case class FileToKafka(in: String, out: String, storage: Storage, kafkaMode: KafkaMode)
     extends RouteBis

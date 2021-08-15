@@ -1,10 +1,12 @@
 package io.oss.data.highway.engine
 
-import io.oss.data.highway.models.{CassandraDB, DataType, HDFS, Local, Storage, XLSX}
+import io.oss.data.highway.models.{Cassandra, CassandraDB, DataType, HDFS, Local, Storage, XLSX}
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils}
 import org.apache.log4j.Logger
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
+import io.oss.data.highway.models
+import io.oss.data.highway.models.DataHighwayError.DataHighwayFileError
 import org.apache.hadoop.fs.FileSystem
 
 import java.io.File
@@ -14,83 +16,96 @@ object CassandraSink extends HdfsUtils {
   val logger: Logger = Logger.getLogger(CassandraSink.getClass.getName)
 
   /**
-    * Inserts csv file content into Cassandra
+    * Inserts file content into Cassandra
     *
-    * @param inputPath The CSV input path
-    * @param cassandra The Cassandra configs
-    * @param saveMode The save mode
-    * @param inputDataType The type of the input data
-    * @return a String, otherwise a CassandraError
+    * @param inputDataType The input data type path
+    * @param inputPath The input path
+    * @param output The output Cassandra Entity
+    * @param saveMode The file saving mode
+    * @return Path as String, otherwise an Throwable
     */
   def insert(
+      inputDataType: DataType,
       inputPath: String,
-      cassandra: CassandraDB,
-      saveMode: SaveMode,
-      inputDataType: DataType
+      output: Cassandra,
+      saveMode: SaveMode
   ): Either[Throwable, String] = {
     DataFrameUtils
       .loadDataFrame(inputDataType, inputPath)
       .map(df => {
-        df.write
-          .format("org.apache.spark.sql.cassandra")
-          .option("keyspace", cassandra.keyspace)
-          .option("table", cassandra.table)
-          .mode(saveMode)
-          .save()
+        DataFrameUtils.saveDataFrame(df, CassandraDB(output.keyspace, output.table), "", saveMode)
         inputPath
       })
   }
 
   /**
-    * Sends data from input path to Cassandra
+    * Inserts files content into Cassandra
     *
-    * @param in THe input path
-    * @param cassandra The Cassandra Configs
-    * @param saveMode The Spark save mode
-    * @param storage The input file system storage
-    * @param inputDataType The type of the input data
-    * @return
+    * @param input The input DataHighway File Entity
+    * @param output The output DataHighway File Entity
+    * @param storage The file system storage : It can be Local or HDFS
+    * @param saveMode The file saving mode
+    * @return List of List of Path as String, otherwise Throwable
     */
   def handleCassandraChannel(
-      in: String,
-      cassandra: CassandraDB,
-      saveMode: SaveMode,
-      storage: Storage,
-      inputDataType: DataType
+      input: models.File,
+      output: Cassandra,
+      storage: Option[Storage],
+      saveMode: SaveMode
   ): Either[Throwable, List[List[String]]] = {
-    val basePath = new File(in).getParent
+    val basePath = new File(input.path).getParent
     storage match {
-      case Local =>
-        handleLocalFS(in, basePath, cassandra, saveMode, inputDataType)
-      case HDFS =>
-        handleHDFS(in, basePath, cassandra, saveMode, inputDataType, fs)
+      case Some(value) =>
+        value match {
+          case Local =>
+            handleLocalFS(
+              input,
+              output,
+              basePath,
+              saveMode
+            )
+          case HDFS =>
+            handleHDFS(
+              input,
+              output,
+              basePath,
+              saveMode,
+              fs
+            )
+        }
+      case None =>
+        Left(
+          DataHighwayFileError(
+            "MissingFileSystemStorage",
+            new RuntimeException("Missing 'storage' field"),
+            Array[StackTraceElement]()
+          )
+        )
     }
   }
 
   /**
-    * Handles data conversion for HDFS
+    * Handles inserting data from HDFS to Cassandra
     *
-    * @param in The input data path
-    * @param basePath The base path for input and output folders
-    * @param cassandra The Cassandra Configs
+    * @param input The input DataHighway File Entity
+    * @param output The output Cassandra Entity
+    * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
-    * @param inputDataType The type of the input data
     * @param fs The provided File System
-    * @return List of List of String, otherwise an Error
+    * @return List of List of Path as String, otherwise Throwable
     */
   private def handleHDFS(
-      in: String,
+      input: models.File,
+      output: Cassandra,
       basePath: String,
-      cassandra: CassandraDB,
       saveMode: SaveMode,
-      inputDataType: DataType,
       fs: FileSystem
   ): Either[Throwable, List[List[String]]] = {
     for {
-      folders <- HdfsUtils.listFolders(fs, in)
-      _ = logger.info("folders : " + folders)
+      folders <- HdfsUtils.listFolders(fs, input.path)
+      _ = logger.info("Folders to be processed : " + folders)
       filtered <- HdfsUtils.filterNonEmptyFolders(fs, folders)
-      res <- inputDataType match {
+      res <- input.dataType match {
         case XLSX =>
           filtered
             .traverse(subfolder => {
@@ -98,10 +113,10 @@ object CassandraSink extends HdfsUtils {
                 .listFiles(fs, subfolder)
                 .traverse(file => {
                   insert(
+                    input.dataType,
                     file,
-                    cassandra,
-                    saveMode,
-                    inputDataType
+                    output,
+                    saveMode
                   )
                 })
                 .flatMap(_ => {
@@ -112,51 +127,49 @@ object CassandraSink extends HdfsUtils {
           filtered
             .traverse(subfolder => {
               insert(
+                input.dataType,
                 subfolder,
-                cassandra,
-                saveMode,
-                inputDataType
+                output,
+                saveMode
               ).flatMap(_ => {
                 HdfsUtils.movePathContent(fs, subfolder, basePath)
               })
             })
       }
-      _ = HdfsUtils.cleanup(fs, in)
+      _ = HdfsUtils.cleanup(fs, input.path)
     } yield res
   }
 
   /**
-    * Handles data conversion for Local File System
+    * Handles inserting data from Local File System to Cassandra
     *
-    * @param in The input data path
-    * @param basePath The base path for input and output folders
-    * @param cassandra The Cassandra Configs
+    * @param input The input DataHighway File Entity
+    * @param output The output Cassandra Entity
+    * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
-    * @param inputDataType The type of the input data
-    * @return List of List of String, otherwise an Error
+    * @return List of List of Path as String, otherwise Throwable
     */
   private def handleLocalFS(
-      in: String,
+      input: models.File,
+      output: Cassandra,
       basePath: String,
-      cassandra: CassandraDB,
-      saveMode: SaveMode,
-      inputDataType: DataType
+      saveMode: SaveMode
   ): Either[Throwable, List[List[String]]] = {
     for {
-      folders <- FilesUtils.listNonEmptyFoldersRecursively(in)
-      _ = logger.info("folders : " + folders)
+      folders <- FilesUtils.listNonEmptyFoldersRecursively(input.path)
+      _ = logger.info("Folders to be processed : " + folders)
       filtered <- FilesUtils.filterNonEmptyFolders(folders)
-      res <- inputDataType match {
+      res <- input.dataType match {
         case XLSX =>
           FilesUtils
             .listFiles(filtered)
             .traverse(files => {
               files.traverse(file => {
                 insert(
+                  input.dataType,
                   file.toURI.getPath,
-                  cassandra,
-                  saveMode,
-                  inputDataType
+                  output,
+                  saveMode
                 ).flatMap(subInputFolder => {
                   FilesUtils
                     .movePathContent(
@@ -173,16 +186,16 @@ object CassandraSink extends HdfsUtils {
           filtered
             .traverse(subFolder => {
               insert(
+                input.dataType,
                 subFolder,
-                cassandra,
-                saveMode,
-                inputDataType
+                output,
+                saveMode
               ).flatMap(subInputFolder => {
                 FilesUtils.movePathContent(subInputFolder, s"$basePath/processed")
               })
             })
       }
-      _ = FilesUtils.cleanup(in)
+      _ = FilesUtils.cleanup(input.path)
     } yield res
   }
 }

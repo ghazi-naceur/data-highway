@@ -39,13 +39,12 @@ object Dispatcher {
         ElasticSampler.saveDocuments(in, out, storage, searchQuery)
       case ElasticOps(operation) =>
         ElasticAdminOps.execute(operation)
-      case FileToCassandra(in, cassandra, storage, dataType) =>
-        CassandraSink.handleCassandraChannel(in, cassandra, Append, storage, dataType)
       case CassandraToFile(cassandra, out, dataType) =>
         CassandraSampler.handleCassandraChannel(out, cassandra, Append, dataType)
       case Route(input: File, output: File, storage: Option[Storage]) =>
         BasicSink.handleChannel(input, output, storage, Overwrite)
-      case Route(input: File, output: Cassandra, storage: Option[Storage]) => Right()
+      case Route(input: File, output: Cassandra, storage: Option[Storage]) =>
+        CassandraSink.handleCassandraChannel(input, output, storage, Append)
       case Route(input: Cassandra, output: File, storage: Option[Storage]) => Right()
       case Route(input: File, output: Kafka, storage: Option[Storage]) =>
         Right() // todo only json is supported, make other types supported too
