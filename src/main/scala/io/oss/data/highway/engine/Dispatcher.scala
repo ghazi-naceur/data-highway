@@ -26,13 +26,6 @@ object Dispatcher {
   def apply(route: RouteBis): Either[Throwable, Any] = {
     logger.info(s"${route.toString} route is activated ...")
     route match {
-      case KafkaToFile(in, out, storage, kafkaMode) =>
-        KafkaSampler.consumeFromTopic(in, out, storage, kafkaMode)
-//      case FileToKafka(in, out, storage, kafkaMode) =>
-//        KafkaSink.publishFilesContentToTopic(in, out, storage, kafkaMode)
-//      case KafkaToKafka(in, out, kafkaMode) =>
-//         todo split publishToTopic between FTK and KTK, and omit Local
-//        KafkaSink.publishFilesContentToTopic(in, out, Local, kafkaMode)
       case ElasticOps(operation) =>
         ElasticAdminOps.execute(operation)
       case Route(input: File, output: File, storage: Option[Storage]) =>
@@ -59,10 +52,16 @@ object Dispatcher {
         }
       case Route(input: File, output: Kafka, storage: Option[Storage]) =>
         KafkaSink.publishFilesContentToTopic(input, output, storage)
-      case Route(input: Kafka, output: Kafka, storage: Option[Storage]) =>
+      case Route(input: Kafka, output: Kafka, _) =>
         KafkaSink.mirrorTopic(input, output)
       case Route(input: Kafka, output: File, storage: Option[Storage]) =>
-        Right() // todo only json is supported, make other types supported too
+        output.dataType match {
+          case JSON =>
+            KafkaSampler.consumeFromTopic(input, output, storage)
+          case _ =>
+            // todo Implement all data types support
+            Left(new RuntimeException("Only JSON data type is supported."))
+        }
       case _ =>
         throw new RuntimeException(s"The provided route '$route' is not supported.")
     }

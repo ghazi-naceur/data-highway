@@ -6,7 +6,7 @@ import io.oss.data.highway.models.{
   Earliest,
   HDFS,
   JSON,
-  KafkaMode,
+  Kafka,
   Local,
   Offset,
   PureKafkaConsumer,
@@ -25,7 +25,7 @@ import monix.execution.Scheduler.{global => scheduler}
 
 import scala.concurrent.duration._
 import cats.implicits._
-import io.oss.data.highway.models.DataHighwayError.KafkaError
+import io.oss.data.highway.models.DataHighwayError.{DataHighwayFileError, KafkaError}
 import io.oss.data.highway.utils.DataFrameUtils.sparkSession
 import org.apache.hadoop.fs.FileSystem
 
@@ -42,51 +42,85 @@ object KafkaSampler extends HdfsUtils {
   /**
     * Consumes data from a topic
     *
-    * @param inputTopic The input source topic
-    * @param outputPath The output path
+    * @param input The input Kafka entity
+    * @param output The output File entity
     * @param storage The output file system storage
-    * @param kafkaMode The Kafka Mode
     * @return a Unit, otherwise a Throwable
     */
   def consumeFromTopic(
-      inputTopic: String,
-      outputPath: String,
-      storage: Storage,
-      kafkaMode: KafkaMode
+      input: Kafka,
+      output: io.oss.data.highway.models.File,
+      storage: Option[Storage]
   ): Either[Throwable, Unit] = {
-    KafkaUtils.verifyTopicExistence(inputTopic, kafkaMode.brokers, enableTopicCreation = false)
 
-    kafkaMode match {
-      case PureKafkaStreamsConsumer(brokers, streamAppId, offset) =>
-        sinkWithPureKafkaStreams(inputTopic, outputPath, storage, brokers, offset, streamAppId, fs)
-      case PureKafkaConsumer(brokers, consGroup, offset) =>
-        // todo repetitive re-subscription ===> maybe make it one-shot job
-        // todo start the app with a new "consumer-group"
-        Either.catchNonFatal(scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
-          sinkWithPureKafka(inputTopic, outputPath, storage, brokers, offset, consGroup, fs)
-        })
-      case SparkKafkaPluginStreamsConsumer(brokers, offset) =>
-        Either.catchNonFatal {
-          val thread = new Thread(() => {
-            sinkViaSparkKafkaStreamsPlugin(
-              sparkSession,
-              inputTopic,
-              outputPath,
-              storage,
+    (storage, input.kafkaMode) match {
+      case (Some(filesystem), Some(km)) =>
+        KafkaUtils.verifyTopicExistence(input.topic, km.brokers, enableTopicCreation = false)
+        km match {
+          case PureKafkaStreamsConsumer(brokers, streamAppId, offset) =>
+            sinkWithPureKafkaStreams(
+              input.topic,
+              output.path,
+              filesystem,
               brokers,
-              offset
+              offset,
+              streamAppId,
+              fs
             )
-          })
-          thread.start()
+          case PureKafkaConsumer(brokers, consGroup, offset) =>
+            // todo repetitive re-subscription ===> maybe make it one-shot job
+            // todo start the app with a new "consumer-group"
+            Either.catchNonFatal(scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
+              sinkWithPureKafka(
+                input.topic,
+                output.path,
+                filesystem,
+                brokers,
+                offset,
+                consGroup,
+                fs
+              )
+            })
+          case SparkKafkaPluginStreamsConsumer(brokers, offset) =>
+            Either.catchNonFatal {
+              val thread = new Thread(() => {
+                sinkViaSparkKafkaStreamsPlugin(
+                  sparkSession,
+                  input.topic,
+                  output.path,
+                  filesystem,
+                  brokers,
+                  offset
+                )
+              })
+              thread.start()
+            }
+          case SparkKafkaPluginConsumer(brokers, offset) =>
+            // one-shot job
+            Either.catchNonFatal(
+              sinkViaSparkKafkaPlugin(
+                sparkSession,
+                input.topic,
+                output.path,
+                filesystem,
+                brokers,
+                offset
+              )
+            )
+          case _ =>
+            throw new RuntimeException(
+              s"This mode is not supported while consuming Kafka topics. The supported modes are " +
+                s"${PureKafkaConsumer.getClass}, ${SparkKafkaPluginConsumer.getClass}, ${PureKafkaStreamsConsumer.getClass}" +
+                s"and ${SparkKafkaPluginStreamsConsumer.getClass}. The provided input kafka mode is '${km}'."
+            )
         }
-      case SparkKafkaPluginConsumer(brokers, offset) =>
-        // one-shot job
-        Either.catchNonFatal(
-          sinkViaSparkKafkaPlugin(sparkSession, inputTopic, outputPath, storage, brokers, offset)
-        )
       case _ =>
-        throw new RuntimeException(
-          s"This mode is not supported while consuming data. The provided input kafka mode is : '$kafkaMode'"
+        Left(
+          DataHighwayFileError(
+            "MissingFileSystemStorage",
+            new RuntimeException("Missing 'storage' field"),
+            Array[StackTraceElement]()
+          )
         )
     }
   }
