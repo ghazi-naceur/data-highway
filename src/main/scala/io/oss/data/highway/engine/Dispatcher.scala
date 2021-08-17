@@ -23,7 +23,7 @@ object Dispatcher {
     }
   }
 
-  def apply(route: RouteBis): Either[Throwable, Any] = {
+  def apply(route: Channel): Either[Throwable, Any] = {
     logger.info(s"${route.toString} route is activated ...")
     route match {
       case ElasticOps(operation) =>

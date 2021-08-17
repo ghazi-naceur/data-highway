@@ -6,7 +6,7 @@ import io.circe.Json
 import org.http4s.implicits._
 import io.circe.syntax._
 import io.oss.data.highway.engine.Dispatcher
-import io.oss.data.highway.models.{RouteBis, Route}
+import io.oss.data.highway.models.{Query, Route}
 import org.apache.log4j.Logger
 import org.http4s._
 import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
@@ -21,6 +21,16 @@ object ConversionController {
   import pureconfig.generic.auto._ // To be kept, even though intellij didn't recognize its usage
   val httpRequests: Kleisli[IO, Request[IO], Response[IO]] = HttpRoutes
     .of[IO] {
+      case req @ POST -> Root / "ops" =>
+        logger.info("POST Request received : " + req.toString())
+        val ioResponse = req.asJson.map(request => {
+          val decodedOps = parseOpsBody(request)
+          Dispatcher.apply(decodedOps)
+        })
+        ioResponse.flatMap {
+          case Right(_)        => Ok(200)
+          case Left(exception) => throw new RuntimeException(exception)
+        }
       case req @ GET -> Root / "conversion" =>
         logger.info("GET Request received : " + req.toString())
         Ok(s"Data Highway REST API.")
@@ -37,11 +47,23 @@ object ConversionController {
     }
     .orNotFound
 
-  private def parseRouteBody(ioJson: Json, jsonElement: String = "route"): RouteBis = {
+  private def parseRouteBody(ioJson: Json, jsonElement: String = "route"): Route = {
     ConfigSource
       .string(ioJson.asJson.toString())
       .at(jsonElement)
       .load[Route] match {
+      case Right(value) => value
+      case Left(exception) =>
+        throw new RuntimeException(s"This request is incorrect due '$exception'")
+    }
+  }
+
+// todo passing class as parameter
+  private def parseOpsBody(ioJson: Json, jsonElement: String = "query"): Query = {
+    ConfigSource
+      .string(ioJson.asJson.toString())
+      .at(jsonElement)
+      .load[Query] match {
       case Right(value) => value
       case Left(exception) =>
         throw new RuntimeException(s"This request is incorrect due '$exception'")
