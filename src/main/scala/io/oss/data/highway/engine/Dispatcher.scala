@@ -35,20 +35,18 @@ object Dispatcher {
       case Route(input: Cassandra, output: File, _) =>
         CassandraSampler.extractRows(input, output.dataType, output.path, Append)
       case Route(input: File, output: Elasticsearch, storage: Option[Storage]) =>
-        input.dataType match {
-          case JSON =>
-            ElasticSink.handleElasticsearchChannel(input, output, storage)
-          case _ =>
-            // todo Implement all data types support
-            Left(new RuntimeException("Only JSON data type is supported."))
-        }
+        ElasticSink.handleElasticsearchChannel(input, output, storage)
       case Route(input: Elasticsearch, output: File, storage: Option[Storage]) =>
         output.dataType match {
           case JSON =>
             ElasticSampler.saveDocuments(input, output, storage)
           case _ =>
             // todo Implement all data types support
-            Left(new RuntimeException("Only JSON data type is supported."))
+            Left(
+              new RuntimeException(
+                "Only JSON data type is supported. You can still convert the JSON generated files "
+              )
+            )
         }
       case Route(input: File, output: Kafka, storage: Option[Storage]) =>
         KafkaSink.publishFilesContentToTopic(input, output, storage)
@@ -62,8 +60,12 @@ object Dispatcher {
             // todo Implement all data types support
             Left(new RuntimeException("Only JSON data type is supported."))
         }
+
       case _ =>
-        throw new RuntimeException(s"The provided route '$route' is not supported.")
+        throw new RuntimeException(s"""
+          | The provided route '$route' is not supported yet. This route will be implemented in the upcoming versions.
+          | For now, you can combine all the available routes to ensure sending data to your desired destination.
+          |""".stripMargin)
     }
   }
 }

@@ -1,9 +1,10 @@
 package io.oss.data.highway.engine
 
-import io.oss.data.highway.models.{Elasticsearch, HDFS, JSON, Local, Storage}
-import io.oss.data.highway.utils.{ElasticUtils, FilesUtils, HdfsUtils}
+import io.oss.data.highway.models.{DataType, Elasticsearch, HDFS, Local, Storage}
+import io.oss.data.highway.utils.{DataFrameUtils, ElasticUtils, FilesUtils, HdfsUtils}
 import org.apache.log4j.Logger
 import cats.implicits._
+import com.sksamuel.elastic4s.ElasticDsl.indexInto
 import com.sksamuel.elastic4s.requests.common.RefreshPolicy
 import io.oss.data.highway.models
 import io.oss.data.highway.models.DataHighwayError.DataHighwayFileError
@@ -17,6 +18,7 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
   /**
     * Indexes file's content into Elasticsearch
     *
+    * @param inputDataType The input data type path
     * @param input The input data path
     * @param output The output Elasticsearch entity
     * @param basePath The base path for input, output and processed folders
@@ -24,6 +26,7 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
     * @return a Unit, otherwise an Error
     */
   private def sendToElasticsearch(
+      inputDataType: DataType,
       input: String,
       output: Elasticsearch,
       basePath: String,
@@ -31,9 +34,9 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
   ): Either[Throwable, Unit] = {
     Either.catchNonFatal {
       if (!output.bulkEnabled)
-        indexWithIndexQuery(input, output.index, basePath, storage)
+        indexWithIndexQuery(inputDataType, input, output.index, basePath, storage)
       else
-        indexWithBulkQuery(input, output.index, basePath, storage)
+        indexWithBulkQuery(inputDataType, input, output.index, basePath, storage)
       logger.info(s"Successfully indexing data from '$input' into the '$output' index.")
     }
   }
@@ -41,6 +44,7 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
   /**
     * Indexes data using an ES IndexQuery
     *
+    * @param inputDataType The input data type path
     * @param input The input data folder
     * @param output The output Elasticsearch entity
     * @param basePath The base path of the input folder
@@ -48,88 +52,74 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
     * @return Any
     */
   private def indexWithIndexQuery(
+      inputDataType: DataType,
       input: String,
       output: String,
       basePath: String,
       storage: Storage
   ): Any = {
+    DataFrameUtils
+      .loadDataFrame(inputDataType, input)
+      .map(df => {
+        val fieldNames = df.head().schema.fieldNames
+        df.foreach(row => {
+          val rowAsMap = row.getValuesMap(fieldNames)
+          val line     = DataFrameUtils.toJson(rowAsMap)
+          indexDocInEs(output, line)
+        })
+      })
     storage match {
       case HDFS =>
-        HdfsUtils
-          .listFilesRecursively(fs, input)
-          .foreach(file => {
-            HdfsUtils
-              .getLines(fs, file)
-              .foreach(line => indexDocInEs(output, line))
-            HdfsUtils.movePathContent(fs, file, basePath)
-          })
+        HdfsUtils.movePathContent(fs, input, basePath)
       case Local =>
-        FilesUtils
-          .listFilesRecursively(new File(input), JSON.extension)
-          .foreach(file => {
-            FilesUtils
-              .getLines(file.getAbsolutePath)
-              .foreach(line => indexDocInEs(output, line))
-            FilesUtils
-              .movePathContent(
-                file.getAbsolutePath,
-                s"$basePath/processed/${file.getParentFile.getName}"
-              )
-          })
+        FilesUtils.movePathContent(input, s"$basePath/processed")
     }
   }
 
   /**
     * Indexes data using an ES BulkQuery
     *
-    * @param in The input data folder
-    * @param out The ES index
+    * @param inputDataType The input data type path
+    * @param input The input data folder
+    * @param output The ES index
     * @param basePath The base path of the input folder
     * @param storage The input file system storage : Local or HDFS
     * @return Any
     */
   private def indexWithBulkQuery(
-      in: String,
-      out: String,
+      inputDataType: DataType,
+      input: String,
+      output: String,
       basePath: String,
       storage: Storage
   ): Any = {
     import com.sksamuel.elastic4s.ElasticDsl._
+    import scala.collection.JavaConverters._
+    import DataFrameUtils.sparkSession.implicits._
+
+    DataFrameUtils
+      .loadDataFrame(inputDataType, input)
+      .map(df => {
+        val fieldNames = df.head().schema.fieldNames
+        val lines = df
+          .map(row => {
+            val rowAsMap = row.getValuesMap(fieldNames)
+            DataFrameUtils.toJson(rowAsMap)
+          })
+          .collectAsList()
+          .asScala
+          .toList
+        val queries = lines.map(line => indexInto(output) doc line refresh RefreshPolicy.IMMEDIATE)
+        esClient.execute {
+          bulk(queries).refresh(RefreshPolicy.Immediate)
+        }.await
+      })
 
     storage match {
       case HDFS =>
-        HdfsUtils
-          .listFilesRecursively(fs, in)
-          .foreach(file => {
-            val queries = HdfsUtils
-              .getLines(fs, file)
-              .map(line => {
-                indexInto(out) doc line refresh RefreshPolicy.IMMEDIATE
-              })
-            esClient.execute {
-              bulk(queries).refresh(RefreshPolicy.Immediate)
-            }.await
-            HdfsUtils.movePathContent(fs, file, basePath)
-          })
-
+        HdfsUtils.movePathContent(fs, input, basePath)
       case Local =>
-        FilesUtils
-          .listFilesRecursively(new File(in), JSON.extension)
-          .foreach(file => {
-            val queries = FilesUtils
-              .getLines(file.getAbsolutePath)
-              .map(line => {
-                indexInto(out) doc line refresh RefreshPolicy.IMMEDIATE
-              })
-              .toSeq
-            esClient.execute {
-              bulk(queries).refresh(RefreshPolicy.Immediate)
-            }.await
-            FilesUtils.movePathContent(
-              file.getAbsolutePath,
-              s"$basePath/processed/${file.getParentFile.getName}"
-            )
-          })
+        FilesUtils.movePathContent(input, s"$basePath/processed")
     }
   }
 
@@ -172,7 +162,7 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
                   .listFolders(fs, input.path)
                   .traverse(folders => {
                     folders.traverse(folder => {
-                      sendToElasticsearch(folder, output, basePath, value)
+                      sendToElasticsearch(input.dataType, folder, output, basePath, value)
                     })
                   })
                   .flatten
@@ -185,7 +175,7 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
                 folders
                   .filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)
                   .traverse(folder => {
-                    sendToElasticsearch(folder, output, basePath, value)
+                    sendToElasticsearch(input.dataType, folder, output, basePath, value)
                   })
               _ = FilesUtils.cleanup(input.path)
             } yield list

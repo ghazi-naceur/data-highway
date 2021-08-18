@@ -116,4 +116,20 @@ object DataFrameUtils extends SparkUtils {
       }
     }
   }
+
+  /**
+    * Converts elements to JSON string
+    *
+    * @param element The element to be converted
+    * @return Json String
+    */
+  def toJson(element: Any): String =
+    element match {
+      case mapElem: Map[String, Any] => s"{${mapElem.map(toJson(_)).mkString(",")}}"
+      case tupleElem: (String, Any)  => s""""${tupleElem._1}":${toJson(tupleElem._2)}"""
+      case seqElem: Seq[Any]         => s"""[${seqElem.map(toJson).mkString(",")}]"""
+      case stringElem: String        => s""""$stringElem""""
+      case null                      => "null"
+      case _                         => element.toString
+    }
 }
