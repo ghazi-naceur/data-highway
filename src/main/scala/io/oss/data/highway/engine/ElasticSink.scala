@@ -1,6 +1,6 @@
 package io.oss.data.highway.engine
 
-import io.oss.data.highway.models.{DataType, Elasticsearch, HDFS, Local, Storage}
+import io.oss.data.highway.models.{DataType, Elasticsearch, HDFS, Local, Storage, XLSX}
 import io.oss.data.highway.utils.{DataFrameUtils, ElasticUtils, FilesUtils, HdfsUtils}
 import org.apache.log4j.Logger
 import cats.implicits._
@@ -97,29 +97,89 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
     import scala.collection.JavaConverters._
     import DataFrameUtils.sparkSession.implicits._
 
-    DataFrameUtils
-      .loadDataFrame(inputDataType, input)
-      .map(df => {
-        val fieldNames = df.head().schema.fieldNames
-        val lines = df
-          .map(row => {
-            val rowAsMap = row.getValuesMap(fieldNames)
-            DataFrameUtils.toJson(rowAsMap)
+    inputDataType match {
+      case XLSX =>
+        storage match {
+          case HDFS =>
+            HdfsUtils
+              .listFilesRecursively(fs, input)
+              .map(file => {
+                DataFrameUtils
+                  .loadDataFrame(inputDataType, file)
+                  .map(df => {
+                    val fieldNames = df.head().schema.fieldNames
+                    val lines = df
+                      .map(row => {
+                        val rowAsMap = row.getValuesMap(fieldNames)
+                        DataFrameUtils.toJson(rowAsMap)
+                      })
+                      .collectAsList()
+                      .asScala
+                      .toList
+                    val queries =
+                      lines.map(line => indexInto(output) doc line refresh RefreshPolicy.IMMEDIATE)
+                    esClient.execute {
+                      bulk(queries).refresh(RefreshPolicy.Immediate)
+                    }.await
+                    HdfsUtils.movePathContent(fs, file, basePath)
+                  })
+              })
+          case Local =>
+            FilesUtils
+              .listFilesRecursively(new File(input), inputDataType.extension)
+              .map(file => {
+                DataFrameUtils
+                  .loadDataFrame(inputDataType, file.getAbsolutePath)
+                  .map(df => {
+                    val fieldNames = df.head().schema.fieldNames
+                    val lines = df
+                      .map(row => {
+                        val rowAsMap = row.getValuesMap(fieldNames)
+                        DataFrameUtils.toJson(rowAsMap)
+                      })
+                      .collectAsList()
+                      .asScala
+                      .toList
+                    val queries = lines
+                      .map(line => {
+                        indexInto(output) doc line refresh RefreshPolicy.IMMEDIATE
+                      })
+                    esClient.execute {
+                      bulk(queries).refresh(RefreshPolicy.Immediate)
+                    }.await
+                    FilesUtils.movePathContent(
+                      file.getAbsolutePath,
+                      s"$basePath/processed/${file.getParentFile.getName}"
+                    )
+                  })
+              })
+        }
+      case _ =>
+        DataFrameUtils
+          .loadDataFrame(inputDataType, input)
+          .map(df => {
+            val fieldNames = df.head().schema.fieldNames
+            val lines = df
+              .map(row => {
+                val rowAsMap = row.getValuesMap(fieldNames)
+                DataFrameUtils.toJson(rowAsMap)
+              })
+              .collectAsList()
+              .asScala
+              .toList
+            val queries =
+              lines.map(line => indexInto(output) doc line refresh RefreshPolicy.IMMEDIATE)
+            esClient.execute {
+              bulk(queries).refresh(RefreshPolicy.Immediate)
+            }.await
           })
-          .collectAsList()
-          .asScala
-          .toList
-        val queries = lines.map(line => indexInto(output) doc line refresh RefreshPolicy.IMMEDIATE)
-        esClient.execute {
-          bulk(queries).refresh(RefreshPolicy.Immediate)
-        }.await
-      })
 
-    storage match {
-      case HDFS =>
-        HdfsUtils.movePathContent(fs, input, basePath)
-      case Local =>
-        FilesUtils.movePathContent(input, s"$basePath/processed")
+        storage match {
+          case HDFS =>
+            HdfsUtils.movePathContent(fs, input, basePath)
+          case Local =>
+            FilesUtils.movePathContent(input, s"$basePath/processed")
+        }
     }
   }
 
