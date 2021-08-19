@@ -4,9 +4,12 @@ import io.oss.data.highway.models.{DataType, Elasticsearch, HDFS, Local, Storage
 import io.oss.data.highway.utils.{DataFrameUtils, ElasticUtils, FilesUtils, HdfsUtils}
 import org.apache.log4j.Logger
 import cats.implicits._
+import com.sksamuel.elastic4s.Response
+import com.sksamuel.elastic4s.requests.bulk.BulkResponse
 import com.sksamuel.elastic4s.requests.common.RefreshPolicy
 import io.oss.data.highway.models
 import io.oss.data.highway.models.DataHighwayError.DataHighwayFileError
+import org.apache.spark.sql.DataFrame
 
 import java.io.File
 
@@ -66,14 +69,7 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
               .map(file => {
                 DataFrameUtils
                   .loadDataFrame(inputDataType, file)
-                  .map(df => {
-                    val fieldNames = df.head().schema.fieldNames
-                    df.foreach(row => {
-                      val rowAsMap = row.getValuesMap(fieldNames)
-                      val line     = DataFrameUtils.toJson(rowAsMap)
-                      indexDocInEs(output, line)
-                    })
-                  })
+                  .map(df => indexDataFrameWithIndexQuery(df, output))
               })
           case Local =>
             FilesUtils
@@ -81,27 +77,13 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
               .map(file => {
                 DataFrameUtils
                   .loadDataFrame(inputDataType, file.getAbsolutePath)
-                  .map(df => {
-                    val fieldNames = df.head().schema.fieldNames
-                    df.foreach(row => {
-                      val rowAsMap = row.getValuesMap(fieldNames)
-                      val line     = DataFrameUtils.toJson(rowAsMap)
-                      indexDocInEs(output, line)
-                    })
-                  })
+                  .map(df => indexDataFrameWithIndexQuery(df, output))
               })
         }
       case _ =>
         DataFrameUtils
           .loadDataFrame(inputDataType, input)
-          .map(df => {
-            val fieldNames = df.head().schema.fieldNames
-            df.foreach(row => {
-              val rowAsMap = row.getValuesMap(fieldNames)
-              val line     = DataFrameUtils.toJson(rowAsMap)
-              indexDocInEs(output, line)
-            })
-          })
+          .map(df => indexDataFrameWithIndexQuery(df, output))
     }
     storage match {
       case HDFS =>
@@ -109,6 +91,20 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
       case Local =>
         FilesUtils.movePathContent(input, s"$basePath/processed")
     }
+  }
+
+  /**
+    * Index a DataFrame using an ES Index Query
+    * @param df The DataFrame to be indexed
+    * @param output The ES index
+    */
+  private def indexDataFrameWithIndexQuery(df: DataFrame, output: String): Unit = {
+    val fieldNames = df.head().schema.fieldNames
+    df.foreach(row => {
+      val rowAsMap = row.getValuesMap(fieldNames)
+      val line     = DataFrameUtils.toJson(rowAsMap)
+      indexDocInEs(output, line)
+    })
   }
 
   /**
@@ -128,10 +124,6 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
       basePath: String,
       storage: Storage
   ): Any = {
-    import com.sksamuel.elastic4s.ElasticDsl._
-    import scala.collection.JavaConverters._
-    import DataFrameUtils.sparkSession.implicits._
-
     inputDataType match {
       case XLSX =>
         storage match {
@@ -142,20 +134,7 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
                 DataFrameUtils
                   .loadDataFrame(inputDataType, file)
                   .map(df => {
-                    val fieldNames = df.head().schema.fieldNames
-                    val lines = df
-                      .map(row => {
-                        val rowAsMap = row.getValuesMap(fieldNames)
-                        DataFrameUtils.toJson(rowAsMap)
-                      })
-                      .collectAsList()
-                      .asScala
-                      .toList
-                    val queries =
-                      lines.map(line => indexInto(output) doc line refresh RefreshPolicy.IMMEDIATE)
-                    esClient.execute {
-                      bulk(queries).refresh(RefreshPolicy.Immediate)
-                    }.await
+                    indexDataFrameWithBulk(df, output)
                     HdfsUtils.movePathContent(fs, file, basePath)
                   })
               })
@@ -166,22 +145,7 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
                 DataFrameUtils
                   .loadDataFrame(inputDataType, file.getAbsolutePath)
                   .map(df => {
-                    val fieldNames = df.head().schema.fieldNames
-                    val lines = df
-                      .map(row => {
-                        val rowAsMap = row.getValuesMap(fieldNames)
-                        DataFrameUtils.toJson(rowAsMap)
-                      })
-                      .collectAsList()
-                      .asScala
-                      .toList
-                    val queries = lines
-                      .map(line => {
-                        indexInto(output) doc line refresh RefreshPolicy.IMMEDIATE
-                      })
-                    esClient.execute {
-                      bulk(queries).refresh(RefreshPolicy.Immediate)
-                    }.await
+                    indexDataFrameWithBulk(df, output)
                     FilesUtils.movePathContent(
                       file.getAbsolutePath,
                       s"$basePath/processed/${file.getParentFile.getName}"
@@ -193,22 +157,8 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
         DataFrameUtils
           .loadDataFrame(inputDataType, input)
           .map(df => {
-            val fieldNames = df.head().schema.fieldNames
-            val lines = df
-              .map(row => {
-                val rowAsMap = row.getValuesMap(fieldNames)
-                DataFrameUtils.toJson(rowAsMap)
-              })
-              .collectAsList()
-              .asScala
-              .toList
-            val queries =
-              lines.map(line => indexInto(output) doc line refresh RefreshPolicy.IMMEDIATE)
-            esClient.execute {
-              bulk(queries).refresh(RefreshPolicy.Immediate)
-            }.await
+            indexDataFrameWithBulk(df, output)
           })
-
         storage match {
           case HDFS =>
             HdfsUtils.movePathContent(fs, input, basePath)
@@ -216,6 +166,31 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
             FilesUtils.movePathContent(input, s"$basePath/processed")
         }
     }
+  }
+
+  /**
+    * Index a DataFrame using an ES Bulk Query
+    * @param df The DataFrame to be indexed
+    * @param output The ES index
+    */
+  private def indexDataFrameWithBulk(df: DataFrame, output: String): Response[BulkResponse] = {
+    import com.sksamuel.elastic4s.ElasticDsl._
+    import scala.collection.JavaConverters._
+    import DataFrameUtils.sparkSession.implicits._
+    val fieldNames = df.head().schema.fieldNames
+    val lines = df
+      .map(row => {
+        val rowAsMap = row.getValuesMap(fieldNames)
+        DataFrameUtils.toJson(rowAsMap)
+      })
+      .collectAsList()
+      .asScala
+      .toList
+    val queries =
+      lines.map(line => indexInto(output) doc line refresh RefreshPolicy.IMMEDIATE)
+    esClient.execute {
+      bulk(queries).refresh(RefreshPolicy.Immediate)
+    }.await
   }
 
   /**
