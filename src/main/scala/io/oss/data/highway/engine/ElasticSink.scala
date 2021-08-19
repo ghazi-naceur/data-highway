@@ -4,7 +4,6 @@ import io.oss.data.highway.models.{DataType, Elasticsearch, HDFS, Local, Storage
 import io.oss.data.highway.utils.{DataFrameUtils, ElasticUtils, FilesUtils, HdfsUtils}
 import org.apache.log4j.Logger
 import cats.implicits._
-import com.sksamuel.elastic4s.ElasticDsl.indexInto
 import com.sksamuel.elastic4s.requests.common.RefreshPolicy
 import io.oss.data.highway.models
 import io.oss.data.highway.models.DataHighwayError.DataHighwayFileError
@@ -58,16 +57,52 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
       basePath: String,
       storage: Storage
   ): Any = {
-    DataFrameUtils
-      .loadDataFrame(inputDataType, input)
-      .map(df => {
-        val fieldNames = df.head().schema.fieldNames
-        df.foreach(row => {
-          val rowAsMap = row.getValuesMap(fieldNames)
-          val line     = DataFrameUtils.toJson(rowAsMap)
-          indexDocInEs(output, line)
-        })
-      })
+    inputDataType match {
+      case XLSX =>
+        storage match {
+          case HDFS =>
+            HdfsUtils
+              .listFilesRecursively(fs, input)
+              .map(file => {
+                DataFrameUtils
+                  .loadDataFrame(inputDataType, file)
+                  .map(df => {
+                    val fieldNames = df.head().schema.fieldNames
+                    df.foreach(row => {
+                      val rowAsMap = row.getValuesMap(fieldNames)
+                      val line     = DataFrameUtils.toJson(rowAsMap)
+                      indexDocInEs(output, line)
+                    })
+                  })
+              })
+          case Local =>
+            FilesUtils
+              .listFilesRecursively(new File(input), inputDataType.extension)
+              .map(file => {
+                DataFrameUtils
+                  .loadDataFrame(inputDataType, file.getAbsolutePath)
+                  .map(df => {
+                    val fieldNames = df.head().schema.fieldNames
+                    df.foreach(row => {
+                      val rowAsMap = row.getValuesMap(fieldNames)
+                      val line     = DataFrameUtils.toJson(rowAsMap)
+                      indexDocInEs(output, line)
+                    })
+                  })
+              })
+        }
+      case _ =>
+        DataFrameUtils
+          .loadDataFrame(inputDataType, input)
+          .map(df => {
+            val fieldNames = df.head().schema.fieldNames
+            df.foreach(row => {
+              val rowAsMap = row.getValuesMap(fieldNames)
+              val line     = DataFrameUtils.toJson(rowAsMap)
+              indexDocInEs(output, line)
+            })
+          })
+    }
     storage match {
       case HDFS =>
         HdfsUtils.movePathContent(fs, input, basePath)
