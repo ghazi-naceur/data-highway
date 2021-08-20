@@ -37,17 +37,7 @@ object Dispatcher {
       case Route(input: File, output: Elasticsearch, storage: Option[Storage]) =>
         ElasticSink.handleElasticsearchChannel(input, output, storage)
       case Route(input: Elasticsearch, output: File, storage: Option[Storage]) =>
-        output.dataType match {
-          case JSON =>
-            ElasticSampler.saveDocuments(input, output, storage)
-          case _ =>
-            // todo Implement all data types support
-            Left(
-              new RuntimeException(
-                "Only JSON data type is supported. You can still convert the JSON generated files "
-              )
-            )
-        }
+        ElasticSampler.saveDocuments(input, output, Overwrite, storage)
       case Route(input: File, output: Kafka, storage: Option[Storage]) =>
         KafkaSink.publishFilesContentToTopic(input, output, storage)
       case Route(input: Kafka, output: Kafka, _) =>

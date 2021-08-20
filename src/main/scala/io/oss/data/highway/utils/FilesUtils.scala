@@ -203,4 +203,16 @@ object FilesUtils {
       .mkString("/")
       .replace(s".$extension", "")
   }
+
+  /**
+    * Deletes path
+    *
+    * @param path The path to be deleted
+    * @return Unit, otherwise an Throwable
+    */
+  def delete(path: String): Either[Throwable, Unit] = {
+    Either.catchNonFatal {
+      FileUtils.forceDelete(new File(path))
+    }
+  }
 }

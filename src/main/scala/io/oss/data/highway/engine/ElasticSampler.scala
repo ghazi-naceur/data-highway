@@ -40,7 +40,6 @@ import io.oss.data.highway.models.{
   RangeField,
   RangeQuery,
   RegexQuery,
-  SearchQuery,
   Should,
   SimpleStringQuery,
   Storage,
@@ -48,6 +47,7 @@ import io.oss.data.highway.models.{
   TermsQuery,
   WildcardQuery
 }
+import org.apache.spark.sql.SaveMode
 
 import java.util.UUID
 
@@ -416,81 +416,84 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
   def saveDocuments(
       input: Elasticsearch,
       output: File,
+      saveMode: SaveMode,
       storage: Option[Storage]
   ): Either[Throwable, List[Unit]] = {
-    storage match {
+    val tempoPathSuffix = "/tmp/data-highway/"
+    val temporaryPath   = tempoPathSuffix + UUID.randomUUID().toString + output.path
+    val res = storage match {
       case Some(filesystem) =>
         input.searchQuery match {
           case Some(query) =>
             query match {
               case MatchAllQuery =>
                 searchWithMatchAllQuery(input.index)
-                  .traverse(saveSearchHit(output.path, filesystem))
+                  .traverse(saveSearchHit(temporaryPath, filesystem))
 
               case MatchQuery(field) =>
                 searchWithMatchQuery(input.index, field)
-                  .traverse(saveSearchHit(output.path, filesystem))
+                  .traverse(saveSearchHit(temporaryPath, filesystem))
 
               case MultiMatchQuery(values) =>
                 searchWithMultiMatchQuery(input.index, values).flatMap(hits => {
-                  hits.traverse(saveSearchHit(output.path, filesystem))
+                  hits.traverse(saveSearchHit(temporaryPath, filesystem))
                 })
 
               case TermQuery(field) =>
                 searchWithTermQuery(input.index, field)
-                  .traverse(saveSearchHit(output.path, filesystem))
+                  .traverse(saveSearchHit(temporaryPath, filesystem))
 
               case TermsQuery(fieldValues) =>
                 searchWithTermsQuery(input.index, fieldValues)
-                  .traverse(saveSearchHit(output.path, filesystem))
+                  .traverse(saveSearchHit(temporaryPath, filesystem))
 
               case CommonTermsQuery(field) =>
                 searchWithCommonTermsQuery(input.index, field)
-                  .traverse(saveSearchHit(output.path, filesystem))
+                  .traverse(saveSearchHit(temporaryPath, filesystem))
 
               case QueryStringQuery(query) =>
                 searchWithQueryStringQuery(input.index, query)
-                  .traverse(saveSearchHit(output.path, filesystem))
+                  .traverse(saveSearchHit(temporaryPath, filesystem))
 
               case SimpleStringQuery(query) =>
                 searchWithSimpleStringQuery(input.index, query)
-                  .traverse(saveSearchHit(output.path, filesystem))
+                  .traverse(saveSearchHit(temporaryPath, filesystem))
 
               case PrefixQuery(query) =>
                 searchWithPrefixQuery(input.index, query)
-                  .traverse(saveSearchHit(output.path, filesystem))
+                  .traverse(saveSearchHit(temporaryPath, filesystem))
 
               case MoreLikeThisQuery(likeFields) =>
                 searchWithMoreLikeThisQuery(input.index, likeFields)
-                  .traverse(saveSearchHit(output.path, filesystem))
+                  .traverse(saveSearchHit(temporaryPath, filesystem))
 
               case RangeQuery(rangeField) =>
                 searchWithRangeQuery(input.index, rangeField)
-                  .traverse(saveSearchHit(output.path, filesystem))
+                  .traverse(saveSearchHit(temporaryPath, filesystem))
 
               case ExistsQuery(fieldName) =>
                 searchWithExistsQuery(input.index, fieldName)
-                  .traverse(saveSearchHit(output.path, filesystem))
+                  .traverse(saveSearchHit(temporaryPath, filesystem))
 
               case WildcardQuery(field) =>
                 searchWithWildcardQuery(input.index, field)
-                  .traverse(saveSearchHit(output.path, filesystem))
+                  .traverse(saveSearchHit(temporaryPath, filesystem))
 
               case RegexQuery(field) =>
                 searchWithRegexQuery(input.index, field)
-                  .traverse(saveSearchHit(output.path, filesystem))
+                  .traverse(saveSearchHit(temporaryPath, filesystem))
 
               case FuzzyQuery(field) =>
                 searchWithFuzzyQuery(input.index, field)
-                  .traverse(saveSearchHit(output.path, filesystem))
+                  .traverse(saveSearchHit(temporaryPath, filesystem))
 
               case IdsQuery(ids) =>
                 searchWithIdsQuery(input.index, ids)
-                  .traverse(saveSearchHit(output.path, filesystem))
+                  .traverse(saveSearchHit(temporaryPath, filesystem))
 
               case BoolMatchPhraseQuery(boolFilter, fields) =>
                 searchWithBoolMatchPhraseQuery(input.index, boolFilter, fields).traverse(
-                  saveSearchHit(output.path, filesystem)
+                  saveSearchHit(temporaryPath, filesystem)
                 )
 
               case _ => Either.catchNonFatal(List())
@@ -498,6 +501,37 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
             }
           case None =>
             Left(new RuntimeException("Missing SearchQuery in the Elasticsearch entity"))
+        }
+      case None =>
+        Left(
+          DataHighwayFileError(
+            "MissingFileSystemStorage",
+            new RuntimeException("Missing 'storage' field"),
+            Array[StackTraceElement]()
+          )
+        )
+    }
+    val tempInputPath = new java.io.File(temporaryPath).getParent
+    BasicSink.handleChannel(File(JSON, tempInputPath), output, storage, saveMode)
+    cleanupTmp(tempoPathSuffix, storage)
+    res
+  }
+
+  /**
+    * Cleanups the temporary folder
+    *
+    * @param output The tmp suffix path
+    * @param storage The tmp file system storage
+    * @return Serializable
+    */
+  private def cleanupTmp(output: String, storage: Option[Storage]): java.io.Serializable = {
+    storage match {
+      case Some(filesystem) =>
+        filesystem match {
+          case Local =>
+            FilesUtils.delete(output)
+          case HDFS =>
+            HdfsUtils.delete(fs, output)
         }
       case None =>
         Left(
@@ -552,7 +586,7 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
   /**
     * Saves an ES document as a Json file
     *
-    * @param out The output folder
+    * @param out The output File entity
     * @param storage The output file system : Local or HDFS
     * @return Unit, otherwise a Throwable
     */
@@ -579,4 +613,49 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
       }
     }
   }
+
+//  private def saveSearchHit(
+//                             out: io.oss.data.highway.models.File,
+//                             saveMode: SaveMode,
+//                             storage: Storage
+//                           ): SearchHit => Either[Throwable, List[List[String]]] = { (searchHit: SearchHit) =>
+//  {
+//    storage match {
+//      case HDFS =>
+//        val tmp        = s"/tmp/"
+//        val outputPath = s"${out.path}/${searchHit.index}"
+//        val file =
+//          outputPath + s"/es-${searchHit.id}-${UUID.randomUUID()}-${System.currentTimeMillis()}.${JSON.extension}"
+//        HdfsUtils.save(
+//          fs,
+//          tmp + file,
+//          searchHit.sourceAsMap.mapValues(_.toString).asJson.noSpaces
+//        )
+//        BasicSink.handleChannel(
+//          File(JSON, tmp + outputPath),
+//          File(out.dataType, outputPath),
+//          Some(storage),
+//          saveMode
+//        )
+//      //          BasicSink.convert(JSON, tmp + outputPath, out.dataType, outputPath, saveMode)
+//      case Local =>
+//        val tmp = s"/tmp/"
+//        val file =
+//          s"es-${searchHit.id}-${UUID.randomUUID()}-${System.currentTimeMillis()}.${JSON.extension}"
+//        val outputPath = s"${out.path}/${searchHit.index}"
+//        FilesUtils.createFile(
+//          tmp + outputPath,
+//          file,
+//          searchHit.sourceAsMap.mapValues(_.toString).asJson.noSpaces
+//        )
+//        BasicSink.handleChannel(
+//          File(JSON, tmp + outputPath),
+//          File(out.dataType, outputPath),
+//          Some(storage),
+//          saveMode
+//        )
+//      //          BasicSink.convert(JSON, tmp + outputPath, out.dataType, outputPath, saveMode)
+//    }
+//  }
+//  }
 }

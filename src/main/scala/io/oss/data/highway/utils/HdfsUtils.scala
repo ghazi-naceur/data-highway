@@ -220,4 +220,17 @@ object HdfsUtils extends HdfsUtils {
       .takeWhile(_ != null)
       .toList
   }
+
+  /**
+    * Deletes a path
+    *
+    * @param fs The provided File System
+    * @param path The path to be deleted
+    * @return Boolean, otherwise a Throwable
+    */
+  def delete(fs: FileSystem, path: String): Either[Throwable, Boolean] = {
+    Either.catchNonFatal {
+      fs.delete(new Path(path), true)
+    }
+  }
 }
