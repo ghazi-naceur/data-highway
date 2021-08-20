@@ -123,7 +123,7 @@ object DataFrameUtils extends SparkUtils {
     * @param element The element to be converted
     * @return Json String
     */
-  def toJson(element: Any): String =
+  private def toJson(element: Any): String =
     element match {
       case mapElem: Map[String, Any] => s"{${mapElem.map(toJson(_)).mkString(",")}}"
       case tupleElem: (String, Any)  => s""""${tupleElem._1}":${toJson(tupleElem._2)}"""
@@ -132,4 +132,25 @@ object DataFrameUtils extends SparkUtils {
       case null                      => "null"
       case _                         => element.toString
     }
+
+  /**
+    * Converts a dataframe to a list of json lines
+    *
+    * @param df The dataframe to be converted
+    * @return a list of Json lines, otherwise a Throwable
+    */
+  def convertDataFrameToJsonLines(df: DataFrame): Either[Throwable, List[String]] = {
+    Either.catchNonFatal {
+      import scala.collection.JavaConverters._
+      import DataFrameUtils.sparkSession.implicits._
+      val fieldNames = df.head().schema.fieldNames
+      df.map(row => {
+          val rowAsMap = row.getValuesMap(fieldNames)
+          DataFrameUtils.toJson(rowAsMap)
+        })
+        .collectAsList()
+        .asScala
+        .toList
+    }
+  }
 }

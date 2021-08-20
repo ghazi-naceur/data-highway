@@ -99,12 +99,9 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
     * @param output The ES index
     */
   private def indexDataFrameWithIndexQuery(df: DataFrame, output: String): Unit = {
-    val fieldNames = df.head().schema.fieldNames
-    df.foreach(row => {
-      val rowAsMap = row.getValuesMap(fieldNames)
-      val line     = DataFrameUtils.toJson(rowAsMap)
-      indexDocInEs(output, line)
-    })
+    DataFrameUtils
+      .convertDataFrameToJsonLines(df)
+      .map(_.map(line => indexDocInEs(output, line)))
   }
 
   /**
@@ -170,27 +167,25 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
 
   /**
     * Index a DataFrame using an ES Bulk Query
+    *
     * @param df The DataFrame to be indexed
     * @param output The ES index
+    * @return Response of BulkResponse, otherwise a Throwable
     */
-  private def indexDataFrameWithBulk(df: DataFrame, output: String): Response[BulkResponse] = {
+  private def indexDataFrameWithBulk(
+      df: DataFrame,
+      output: String
+  ): Either[Throwable, Response[BulkResponse]] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-    import scala.collection.JavaConverters._
-    import DataFrameUtils.sparkSession.implicits._
-    val fieldNames = df.head().schema.fieldNames
-    val lines = df
-      .map(row => {
-        val rowAsMap = row.getValuesMap(fieldNames)
-        DataFrameUtils.toJson(rowAsMap)
+    DataFrameUtils
+      .convertDataFrameToJsonLines(df)
+      .map(lines => {
+        val queries =
+          lines.map(line => indexInto(output) doc line refresh RefreshPolicy.IMMEDIATE)
+        esClient.execute {
+          bulk(queries).refresh(RefreshPolicy.Immediate)
+        }.await
       })
-      .collectAsList()
-      .asScala
-      .toList
-    val queries =
-      lines.map(line => indexInto(output) doc line refresh RefreshPolicy.IMMEDIATE)
-    esClient.execute {
-      bulk(queries).refresh(RefreshPolicy.Immediate)
-    }.await
   }
 
   /**
