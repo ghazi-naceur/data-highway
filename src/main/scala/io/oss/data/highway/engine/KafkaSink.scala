@@ -5,8 +5,8 @@ import org.apache.kafka.clients.producer._
 
 import java.util.{Properties, UUID}
 import io.oss.data.highway.models.{
+  DataType,
   HDFS,
-  JSON,
   Kafka,
   Local,
   Offset,
@@ -14,76 +14,131 @@ import io.oss.data.highway.models.{
   PureKafkaStreamsProducer,
   SparkKafkaPluginProducer,
   SparkKafkaPluginStreamsProducer,
-  Storage
+  Storage,
+  XLSX
 }
 import io.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils, KafkaUtils}
 import org.apache.kafka.common.serialization.{Serdes, StringSerializer}
 import org.apache.kafka.streams.scala.StreamsBuilder
 import org.apache.kafka.streams.{KafkaStreams, StreamsConfig}
 import org.apache.log4j.Logger
-import cats.implicits._
+import cats.implicits.{toTraverseOps, _}
 import io.oss.data.highway.models
 import io.oss.data.highway.models.DataHighwayError.{DataHighwayFileError, KafkaError}
-import monix.execution.Scheduler.{global => scheduler}
-import org.apache.hadoop.fs.{FileSystem, Path}
+import org.apache.hadoop.fs.FileSystem
 import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.spark.sql.DataFrame
 
-import scala.concurrent.duration._
 import java.io.File
-import java.nio.file.Files
 import scala.sys.ShutdownHookThread
 
 object KafkaSink extends HdfsUtils {
 
   val logger: Logger           = Logger.getLogger(KafkaSink.getClass.getName)
   val generated: String        = s"${UUID.randomUUID()}-${System.currentTimeMillis().toString}"
-  val checkpointFolder: String = s"/tmp/data-highway/checkpoint-$generated"
+  val checkpointFolder: String = s"/tmp/checkpoint-data-highway/checkpoint-$generated"
+
+  /**
+    * Handles Kafka sink
+    *
+    * @param input The input File entity
+    * @param output The output Kafka entity
+    * @param storage The file system storage
+    * @return List of Any, otherwise a Throwable
+    */
+  def handleKafkaChannel(
+      input: models.File,
+      output: Kafka,
+      storage: Option[Storage]
+  ): Either[Throwable, List[Any]] = {
+    val basePath = new File(input.path).getParent
+    storage match {
+      case Some(value) =>
+        value match {
+          case HDFS =>
+            for {
+              list <-
+                HdfsUtils
+                  .listFolders(fs, input.path)
+                  .traverse(folders => {
+                    folders.traverse(folder => {
+                      publishFilesContentToTopic(
+                        input.dataType,
+                        folder,
+                        output,
+                        basePath,
+                        storage
+                      )
+                    })
+                  })
+                  .flatten
+              _ = HdfsUtils.cleanup(fs, input.path)
+            } yield list
+          case Local =>
+            for {
+              folders <- FilesUtils.listNonEmptyFoldersRecursively(input.path)
+              list <-
+                folders
+                  .traverse(folder => {
+                    publishFilesContentToTopic(input.dataType, folder, output, basePath, storage)
+                  })
+              _ = FilesUtils.cleanup(input.path)
+            } yield list
+        }
+      case None =>
+        Left(
+          DataHighwayFileError(
+            "MissingFileSystemStorage",
+            new RuntimeException("Missing 'storage' field"),
+            Array[StackTraceElement]()
+          )
+        )
+    }
+  }
 
   /**
     * Publishes files' content to Kafka topic
     *
-    * @param input The input File entity that contains data to be send
+    * @param input The input folder that contains data to be send
     * @param output The output Kafka entity
+    * @param basePath The base path of input path
     * @param storage The input file system storage : Local or HDFS
     * @return Any, otherwise a Throwable
     */
   def publishFilesContentToTopic(
-      input: models.File,
+      inputDataType: DataType,
+      input: String,
       output: Kafka,
+      basePath: String,
       storage: Option[Storage]
   ): Either[Throwable, Any] = {
     (storage, output.kafkaMode) match {
       case (Some(filesystem), Some(km)) =>
-        val props = new Properties()
-        props.put("bootstrap.servers", km.brokers)
-        props.put("key.serializer", classOf[StringSerializer].getName)
-        props.put("value.serializer", classOf[StringSerializer].getName)
-        val prod = new KafkaProducer[String, String](props)
         KafkaUtils
           .verifyTopicExistence(output.topic, km.brokers, enableTopicCreation = true)
         km match {
-          case PureKafkaProducer(_) =>
+          case PureKafkaProducer(brokers) =>
             Either.catchNonFatal {
-              scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
-                publishPathContent(input.path, output.topic, filesystem, prod, fs)
-                filesystem match {
-                  case Local =>
-                    FilesUtils.cleanup(input.path)
-                  case HDFS =>
-                    HdfsUtils.cleanup(fs, input.path)
-                }
-              }
+              publishPathContent(
+                inputDataType,
+                input,
+                output.topic,
+                basePath,
+                filesystem,
+                brokers,
+                fs
+              )
             }
           case SparkKafkaPluginProducer(brokers) =>
-            Either.catchNonFatal(scheduler.scheduleWithFixedDelay(0.seconds, 3.seconds) {
-              publishWithSparkKafkaPlugin(input.path, filesystem, brokers, output.topic, fs)
-              filesystem match {
-                case Local =>
-                  Files.createDirectories(new File(input.path).toPath)
-                case HDFS =>
-                  HdfsUtils.cleanup(fs, input.path)
-              }
-            })
+            publishWithSparkKafkaPlugin(
+              inputDataType,
+              input,
+              filesystem,
+              brokers,
+              output.topic,
+              basePath,
+              fs
+            )
           case _ =>
             throw new RuntimeException(
               s"This mode is not supported while publishing files' content to Kafka topic. The supported modes are " +
@@ -168,61 +223,105 @@ object KafkaSink extends HdfsUtils {
     * @return Unit, otherwise an Error
     */
   private[engine] def publishWithSparkKafkaPlugin(
+      inputDataType: DataType,
       inputPath: String,
       storage: Storage,
       brokers: String,
       outputTopic: String,
+      basePath: String,
       fs: FileSystem
-  ): Either[Throwable, Unit] = {
-    import org.apache.spark.sql.functions.{to_json, struct}
+  ): Either[Throwable, List[String]] = {
     logger.info(s"Sending data through Spark Kafka Plugin to '$outputTopic'.")
-    storage match {
-      case HDFS =>
-        val basePath = new Path(inputPath).getParent
-        HdfsUtils
-          .listFolders(fs, inputPath)
-          .flatMap(paths => HdfsUtils.filterNonEmptyFolders(fs, paths))
-          .map(paths => {
-            paths.map(path => {
-              DataFrameUtils
-                .loadDataFrame(JSON, path)
-                .map(df => {
-                  df.select(to_json(struct("*")).as("value"))
-                    .write
-                    .format("kafka")
-                    .option("kafka.bootstrap.servers", brokers)
-                    .option("topic", outputTopic)
-                    .save()
-                })
-              HdfsUtils.movePathContent(fs, path, basePath.toString)
-            })
-          })
-
-      case Local =>
-        val basePath = new File(inputPath).getParent
-        FilesUtils
-          .listNonEmptyFoldersRecursively(inputPath)
-          .map(paths => {
-            paths
-              .filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)
-              .map(path => {
+    inputDataType match {
+      case XLSX =>
+        storage match {
+          case HDFS =>
+            HdfsUtils
+              .listFilesRecursively(fs, inputPath)
+              .traverse(file => {
                 DataFrameUtils
-                  .loadDataFrame(JSON, path)
+                  .loadDataFrame(inputDataType, file)
                   .map(df => {
-                    df.select(to_json(struct("*")).as("value"))
-                      .write
-                      .format("kafka")
-                      .option("kafka.bootstrap.servers", brokers)
-                      .option("topic", outputTopic)
-                      .save()
+                    publishToTopicWithConnector(brokers, outputTopic, df)
                   })
-                FilesUtils.movePathContent(
-                  new File(path).getAbsolutePath,
-                  s"$basePath/processed"
-                )
               })
-          })
+          case Local =>
+            FilesUtils
+              .listFilesRecursively(new File(inputPath), inputDataType.extension)
+              .toList
+              .traverse(file => {
+                DataFrameUtils
+                  .loadDataFrame(inputDataType, file.getAbsolutePath)
+                  .map(df => {
+                    publishToTopicWithConnector(brokers, outputTopic, df)
+                  })
+              })
+        }
+        storage match {
+          case HDFS =>
+            HdfsUtils.movePathContent(fs, inputPath, basePath)
+          case Local =>
+            FilesUtils.movePathContent(inputPath, s"$basePath/processed")
+        }
+      case _ =>
+        storage match {
+          case HDFS =>
+            HdfsUtils
+              .listFolders(fs, inputPath)
+              .flatMap(paths => HdfsUtils.filterNonEmptyFolders(fs, paths))
+              .map(paths => {
+                paths
+                  .flatTraverse(path => {
+                    DataFrameUtils
+                      .loadDataFrame(inputDataType, path)
+                      .map(df => {
+                        publishToTopicWithConnector(brokers, outputTopic, df)
+                      })
+                    HdfsUtils.movePathContent(fs, path, basePath)
+                  })
+              })
+              .flatten
+
+          case Local =>
+            FilesUtils
+              .listNonEmptyFoldersRecursively(inputPath)
+              .map(paths => {
+                paths
+                  .flatTraverse(path => {
+                    DataFrameUtils
+                      .loadDataFrame(inputDataType, path)
+                      .map(df => {
+                        publishToTopicWithConnector(brokers, outputTopic, df)
+                      })
+                    FilesUtils.movePathContent(
+                      new File(path).getAbsolutePath,
+                      s"$basePath/processed"
+                    )
+                  })
+              })
+              .flatten
+        }
     }
+  }
+
+  /**
+    * Publishes dataframe to topic using the Spark Kafka Connector
+    * @param brokers The Kafka brokers
+    * @param outputTopic THe output Kafka Topic
+    * @param df The Dataframe to be published
+    */
+  private def publishToTopicWithConnector(
+      brokers: String,
+      outputTopic: String,
+      df: DataFrame
+  ): Unit = {
+    import org.apache.spark.sql.functions.{to_json, struct}
+    df.select(to_json(struct("*")).as("value"))
+      .write
+      .format("kafka")
+      .option("kafka.bootstrap.servers", brokers)
+      .option("topic", outputTopic)
+      .save()
   }
 
   /**
@@ -310,37 +409,61 @@ object KafkaSink extends HdfsUtils {
   /**
     * Publishes json files located under a provided path to Kafka topic.
     *
-    * @param jsonPath The path that may be a file or a folder containing multiples sub-folders and files.
+    * @param inputPath The input folder
     * @param topic The output Kafka topic
     * @param storage The input file system storage : Local or HDFS
-    * @param producer The Kafka producer
+    * @param brokers The Kafka brokers
     * @param fs The provided File System
     * @return Any, otherwise an Error
     */
   private[engine] def publishPathContent(
-      jsonPath: String,
+      inputDataType: DataType,
+      inputPath: String,
       topic: String,
+      basePath: String,
       storage: Storage,
-      producer: KafkaProducer[String, String],
+      brokers: String,
       fs: FileSystem
   ): Either[KafkaError, Any] = {
     Either.catchNonFatal {
+      val props = new Properties()
+      props.put("bootstrap.servers", brokers)
+      props.put("key.serializer", classOf[StringSerializer].getName)
+      props.put("value.serializer", classOf[StringSerializer].getName)
+      val producer = new KafkaProducer[String, String](props)
+      inputDataType match {
+        case XLSX =>
+          val content = storage match {
+            case HDFS =>
+              HdfsUtils
+                .listFilesRecursively(fs, inputPath)
+                .flatTraverse(file => {
+                  DataFrameUtils
+                    .loadDataFrame(inputDataType, file)
+                    .flatMap(df => DataFrameUtils.convertDataFrameToJsonLines(df))
+                })
+            case Local =>
+              FilesUtils
+                .listFilesRecursively(new File(inputPath), inputDataType.extension)
+                .toList
+                .flatTraverse(file => {
+                  DataFrameUtils
+                    .loadDataFrame(inputDataType, file.getAbsolutePath)
+                    .flatMap(df => DataFrameUtils.convertDataFrameToJsonLines(df))
+                })
+          }
+          content.map(lines => publishFileContent(lines, topic, producer))
+        case _ =>
+          DataFrameUtils
+            .loadDataFrame(inputDataType, inputPath)
+            .traverse(df => DataFrameUtils.convertDataFrameToJsonLines(df))
+            .map(_.map(lines => publishFileContent(lines, topic, producer)))
+      }
       storage match {
         case HDFS =>
-          val basePath = new Path(jsonPath).getParent
-          HdfsUtils
-            .listFilesRecursively(fs, jsonPath)
-            .foreach(file => {
-              publishFileContent(file, basePath.toString, storage, topic, producer, fs)
-            })
-
+          HdfsUtils.movePathContent(fs, inputPath, basePath)
         case Local =>
-          val basePath = new File(jsonPath).getParent
-          FilesUtils
-            .listFilesRecursively(new File(jsonPath), JSON.extension)
-            .foreach(file => {
-              publishFileContent(file.getAbsolutePath, basePath, storage, topic, producer, fs)
-            })
+          FilesUtils.movePathContent(inputPath, s"$basePath/processed")
       }
     }.leftMap(thr => KafkaError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
@@ -348,53 +471,25 @@ object KafkaSink extends HdfsUtils {
   /**
     * Publishes the content of the json file via [[io.oss.data.highway.models.PureKafkaProducer]]
     *
-    * @param jsonPath a json file or a folder or folders that contain json files
-    * @param basePath The base path for input, output and processed folders
-    * @param storage The input file system storage : Local or HDFS
+    * @param content The json content as a list of json lines
     * @param topic The destination topic
     * @param producer The Kafka producer
-    * @param fs The provided File System
-    * @return List of String, otherwise a Throwable
+    * @return Unit, otherwise a Throwable
     */
   private[engine] def publishFileContent(
-      jsonPath: String,
-      basePath: String,
-      storage: Storage,
+      content: List[String],
       topic: String,
-      producer: KafkaProducer[String, String],
-      fs: FileSystem,
-      zone: String = "processed"
-  ): Either[KafkaError, List[String]] = {
-    logger.info(s"Sending data of '$jsonPath'")
+      producer: KafkaProducer[String, String]
+  ): Either[KafkaError, Unit] = {
     Either.catchNonFatal {
-      storage match {
-        case Local =>
-          FilesUtils
-            .getLines(jsonPath)
-            .foreach(line => {
-              val uuid = UUID.randomUUID().toString
-              val data =
-                new ProducerRecord[String, String](topic, uuid, line)
-              producer.send(data)
-              logger.info(s"Topic: '$topic' - Sent data: '$line'")
-            })
-          FilesUtils.movePathContent(
-            jsonPath,
-            s"$basePath/$zone/${new File(jsonPath).getParentFile.getName}"
-          )
-
-        case HDFS =>
-          HdfsUtils
-            .getLines(fs, jsonPath)
-            .foreach(line => {
-              val uuid = UUID.randomUUID().toString
-              val data =
-                new ProducerRecord[String, String](topic, uuid, line)
-              producer.send(data)
-              logger.info(s"Topic: '$topic' - Sent data: '$line'")
-            })
-          HdfsUtils.movePathContent(fs, jsonPath, basePath)
-      }
-    }.flatten.leftMap(thr => KafkaError(thr.getMessage, thr.getCause, thr.getStackTrace))
+      content
+        .foreach(line => {
+          val uuid = UUID.randomUUID().toString
+          val data =
+            new ProducerRecord[String, String](topic, uuid, line)
+          producer.send(data)
+          logger.info(s"Topic: '$topic' - Sent data: '$line'")
+        })
+    }.leftMap(thr => KafkaError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 }

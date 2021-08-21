@@ -52,19 +52,17 @@ class KafkaSinkSpec
           new StringSerializer()
         )
         KafkaSink.publishFileContent(
-          srcPath + "/file.json",
-          "/tmp/data-highway",
-          Local,
+          List(
+            "{\"some-key\":\"some value\"}",
+            "{\"some-key\":\"some value\"}",
+            "{\"some-key\":\"some value\"}"
+          ),
           "topic-1",
-          producer,
-          null
+          producer
         )
 
         val result = FilesUtils.listFiles(List(s"/tmp/data-highway/processed/dataset-$time"))
         consumeFirstStringMessageFrom("topic-1") shouldBe "{\"some-key\":\"some value\"}"
-        result.right.get.head shouldBe new File(
-          s"/tmp/data-highway/processed/dataset-$time/file.json"
-        )
       }
     }
     EmbeddedKafka.stop()
@@ -88,12 +86,9 @@ class KafkaSinkSpec
           new StringSerializer()
         )
         val result = KafkaSink.publishFileContent(
-          "",
-          "",
-          Local,
-          "",
-          producer,
-          null
+          List(""),
+          null,
+          producer
         )
 
         result.left.get shouldBe a[KafkaError]

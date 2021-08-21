@@ -39,7 +39,7 @@ object Dispatcher {
       case Route(input: Elasticsearch, output: File, storage: Option[Storage]) =>
         ElasticSampler.saveDocuments(input, output, Overwrite, storage)
       case Route(input: File, output: Kafka, storage: Option[Storage]) =>
-        KafkaSink.publishFilesContentToTopic(input, output, storage)
+        KafkaSink.handleKafkaChannel(input, output, storage)
       case Route(input: Kafka, output: Kafka, _) =>
         KafkaSink.mirrorTopic(input, output)
       case Route(input: Kafka, output: File, storage: Option[Storage]) =>
