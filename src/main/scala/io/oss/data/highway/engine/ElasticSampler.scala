@@ -419,7 +419,7 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
       saveMode: SaveMode,
       storage: Option[Storage]
   ): Either[Throwable, List[Unit]] = {
-    val tempoPathSuffix = "/tmp/data-highway/"
+    val tempoPathSuffix = "/tmp/data-highway-elasticsearch/"
     val temporaryPath   = tempoPathSuffix + UUID.randomUUID().toString + output.path
     val res = storage match {
       case Some(filesystem) =>
@@ -613,49 +613,4 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
       }
     }
   }
-
-//  private def saveSearchHit(
-//                             out: io.oss.data.highway.models.File,
-//                             saveMode: SaveMode,
-//                             storage: Storage
-//                           ): SearchHit => Either[Throwable, List[List[String]]] = { (searchHit: SearchHit) =>
-//  {
-//    storage match {
-//      case HDFS =>
-//        val tmp        = s"/tmp/"
-//        val outputPath = s"${out.path}/${searchHit.index}"
-//        val file =
-//          outputPath + s"/es-${searchHit.id}-${UUID.randomUUID()}-${System.currentTimeMillis()}.${JSON.extension}"
-//        HdfsUtils.save(
-//          fs,
-//          tmp + file,
-//          searchHit.sourceAsMap.mapValues(_.toString).asJson.noSpaces
-//        )
-//        BasicSink.handleChannel(
-//          File(JSON, tmp + outputPath),
-//          File(out.dataType, outputPath),
-//          Some(storage),
-//          saveMode
-//        )
-//      //          BasicSink.convert(JSON, tmp + outputPath, out.dataType, outputPath, saveMode)
-//      case Local =>
-//        val tmp = s"/tmp/"
-//        val file =
-//          s"es-${searchHit.id}-${UUID.randomUUID()}-${System.currentTimeMillis()}.${JSON.extension}"
-//        val outputPath = s"${out.path}/${searchHit.index}"
-//        FilesUtils.createFile(
-//          tmp + outputPath,
-//          file,
-//          searchHit.sourceAsMap.mapValues(_.toString).asJson.noSpaces
-//        )
-//        BasicSink.handleChannel(
-//          File(JSON, tmp + outputPath),
-//          File(out.dataType, outputPath),
-//          Some(storage),
-//          saveMode
-//        )
-//      //          BasicSink.convert(JSON, tmp + outputPath, out.dataType, outputPath, saveMode)
-//    }
-//  }
-//  }
 }

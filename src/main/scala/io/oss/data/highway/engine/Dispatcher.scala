@@ -43,14 +43,7 @@ object Dispatcher {
       case Route(input: Kafka, output: Kafka, _) =>
         KafkaSink.mirrorTopic(input, output)
       case Route(input: Kafka, output: File, storage: Option[Storage]) =>
-        output.dataType match {
-          case JSON =>
-            KafkaSampler.consumeFromTopic(input, output, storage)
-          case _ =>
-            // todo Implement all data types support
-            Left(new RuntimeException("Only JSON data type is supported."))
-        }
-
+        KafkaSampler.consumeFromTopic(input, output, Append, storage)
       case _ =>
         throw new RuntimeException(s"""
           | The provided route '$route' is not supported yet. This route will be implemented in the upcoming versions.
