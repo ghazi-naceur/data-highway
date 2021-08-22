@@ -180,23 +180,24 @@ object KafkaSampler extends HdfsUtils {
       .as[(String, String)]
       .select(to_json(struct("value")))
       .toJavaRDD
-      .foreach(data =>
+      .foreach(data => {
+        val line = data.toString.substring(11, data.toString().length - 3).replace("\\", "")
         storage match {
           case Local =>
             FilesUtils.createFile(
               temporaryPath,
               s"spark-kafka-plugin-${UUID.randomUUID()}-${System.currentTimeMillis()}.${JSON.extension}",
-              data.toString()
+              line
             )
           case HDFS =>
             HdfsUtils.save(
               fs,
               s"$temporaryPath/spark-kafka-plugin-${UUID.randomUUID()}-${System
                 .currentTimeMillis()}.${JSON.extension}",
-              data.toString()
+              line
             )
         }
-      )
+      })
     convertUsingBasicSink(temporaryPath, tempoPathSuffix, output, storage, saveMode)
   }
 
