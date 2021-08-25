@@ -11,6 +11,10 @@ import io.oss.data.highway.models.{
   Kafka,
   KafkaConsumer,
   Local,
+  PureKafkaConsumer,
+  PureKafkaStreamsConsumer,
+  SparkKafkaPluginConsumer,
+  SparkKafkaPluginStreamsConsumer,
   Storage
 }
 import io.oss.data.highway.utils.DataFrameUtils.sparkSession
@@ -19,7 +23,6 @@ import org.apache.log4j.Logger
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
 
-import java.io
 import java.util.UUID
 
 object AdvancedSink extends HdfsUtils {
@@ -90,50 +93,50 @@ object AdvancedSink extends HdfsUtils {
       saveMode: SaveMode
   ): java.io.Serializable = {
     val consumer = kafka.kafkaMode.asInstanceOf[Option[KafkaConsumer]]
+    val tempoPathSuffix =
+      s"/tmp/data-highway/advanced-sink/${System.currentTimeMillis().toString}/"
+    val tempoPath     = tempoPathSuffix + UUID.randomUUID().toString
+    val tempoBasePath = new java.io.File(tempoPath).getParent
+
+    (kafka.kafkaMode, consumer) match {
+      case (Some(km), cons) =>
+        km.asInstanceOf[KafkaConsumer] match {
+          case PureKafkaConsumer(brokers, consumerGroup, offset)      => new RuntimeException("")
+          case PureKafkaStreamsConsumer(brokers, streamAppId, offset) => new RuntimeException("")
+          case SparkKafkaPluginConsumer(brokers, offset) =>
+            KafkaSampler.sinkWithSparkKafkaConnector(
+              sparkSession,
+              kafka,
+              tempoPath,
+              storage,
+              brokers,
+              offset
+            )
+          case SparkKafkaPluginStreamsConsumer(brokers, offset) => new RuntimeException("")
+        }
+      case _ => new RuntimeException("")
+    }
+
     consumer match {
       case Some(value) =>
         output match {
           case cassandra @ Cassandra(_, _) =>
-            val tempoPathSuffix =
-              s"/tmp/data-highway/advanced-sink/cassandra/${System.currentTimeMillis().toString}/"
-            val temporaryPath = tempoPathSuffix + UUID.randomUUID().toString
-            val basePath      = new io.File(temporaryPath).getParent
-            KafkaSampler.sinkWithSparkKafkaConnector(
-              sparkSession,
-              kafka,
-              temporaryPath,
-              storage,
-              value.brokers,
-              value.offset
-            )
             CassandraSink.insertRows(
-              File(JSON, temporaryPath),
+              File(JSON, tempoPath),
               cassandra,
-              basePath,
+              tempoBasePath,
               saveMode
             )
-            FilesUtils.delete(basePath)
+            FilesUtils.delete(tempoBasePath)
           case elasticsearch @ Elasticsearch(_, _, _) =>
-            val tempoPathSuffix =
-              s"/tmp/data-highway/advanced-sink/elasticsearch/${System.currentTimeMillis().toString}/"
-            val temporaryPath = tempoPathSuffix + UUID.randomUUID().toString
-            val basePath      = new io.File(temporaryPath).getParent
-            KafkaSampler.sinkWithSparkKafkaConnector(
-              sparkSession,
-              kafka,
-              temporaryPath,
-              storage,
-              value.brokers,
-              value.offset
-            )
             ElasticSink
               .insertDocuments(
-                File(JSON, temporaryPath),
+                File(JSON, tempoPath),
                 elasticsearch,
-                new io.File(temporaryPath).getParent,
+                new java.io.File(tempoBasePath).getParent,
                 storage
               )
-            FilesUtils.delete(basePath)
+            FilesUtils.delete(tempoBasePath)
         }
       case None =>
         new RuntimeException("Already taken care of")
