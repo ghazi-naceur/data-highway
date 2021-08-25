@@ -205,7 +205,7 @@ object FilesUtils {
   }
 
   /**
-    * Deletes path
+    * Deletes a path
     *
     * @param path The path to be deleted
     * @return Unit, otherwise an Throwable
@@ -213,6 +213,18 @@ object FilesUtils {
   def delete(path: String): Either[Throwable, Unit] = {
     Either.catchNonFatal {
       FileUtils.forceDelete(new File(path))
+    }
+  }
+
+  /**
+    * Creates a path
+    *
+    * @param path The path to be created
+    * @return Unit, otherwise an Throwable
+    */
+  def mkdir(path: String): Either[Throwable, Unit] = {
+    Either.catchNonFatal {
+      new File(path).mkdirs()
     }
   }
 }

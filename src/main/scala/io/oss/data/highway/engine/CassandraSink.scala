@@ -7,6 +7,7 @@ import org.apache.spark.sql.SaveMode
 import cats.implicits._
 import io.oss.data.highway.models
 import io.oss.data.highway.models.DataHighwayError.DataHighwayFileError
+import io.oss.data.highway.utils.Constants.EMPTY
 import org.apache.hadoop.fs.FileSystem
 
 import java.io.File
@@ -33,7 +34,8 @@ object CassandraSink extends HdfsUtils {
     DataFrameUtils
       .loadDataFrame(inputDataType, inputPath)
       .map(df => {
-        DataFrameUtils.saveDataFrame(df, CassandraDB(output.keyspace, output.table), "", saveMode)
+        DataFrameUtils
+          .saveDataFrame(df, CassandraDB(output.keyspace, output.table), EMPTY, saveMode)
         inputPath
       })
   }
@@ -156,6 +158,18 @@ object CassandraSink extends HdfsUtils {
       saveMode: SaveMode
   ): Either[Throwable, List[List[String]]] = {
     for {
+      res <- insertRows(input, output, basePath, saveMode)
+      _ = FilesUtils.cleanup(input.path)
+    } yield res
+  }
+
+  def insertRows(
+      input: models.File,
+      output: Cassandra,
+      basePath: String,
+      saveMode: SaveMode
+  ): Either[Throwable, List[List[String]]] = {
+    for {
       folders <- FilesUtils.listNonEmptyFoldersRecursively(input.path)
       _ = logger.info("Folders to be processed : " + folders)
       filtered <- FilesUtils.filterNonEmptyFolders(folders)
@@ -195,7 +209,6 @@ object CassandraSink extends HdfsUtils {
               })
             })
       }
-      _ = FilesUtils.cleanup(input.path)
     } yield res
   }
 }

@@ -419,8 +419,9 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
       saveMode: SaveMode,
       storage: Option[Storage]
   ): Either[Throwable, List[Unit]] = {
-    val tempoPathSuffix = "/tmp/data-highway-elasticsearch/"
-    val temporaryPath   = tempoPathSuffix + UUID.randomUUID().toString + output.path
+    val tempoPathSuffix =
+      s"/tmp/data-highway/elasticsearch-sampler/${System.currentTimeMillis().toString}/"
+    val temporaryPath = tempoPathSuffix + UUID.randomUUID().toString + output.path
     val res = storage match {
       case Some(filesystem) =>
         input.searchQuery match {

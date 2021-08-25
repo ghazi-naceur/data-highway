@@ -4,36 +4,42 @@ sealed trait KafkaMode {
   val brokers: String
 }
 
-case class SparkKafkaPluginConsumer(brokers: String, offset: Offset) extends KafkaMode
+sealed trait KafkaConsumer extends KafkaMode {
+  val brokers: String
+  val offset: Offset
+}
 
-case class SparkKafkaPluginStreamsConsumer(
-    brokers: String,
-    offset: Offset
-) extends KafkaMode
+sealed trait KafkaProducer extends KafkaMode {
+  val brokers: String
+}
 
-case class SparkKafkaPluginProducer(brokers: String) extends KafkaMode
+case class SparkKafkaPluginConsumer(brokers: String, offset: Offset) extends KafkaConsumer
 
-case class PureKafkaConsumer(
-    brokers: String,
-    consumerGroup: String,
-    offset: Offset
-) extends KafkaMode
+case class SparkKafkaPluginStreamsConsumer(brokers: String, offset: Offset) extends KafkaConsumer
 
 case class PureKafkaStreamsConsumer(
     brokers: String,
     streamAppId: String,
     offset: Offset
-) extends KafkaMode
+) extends KafkaConsumer
 
-case class PureKafkaProducer(brokers: String) extends KafkaMode
+case class PureKafkaConsumer(
+    brokers: String,
+    consumerGroup: String,
+    offset: Offset
+) extends KafkaConsumer
+
+case class SparkKafkaPluginProducer(brokers: String) extends KafkaProducer
+
+case class PureKafkaProducer(brokers: String) extends KafkaProducer
 
 case class SparkKafkaPluginStreamsProducer(
     brokers: String,
     offset: Offset
-) extends KafkaMode
+) extends KafkaProducer
 
 case class PureKafkaStreamsProducer(
     brokers: String,
     streamAppId: String,
     offset: Offset
-) extends KafkaMode
+) extends KafkaProducer

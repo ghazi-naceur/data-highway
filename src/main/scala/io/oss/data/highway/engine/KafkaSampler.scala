@@ -4,10 +4,10 @@ import java.time.Duration
 import java.util.UUID
 import io.oss.data.highway.models.{
   Earliest,
-  File,
   HDFS,
   JSON,
   Kafka,
+  KafkaConsumer,
   Local,
   Offset,
   PureKafkaConsumer,
@@ -17,16 +17,15 @@ import io.oss.data.highway.models.{
   Storage
 }
 import io.oss.data.highway.utils.{FilesUtils, HdfsUtils, KafkaTopicConsumer, KafkaUtils}
-import org.apache.spark.sql.functions.to_json
 import org.apache.kafka.streams.KafkaStreams
 import org.apache.log4j.Logger
 import org.apache.spark.sql.{SaveMode, SparkSession}
-import org.apache.spark.sql.functions.struct
 import monix.execution.Scheduler.{global => scheduler}
 import cats.implicits._
 import io.oss.data.highway.models.DataHighwayError.{DataHighwayFileError, KafkaError}
 import io.oss.data.highway.utils.DataFrameUtils.sparkSession
 import org.apache.hadoop.fs.FileSystem
+import org.apache.spark.sql.functions.{struct, to_json}
 
 import scala.concurrent.duration.DurationInt
 import scala.jdk.CollectionConverters._
@@ -52,9 +51,11 @@ object KafkaSampler extends HdfsUtils {
       saveMode: SaveMode,
       storage: Option[Storage]
   ): Either[Throwable, Unit] = {
-    val tempoPathSuffix = "/tmp/data-highway-kafka/"
-    val temporaryPath   = tempoPathSuffix + UUID.randomUUID().toString
-    (storage, input.kafkaMode) match {
+    val tempoPathSuffix =
+      s"/tmp/data-highway/kafka-sampler/kafka-plugin/${System.currentTimeMillis().toString}/"
+    val temporaryPath = tempoPathSuffix + UUID.randomUUID().toString
+    val consumer      = input.kafkaMode.asInstanceOf[Option[KafkaConsumer]]
+    (storage, consumer) match {
       case (Some(filesystem), Some(km)) =>
         KafkaUtils.verifyTopicExistence(input.topic, km.brokers, enableTopicCreation = false)
         km match {
@@ -89,14 +90,11 @@ object KafkaSampler extends HdfsUtils {
           case SparkKafkaPluginConsumer(brokers, offset) =>
             // one-shot job
             Either.catchNonFatal {
-              sinkViaSparkKafkaPlugin(
+              sinkWithSparkKafkaConnector(
                 sparkSession,
-                input.topic,
-                temporaryPath,
-                tempoPathSuffix,
-                output,
+                input,
+                output.path,
                 filesystem,
-                saveMode,
                 brokers,
                 offset
               )
@@ -134,30 +132,14 @@ object KafkaSampler extends HdfsUtils {
     }
   }
 
-  /**
-    * Sinks topic content into files using a [[io.oss.data.highway.models.SparkKafkaPluginConsumer]]
-    *
-    * @param session The Spark session
-    * @param inputTopic The input kafka topic
-    * @param temporaryPath The temporary output folder
-    * @param tempoPathSuffix The suffix of the temporary output folder
-    * @param output The output File entity
-    * @param storage The output file system storage
-    * @param saveMode The output save mode
-    * @param brokerUrls The kafka brokers urls
-    * @param offset The kafka consumer offset
-    */
-  private[engine] def sinkViaSparkKafkaPlugin(
+  def sinkWithSparkKafkaConnector(
       session: SparkSession,
-      inputTopic: String,
-      temporaryPath: String,
-      tempoPathSuffix: String,
-      output: io.oss.data.highway.models.File,
+      kafka: Kafka,
+      outputPath: String,
       storage: Storage,
-      saveMode: SaveMode,
       brokerUrls: String,
       offset: Offset
-  ): Unit = {
+  ): Either[Throwable, List[Unit]] = {
     import session.implicits._
     var mutableOffset = offset
     if (mutableOffset != Earliest) {
@@ -167,38 +149,42 @@ object KafkaSampler extends HdfsUtils {
       mutableOffset = Earliest
     }
     logger.info(
-      s"Starting to sink '${JSON.extension}' data provided by the input topic '$inputTopic' in the output folder pattern" +
-        s" '$temporaryPath/spark-kafka-plugin-*****${JSON.extension}'"
+      s"Starting to sink '${JSON.extension}' data provided by the input topic '${kafka.topic}' in the output folder pattern" +
+        s" '$outputPath/spark-kafka-plugin-*****${JSON.extension}'"
     )
-    session.read
+    val frame = session.read
       .format("kafka")
       .option("kafka.bootstrap.servers", brokerUrls)
       .option("startingOffsets", mutableOffset.value)
-      .option("subscribe", inputTopic)
+      .option("subscribe", kafka.topic)
       .load()
       .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
       .as[(String, String)]
       .select(to_json(struct("value")))
       .toJavaRDD
-      .foreach(data => {
+
+    frame
+      .collect()
+      .asScala
+      .toList
+      .traverse(data => {
         val line = data.toString.substring(11, data.toString().length - 3).replace("\\", "")
         storage match {
           case Local =>
             FilesUtils.createFile(
-              temporaryPath,
+              outputPath,
               s"spark-kafka-plugin-${UUID.randomUUID()}-${System.currentTimeMillis()}.${JSON.extension}",
               line
             )
           case HDFS =>
             HdfsUtils.save(
               fs,
-              s"$temporaryPath/spark-kafka-plugin-${UUID.randomUUID()}-${System
+              s"$outputPath/spark-kafka-plugin-${UUID.randomUUID()}-${System
                 .currentTimeMillis()}.${JSON.extension}",
               line
             )
         }
       })
-    convertUsingBasicSink(temporaryPath, tempoPathSuffix, output, storage, saveMode)
   }
 
   /**
@@ -297,33 +283,12 @@ object KafkaSampler extends HdfsUtils {
           s"Successfully sinking '${JSON.extension}' data provided by the input topic '$inputTopic' in the output folder pattern " +
             s"'$temporaryPath/kafka-streams-*****${JSON.extension}'"
         )
-        convertUsingBasicSink(temporaryPath, tempoPathSuffix, output, storage, saveMode)
+        AdvancedSink
+          .convertUsingBasicSink(temporaryPath, tempoPathSuffix, output, storage, saveMode)
       })
       val streams = new KafkaStreams(kafkaStreamEntity.builder.build(), kafkaStreamEntity.props)
       streams.start()
     }
-  }
-
-  /**
-    * Converts the temporary json data to the output dataset
-    *
-    * @param temporaryPath The temporary json path
-    * @param tempoPathSuffix The suffix of the temporary json path
-    * @param output The output File entity
-    * @param storage The output file system storage
-    * @param saveMode The output save mode
-    * @return Serializable
-    */
-  private def convertUsingBasicSink(
-      temporaryPath: String,
-      tempoPathSuffix: String,
-      output: File,
-      storage: Storage,
-      saveMode: SaveMode
-  ): java.io.Serializable = {
-    val tempInputPath = new java.io.File(temporaryPath).getParent
-    BasicSink.handleChannel(File(JSON, tempInputPath), output, Some(storage), saveMode)
-    cleanupTmp(tempoPathSuffix, Some(storage))
   }
 
   /**
@@ -377,35 +342,9 @@ object KafkaSampler extends HdfsUtils {
               s"'$temporaryPath/simple-consumer-*****${JSON.extension}'"
           )
         }
-        convertUsingBasicSink(temporaryPath, tempoPathSuffix, output, storage, saveMode)
+        AdvancedSink
+          .convertUsingBasicSink(temporaryPath, tempoPathSuffix, output, storage, saveMode)
         consumed.close()
       })
-  }
-
-  /**
-    * Cleanups the temporary folder
-    *
-    * @param output The tmp suffix path
-    * @param storage The tmp file system storage
-    * @return Serializable
-    */
-  private def cleanupTmp(output: String, storage: Option[Storage]): java.io.Serializable = {
-    storage match {
-      case Some(filesystem) =>
-        filesystem match {
-          case Local =>
-            FilesUtils.delete(output)
-          case HDFS =>
-            HdfsUtils.delete(fs, output)
-        }
-      case None =>
-        Left(
-          DataHighwayFileError(
-            "MissingFileSystemStorage",
-            new RuntimeException("Missing 'storage' field"),
-            Array[StackTraceElement]()
-          )
-        )
-    }
   }
 }

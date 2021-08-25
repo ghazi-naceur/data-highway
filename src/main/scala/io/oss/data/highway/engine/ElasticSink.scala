@@ -235,13 +235,7 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
             } yield list
           case Local =>
             for {
-              folders <- FilesUtils.listNonEmptyFoldersRecursively(input.path)
-              list <-
-                folders
-                  .filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)
-                  .traverse(folder => {
-                    sendToElasticsearch(input.dataType, folder, output, basePath, value)
-                  })
+              list <- insertDocuments(input, output, basePath, value)
               _ = FilesUtils.cleanup(input.path)
             } yield list
         }
@@ -254,5 +248,22 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
           )
         )
     }
+  }
+
+  def insertDocuments(
+      input: models.File,
+      output: Elasticsearch,
+      basePath: String,
+      value: Storage
+  ): Either[Throwable, List[Unit]] = {
+    for {
+      folders <- FilesUtils.listNonEmptyFoldersRecursively(input.path)
+      res <-
+        folders
+          .filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)
+          .traverse(folder => {
+            sendToElasticsearch(input.dataType, folder, output, basePath, value)
+          })
+    } yield res
   }
 }
