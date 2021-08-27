@@ -42,10 +42,8 @@ object Dispatcher {
         KafkaSink.handleKafkaChannel(input, output, storage)
       case Route(input: Kafka, output: Kafka, _) =>
         KafkaSink.mirrorTopic(input, output)
-      case Route(input: Kafka, output: File, storage: Option[Storage]) =>
+      case Route(input: Kafka, output: Output, storage: Option[Storage]) =>
         KafkaSampler.consumeFromTopic(input, output, Append, storage)
-      case Route(input: Kafka, output: AdvancedOutput, storage: Option[Storage]) =>
-        AdvancedSink.handleRoute(input, output, Append, storage)
       case _ =>
         throw new RuntimeException(s"""
           | The provided route '$route' is not supported yet. This route will be implemented in the upcoming versions.
