@@ -508,7 +508,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/kafka/input\"\n    },\n    \"output\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\": {\n            \"type\": \"pure-kafka-producer\",\n            \"brokers\" : \"localhost:9092\"\n        }\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/avro/input\"\n    },\n    \"output\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\": {\n            \"type\": \"pure-kafka-producer\",\n            \"brokers\" : \"localhost:9092\"\n        }\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -640,7 +640,7 @@
 			]
 		},
 		{
-			"name": "kafka_to_file",
+			"name": "kafka_to_output",
 			"item": [
 				{
 					"name": "pure_consumer_without_streaming",
@@ -658,7 +658,67 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"pure-kafka-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"consumer-group\" : \"consumer-group_name-1\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/kafka/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}\n"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"pure-kafka-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"consumer-group\" : \"consumer-group-11\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/csv/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}\n"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "kafka-to-cassandra_pure-consumer_without-stream",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"pure-kafka-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"consumer-group\" : \"consumer-group-0\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}\n"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "kafka-to-elasticsearch_pure-consumer_without-stream Copy",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"pure-kafka-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"consumer-group\" : \"consumer-group-1\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-7\",\n        \"bulk-enabled\": false\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}\n"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -693,7 +753,67 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"pure-kafka-streams-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"stream-app-id\" : \"app-id-1\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/kafka/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}\n"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"pure-kafka-streams-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"stream-app-id\" : \"app-id-4\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"xlsx\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/xlsx/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}\n"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "kafka-to-cassandra_pure-consumer_with-stream",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"pure-kafka-streams-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"stream-app-id\" : \"app-id-1\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}\n"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "kafka-to-elasticsearch_pure-consumer_with-stream",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"pure-kafka-streams-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"stream-app-id\" : \"app-id-3\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-7\",\n        \"bulk-enabled\": true\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}\n"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -728,7 +848,67 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"spark-kafka-plugin-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/kafka/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}\n"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_2\",\n        \"kafka-mode\" : {\n            \"type\" : \"spark-kafka-plugin-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/csv/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}\n"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "kafka-to-cassandra_spark_kafka_plugin-consumer_without-stream",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"spark-kafka-plugin-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}\n"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "kafka-to-elasticsearch_spark_kafka_plugin-consumer_without-stream",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"spark-kafka-plugin-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-7\",\n        \"bulk-enabled\": false\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}\n"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -763,7 +943,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"spark-kafka-plugin-streams-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/kafka/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}\n"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_2\",\n        \"kafka-mode\" : {\n            \"type\" : \"spark-kafka-plugin-streams-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"xlsx\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/xlsx/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}\n"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -922,7 +1102,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/input\"\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"xlsx\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/xlsx/input\"\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-6\",\n        \"bulk-enabled\": false\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 						},
 						"url": {
 							"raw": "http://localhost:5555/conversion/route",
@@ -1095,7 +1275,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"ids-query\",\n            \"ids\": [\"5NidkHoBNqj_cXAK7mv5\", \"59idkHoBNqj_cXAK7mv6\", \"-tijkHoBNqj_cXAKkWtj\"]\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"ids-query\",\n            \"ids\": [\"5NidkHoBNqj_cXAK7mv5\", \"59idkHoBNqj_cXAK7mv6\", \"-tijkHoBNqj_cXAKkWtj\"]\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1613,6 +1793,66 @@
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/avro/input\"\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:5555/conversion/route",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5555",
+							"path": [
+								"conversion",
+								"route"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "kafka-to-cassandra",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"spark-kafka-plugin-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:5555/conversion/route",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5555",
+							"path": [
+								"conversion",
+								"route"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "kafka-to-elasticsearch",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"spark-kafka-plugin-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-7\",\n        \"bulk-enabled\": false\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 						},
 						"url": {
 							"raw": "http://localhost:5555/conversion/route",
