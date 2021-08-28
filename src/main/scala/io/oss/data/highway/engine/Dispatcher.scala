@@ -32,8 +32,8 @@ object Dispatcher {
         BasicSink.handleChannel(input, output, storage, Overwrite)
       case Route(input: File, output: Cassandra, storage: Option[Storage]) =>
         CassandraSink.handleCassandraChannel(input, output, storage, Append)
-      case Route(input: Cassandra, output: File, _) =>
-        CassandraSampler.extractRows(input, output.dataType, output.path, Append)
+      case Route(input: Cassandra, output: Output, _) =>
+        CassandraSampler.extractRows(input, output, Append)
       case Route(input: File, output: Elasticsearch, storage: Option[Storage]) =>
         ElasticSink.handleElasticsearchChannel(input, output, storage)
       case Route(input: Elasticsearch, output: File, storage: Option[Storage]) =>

@@ -159,9 +159,12 @@ object FilesUtils {
     * @return Array of Unit
     */
   def cleanup(in: String): Array[Unit] = {
-    new File(in)
-      .listFiles()
-      .map(FileUtils.forceDelete)
+    if (new File(in).exists())
+      new File(in)
+        .listFiles()
+        .map(FileUtils.forceDelete)
+    else
+      Array()
   }
 
   /**

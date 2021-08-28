@@ -1963,6 +1963,126 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "cassandra-to-cassandra_local",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons_2\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:5555/conversion/route",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5555",
+							"path": [
+								"conversion",
+								"route"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "cassandra-to-elasticsearch_local",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-7\",\n        \"bulk-enabled\": true\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:5555/conversion/route",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5555",
+							"path": [
+								"conversion",
+								"route"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "cassandra-to-kafka_pure_local",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"output\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\": {\n            \"type\": \"pure-kafka-producer\",\n            \"brokers\" : \"localhost:9092\"\n        }\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:5555/conversion/route",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5555",
+							"path": [
+								"conversion",
+								"route"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "cassandra-to-kafka_plugin_local",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"output\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\": {\n            \"type\": \"spark-kafka-plugin-producer\",\n            \"brokers\" : \"localhost:9092\"\n        }\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:5555/conversion/route",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5555",
+							"path": [
+								"conversion",
+								"route"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		}
