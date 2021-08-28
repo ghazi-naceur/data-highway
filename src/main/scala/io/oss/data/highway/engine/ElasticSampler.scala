@@ -15,6 +15,7 @@ import io.oss.data.highway.models.DataHighwayError.DataHighwayFileError
 import io.oss.data.highway.models.{
   BoolFilter,
   BoolMatchPhraseQuery,
+  Cassandra,
   CommonTermsQuery,
   Elasticsearch,
   ExistsQuery,
@@ -26,6 +27,7 @@ import io.oss.data.highway.models.{
   HDFS,
   IdsQuery,
   JSON,
+  Kafka,
   LikeFields,
   Local,
   MatchAllQuery,
@@ -34,6 +36,7 @@ import io.oss.data.highway.models.{
   MultiMatchQuery,
   Must,
   MustNot,
+  Output,
   Prefix,
   PrefixQuery,
   QueryStringQuery,
@@ -415,13 +418,13 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     */
   def saveDocuments(
       input: Elasticsearch,
-      output: File,
+      output: Output,
       saveMode: SaveMode,
       storage: Option[Storage]
   ): Either[Throwable, List[Unit]] = {
     val tempoPathSuffix =
       s"/tmp/data-highway/elasticsearch-sampler/${System.currentTimeMillis().toString}/"
-    val temporaryPath = tempoPathSuffix + UUID.randomUUID().toString + output.path
+    val temporaryPath = tempoPathSuffix + UUID.randomUUID().toString
     val res = storage match {
       case Some(filesystem) =>
         input.searchQuery match {
@@ -512,8 +515,23 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
           )
         )
     }
-    val tempInputPath = new java.io.File(temporaryPath).getParent
-    BasicSink.handleChannel(File(JSON, tempInputPath), output, storage, saveMode)
+    output match {
+      case file @ File(_, _) =>
+        BasicSink.handleChannel(File(JSON, temporaryPath), file, storage, saveMode)
+      case cassandra @ Cassandra(_, _) =>
+        CassandraSink
+          .handleCassandraChannel(
+            File(JSON, temporaryPath),
+            cassandra,
+            Some(Local),
+            SaveMode.Append
+          )
+      case elasticsearch @ Elasticsearch(_, _, _) =>
+        ElasticSink
+          .handleElasticsearchChannel(File(JSON, temporaryPath), elasticsearch, Some(Local))
+      case kafka @ Kafka(_, _) =>
+        KafkaSink.handleKafkaChannel(File(JSON, temporaryPath), kafka, Some(Local))
+    }
     cleanupTmp(tempoPathSuffix, storage)
     res
   }

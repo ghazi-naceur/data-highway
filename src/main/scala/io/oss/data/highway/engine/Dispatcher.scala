@@ -36,7 +36,7 @@ object Dispatcher {
         CassandraSampler.extractRows(input, output, Append)
       case Route(input: File, output: Elasticsearch, storage: Option[Storage]) =>
         ElasticSink.handleElasticsearchChannel(input, output, storage)
-      case Route(input: Elasticsearch, output: File, storage: Option[Storage]) =>
+      case Route(input: Elasticsearch, output: Output, storage: Option[Storage]) =>
         ElasticSampler.saveDocuments(input, output, Overwrite, storage)
       case Route(input: File, output: Kafka, storage: Option[Storage]) =>
         KafkaSink.handleKafkaChannel(input, output, storage)
