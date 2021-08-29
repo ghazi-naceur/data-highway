@@ -3,10 +3,11 @@ package io.oss.data.highway.utils
 import com.sksamuel.elastic4s.http.JavaClient
 import com.sksamuel.elastic4s.{ElasticClient, ElasticProperties}
 import io.oss.data.highway.configs.{ConfigLoader, ElasticConfigs}
+import pureconfig.generic.auto._
 
 trait ElasticUtils {
 
-  val esConf: ElasticConfigs = ConfigLoader().loadElasticConf()
+  val esConf: ElasticConfigs = ConfigLoader().loadConfigs[ElasticConfigs]("elasticsearch")
   val esClient: ElasticClient = {
     val props = ElasticProperties(esConf.esNodes)
     ElasticClient(JavaClient(props))

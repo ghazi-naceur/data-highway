@@ -4,6 +4,7 @@ import io.oss.data.highway.configs.ConfigLoader
 import io.oss.data.highway.models._
 import org.apache.log4j.{BasicConfigurator, Logger}
 import org.apache.spark.sql.SaveMode.{Append, Overwrite}
+import pureconfig.generic.auto._
 
 object Dispatcher {
 
@@ -11,12 +12,8 @@ object Dispatcher {
 
   def main(args: Array[String]): Unit = {
     BasicConfigurator.configure()
-    val result = for {
-      route <- ConfigLoader().loadConf()
-      _ = logger.info("Successfully loading configurations")
-      _ <- apply(route)
-    } yield ()
-    result match {
+    val route = ConfigLoader().loadConfigs[Route]("route")
+    apply(route).map {
       case Left(thr) =>
         logger.error(s"Error : ${thr.toString}")
       case Right(_) => logger.info("Started successfully")

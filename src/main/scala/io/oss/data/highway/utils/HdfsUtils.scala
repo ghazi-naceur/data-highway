@@ -10,9 +10,10 @@ import io.oss.data.highway.configs.{ConfigLoader, HadoopConfigs}
 import io.oss.data.highway.models.DataHighwayError.HdfsError
 
 import java.nio.charset.StandardCharsets
+import pureconfig.generic.auto._
 
 trait HdfsUtils {
-  val hadoopConf: HadoopConfigs = ConfigLoader().loadHadoopConf()
+  val hadoopConf: HadoopConfigs = ConfigLoader().loadConfigs[HadoopConfigs]("hadoop")
   val conf: Configuration       = new Configuration()
   conf.set("fs.defaultFS", HdfsUtils.hadoopConf.host)
   val fs: FileSystem = FileSystem.get(conf)
@@ -212,6 +213,7 @@ object HdfsUtils extends HdfsUtils {
     * @param jsonPath The provided json file path
     * @return List of String
     */
+  // todo to be deleted
   def getLines(fs: FileSystem, jsonPath: String): List[String] = {
     val path   = new Path(jsonPath)
     val stream = fs.open(path)
