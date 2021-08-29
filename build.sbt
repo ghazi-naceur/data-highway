@@ -1,6 +1,6 @@
 name := "data-highway"
 
-version := "0.3"
+version := "0.4-beta"
 
 scalaVersion := "2.12.12"
 
@@ -15,6 +15,8 @@ lazy val root = (project in file("."))
   )
 
 assemblyJarName in assembly := s"${name.value}-${version.value}.jar"
+
+test in assembly := {}
 
 assemblyMergeStrategy in assembly := {
   case PathList("META-INF", "services", xs @ _*) =>
