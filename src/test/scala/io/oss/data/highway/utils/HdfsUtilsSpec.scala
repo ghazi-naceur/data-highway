@@ -277,25 +277,4 @@ class HdfsUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with T
       s"/tmp/data-highway/$time/input/dataset2/file.json"
     )
   }
-
-  "HdfsUtils.getLines" should "get json content from a json file" in {
-    val time = System.currentTimeMillis().toString + UUID.randomUUID().toString
-    HdfsUtils
-      .save(
-        hdfsEntity.fs,
-        hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset/file.json",
-        "{\"some-key\":\"some value\"}\n{\"some-key\":\"some value\"}\n{\"some-key\":\"some value\"}"
-      )
-
-    val result = HdfsUtils
-      .getLines(
-        hdfsEntity.fs,
-        hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input/dataset/file.json"
-      )
-    result should contain theSameElementsAs List(
-      "{\"some-key\":\"some value\"}",
-      "{\"some-key\":\"some value\"}",
-      "{\"some-key\":\"some value\"}"
-    )
-  }
 }

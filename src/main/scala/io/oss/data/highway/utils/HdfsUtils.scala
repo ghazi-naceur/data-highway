@@ -207,23 +207,6 @@ object HdfsUtils extends HdfsUtils {
   }
 
   /**
-    * Gets json content from a json file
-    *
-    * @param fs The provided File System
-    * @param jsonPath The provided json file path
-    * @return List of String
-    */
-  // todo to be deleted
-  def getLines(fs: FileSystem, jsonPath: String): List[String] = {
-    val path   = new Path(jsonPath)
-    val stream = fs.open(path)
-    Stream
-      .cons(stream.readLine, Stream.continually(stream.readLine))
-      .takeWhile(_ != null)
-      .toList
-  }
-
-  /**
     * Deletes a path
     *
     * @param fs The provided File System

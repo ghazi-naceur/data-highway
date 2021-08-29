@@ -1,7 +1,7 @@
 package io.oss.data.highway.configs
 
 import io.oss.data.highway.models.LogLevel
-import pureconfig.ConfigReader
+import pureconfig.{ConfigReader, ConfigSource}
 import pureconfig.generic.semiauto._
 
 case class ConfigLoader() {
@@ -16,9 +16,15 @@ case class ConfigLoader() {
           s"Error when trying to load configuration : ${thr.toList.mkString("\n")}"
         )
     }
+    loadConfigsFromString(param, confAsString)
+  }
+
+  def loadConfigsFromString[T: ConfigReader](
+      param: String,
+      confAsString: String
+  ): T = {
     implicit val offsetConvert: ConfigReader[LogLevel] =
       deriveEnumerationReader[LogLevel]
-
     ConfigSource.string(confAsString).at(param).load[T] match {
       case Right(config) => config
       case Left(thr) =>
