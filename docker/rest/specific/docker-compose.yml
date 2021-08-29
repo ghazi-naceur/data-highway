@@ -4,25 +4,18 @@ version: '3.2'
 services:
 
   app:
-    build:
-      context: ../generic
+    build: .
     image: data-highway-app:v0.4-beta
     ports:
       - 5555:5555
     container_name: bungee-gum
     volumes:
-      - /home/ghazi/workspace/data-highway/src/test/resources/xlsx_to_csv-data/input:/app/data/xlsx_to_csv/input
-      - /home/ghazi/workspace/data-highway/src/test/resources/xlsx_to_csv-data/output:/app/data/xlsx_to_csv/output
-      - /home/ghazi/workspace/data-highway/src/test/resources/xlsx_to_csv-data/processed:/app/data/xlsx_to_csv/processed
-      - /home/ghazi/workspace/data-highway/src/test/resources/csv_to_parquet-data/input:/app/data/csv_to_parquet/input
-      - /home/ghazi/workspace/data-highway/src/test/resources/csv_to_parquet-data/output:/app/data/csv_to_parquet/output
-      - /home/ghazi/workspace/data-highway/src/test/resources/csv_to_parquet-data/processed:/app/data/csv_to_parquet/processed
-      - /home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/input:/app/data/kafka/input
-      - /home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/output:/app/data/kafka/output
-      - /home/ghazi/workspace/data-highway/src/test/resources/file_to_kafka-data/processed:/app/data/kafka/processed
-      - /home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/input:/app/data/elasticsearch/input
-      - /home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/output:/app/data/elasticsearch/output
-      - /home/ghazi/workspace/data-highway/src/test/resources/file_to_elasticsearch-data/processed:/app/data/elasticsearch/processed
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/parquet/input:/app/data/parquet/input
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/parquet/output:/app/data/parquet/output
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/parquet/processed:/app/data/parquet/processed
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/xlsx/input:/app/data/xlsx/input
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/xlsx/output:/app/data/xlsx/output
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/xlsx/processed:/app/data/xlsx/processed
       - /home/ghazi/workspace/data-highway/src/main/resources/log4j.properties:/app/config/log4j.properties
       - /home/ghazi/workspace/data-highway/src/main/resources/application.conf:/app/config/application.conf
     network_mode: "host"

@@ -16,6 +16,8 @@ lazy val root = (project in file("."))
 
 assemblyJarName in assembly := s"${name.value}-${version.value}.jar"
 
+test in assembly := {}
+
 assemblyMergeStrategy in assembly := {
   case PathList("META-INF", "services", xs @ _*) =>
     MergeStrategy.concat // To add Spark datasources : org.apache.spark.sql.sources.DataSourceRegister

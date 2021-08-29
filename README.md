@@ -1,19 +1,19 @@
-Yet another data converter.
+Yet another ETL.
 
-You can convert your data to multiple data types :
+Using **data-highway**, you can convert your data to multiple data types and send them to databases.
+The actual supported data types are : **JSON**, **CSV**, **PARQUET**, **AVRO** and **XLSX**.
+**Data Highway** interacts as well with **Cassandra**, **Elasticsearch** and **Kafka**, using multiple modes.
 
-* JSON Conversion (**csv-to-json**,  **parquet-to-json** and **avro-to-json**)
-* Parquet Conversion (**csv-to-parquet**,  **json-to-parquet**, **avro-to-parquet**)
-* CSV Conversion (**json-to-csv**,  **parquet-to-csv**, **avro-to-csv** and **xlsx-to-csv**)
-* Avro Conversion (**csv-to-avro**,  **parquet-to-avro** and **json-to-avro**)
+For example, **Data Highway** allows you to :
+  - interacts with different technologies through a user-friendly **RESTful API**
+  - produce content from **PARQUET**(avro, csv, json or xlsx) files into **Kafka** topics
+  - index content from **AVRO**(parquet, csv, json or xlsx) files into **Elasticsearch** index
+  - insert content from **XLSX**(avro, csv, json or parquet) files into **Cassandra** Table
+  - convert **CSV**(avro, parquet, json or even xlsx) files to **JSON**(avro, csv, parquet or even xlsx)
+  - convert or send files located in your **Local File System** or in **HDFS**
 
-You can as well :  
-* Send data to Kafka (**file-to-kafka** and **kafka-to-kafka**)
-* Consume data from Kafka (**kafka-to-file**)
-* Index data in Elasticsearch (**file-to-elasticsearch**)
-* Extract data from Elasticsearch (**elasticsearch-to-file**)
-* Send data to Cassandra (**file-to-cassandra**)
-* Extract rows from Cassandra (**cassandra-to-file**)
+In short, **Data Highway** supports the following data flow :
+![image](https://github.com/ghazi-naceur/data-highway/blob/master/src/main/resources/screenshots/data-highway_data-flow.png?raw=true)
 
 **Environment :**
 
@@ -24,84 +24,25 @@ You can as well :
 - Spark 2.4.6
 - Elasticsearch 7.10.2
 - Cassandra 4.0.0
+- Kafka 2.8.0
 
 ## Table of contents :
 * [A- Getting started](#A--getting-started-)
-    * [1- Dataflow](#1--dataflow-)
-    * [2- Run data-highway jar ](#2--run-data-highway-jar-)
-    * [3- Run data-highway Docker Image ](#3--run-data-highway-docker-image-)
+    * [1- Run data-highway jar ](#1--run-data-highway-jar-)
+    * [2- Run data-highway Docker Image ](#2--run-data-highway-docker-image-)
 * [B- Routes](#B--routes-)
-    * [1- JSON conversion](#1--json-conversion-)
-        * [a- From Parquet to JSON](#a--from-parquet-to-json-)
-        * [b- From CSV to JSON](#b--from-csv-to-json-)
-        * [c- From Avro to JSON](#c--from-avro-to-json-)
-    * [2- Parquet conversion](#2--parquet-conversion-)
-        * [a- From JSON to Parquet](#a--from-json-to-parquet-)
-        * [b- From CSV to Parquet](#b--from-csv-to-parquet-)
-        * [c- From Avro to Parquet](#c--from-avro-to-parquet-)
-    * [3- CSV conversion](#3--csv-conversion-)
-        * [a- From JSON to CSV](#a--from-json-to-csv-)
-        * [b- From Parquet to CSV](#b--from-parquet-to-csv-)
-        * [c- From Avro to CSV](#c--from-avro-to-csv-)
-        * [d- From XLSX to CSV](#d--from-xlsx-to-csv-)
-    * [4- Avro conversion](#4--avro-conversion-)
-        * [a- From Parquet to Avro](#a--from-parquet-to-avro-)
-        * [b- From Json to Avro](#b--from-json-to-avro-)
-        * [c- From Csv to Avro](#c--from-csv-to-avro-)
-    * [5- Send data to Kafka](#5--send-data-to-kafka-)
-        * [a- Pure Kafka Producer](#a--pure-kafka-producer-)
-        * [b- Spark Kafka Plugin Producer](#b--spark-kafka-plugin-producer-)
-    * [6- Consume data from Kafka](#6--consume-data-from-kafka-)
-        * [a- Pure Kafka Consumer](#a--pure-kafka-consumer-)
-        * [b- Spark Kafka Plugin Consumer](#b--spark-kafka-plugin-consumer-)
-    * [7- Insert data in Cassandra](#7--insert-data-in-cassandra-)
-      * [a- File to Cassandra](#a--file-to-cassandra-)
-      * [b- Cassandra to File](#b--cassandra-to-file-)
-    * [8- Index data in Elasticsearch](#7--index-data-in-elasticsearch-)
-        * [a- File to Elasticsearch](#a--file-to-elasticsearch-)
-        * [b- Elasticsearch to File](#b--elasticsearch-to-file-)
-        * [c- Elasticsearch operations](#c--elasticsearch-operations-)
+* [C- Samples](#B--samples-)
+    * [1- File to File](#1--file-to-file-)
+    * [2- File to Kafka](#2--file-to-kafka-)
+    * [3- Kafka to Elasticsearch](#3--kafka-to-elasticsearch-)
+    * [4- Elasticsearch to Cassandra](#4--elasticsearch-to-cassandra-)
+    * [5- Elasticsearch operations](#5--elasticsearch-operations-)
+    * [6- and many more](#6--and-many-more-)
 * [C- Scheduling](#C--scheduling-)
 
 # A- Getting started :
 
-## 1- Dataflow :
-
-The data-highway conversion dataflow consists of converting data located under the **input** folder. The converted data will be generated under the **output** folder.
-All **input** data will be placed under the **processed** folder :
-
-![image](https://github.com/ghazi-naceur/data-highway/blob/master/src/main/resources/screenshots/1-conversions.png?raw=true)
-
-Publishing-data route consists of watching periodically an **input** folder containing json files, and publishing its content 
-to a Kafka topic :
-
-![image](https://github.com/ghazi-naceur/data-highway/blob/master/src/main/resources/screenshots/2-publish.png?raw=true)
-
-Consuming-data route consists of consuming periodically a Kafka topic and saving its content into json files in an **output** folder :
-
-![image](https://github.com/ghazi-naceur/data-highway/blob/master/src/main/resources/screenshots/3-consume.png?raw=true)
-
-**data-highway** can, as well, mirror kafka topics by consuming from an input topic and publishing its content to an output topic :
-
-![image](https://github.com/ghazi-naceur/data-highway/blob/master/src/main/resources/screenshots/4-kafka-mirror.png?raw=true)
-
-You have as well a route dedicated to indexing data in Elasticsearch :
-
-![image](https://github.com/ghazi-naceur/data-highway/blob/master/src/main/resources/screenshots/5-file_elasticsearch.png?raw=true)
-
-You can extract data from your Elasticsearch index :
-
-![image](https://github.com/ghazi-naceur/data-highway/blob/master/src/main/resources/screenshots/6-elasticsearch_file.png?raw=true)
-
-You have as well a route dedicated to inserting rows into your Cassandra table :
-
-![image](https://github.com/ghazi-naceur/data-highway/blob/master/src/main/resources/screenshots/7-file_cassandra.png?raw=true)
-
-You can retrieve rows from your Cassandra table :
-
-![image](https://github.com/ghazi-naceur/data-highway/blob/master/src/main/resources/screenshots/8-cassandra_file.png?raw=true)
-
-## 2- Run data-highway jar :
+## 1- Run data-highway jar :
 
 1- Download the latest **zip** release file of **data-highway** from [data-highway releases](https://github.com/ghazi-naceur/data-highway/releases)
 
@@ -109,22 +50,22 @@ You can retrieve rows from your Cassandra table :
 
 3- Enter the unzipped folder 
 
-4- Set configurations in the **application.conf** file
+4- Set the configurations in the **application.conf** file
 
-5- run your **data-highway** instance by executing the **start.sh** script :
+5- Run your **data-highway** instance by executing the **start.sh** script :
 ```shell
 chmod +x start.sh
 ./start.sh
 ```
 ![image](https://github.com/ghazi-naceur/data-highway/blob/master/src/main/resources/screenshots/data-highway-banner.png?raw=true "Data Highway Launch Banner")
 
-6- Finally, launch a data conversion using a REST query. You can find some query samples in the following folder [REST queries](https://github.com/ghazi-naceur/data-highway/tree/master/src/main/resources/rest_queries_samples).
+6- Finally, convert or send data using the data-highway RESTful API. You can find some POSTMAN query samples in the following folder 
+[REST queries](https://github.com/ghazi-naceur/data-highway/tree/master/postman). You can import this collection of queries 
+in your POSTMAN instance. 
 
-You can find, as well, some data samples to test your **data-highway** instance in the following link [data samples](https://github.com/ghazi-naceur/data-highway/tree/master/src/test/resources).
+You will find further explanations about **data-highway** RESTful API in the section [B- Routes](#B--routes-)
 
-You will find further explanations about **data-highway** route configuration in the section [B- Routes](#B--routes-)
-
-## 3- Run data-highway Docker Image :
+## 2- Run data-highway Docker Image :
 
 1- Set configurations in the **/the-path-to-your-config-file/application.conf** (to be mounted in the next step)
 
@@ -133,7 +74,7 @@ specify your data-highway version (located in the release file name) :
 ```yaml
   app:
     build: .
-    image: data-highway-app:v1.0
+    image: data-highway-app:v${version}
     ports:
       - "5555:5555"
     container_name: bungee-gum-app
@@ -147,569 +88,264 @@ specify your data-highway version (located in the release file name) :
       - /the-path-to-your-log-file/log4j.properties:/app/config/log4j.properties
       - /the-path-to-your-config-file/application.conf:/app/config/application.conf
     network_mode: "host"
-    entrypoint: ["java", "-cp", "/app/jar/data-highway-${version}.jar", "io.oss.data.highway.IOMain", "-Dlog4j.configuration=/app/config/log4j.properties", "-Dconfig.file=/app/config/application.conf"]
+    entrypoint: ["java", "-cp", "/app/jar/data-highway-${version}.jar", "gn.oss.data.highway.IOMain", "-Dlog4j.configuration=/app/config/log4j.properties", "-Dconfig.file=/app/config/application.conf"]
 ```
 3- Run the `start.sh` script under `data-highway/docker/rest/generic` to generate your Data Highway Docker image.
 
-4- Run your HTTP request. You can find HTTP requests samples here : [REST queries](https://github.com/ghazi-naceur/data-highway/tree/master/src/main/resources/rest_queries_samples)
-
-**Note :** For `in` and `out` HTTP request body fields, you need to provide the mounted volumes Docker side (right side).
-
-Example : 
-
-For the following mounted volumes, you need to provide in your HTTP request body : `"in": "/app/data/input"` and `"out": "/app/data/output"` 
-```yaml
-volumes:
-      - /the-path-to-input-data-located-in-your-host-machine/:/app/data/input
-      - /the-path-to-the-generated-output-in-your-host-machine/:/app/data/output
-```
+4- Run your HTTP request. You can find POSTMAN queries samples here : [REST queries](https://github.com/ghazi-naceur/data-highway/tree/master/postman).
+You can find as well some data samples [here](https://github.com/ghazi-naceur/data-highway/tree/master/src/test/resources/data).
 
 # B- Routes :
 
-You can find some REST query samples in the following folder [REST queries](https://github.com/ghazi-naceur/data-highway/tree/master/src/main/resources/rest_queries_samples)
+A **Data-Highway** route can be triggered by an HTTP POST request. This request contains 3 parts: `input`, `output` and `storage`:
+  
+  - `input`: represents the input entity. It can be of `type`: `file`, `elasticsearch`, `cassandra` or `kafka`.
+    Each type has its own properties.
+  - `output`:  represents the output entity. It can be of `type`: `file`, `elasticsearch`, `cassandra` or `kafka`.
+    Each type has its own properties.
+  - `storage`: It represents the file system storage to be used in this route. It can `local` to represent the Local File System
+    or `hdfs` to represent the Hadoop Distributed File System. This property is optional, so it may not be present in some routes,
+    depending on the types of `input` and `output`. 
 
-## 1- JSON conversion :
+When dealing with the `file` input entity, **Data Highway** will move all the processed files into a `processed` folder, that will be 
+created automatically in the base path of the `input` folder:
 
-There are 3 provided conversions.
-
-Set the conversion `route` in your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and 
-setting one of these following request bodies : 
-
-### a- From Parquet to JSON :
-
-```json
-{
-  "route": {
-    "type": "parquet-to-json",
-    "in": "your-input-folder-containing-parquet-files",
-    "out": "your-output-folder-that-will-contain-your-generated-json-files",
-    "storage": {
-      "type": "*hdfs* or *local*"
-    }
-  }
-}
+```shell
+path/to/data/
+        ├── input/dataset-1/person-1.json
+        ├── input/dataset-1/person-2.json
+        ├── input/dataset-1/person-3.json
+        .............
+        ├── input/dataset-2/person-1.json
+        ├── input/dataset-2/person-2.json
+        ├── input/dataset-2/person-3.json
+        .............
+        ├── processed/dataset-1/person-1.json
+        ├── processed/dataset-1/person-2.json
+        ├── processed/dataset-1/person-3.json
+        .............
+        ├── processed/dataset-2/person-1.json
+        ├── processed/dataset-2/person-2.json
+        ├── processed/dataset-2/person-3.json
 ```
 
-### b- From CSV to JSON :
+# C- Samples :
 
+The following section provides some samples that you can find here [REST queries](https://github.com/ghazi-naceur/data-highway/tree/master/postman)
+You can find as well some data samples [here](https://github.com/ghazi-naceur/data-highway/tree/master/src/test/resources/data).
+
+## 1- File to File :
+
+This query will convert `parquet` files to `avro`. all the processed datasets will be moved under the folder `/path/to/data/processed`,
+that will be created automatically.
+
+`POST http://localhost:5555/conversion/route`
 ```json
 {
   "route": {
-    "type": "csv-to-json",
-    "in": "your-input-folder-containing-csv-files",
-    "out": "your-output-folder-that-will-contain-your-generated-json-files",
-    "storage": {
-      "type": "*hdfs* or *local*"
-    }
-  }
-}
-```
-
-#### c- From Avro to JSON : 
-
-```json
-{
-  "route": {
-    "type": "avro-to-json",
-    "in": "your-input-folder-containing-avro-files",
-    "out": "your-output-folder-that-will-contain-your-generated-json-files",
-    "storage": {
-      "type": "*hdfs* or *local*"
-    }
-  }
-}
-```
-
-## 2- Parquet conversion :
-
-There are 3 provided conversions.
-
-Set the conversion `route` in your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and
-setting one of these following request bodies :
-
-#### a- From JSON to Parquet :
-
-```json
-{
-  "route": {
-    "type": "json-to-parquet",
-    "in": "your-input-folder-containing-json-files",
-    "out": "your-output-folder-that-will-contain-your-generated-parquet-files",
-    "storage": {
-      "type": "*hdfs* or *local*"
-    }
-  }
-}
-```
-
-#### b- From CSV to Parquet :
-
-```json
-{
-  "route": {
-    "type": "csv-to-parquet",
-    "in": "your-input-folder-containing-csv-files",
-    "out": "your-output-folder-that-will-contain-your-generated-parquet-files",
-    "storage": {
-      "type": "*hdfs* or *local*"
-    }
-  }
-}
-```
-
-#### c- From Avro to Parquet :
-
-```json
-{
-  "route": {
-    "type": "avro-to-parquet",
-    "in": "your-input-folder-containing-avro-files",
-    "out": "your-output-folder-that-will-contain-your-generated-parquet-files",
-    "storage": {
-      "type": "*hdfs* or *local*"
-    }
-  }
-}
-```
-
-## 3- CSV conversion :
-
-There are 4 provided conversions.
-
-Set the conversion `route` in your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and
-setting one of these following request bodies :
-
-#### a- From JSON to CSV :
-
-```json
-{
-  "route": {
-    "type": "json-to-csv",
-    "in": "your-input-folder-containing-json-files",
-    "out": "your-output-folder-that-will-contain-your-generated-csv-files",
-    "storage": {
-      "type": "*hdfs* or *local*"
-    }
-  }
-}
-```
-
-#### b- From Parquet to CSV :
-
-```json
-{
-  "route": {
-    "type": "parquet-to-csv",
-    "in": "your-input-folder-containing-parquet-files",
-    "out": "your-output-folder-that-will-contain-your-generated-csv-files",
-    "storage": {
-      "type": "*hdfs* or *local*"
-    }
-  }
-}
-```
-
-#### c- From Avro to CSV :
-
-```json
-{
-  "route": {
-    "type": "avro-to-csv",
-    "in": "your-input-folder-containing-avro-files",
-    "out": "your-output-folder-that-will-contain-your-generated-csv-files",
-    "storage": {
-      "type": "*hdfs* or *local*"
-    }
-  }
-}
-```
-
-#### d- From XLSX to CSV :
-
-It consists of converting the different sheets of an XLSX file to multiple csv files.
-
-```json
-{
-  "route": {
-    "type": "xlsx-to-csv",
-    "in": "your-input-folder-containing-xlsx-files",
-    "out": "your-output-folder-that-will-contain-your-generated-csv-files",
-    "storage": {
-      "type": "*hdfs* or *local*"
-    }
-  }
-}
-```
-
-## 4- Avro conversion :
-
-There are 3 provided conversions.
-
-Set the conversion `route` in your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and
-setting one of these following request bodies :
-
-#### a- From Parquet to Avro :
-
-```json
-{
-  "route": {
-    "type": "parquet-to-avro",
-    "in": "your-input-folder-containing-parquet-files",
-    "out": "your-output-folder-that-will-contain-your-generated-avro-files",
-    "storage": {
-      "type": "*hdfs* or *local*"
-    }
-  }
-}
-```
-
-#### b- From Json to Avro :
-
-```json
-{
-  "route": {
-    "type": "json-to-avro",
-    "in": "your-input-folder-containing-json-files",
-    "out": "your-output-folder-that-will-contain-your-generated-avro-files",
-    "storage": {
-      "type": "*hdfs* or *local*"
-    }
-  }
-}
-```
-
-#### c- From Csv to Avro :
-
-```json
-{
-  "route": {
-    "type": "csv-to-avro",
-    "in": "your-input-folder-containing-csv-files",
-    "out": "your-output-folder-that-will-contain-your-generated-avro-files",
-    "storage": {
-      "type": "*hdfs* or *local*"
-    }
-  }
-}
-```
-
-## 5- Send data to Kafka :
-
-This mode consists of publishing :
-    
-   * json files
-   * kafka topic content
-
-Publishing data could be performed by :
-
-   * a- Pure Kafka Producer
-   * b- Spark Kafka Plugin Producer
-
-Set the conversion `route` in your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and
-setting one of these following request bodies :
-
-#### a- Pure Kafka Producer :
-
-##### * File to Kafka :
-
-Publishing data will be performed by **"pure-kafka-producer"** : 
-```json
-{
-  "route": {
-    "type": "file-to-kafka",
-    "in": "your-input-folder-containing-json-files",
-    "out": "your-output-kafka-topic",
-    "storage": {
-      "type": "*hdfs* or *local*"
+    "input": {
+      "type": "file",
+      "data-type": {
+        "type": "parquet"
+      },
+      "path": "/path/to/data/parquet/input"
     },
-    "kafka-mode": {
-      "type": "pure-kafka-producer",
-      "brokers": "your-kafka-brokers-with-its-ports-separated-with-commas"
-    }
-  }
-}
-```
-The key **"brokers"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
-
-##### * Kafka to Kafka :
-
-Publishing data will be performed by **"pure-kafka-streams-producer"** :
-
-```json
-{
-  "route": {
-    "type": "kafka-to-kafka",
-    "in": "your-input-kafka-topic",
-    "out": "your-output-kafka-topic",
-    "kafka-mode": {
-      "type": "pure-kafka-streams-producer",
-      "brokers": "your-kafka-brokers-with-its-ports-separated-with-commas",
-      "stream-app-id": "stream-app-name",
-      "offset": {
-        "type": "offset-to-consume-from"
-      }
-    }
-  }
-}
-```
-The key **"brokers"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
-
-#### b- Spark Kafka Plugin Producer :
-
-##### * File to Kafka :
-
-Publishing data will be performed by **"spark-kafka-plugin-producer"** :
-
-```json
-{
-  "route": {
-    "type": "file-to-kafka",
-    "in": "your-input-folder-containing-json-files",
-    "out": "your-output-kafka-topic",
-    "storage": {
-      "type": "*hdfs* or *local*"
+    "output": {
+      "type": "file",
+      "data-type": {
+        "type": "avro"
+      },
+      "path": "/path/to/data/avro/output"
     },
-    "kafka-mode": {
-      "type": "spark-kafka-plugin-producer",
-      "brokers": "your-kafka-brokers-with-its-ports-separated-with-commas"
-    }
-  }
-}
-```
-The key **"brokers"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
-
-##### * Kafka to Kafka :
-
-Publishing data will be performed by **"spark-kafka-plugin-streams-producer"** :
-
-```json
-{
-  "route": {
-    "type": "kafka-to-kafka",
-    "in": "your-input-kafka-topic",
-    "out": "your-output-kafka-topic",
-    "kafka-mode": {
-      "type": "spark-kafka-plugin-streams-producer",
-      "brokers": "your-kafka-brokers-with-its-ports-separated-with-commas",
-      "offset": {
-        "type": "offset-to-consume-from"
-      }
-    }
-  }
-}
-```
-The key **"brokers"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
-
-## 6- Consume data from Kafka :
-
-This mode consists of consuming an input topic and saving its content into files.
-
-It is available using 4 types of routes :
-   * a- Pure Kafka Consumer :
-        - without streaming
-        - with streaming
-   * b- Spark Kafka Consumer Plugin :
-        - without streaming
-        - with streaming
-
-#### a- Pure Kafka Consumer :
-
-##### * Without streaming :
-
-Consuming data will be performed by **"pure-kafka-consumer"** :
-
-```json
-{
-  "route": {
-    "type": "kafka-to-file",
-    "in": "topic-name",
-    "out": "your-output-folder-that-will-contain-your-generated-json-files",
     "storage": {
-      "type": "*hdfs* or *local*"
-    },
-    "kafka-mode": {
-      "type": "pure-kafka-consumer",
-      "brokers": "your-kafka-brokers-with-its-ports-separated-with-commas",
-      "consumer-group": "consumer-group-name",
-      "offset": {
-        "type": "offset-to-consume-from"
-      }
+      "type": "local"
     }
   }
 }
 ```
-- **"brokers"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
 
-- **"offset"** could have one of these values **earliest** and **latest**
+## 2- File to Kafka :
 
-##### * With streaming :
+You can produce data to a Kafka topic by triggering one of these 2 modes : `Pure Kafka Producer` or `Spark Kafka Plugin`. 
+Both of these modes provide the same functionality:
 
-Consuming data will be performed by **"pure-kafka-streams-consumer"** :
+- `Pure Kafka Producer`:
 
+`POST http://localhost:5555/conversion/route`
 ```json
 {
   "route": {
-    "type": "kafka-to-file",
-    "in": "topic-name",
-    "out": "your-output-folder-that-will-contain-your-generated-json-files",
+    "input": {
+      "type": "file",
+      "data-type": {
+        "type": "avro"
+      },
+      "path": "/path/to/data/avro/input"
+    },
+    "output": {
+      "type": "kafka",
+      "topic": "your-kafka-topic",
+      "kafka-mode": {
+        "type": "pure-kafka-producer",
+        "brokers" : "broker-host:broker-port"
+      }
+    },
     "storage": {
-      "type": "*hdfs* or *local*"
-    },
-    "kafka-mode": {
-      "type": "pure-kafka-streams-consumer",
-      "brokers": "your-kafka-brokers-with-its-ports-separated-with-commas",
-      "stream-app-id": "stream-app-name",
-      "offset": {
-        "type": "offset-to-consume-from"
-      }
+      "type": "local"
     }
   }
 }
 ```
-- **"brokers"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
 
-- **"offset"** could have one of these values **earliest** and **latest**
+- `Spark Kafka Plugin`:
 
-#### b- Spark Kafka Plugin Consumer :
-
-##### * Without streaming :
-
-Consuming data will be performed by **"spark-kafka-plugin-consumer"** :
-
+`POST http://localhost:5555/conversion/route`
 ```json
 {
   "route": {
-    "type": "kafka-to-file",
-    "in": "topic-name",
-    "out": "your-output-folder-that-will-contain-your-generated-json-files",
+    "input": {
+      "type": "file",
+      "data-type": {
+        "type": "csv"
+      },
+      "path": "/path/to/data/csv/input"
+    },
+    "output": {
+      "type": "kafka",
+      "topic": "your-kafka-topic",
+      "kafka-mode": {
+        "type": "spark-kafka-plugin-producer",
+        "brokers" : "broker-host:broker-port"
+      }
+    },
     "storage": {
-      "type": "*hdfs* or *local*"
-    },
-    "kafka-mode": {
-      "type": "spark-kafka-plugin-consumer",
-      "brokers": "your-kafka-brokers-with-its-ports-separated-with-commas",
-      "offset": {
-        "type": "offset-to-consume-from"
-      }
+      "type": "local"
     }
   }
 }
 ```
-- **"brokers"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
 
-- **"offset"** could have one of these values **earliest** and **latest**
+## 3- Kafka to Elasticsearch :
 
-##### * With streaming :
+You can index data into Elasticsearch by triggering one of these 3 modes : 
+2 Streaming modes by :`Pure Kafka Consumer` and `Pure Kafka Streams Consumer` or 1 Batch mode by `Spark Kafka Plugin`.
 
-Consuming data will be performed by **"spark-kafka-plugin-streams-consumer"** :
+- `Pure Kafka Consumer` :
 
+`POST http://localhost:5555/conversion/route`
 ```json
 {
   "route": {
-    "type": "kafka-to-file",
-    "in": "topic-name",
-    "out": "your-output-folder-that-will-contain-your-generated-json-files",
-    "storage": {
-      "type": "*hdfs* or *local*"
-    },
-    "kafka-mode": {
-      "type": "spark-kafka-plugin-streams-consumer",
-      "brokers": "your-kafka-brokers-with-its-ports-separated-with-commas",
-      "offset": {
-        "type": "earliest"
+    "input": {
+      "type": "kafka",
+      "topic": "your-kafka-topic",
+      "kafka-mode" : {
+        "type" : "pure-kafka-consumer",
+        "brokers" : "broker-host:broker-port",
+        "consumer-group" : "your-consumer-group-name",
+        "offset" : {
+          "type": "earliest"
+        }
       }
-    }
-  }
-}
-```
-- **"brokers"** could have values like :  **"localhost:9092"** or **"10.10.12.13:9091,10.10.12.14:9092"**
-
-- **"offset"** could have one of these values **earliest** and **latest**
-
-## 7- Insert data in Cassandra :
-
-Set the `route` in your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and
-setting one of these following request bodies :
-
-##### a- File to Cassandra :
-```json
-{
-  "route": {
-    "type": "file-to-cassandra",
-    "in": "your-input-folder-path",
-    "cassandra": {
+    },
+    "output": {
+      "type": "cassandra",
       "keyspace": "your-keyspace",
       "table": "your-table"
     },
     "storage": {
-      "type": "local or hdfs"
-    },
-    "data-type": {
-      "type": "csv, json, avro, parquet, xlsx"
+      "type": "local"
     }
   }
 }
 ```
 
-##### b- Cassandra to File :
+- `Pure Kafka Streams Consumer` :
+
+  `POST http://localhost:5555/conversion/route`
 ```json
 {
   "route": {
-    "type": "cassandra-to-file",
-    "cassandra": {
+    "input": {
+      "type": "kafka",
+      "topic": "your-kafka-topic",
+      "kafka-mode" : {
+        "type" : "pure-kafka-streams-consumer",
+        "brokers" : "broker-host:broker-port",
+        "stream-app-id" : "your-stream-app-id",
+        "offset" : {
+          "type": "earliest"
+        }
+      }
+    },
+    "output": {
+      "type": "cassandra",
       "keyspace": "your-keyspace",
       "table": "your-table"
     },
-    "out": "your-output-folder-path",
-    "data-type": {
-      "type": "csv, json, avro, parquet, xlsx"
+    "storage": {
+      "type": "local"
     }
   }
 }
 ```
 
-## 8- Index data in Elasticsearch :
+- `Spark Kafka Plugin`:
 
-Set the `route` in your REST **POST** query, by invoking the url `http://localhost:5555/conversion/route` and
-setting one of these following request bodies :
-
-##### a- File to Elasticsearch :
-
-Indexing data in Elasticsearch by **"file-to-elasticsearch"** :
+`POST http://localhost:5555/conversion/route`
 ```json
 {
   "route": {
-    "type": "file-to-elasticsearch",
-    "in": "your-input-folder-containing-json-files",
-    "out": "elasticsearch-index",
-    "storage": {
-      "type": "hdfs or local"
+    "input": {
+      "type": "kafka",
+      "topic": "your-kafka-topic",
+      "kafka-mode" : {
+        "type" : "spark-kafka-plugin-consumer",
+        "brokers" : "broker-host:broker-port",
+        "offset" : {
+          "type": "earliest"
+        }
+      }
     },
-    "bulk-enabled": true/false
-  }
-}
-```
-
-##### b- Elasticsearch to File :
-
-Extracting data from an Elasticsearch index by **"elasticsearch-to-file"**. You can find samples [here](https://github.com/ghazi-naceur/data-highway/tree/master/src/main/resources/rest_queries_samples/from_elasticsearch).
-```json
-{
-  "route": {
-    "type": "elasticsearch-to-file",
-    "in": "elasticsearch-index",
-    "out": "your-output-folder-containing-json-files",
-    "storage": {
-      "type": "hdfs or local"
+    "output": {
+      "type": "cassandra",
+      "keyspace": "your-keyspace",
+      "table": "your-table"
     },
-    "search-query": {
-      "type": "elasticsearch-search-query"
+    "storage": {
+      "type": "local"
     }
   }
 }
 ```
 
-**"search-query"** : Could be a :
+## 4- Elasticsearch to Cassandra :
+
+`POST http://localhost:5555/conversion/route`
+```json
+{
+  "route": {
+    "input": {
+        "type": "elasticsearch",
+        "index": "your-index",
+        "bulk-enabled": false,
+        "search-query": {
+            "type": "ids-query",
+            "ids": ["wcOPfnsBllGEOdBS7-HB", "zMOPfnsBllGEOdBS8OGr", "zsOPfnsBllGEOdBS8OHM"]
+        }
+    },
+    "output": {
+        "type": "cassandra",
+        "keyspace": "your-keyspace",
+        "table": "your-table"
+    },
+    "storage": {
+        "type": "local"
+    }
+  }
+}
+```
+The `search-query` input property section can support 16 types of queries, like :
 
 a- "match-all-query" :
 ```json
@@ -740,194 +376,13 @@ c- "multi-match-query" :
     }
 ...
 ```
-d- "term-query" :
-```json
-...
-    "search-query": {
-        "type": "term-query",
-        "field": {
-            "name": "field_name",
-            "value": "field_value"
-        }
-    }
-...
-```
-e- "terms-query" :
-```json
-...
-    "search-query": {
-        "type": "terms-query",
-        "field": {
-            "name": "field_name",
-            "values": ["value-1", "value-2", "value-n"]
-        }
-    }
-...
-```
-f- "common-terms-query" :
-```json
-...
-    "search-query": {
-        "type": "common-terms-query",
-        "field": {
-            "name": "field_name",
-            "value": "field_value"
-        }
-    }
-...
-```
-g- "query-string-query" :
-```json
-...
-    "search-query": {
-        "type": "query-string-query",
-        "query": "string-format elastic query"
-    }
-...
-```
-**"query"** should contain an elasticsearch string query such as for example, **"query"**: "(value-1) OR (value-2)"
+You can find all these Elasticsearch `search-queries` here [REST queries](https://github.com/ghazi-naceur/data-highway/tree/master/postman)
 
-h- "simple-string-query" :
-```json
-...
-    "search-query": {
-        "type": "simple-string-query",
-        "query": "string-format elastic query"
-    }
-...
-```
-**"query"** should contain an elasticsearch string query such as for example, **"query"**: "(value-1) OR (value-2)"
-
-i- "prefix-query" :
-```json
-...
-    "search-query": {
-        "type": "prefix-query",
-        "prefix": {
-            "field-name": "field_name",
-            "value": "prefix_value"
-        }
-    }
-...
-```
-j- "more-like-this-query" :
-```json
-...
-    "search-query": {
-        "type": "more-like-this-query",
-        "like-fields": {
-            "fields": ["field-1", "field-2", "field-n"],
-            "like-texts": ["value-1", "value-2", "value-n"]
-        }
-    }
-...
-```
-k- "range-query" :
-```json
-...
-    "search-query": {
-        "type": "range-query",
-        "range-field": {
-            "range-type": {
-                "type": "range-type"
-            },
-            "name": "field-name",
-            "lte": "lower than or equal value",
-            "gte": "greater than or equal value"
-        }
-    }
-...
-```
-**"range-type"** could have values like : **string-range**, **integer-range**, **long-range** or **float-range**.
-
-**"lte"** and **"gte"** are optional fields.
-
-l- "exists-query" :
-```json
-...
-    "search-query": {
-        "type": "exists-query",
-        "field-name": "field-name"
-    }
-...
-```
-m- "wildcard-query" :
-```json
-...
-    "search-query": {
-        "type": "wildcard-query",
-        "field": {
-            "name": "field_name",
-            "value": "wildcard_value"
-        }
-    }
-...
-```
-n- "regex-query" :
-```json
-...
-    "search-query": {
-        "type": "regex-query",
-        "field": {
-            "name": "field_name",
-            "value": "regex_value"
-        }
-    }
-...
-```
-**"regex-query"** is used for strings indexed as **keyword**.
-
-o- "fuzzy-query" :
-```json
-...
-    "search-query": {
-        "type": "fuzzy-query",
-        "field": {
-            "name": "field_name",
-            "value": "field_value"
-        }
-    }
-...
-```
-p- "ids-query" :
-```json
-...
-    "search-query": {
-        "type": "ids-query",
-        "ids": ["id-1", "id-2", "id-n"]
-    }
-...
-```
-q- "bool-match-phrase-query" :
-```json
-...
-    "search-query": {
-        "type": "bool-match-phrase-query",
-        "bool-filter": {
-            "type": "bool-filter"
-        },
-        "fields": [
-            {
-                "name": "field_name-1",
-                "value": "field_value-1"
-            },
-            {
-                "name": "field_name-2",
-                "value": "field_value-2"
-            },
-            {
-                "name": "field_name-n",
-                "value": "field_value-n"
-            }
-        ]
-    }
-...
-```
-**"bool-filter"** can have one of these values : **"must"**, **"must-not"** or **"should"**.
-
-##### c- Elasticsearch operations :
+## 5- Elasticsearch operations :
 
 a- "index-creation" :
+
+`POST http://localhost:5555/conversion/query`
 ```json
 {
   "route": {
@@ -943,6 +398,8 @@ a- "index-creation" :
 **mapping** is an optional field. Your Elasticsearch mapping should be inside the **properties** tag.
 
 b- "index-mapping" :
+
+`POST http://localhost:5555/conversion/query`
 ```json
 {
   "route": {
@@ -958,6 +415,8 @@ b- "index-mapping" :
 It adds a mapping for an existing index.
 
 c- "index-deletion" :
+
+`POST http://localhost:5555/conversion/query`
 ```json
 {
   "route": {
@@ -970,6 +429,10 @@ c- "index-deletion" :
 }
 ```
 
+## 6- and many more :
+
+You can send cassandra-to-cassandra, kafka-to-kafka or elasticsearch-to-elasticsearch... 
+Import these POSTMAN [REST queries](https://github.com/ghazi-naceur/data-highway/tree/master/postman) to get an idea.
 
 # C- Scheduling :
 
