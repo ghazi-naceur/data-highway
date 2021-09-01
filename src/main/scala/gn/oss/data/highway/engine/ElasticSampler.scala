@@ -48,7 +48,7 @@ import gn.oss.data.highway.models.{
   TermsQuery,
   WildcardQuery
 }
-import gn.oss.data.highway.utils.{ElasticUtils, FilesUtils, HdfsUtils}
+import gn.oss.data.highway.utils.{ElasticUtils, FilesUtils, HdfsUtils, SharedUtils}
 import gn.oss.data.highway.models.DataHighwayError.DataHighwayFileError
 import org.apache.spark.sql.SaveMode
 
@@ -423,7 +423,8 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
       storage: Option[Storage]
   ): Either[Throwable, List[Unit]] = {
 
-    val (temporaryPath, tempoBasePath) = setTempoFilePath(storage)
+    val (temporaryPath, tempoBasePath) =
+      SharedUtils.setTempoFilePath("elasticsearch-sampler", storage)
 
     output match {
       case file @ File(_, _) =>
@@ -448,28 +449,6 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     }
     cleanupTmp(tempoBasePath, storage)
     Right(List())
-  }
-
-  private def setTempoFilePath(storage: Option[Storage]): (String, String) = {
-    storage match {
-      case Some(filesystem) =>
-        filesystem match {
-          case Local =>
-            setLocalTempoFilePath()
-          case HDFS =>
-            val tuple = setLocalTempoFilePath()
-            (HdfsUtils.hadoopConf.host + tuple._1, HdfsUtils.hadoopConf.host + tuple._2)
-        }
-      case None =>
-        setLocalTempoFilePath()
-    }
-  }
-
-  private def setLocalTempoFilePath(): (String, String) = {
-    val tempoBasePath =
-      s"/tmp/data-highway/elasticsearch-sampler/${System.currentTimeMillis().toString}/"
-    val temporaryPath = tempoBasePath + UUID.randomUUID().toString
-    (temporaryPath, tempoBasePath)
   }
 
   private def searchDocsUsingSearchQuery(
