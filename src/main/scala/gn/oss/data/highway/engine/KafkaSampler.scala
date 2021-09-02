@@ -163,7 +163,6 @@ object KafkaSampler extends HdfsUtils {
       consumerGroup: String,
       fs: FileSystem
   ): Either[Throwable, Unit] = {
-    val tempoBasePath = new java.io.File(temporaryPath).getParent
     KafkaTopicConsumer
       .consume(inputTopic, brokerUrls, offset, consumerGroup)
       .map(consumed => {
@@ -227,7 +226,6 @@ object KafkaSampler extends HdfsUtils {
       fs: FileSystem
   ): Either[Throwable, Unit] = {
     Either.catchNonFatal {
-      val tempoBasePath = new java.io.File(temporaryPath).getParent
       val kafkaStreamEntity =
         KafkaTopicConsumer.consumeWithStream(streamAppId, inputTopic, offset, brokerUrls)
       kafkaStreamEntity.dataKStream.mapValues(data => {
@@ -426,7 +424,6 @@ object KafkaSampler extends HdfsUtils {
               storage
             )
         case Kafka(_, _) =>
-//          KafkaSink.mirrorTopic(Kafka(inputTopic, None), kafka)
           new RuntimeException("Already taken care of by kafka-to-kafka routes")
       }
     }
