@@ -12,9 +12,7 @@ import gn.oss.data.highway.models.{
   Local,
   Output
 }
-import gn.oss.data.highway.utils.{Constants, DataFrameUtils}
-
-import java.util.UUID
+import gn.oss.data.highway.utils.{Constants, DataFrameUtils, SharedUtils}
 
 object CassandraSampler {
 
@@ -31,10 +29,8 @@ object CassandraSampler {
       output: Output,
       saveMode: SaveMode
   ): Either[Throwable, Any] = {
-    val tempoPathSuffix =
-      s"/tmp/data-highway/cassandra-sampler/${System.currentTimeMillis().toString}/"
-    val temporaryPath = tempoPathSuffix + UUID.randomUUID().toString
-    val tempoBasePath = new java.io.File(temporaryPath).getParent
+    val (temporaryPath, tempoBasePath) =
+      SharedUtils.setTempoFilePath("cassandra-sampler", Some(Local))
     output match {
       case File(dataType, path) =>
         DataFrameUtils

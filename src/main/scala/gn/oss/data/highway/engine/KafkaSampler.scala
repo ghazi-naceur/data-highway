@@ -25,7 +25,6 @@ import gn.oss.data.highway.models.{
   SparkKafkaPluginStreamsConsumer,
   Storage
 }
-import gn.oss.data.highway.models.DataHighwayError.DataHighwayFileError
 import gn.oss.data.highway.utils.DataFrameUtils.sparkSession
 import gn.oss.data.highway.utils.{
   FilesUtils,
@@ -437,7 +436,7 @@ object KafkaSampler extends HdfsUtils {
     * @param output The output File entity
     * @param storage The output file system storage
     * @param saveMode The output save mode
-    * @return Serializable
+    * @return List of List of Path as String, otherwise a Throwable
     */
   def convertUsingBasicSink(
       temporaryPath: String,
@@ -445,39 +444,11 @@ object KafkaSampler extends HdfsUtils {
       output: File,
       storage: Storage,
       saveMode: SaveMode
-  ): java.io.Serializable = {
+  ): Either[Throwable, List[List[String]]] = {
     val tempInputPath = storage match {
       case Local => new java.io.File(temporaryPath).getParent
       case HDFS  => HdfsUtils.getPathWithoutUriPrefix(new java.io.File(temporaryPath).getParent)
     }
     BasicSink.handleChannel(File(JSON, tempInputPath), output, Some(storage), saveMode)
-    cleanupTmp(tempoBasePath, Some(storage))
-  }
-
-  /**
-    * Cleanups the temporary folder
-    *
-    * @param output The tmp base path
-    * @param storage The tmp file system storage
-    * @return Serializable
-    */
-  private def cleanupTmp(output: String, storage: Option[Storage]): java.io.Serializable = {
-    storage match {
-      case Some(filesystem) =>
-        filesystem match {
-          case Local =>
-            FilesUtils.delete(output)
-          case HDFS =>
-            HdfsUtils.delete(fs, output)
-        }
-      case None =>
-        Left(
-          DataHighwayFileError(
-            "MissingFileSystemStorage",
-            new RuntimeException("Missing 'storage' field"),
-            Array[StackTraceElement]()
-          )
-        )
-    }
   }
 }
