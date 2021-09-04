@@ -5,7 +5,7 @@ services:
 
   app:
     build: .
-    image: data-highway-app:v0.4-beta
+    image: data-highway-app:v0.4-rc
     ports:
       - 5555:5555
     container_name: bungee-gum
@@ -19,4 +19,4 @@ services:
       - /home/ghazi/workspace/data-highway/src/main/resources/log4j.properties:/app/config/log4j.properties
       - /home/ghazi/workspace/data-highway/src/main/resources/application.conf:/app/config/application.conf
     network_mode: "host"
-    entrypoint: ["java", "-cp", "/app/jar/data-highway-0.4-beta.jar", "gn.oss.data.highway.IOMain", "-Dlog4j.configuration=/app/config/log4j.properties", "-Dconfig.file=/app/config/application.conf"]
+    entrypoint: ["java", "-cp", "/app/jar/data-highway-0.4-rc.jar", "gn.oss.data.highway.IOMain", "-Dlog4j.configuration=/app/config/log4j.properties", "-Dconfig.file=/app/config/application.conf"]

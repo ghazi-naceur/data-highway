@@ -1,6 +1,6 @@
 name := "data-highway"
 
-version := "0.4-beta"
+version := "0.4-rc"
 
 scalaVersion := "2.12.12"
 
