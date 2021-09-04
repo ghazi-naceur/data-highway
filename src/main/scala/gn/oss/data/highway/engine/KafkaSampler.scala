@@ -9,6 +9,7 @@ import monix.execution.Scheduler.{global => scheduler}
 import cats.implicits._
 import gn.oss.data.highway.models.{
   Cassandra,
+  Consistency,
   DataHighwayErrorResponse,
   DataHighwayResponse,
   Earliest,
@@ -456,6 +457,11 @@ object KafkaSampler extends HdfsUtils {
       case Local => new java.io.File(temporaryPath).getParent
       case HDFS  => HdfsUtils.getPathWithoutUriPrefix(new java.io.File(temporaryPath).getParent)
     }
-    BasicSink.handleChannel(File(JSON, tempInputPath), output, Some(storage), saveMode)
+    BasicSink.handleChannel(
+      File(JSON, tempInputPath),
+      output,
+      Some(storage),
+      Some(Consistency.toConsistency(saveMode))
+    )
   }
 }

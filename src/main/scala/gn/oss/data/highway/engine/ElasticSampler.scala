@@ -15,6 +15,7 @@ import gn.oss.data.highway.models.{
   BoolMatchPhraseQuery,
   Cassandra,
   CommonTermsQuery,
+  Consistency,
   DataHighwayErrorResponse,
   DataHighwayResponse,
   Elasticsearch,
@@ -431,7 +432,12 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     val result = output match {
       case file @ File(_, _) =>
         searchDocsUsingSearchQuery(input, storage, temporaryPath)
-        BasicSink.handleChannel(File(JSON, temporaryPath), file, storage, saveMode)
+        BasicSink.handleChannel(
+          File(JSON, temporaryPath),
+          file,
+          storage,
+          Some(Consistency.toConsistency(saveMode))
+        )
       case cassandra @ Cassandra(_, _) =>
         searchDocsUsingSearchQuery(input, Some(Local), temporaryPath)
         CassandraSink

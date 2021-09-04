@@ -5,6 +5,7 @@ import org.apache.spark.sql.SaveMode
 import cats.implicits._
 import gn.oss.data.highway.models
 import gn.oss.data.highway.models.{
+  Consistency,
   DataHighwayErrorResponse,
   DataHighwayResponse,
   DataType,
@@ -53,40 +54,56 @@ object BasicSink extends HdfsUtils {
     * @param input The input DataHighway File Entity
     * @param output The output DataHighway File Entity
     * @param storage The file system storage : It can be Local or HDFS
-    * @param saveMode The file saving mode
+    * @param consistency The file saving mode
     * @return DataHighwayResponse, otherwise a DataHighwayErrorResponse
     */
   def handleChannel(
       input: models.File,
       output: models.File,
       storage: Option[Storage],
-      saveMode: SaveMode
+      consistency: Option[Consistency]
   ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
     val basePath = new File(input.path).getParent
-    storage match {
-      case Some(value) =>
-        value match {
+    (storage, consistency) match {
+      case (Some(filesystem), Some(consist)) =>
+        filesystem match {
           case Local =>
             handleLocalFS(
               input,
               output,
               basePath,
-              saveMode
+              consist.toSaveMode
             )
           case HDFS =>
             handleHDFS(
               input,
               output,
               basePath,
-              saveMode,
+              consist.toSaveMode,
               fs
             )
         }
-      case None =>
+      case (None, _) =>
         Left(
           DataHighwayErrorResponse(
             "MissingFileSystemStorage",
             "Missing 'storage' field",
+            ""
+          )
+        )
+      case (_, None) =>
+        Left(
+          DataHighwayErrorResponse(
+            "MissingSaveMode",
+            "Missing 'save-mode' field",
+            ""
+          )
+        )
+      case (None, None) =>
+        Left(
+          DataHighwayErrorResponse(
+            "MissingFileSystemStorage and MissingSaveMode",
+            "Missing 'storage' and 'save-mode' fields",
             ""
           )
         )
