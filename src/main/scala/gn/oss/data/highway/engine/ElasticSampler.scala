@@ -445,7 +445,7 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
             File(JSON, temporaryPath),
             cassandra,
             Some(Local),
-            SaveMode.Append
+            Some(Consistency.toConsistency(saveMode))
           )
       case elasticsearch @ Elasticsearch(_, _, _) =>
         searchDocsUsingSearchQuery(input, Some(Local), temporaryPath)

@@ -2056,7 +2056,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"/data/spark/avro/input\"\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"/data/spark/avro/input\"\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 						},
 						"url": {
 							"raw": "http://localhost:5555/conversion/route",
@@ -2086,7 +2086,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/avro/input\"\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/avro/input\"\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 						},
 						"url": {
 							"raw": "http://localhost:5555/conversion/route",
@@ -2116,7 +2116,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/avro/input\"\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/avro/input\"\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 						},
 						"url": {
 							"raw": "http://localhost:5555/conversion/route",

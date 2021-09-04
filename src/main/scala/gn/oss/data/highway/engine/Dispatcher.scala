@@ -47,7 +47,8 @@ object Dispatcher {
             storage: Option[Storage],
             saveMode: Option[Consistency]
           ) =>
-        CassandraSink.handleCassandraChannel(input, output, storage, Append)
+        CassandraSink
+          .handleCassandraChannel(input, output, storage, saveMode)
       case Route(
             input: Cassandra,
             output: Output,
