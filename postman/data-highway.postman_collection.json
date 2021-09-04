@@ -24,7 +24,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"/app/data/spark/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"/app/data/spark/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"/app/data/spark/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"/app/data/spark/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"overwrite\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -61,7 +61,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/avro/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/parquet/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/avro/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/parquet/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"overwrite\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -98,7 +98,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/avro/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/parquet/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/avro/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/parquet/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"save-mode\": {\n        \"type\": \"overwrite\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -140,7 +140,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"/app/data/spark/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"/app/data/spark/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"/app/data/spark/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"/app/data/spark/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"overwrite\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -177,7 +177,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/parquet/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/avro/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/parquet/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/avro/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"overwrite\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -214,7 +214,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/avro/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/avro/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/avro/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/avro/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"save-mode\": {\n        \"type\": \"overwrite\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -256,7 +256,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"/app/data/parquet/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"/app/data/csv/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"/app/data/parquet/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"/app/data/csv/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"overwrite\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -293,7 +293,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/parquet/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/csv/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/parquet/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/csv/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"overwrite\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -330,7 +330,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/parquet/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/csv/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/parquet/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/csv/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"save-mode\": {\n        \"type\": \"overwrite\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -372,7 +372,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"hdfs://localhost:9000/app/data/parquet/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"hdfs://localhost:9000/app/data/json/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"hdfs://localhost:9000/app/data/parquet/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"hdfs://localhost:9000/app/data/json/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"save-mode\": {\n        \"type\": \"overwrite\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -409,7 +409,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/parquet/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/json/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/parquet/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/json/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"overwrite\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -446,7 +446,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/parquet/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/json/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/parquet/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/json/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"save-mode\": {\n        \"type\": \"overwrite\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -488,7 +488,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"hdfs://localhost:9000/app/data/parquet/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"xlsx\"\n        },\n        \"path\": \"hdfs://localhost:9000/app/data/xlsx/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"hdfs://localhost:9000/app/data/parquet/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"xlsx\"\n        },\n        \"path\": \"hdfs://localhost:9000/app/data/xlsx/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"save-mode\": {\n        \"type\": \"overwrite\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -525,7 +525,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/parquet/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"xlsx\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/xlsx/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/parquet/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"xlsx\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/xlsx/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"overwrite\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -562,7 +562,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/csv/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"xlsx\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/xlsx/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/csv/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"xlsx\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/xlsx/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"save-mode\": {\n        \"type\": \"overwrite\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
