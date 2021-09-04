@@ -83,6 +83,14 @@ object BasicSink extends HdfsUtils {
               fs
             )
         }
+      case (None, None) =>
+        Left(
+          DataHighwayErrorResponse(
+            "MissingFileSystemStorage and MissingSaveMode",
+            "Missing 'storage' and 'save-mode' fields",
+            ""
+          )
+        )
       case (None, _) =>
         Left(
           DataHighwayErrorResponse(
@@ -96,14 +104,6 @@ object BasicSink extends HdfsUtils {
           DataHighwayErrorResponse(
             "MissingSaveMode",
             "Missing 'save-mode' field",
-            ""
-          )
-        )
-      case (None, None) =>
-        Left(
-          DataHighwayErrorResponse(
-            "MissingFileSystemStorage and MissingSaveMode",
-            "Missing 'storage' and 'save-mode' fields",
             ""
           )
         )

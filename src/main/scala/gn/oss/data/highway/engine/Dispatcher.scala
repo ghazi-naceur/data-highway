@@ -55,7 +55,7 @@ object Dispatcher {
             _: Option[Storage],
             saveMode: Option[Consistency]
           ) =>
-        CassandraSampler.extractRows(input, output, Append)
+        CassandraSampler.extractRows(input, output, saveMode)
       case Route(
             input: File,
             output: Elasticsearch,

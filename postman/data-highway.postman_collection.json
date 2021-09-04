@@ -2151,7 +2151,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"/data/spark/avro/input\"\n    }\n  }\n}"
+							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"/data/spark/avro/input\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 						},
 						"url": {
 							"raw": "http://localhost:5555/conversion/route",
@@ -2181,7 +2181,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/json/output\"\n    }\n  }\n}"
+							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"xlsx\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/xlsx/output\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 						},
 						"url": {
 							"raw": "http://localhost:5555/conversion/route",
@@ -2211,7 +2211,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/avro/output\"\n    }\n  }\n}"
+							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/avro/output\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 						},
 						"url": {
 							"raw": "http://localhost:5555/conversion/route",
@@ -2241,7 +2241,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons_2\"\n    }\n  }\n}"
+							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons_2\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 						},
 						"url": {
 							"raw": "http://localhost:5555/conversion/route",
