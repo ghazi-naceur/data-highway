@@ -10,6 +10,8 @@ import org.apache.kafka.streams.{KafkaStreams, StreamsConfig}
 import org.apache.log4j.Logger
 import cats.implicits.{toTraverseOps, _}
 import gn.oss.data.highway.models.{
+  DataHighwayErrorResponse,
+  DataHighwayResponse,
   DataType,
   HDFS,
   Kafka,
@@ -22,9 +24,10 @@ import gn.oss.data.highway.models.{
   Storage,
   XLSX
 }
-import gn.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils, KafkaUtils}
+import gn.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils, KafkaUtils, SharedUtils}
 import gn.oss.data.highway.models
 import gn.oss.data.highway.models.DataHighwayError.{DataHighwayFileError, KafkaError}
+import gn.oss.data.highway.utils.Constants.{SUCCESS, TRIGGER}
 import org.apache.hadoop.fs.FileSystem
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.spark.sql.DataFrame
@@ -44,19 +47,19 @@ object KafkaSink extends HdfsUtils {
     * @param input The input File entity
     * @param output The output Kafka entity
     * @param storage The file system storage
-    * @return List of Any, otherwise a Throwable
+    * @return DataHighwayResponse, otherwise a DataHighwayErrorResponse
     */
   def handleKafkaChannel(
       input: models.File,
       output: Kafka,
       storage: Option[Storage]
-  ): Either[Throwable, List[Any]] = {
+  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
     val basePath = new File(input.path).getParent
     storage match {
       case Some(value) =>
         value match {
           case HDFS =>
-            for {
+            val result = for {
               list <-
                 HdfsUtils
                   .listFolders(fs, input.path)
@@ -74,8 +77,9 @@ object KafkaSink extends HdfsUtils {
                   .flatten
               _ = HdfsUtils.cleanup(fs, input.path)
             } yield list
+            SharedUtils.constructIOResponse(input, output, result, SUCCESS)
           case Local =>
-            for {
+            val result = for {
               folders <- FilesUtils.listNonEmptyFoldersRecursively(input.path)
               list <-
                 folders
@@ -84,13 +88,14 @@ object KafkaSink extends HdfsUtils {
                   })
               _ = FilesUtils.cleanup(input.path)
             } yield list
+            SharedUtils.constructIOResponse(input, output, result, SUCCESS)
         }
       case None =>
         Left(
-          DataHighwayFileError(
+          DataHighwayErrorResponse(
             "MissingFileSystemStorage",
-            new RuntimeException("Missing 'storage' field"),
-            Array[StackTraceElement]()
+            "Missing 'storage' field",
+            ""
           )
         )
     }
@@ -162,12 +167,12 @@ object KafkaSink extends HdfsUtils {
     *
     * @param input The input Kafka entity
     * @param output The output Kafka entity
-    * @return Any, otherwise a Throwable
+    * @return DataHighwayResponse, otherwise a DataHighwayErrorResponse
     */
   def mirrorTopic(
       input: Kafka,
       output: Kafka
-  ): Either[Throwable, Any] = {
+  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
     input.kafkaMode match {
       case Some(km) =>
         val props = new Properties()
@@ -179,9 +184,10 @@ object KafkaSink extends HdfsUtils {
           .verifyTopicExistence(output.topic, km.brokers, enableTopicCreation = true)
         km match {
           case PureKafkaStreamsProducer(brokers, streamAppId, offset) =>
-            runStream(streamAppId, input.topic, brokers, output.topic, offset)
+            val result = runStream(streamAppId, input.topic, brokers, output.topic, offset)
+            SharedUtils.constructIOResponse(input, output, result, TRIGGER)
           case SparkKafkaPluginStreamsProducer(brokers, offset) =>
-            Either.catchNonFatal {
+            val result = Either.catchNonFatal {
               val thread = new Thread(() => {
                 publishWithSparkKafkaStreamsPlugin(
                   input.topic,
@@ -194,19 +200,24 @@ object KafkaSink extends HdfsUtils {
               })
               thread.start()
             }
+            SharedUtils.constructIOResponse(input, output, result, TRIGGER)
           case _ =>
-            throw new RuntimeException(
-              s"This mode is not supported while mirroring a Kafka topic. The supported modes are " +
-                s"${PureKafkaStreamsProducer.getClass} and ${SparkKafkaPluginStreamsProducer.getClass}." +
-                s" The provided input kafka mode is '${input.kafkaMode}'."
+            Left(
+              DataHighwayErrorResponse(
+                "WrongMirrorKafkaMode",
+                s"Kafka Mode '${input.kafkaMode}' is not supported",
+                s"This mode is not supported while mirroring a Kafka topic. The supported modes are " +
+                  s"${PureKafkaStreamsProducer.getClass} and ${SparkKafkaPluginStreamsProducer.getClass}." +
+                  s" The provided input kafka mode is '${input.kafkaMode}'."
+              )
             )
         }
       case None =>
         Left(
-          DataHighwayFileError(
+          DataHighwayErrorResponse(
             "MissingFileSystemStorage",
-            new RuntimeException("Missing 'storage' field"),
-            Array[StackTraceElement]()
+            "Missing 'storage' field",
+            ""
           )
         )
     }

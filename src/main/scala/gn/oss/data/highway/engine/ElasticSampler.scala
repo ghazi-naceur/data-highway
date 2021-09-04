@@ -15,6 +15,8 @@ import gn.oss.data.highway.models.{
   BoolMatchPhraseQuery,
   Cassandra,
   CommonTermsQuery,
+  DataHighwayErrorResponse,
+  DataHighwayResponse,
   Elasticsearch,
   ExistsQuery,
   Field,
@@ -50,6 +52,7 @@ import gn.oss.data.highway.models.{
 }
 import gn.oss.data.highway.utils.{ElasticUtils, FilesUtils, HdfsUtils, SharedUtils}
 import gn.oss.data.highway.models.DataHighwayError.DataHighwayFileError
+import gn.oss.data.highway.utils.Constants.SUCCESS
 import org.apache.spark.sql.SaveMode
 
 import java.util.UUID
@@ -414,19 +417,18 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     * @param input The Elasticsearch index
     * @param output The output base folder
     * @param storage The output file system storage
-    * @return List of Unit, otherwise an Error
+    * @return DataHighwayFileResponse, otherwise a DataHighwayErrorResponse
     */
   def saveDocuments(
       input: Elasticsearch,
       output: Output,
       saveMode: SaveMode,
       storage: Option[Storage]
-  ): Either[Throwable, List[Unit]] = {
+  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
 
     val (temporaryPath, tempoBasePath) =
       SharedUtils.setTempoFilePath("elasticsearch-sampler", storage)
-
-    output match {
+    val result = output match {
       case file @ File(_, _) =>
         searchDocsUsingSearchQuery(input, storage, temporaryPath)
         BasicSink.handleChannel(File(JSON, temporaryPath), file, storage, saveMode)
@@ -448,7 +450,13 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
         KafkaSink.handleKafkaChannel(File(JSON, temporaryPath), kafka, Some(Local))
     }
     cleanupTmp(tempoBasePath, storage)
-    Right(List())
+    SharedUtils
+      .constructIOResponse(
+        input,
+        output,
+        result.leftMap(_.toThrowable),
+        SUCCESS
+      )
   }
 
   private def searchDocsUsingSearchQuery(

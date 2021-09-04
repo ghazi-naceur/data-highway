@@ -6,9 +6,18 @@ import com.sksamuel.elastic4s.Response
 import com.sksamuel.elastic4s.requests.bulk.BulkResponse
 import com.sksamuel.elastic4s.requests.common.RefreshPolicy
 import gn.oss.data.highway.models
-import gn.oss.data.highway.models.{DataType, Elasticsearch, HDFS, Local, Storage, XLSX}
-import gn.oss.data.highway.utils.{DataFrameUtils, ElasticUtils, FilesUtils, HdfsUtils}
-import gn.oss.data.highway.models.DataHighwayError.DataHighwayFileError
+import gn.oss.data.highway.models.{
+  DataHighwayErrorResponse,
+  DataHighwayResponse,
+  DataType,
+  Elasticsearch,
+  HDFS,
+  Local,
+  Storage,
+  XLSX
+}
+import gn.oss.data.highway.utils.Constants.SUCCESS
+import gn.oss.data.highway.utils.{DataFrameUtils, ElasticUtils, FilesUtils, HdfsUtils, SharedUtils}
 import org.apache.spark.sql.DataFrame
 
 import java.io.File
@@ -208,20 +217,19 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
     * @param input The input File entity
     * @param output The output Elasticsearch entity
     * @param storage The input file system storage
-    * @return List of Unit, otherwise an Throwable
+    * @return DataHighwayFileResponse, otherwise a DataHighwayErrorResponse
     */
   def handleElasticsearchChannel(
       input: models.File,
       output: Elasticsearch,
       storage: Option[Storage]
-  ): Either[Throwable, List[Unit]] = {
+  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
     val basePath = new File(input.path).getParent
-
     storage match {
       case Some(value) =>
         value match {
           case HDFS =>
-            for {
+            val result = for {
               list <-
                 HdfsUtils
                   .listFolders(fs, input.path)
@@ -233,18 +241,20 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
                   .flatten
               _ = HdfsUtils.cleanup(fs, input.path)
             } yield list
+            SharedUtils.constructIOResponse(input, output, result, SUCCESS)
           case Local =>
-            for {
+            val result = for {
               list <- insertDocuments(input, output, basePath, value)
               _ = FilesUtils.cleanup(input.path)
             } yield list
+            SharedUtils.constructIOResponse(input, output, result, SUCCESS)
         }
       case None =>
         Left(
-          DataHighwayFileError(
+          DataHighwayErrorResponse(
             "MissingFileSystemStorage",
-            new RuntimeException("Missing 'storage' field"),
-            Array[StackTraceElement]()
+            "Missing 'storage' field",
+            ""
           )
         )
     }

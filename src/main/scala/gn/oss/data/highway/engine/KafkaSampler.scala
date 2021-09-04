@@ -9,6 +9,8 @@ import monix.execution.Scheduler.{global => scheduler}
 import cats.implicits._
 import gn.oss.data.highway.models.{
   Cassandra,
+  DataHighwayErrorResponse,
+  DataHighwayResponse,
   Earliest,
   Elasticsearch,
   File,
@@ -25,6 +27,7 @@ import gn.oss.data.highway.models.{
   SparkKafkaPluginStreamsConsumer,
   Storage
 }
+import gn.oss.data.highway.utils.Constants.{SUCCESS, TRIGGER}
 import gn.oss.data.highway.utils.DataFrameUtils.sparkSession
 import gn.oss.data.highway.utils.{
   FilesUtils,
@@ -49,14 +52,14 @@ object KafkaSampler extends HdfsUtils {
     * @param input The input Kafka entity
     * @param output The output File entity
     * @param storage The output file system storage
-    * @return a Unit, otherwise a Throwable
+    * @return DataHighwayResponse, otherwise a DataHighwayErrorResponse
     */
   def consumeFromTopic(
       input: Kafka,
       output: Output,
       saveMode: SaveMode,
       storage: Option[Storage]
-  ): Either[Throwable, Unit] = {
+  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
     val (temporaryPath, tempoBasePath) =
       SharedUtils.setTempoFilePath("kafka-sampler", storage)
     val consumer = input.kafkaMode.asInstanceOf[Option[KafkaConsumer]]
@@ -67,23 +70,25 @@ object KafkaSampler extends HdfsUtils {
         km match {
           case PureKafkaConsumer(brokers, consGroup, offset) =>
             // Continuous job - to be triggered once
-            Either.catchNonFatal(scheduler.scheduleWithFixedDelay(0.seconds, 5.seconds) {
-              sinkWithPureKafkaConsumer(
-                input.topic,
-                temporaryPath,
-                tempoBasePath,
-                output,
-                fsys,
-                saveMode,
-                brokers,
-                offset,
-                consGroup,
-                fs
-              )
-            })
+            val result =
+              Either.catchNonFatal(scheduler.scheduleWithFixedDelay(0.seconds, 5.seconds) {
+                sinkWithPureKafkaConsumer(
+                  input.topic,
+                  temporaryPath,
+                  tempoBasePath,
+                  output,
+                  fsys,
+                  saveMode,
+                  brokers,
+                  offset,
+                  consGroup,
+                  fs
+                )
+              })
+            SharedUtils.constructIOResponse(input, output, result, TRIGGER)
           case PureKafkaStreamsConsumer(brokers, streamAppId, offset) =>
             // Continuous job - to be triggered once
-            sinkWithPureKafkaStreamsConsumer(
+            val result = sinkWithPureKafkaStreamsConsumer(
               input.topic,
               temporaryPath,
               tempoBasePath,
@@ -95,9 +100,10 @@ object KafkaSampler extends HdfsUtils {
               streamAppId,
               fs
             )
+            SharedUtils.constructIOResponse(input, output, result, TRIGGER)
           case SparkKafkaPluginConsumer(brokers, offset) =>
             // Batch/One-shot job - to be triggered everytime
-            Either.catchNonFatal {
+            val result = Either.catchNonFatal {
               sinkWithSparkKafkaConnector(
                 sparkSession,
                 input,
@@ -110,6 +116,7 @@ object KafkaSampler extends HdfsUtils {
                 offset
               )
             }
+            SharedUtils.constructIOResponse(input, output, result, SUCCESS)
 //          case SparkKafkaPluginStreamsConsumer(brokers, offset) =>
 //            // only json data type support
 //            Either.catchNonFatal {
@@ -436,7 +443,7 @@ object KafkaSampler extends HdfsUtils {
     * @param output The output File entity
     * @param storage The output file system storage
     * @param saveMode The output save mode
-    * @return List of List of Path as String, otherwise a Throwable
+    * @return DataHighwayResponse, otherwise a DataHighwayErrorResponse
     */
   def convertUsingBasicSink(
       temporaryPath: String,
@@ -444,7 +451,7 @@ object KafkaSampler extends HdfsUtils {
       output: File,
       storage: Storage,
       saveMode: SaveMode
-  ): Either[Throwable, List[List[String]]] = {
+  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
     val tempInputPath = storage match {
       case Local => new java.io.File(temporaryPath).getParent
       case HDFS  => HdfsUtils.getPathWithoutUriPrefix(new java.io.File(temporaryPath).getParent)

@@ -4,6 +4,8 @@ import gn.oss.data.highway.configs.ConfigLoader
 import gn.oss.data.highway.models.{
   Cassandra,
   Channel,
+  DataHighwayErrorResponse,
+  DataHighwayResponse,
   ElasticOps,
   Elasticsearch,
   File,
@@ -23,14 +25,10 @@ object Dispatcher {
   def main(args: Array[String]): Unit = {
     BasicConfigurator.configure()
     val route = ConfigLoader().loadConfigs[Route]("route")
-    apply(route).map {
-      case Left(thr) =>
-        logger.error(s"Error : ${thr.toString}")
-      case Right(_) => logger.info("Started successfully")
-    }
+    apply(route)
   }
 
-  def apply(route: Channel): Either[Throwable, Any] = {
+  def apply(route: Channel): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
     logger.info(s"${route.toString} route is activated ...")
     route match {
       case ElasticOps(operation) =>

@@ -684,7 +684,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\": {\n            \"type\": \"pure-kafka-streams-producer\",\n            \"brokers\" : \"localhost:9092\",\n            \"stream-app-id\" : \"stream-app-name-2\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_3\"\n    }\n  }\n}\n"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\": {\n            \"type\": \"pure-kafka-streams-producer\",\n            \"brokers\" : \"localhost:9092\",\n            \"stream-app-id\" : \"stream-app-name-3\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_2\"\n    }\n  }\n}\n"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1136,7 +1136,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"query\": {\n    \"type\": \"elastic-ops\",\n    \"operation\": {\n      \"type\": \"index-creation\",\n      \"index-name\": \"persons-index-8\",\n      \"mapping\": \"{ \\\"properties\\\":{\\\"id\\\":{\\\"type\\\":\\\"float\\\"},\\\"first_name\\\":{\\\"type\\\":\\\"text\\\"},\\\"last_name\\\":{\\\"type\\\":\\\"text\\\"},\\\"gender\\\":{\\\"type\\\":\\\"keyword\\\"},\\\"email\\\":{\\\"type\\\":\\\"text\\\"},\\\"ip_address\\\":{\\\"type\\\":\\\"keyword\\\"}}}\"\n    }\n  }\n}"
+							"raw": "{\n  \"query\": {\n    \"type\": \"elastic-ops\",\n    \"operation\": {\n      \"type\": \"index-creation\",\n      \"index-name\": \"persons-index-12\",\n      \"mapping\": \"{ \\\"properties\\\":{\\\"id\\\":{\\\"type\\\":\\\"float\\\"},\\\"first_name\\\":{\\\"type\\\":\\\"text\\\"},\\\"last_name\\\":{\\\"type\\\":\\\"text\\\"},\\\"gender\\\":{\\\"type\\\":\\\"keyword\\\"},\\\"email\\\":{\\\"type\\\":\\\"text\\\"},\\\"ip_address\\\":{\\\"type\\\":\\\"keyword\\\"}}}\"\n    }\n  }\n}"
 						},
 						"url": {
 							"raw": "http://localhost:5555/conversion/query",

@@ -2,8 +2,10 @@ package gn.oss.data.highway.models
 
 sealed trait Channel
 
-sealed trait Input
-sealed trait Output
+sealed trait Plug
+
+sealed trait Input  extends Plug
+sealed trait Output extends Plug
 
 case class Route(input: Input, output: Output, storage: Option[Storage]) extends Channel
 

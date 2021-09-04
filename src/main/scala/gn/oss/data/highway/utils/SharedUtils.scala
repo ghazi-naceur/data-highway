@@ -1,7 +1,22 @@
 package gn.oss.data.highway.utils
 
 import gn.oss.data.highway.models.DataHighwayError.DataHighwayFileError
-import gn.oss.data.highway.models.{File, HDFS, Local, Output, Storage}
+import gn.oss.data.highway.models.{
+  Cassandra,
+  DataHighwayErrorResponse,
+  DataHighwayIOResponse,
+  DataHighwayResponse,
+  Elasticsearch,
+  File,
+  HDFS,
+  Input,
+  Kafka,
+  Local,
+  Output,
+  Plug,
+  Storage
+}
+import gn.oss.data.highway.utils.Constants.FAILURE
 
 import java.util.UUID
 
@@ -67,6 +82,41 @@ object SharedUtils extends HdfsUtils {
             Array[StackTraceElement]()
           )
         )
+    }
+  }
+
+  def constructIOResponse(
+      input: Input,
+      output: Output,
+      result: Either[Throwable, Any],
+      message: String
+  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+    result match {
+      case Right(_) =>
+        Right(
+          DataHighwayIOResponse(
+            parsePlug(input),
+            parsePlug(output),
+            message
+          )
+        )
+      case Left(thr) =>
+        Left(
+          DataHighwayErrorResponse(
+            thr.getMessage,
+            thr.getCause.toString,
+            FAILURE
+          )
+        )
+    }
+  }
+
+  private def parsePlug(plug: Plug): String = {
+    plug match {
+      case File(dataType, path)       => s"File: Path '$path' in '$dataType' format"
+      case Cassandra(keyspace, table) => s"Cassandra: Keyspace '$keyspace' - Table '$table'"
+      case Elasticsearch(index, _, _) => s"Elasticsearch: Index '$index'"
+      case Kafka(topic, _)            => s"Kafka: Topic '$topic'"
     }
   }
 }
