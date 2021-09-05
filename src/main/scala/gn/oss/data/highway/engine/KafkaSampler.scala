@@ -58,8 +58,8 @@ object KafkaSampler extends HdfsUtils {
   def consumeFromTopic(
       input: Kafka,
       output: Output,
-      saveMode: SaveMode,
-      storage: Option[Storage]
+      storage: Option[Storage],
+      consistency: Option[Consistency]
   ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
     val (temporaryPath, tempoBasePath) =
       SharedUtils.setTempoFilePath("kafka-sampler", storage)
@@ -79,7 +79,7 @@ object KafkaSampler extends HdfsUtils {
                   tempoBasePath,
                   output,
                   fsys,
-                  saveMode,
+                  consistency,
                   brokers,
                   offset,
                   consGroup,
@@ -95,7 +95,7 @@ object KafkaSampler extends HdfsUtils {
               tempoBasePath,
               output,
               fsys,
-              saveMode,
+              consistency,
               brokers,
               offset,
               streamAppId,
@@ -112,7 +112,7 @@ object KafkaSampler extends HdfsUtils {
                 temporaryPath,
                 tempoBasePath,
                 fsys,
-                saveMode,
+                consistency,
                 brokers,
                 offset
               )
@@ -151,7 +151,7 @@ object KafkaSampler extends HdfsUtils {
     * @param tempoBasePath The base of the temporary output folder
     * @param output The output File entity
     * @param storage The output file system storage
-    * @param saveMode The output save mode
+    * @param consistency The output save mode
     * @param brokerUrls The kafka brokers urls
     * @param offset The kafka consumer offset
     * @param consumerGroup The consumer group name
@@ -164,7 +164,7 @@ object KafkaSampler extends HdfsUtils {
       tempoBasePath: String,
       output: Output,
       storage: Storage,
-      saveMode: SaveMode,
+      consistency: Option[Consistency],
       brokerUrls: String,
       offset: Offset,
       consumerGroup: String,
@@ -201,7 +201,7 @@ object KafkaSampler extends HdfsUtils {
       tempoBasePath,
       output,
       storage,
-      saveMode
+      consistency
     )
   }
 
@@ -213,7 +213,7 @@ object KafkaSampler extends HdfsUtils {
     * @param tempoBasePath The base of the temporary output folder
     * @param output The output File entity
     * @param storage The output file system storage
-    * @param saveMode The output save mode
+    * @param consistency The output save mode
     * @param brokerUrls The kafka brokers urls
     * @param offset The kafka consumer offset
     * @param streamAppId The identifier of the streaming application
@@ -226,7 +226,7 @@ object KafkaSampler extends HdfsUtils {
       tempoBasePath: String,
       output: Output,
       storage: Storage,
-      saveMode: SaveMode,
+      consistency: Option[Consistency],
       brokerUrls: String,
       offset: Offset,
       streamAppId: String,
@@ -252,7 +252,7 @@ object KafkaSampler extends HdfsUtils {
           tempoBasePath,
           output,
           storage,
-          saveMode
+          consistency
         )
       })
       val streams = new KafkaStreams(kafkaStreamEntity.builder.build(), kafkaStreamEntity.props)
@@ -269,7 +269,7 @@ object KafkaSampler extends HdfsUtils {
     * @param temporaryPath The temporary output folder
     * @param tempoBasePath The base of the temporary output folder
     * @param storage The output file system storage
-    * @param saveMode The output save mode
+    * @param consistency The output save mode
     * @param brokerUrls The kafka brokers urls
     * @param offset The kafka consumer offset
     * @return Unit, otherwise a Throwable
@@ -281,7 +281,7 @@ object KafkaSampler extends HdfsUtils {
       temporaryPath: String,
       tempoBasePath: String,
       storage: Storage,
-      saveMode: SaveMode,
+      consistency: Option[Consistency],
       brokerUrls: String,
       offset: Offset
   ): Either[Throwable, Unit] = {
@@ -336,7 +336,7 @@ object KafkaSampler extends HdfsUtils {
       tempoBasePath,
       output,
       storage,
-      saveMode
+      consistency
     )
   }
 
@@ -401,7 +401,7 @@ object KafkaSampler extends HdfsUtils {
     * @param tempoBasePath The base of the temporary path
     * @param output The provided output entity
     * @param storage The file system storage
-    * @param saveMode The Spark save mode
+    * @param consistency The Spark save mode
     * @return Unit, otherwise a Throwable
     */
   private def dispatchDataToOutput(
@@ -409,29 +409,51 @@ object KafkaSampler extends HdfsUtils {
       tempoBasePath: String,
       output: Output,
       storage: Storage,
-      saveMode: SaveMode
+      consistency: Option[Consistency]
   ): Either[Throwable, Unit] = {
     Either.catchNonFatal {
-      output match {
-        case file @ File(_, _) =>
-          convertUsingBasicSink(temporaryPath, tempoBasePath, file, storage, saveMode)
-        case cassandra @ Cassandra(_, _) =>
-          CassandraSink.insertRows(
-            File(JSON, temporaryPath),
-            cassandra,
-            tempoBasePath,
-            saveMode
-          )
-        case elasticsearch @ Elasticsearch(_, _, _) =>
-          ElasticSink
-            .insertDocuments(
-              File(JSON, temporaryPath),
-              elasticsearch,
-              tempoBasePath,
-              storage
-            )
-        case Kafka(_, _) =>
-          new RuntimeException("Already taken care of by kafka-to-kafka routes")
+      consistency match {
+        case Some(consist) =>
+          output match {
+            case file @ File(_, _) =>
+              convertUsingBasicSink(temporaryPath, tempoBasePath, file, storage, consist.toSaveMode)
+            case cassandra @ Cassandra(_, _) =>
+              CassandraSink.insertRows(
+                File(JSON, temporaryPath),
+                cassandra,
+                tempoBasePath,
+                consist.toSaveMode
+              )
+            case _ =>
+              Left(
+                DataHighwayErrorResponse(
+                  "ShouldUseIntermediateSaveMode",
+                  "'save-mode' field should be not present",
+                  ""
+                )
+              )
+          }
+        case None =>
+          output match {
+            case elasticsearch @ Elasticsearch(_, _, _) =>
+              ElasticSink
+                .insertDocuments(
+                  File(JSON, temporaryPath),
+                  elasticsearch,
+                  tempoBasePath,
+                  storage
+                )
+            case Kafka(_, _) =>
+              new RuntimeException("Already taken care of by kafka-to-kafka routes")
+            case _ =>
+              Left(
+                DataHighwayErrorResponse(
+                  "MissingSaveMode",
+                  "Missing 'save-mode' field",
+                  ""
+                )
+              )
+          }
       }
     }
   }

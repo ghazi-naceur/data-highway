@@ -16,7 +16,6 @@ import gn.oss.data.highway.models.{
   Storage
 }
 import org.apache.log4j.{BasicConfigurator, Logger}
-import org.apache.spark.sql.SaveMode.{Append, Overwrite}
 import pureconfig.generic.auto._
 
 object Dispatcher {
@@ -74,10 +73,15 @@ object Dispatcher {
             input: File,
             output: Kafka,
             storage: Option[Storage],
-            saveMode: Option[Consistency]
+            _: Option[Consistency]
           ) =>
         KafkaSink.handleKafkaChannel(input, output, storage)
-      case Route(input: Kafka, output: Kafka, _, _) =>
+      case Route(
+            input: Kafka,
+            output: Kafka,
+            _: Option[Storage],
+            _: Option[Consistency]
+          ) =>
         KafkaSink.mirrorTopic(input, output)
       case Route(
             input: Kafka,
@@ -85,7 +89,7 @@ object Dispatcher {
             storage: Option[Storage],
             saveMode: Option[Consistency]
           ) =>
-        KafkaSampler.consumeFromTopic(input, output, Append, storage)
+        KafkaSampler.consumeFromTopic(input, output, storage, saveMode)
       case _ =>
         throw new RuntimeException(s"""
           | The provided route '$route' is not supported yet. This route will be implemented in the upcoming versions.

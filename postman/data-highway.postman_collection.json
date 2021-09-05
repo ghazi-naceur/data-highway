@@ -759,7 +759,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"pure-kafka-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"consumer-group\" : \"consumer-group-13\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/csv/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}\n"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"pure-kafka-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"consumer-group\" : \"consumer-group-13\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/csv/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}\n"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -789,7 +789,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"pure-kafka-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"consumer-group\" : \"consumer-group-14\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/csv/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}\n"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"pure-kafka-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"consumer-group\" : \"consumer-group-14\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/csv/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}\n"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -819,7 +819,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"pure-kafka-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"consumer-group\" : \"consumer-group-0\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    }\n  }\n}\n"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"pure-kafka-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"consumer-group\" : \"consumer-group-1\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}\n"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -884,7 +884,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"pure-kafka-streams-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"stream-app-id\" : \"app-id-11\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"xlsx\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/xlsx/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}\n"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"pure-kafka-streams-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"stream-app-id\" : \"app-id-11\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"xlsx\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/xlsx/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}\n"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -914,7 +914,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"pure-kafka-streams-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"stream-app-id\" : \"app-id-10\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"xlsx\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/xlsx/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}\n"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"pure-kafka-streams-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"stream-app-id\" : \"app-id-10\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"xlsx\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/xlsx/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}\n"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -944,7 +944,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"pure-kafka-streams-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"stream-app-id\" : \"app-id-0\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    }\n  }\n}\n"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"pure-kafka-streams-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"stream-app-id\" : \"app-id-1\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}\n"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1009,7 +1009,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_2\",\n        \"kafka-mode\" : {\n            \"type\" : \"spark-kafka-plugin-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/csv/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}\n"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"spark-kafka-plugin-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/csv/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}\n"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1039,7 +1039,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"spark-kafka-plugin-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/csv/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}\n"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"spark-kafka-plugin-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/csv/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}\n"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1069,7 +1069,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"spark-kafka-plugin-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    }\n  }\n}\n"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"spark-kafka-plugin-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}\n"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1099,7 +1099,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"spark-kafka-plugin-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-10\",\n        \"bulk-enabled\": true\n    }\n  }\n}\n"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"spark-kafka-plugin-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-7\",\n        \"bulk-enabled\": true\n    }\n  }\n}\n"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
