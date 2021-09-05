@@ -1329,7 +1329,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"bool-match-phrase-query\",\n            \"bool-filter\": {\n                \"type\": \"must\"\n            },\n            \"fields\": [\n                {\n                \"name\": \"last_name\",\n                \"value\": \"Altham\"\n                },\n                {\n                \"name\": \"gender\",\n                \"value\": \"Male\"\n                }\n            ]\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"bool-match-phrase-query\",\n            \"bool-filter\": {\n                \"type\": \"must\"\n            },\n            \"fields\": [\n                {\n                \"name\": \"last_name\",\n                \"value\": \"Altham\"\n                },\n                {\n                \"name\": \"gender\",\n                \"value\": \"Male\"\n                }\n            ]\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1364,7 +1364,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"common-terms-query\",\n            \"field\": {\n                \"name\": \"gender\",\n                \"value\": \"Male\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"common-terms-query\",\n            \"field\": {\n                \"name\": \"gender\",\n                \"value\": \"Male\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1399,7 +1399,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"exists-query\",\n            \"field-name\": \"last_name\"\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"exists-query\",\n            \"field-name\": \"last_name\"\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1434,7 +1434,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-7\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"ids-query\",\n            \"ids\": [\"wcOPfnsBllGEOdBS7-HB\", \"zMOPfnsBllGEOdBS8OGr\", \"zsOPfnsBllGEOdBS8OHM\"]\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-7\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"ids-query\",\n            \"ids\": [\"wcOPfnsBllGEOdBS7-HB\", \"zMOPfnsBllGEOdBS8OGr\", \"zsOPfnsBllGEOdBS8OHM\"]\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1464,7 +1464,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-7\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"ids-query\",\n            \"ids\": [\"wcOPfnsBllGEOdBS7-HB\", \"zMOPfnsBllGEOdBS8OGr\", \"zsOPfnsBllGEOdBS8OHM\"]\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/csv/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-7\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"ids-query\",\n            \"ids\": [\"wcOPfnsBllGEOdBS7-HB\", \"zMOPfnsBllGEOdBS8OGr\", \"zsOPfnsBllGEOdBS8OHM\"]\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/csv/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1499,7 +1499,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"match-all-query\"\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"match-all-query\"\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1534,7 +1534,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"match-query\",\n            \"field\": {\n                \"name\": \"last_name\",\n                \"value\": \"Altham\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"match-query\",\n            \"field\": {\n                \"name\": \"last_name\",\n                \"value\": \"Altham\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1569,7 +1569,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"more-like-this-query\",\n            \"like-fields\": {\n                \"fields\": [\"last_name\", \"first_name\", \"gender\"],\n                \"like-texts\": [\"Neighbour\", \"Reynold\", \"Male\"]\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"more-like-this-query\",\n            \"like-fields\": {\n                \"fields\": [\"last_name\", \"first_name\", \"gender\"],\n                \"like-texts\": [\"Neighbour\", \"Reynold\", \"Male\"]\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1604,7 +1604,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"multi-match-query\",\n            \"values\": [\"Neighbour\", \"Reynold\", \"Male\"]\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"multi-match-query\",\n            \"values\": [\"Neighbour\", \"Reynold\", \"Male\"]\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1639,7 +1639,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"prefix-query\",\n            \"prefix\": {\n                \"field-name\": \"gender\",\n                \"value\": \"Female\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"prefix-query\",\n            \"prefix\": {\n                \"field-name\": \"gender\",\n                \"value\": \"Female\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1674,7 +1674,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"query-string-query\",\n            \"query\": \"(Greson) OR (Meardon)\"\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"query-string-query\",\n            \"query\": \"(Greson) OR (Meardon)\"\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1709,7 +1709,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"range-query\",\n            \"range-field\": {\n                \"range-type\": {\n                \"type\": \"float-range\"\n                },\n                \"name\": \"id\",\n                \"lte\": \"9\",\n                \"gte\": \"7\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"range-query\",\n            \"range-field\": {\n                \"range-type\": {\n                \"type\": \"float-range\"\n                },\n                \"name\": \"id\",\n                \"lte\": \"9\",\n                \"gte\": \"7\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1744,7 +1744,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"regex-query\",\n            \"field\": {\n                \"name\": \"gender\",\n                \"value\": \"M.*e\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"regex-query\",\n            \"field\": {\n                \"name\": \"gender\",\n                \"value\": \"M.*e\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1779,7 +1779,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"simple-string-query\",\n            \"query\": \"Altham\"\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"simple-string-query\",\n            \"query\": \"Altham\"\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1814,7 +1814,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"term-query\",\n            \"field\": {\n                \"name\": \"gender\",\n                \"value\": \"Male\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"term-query\",\n            \"field\": {\n                \"name\": \"gender\",\n                \"value\": \"Male\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1849,7 +1849,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"terms-query\",\n            \"field\": {\n                \"name\": \"gender\",\n                \"values\": [\"Male\", \"Female\"]\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"terms-query\",\n            \"field\": {\n                \"name\": \"gender\",\n                \"values\": [\"Male\", \"Female\"]\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1884,7 +1884,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"wildcard-query\",\n            \"field\": {\n                \"name\": \"last_name\",\n                \"value\": \"A*m\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"wildcard-query\",\n            \"field\": {\n                \"name\": \"last_name\",\n                \"value\": \"A*m\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1919,7 +1919,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-7\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"ids-query\",\n            \"ids\": [\"wcOPfnsBllGEOdBS7-HB\", \"zMOPfnsBllGEOdBS8OGr\", \"zsOPfnsBllGEOdBS8OHM\"]\n        }\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-7\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"ids-query\",\n            \"ids\": [\"wcOPfnsBllGEOdBS7-HB\", \"zMOPfnsBllGEOdBS8OGr\", \"zsOPfnsBllGEOdBS8OHM\"]\n        }\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",

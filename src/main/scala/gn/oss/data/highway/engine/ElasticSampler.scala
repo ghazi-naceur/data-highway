@@ -54,7 +54,6 @@ import gn.oss.data.highway.models.{
 import gn.oss.data.highway.utils.{ElasticUtils, FilesUtils, HdfsUtils, SharedUtils}
 import gn.oss.data.highway.models.DataHighwayError.DataHighwayFileError
 import gn.oss.data.highway.utils.Constants.SUCCESS
-import org.apache.spark.sql.SaveMode
 
 import java.util.UUID
 
@@ -418,42 +417,22 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     * @param input The Elasticsearch index
     * @param output The output base folder
     * @param storage The output file system storage
+    * @param consistency The file saving mode
     * @return DataHighwayFileResponse, otherwise a DataHighwayErrorResponse
     */
   def saveDocuments(
       input: Elasticsearch,
       output: Output,
-      saveMode: SaveMode,
-      storage: Option[Storage]
+      storage: Option[Storage],
+      consistency: Option[Consistency]
   ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
-
     val (temporaryPath, tempoBasePath) =
       SharedUtils.setTempoFilePath("elasticsearch-sampler", storage)
-    val result = output match {
-      case file @ File(_, _) =>
-        searchDocsUsingSearchQuery(input, storage, temporaryPath)
-        BasicSink.handleChannel(
-          File(JSON, temporaryPath),
-          file,
-          storage,
-          Some(Consistency.toConsistency(saveMode))
-        )
-      case cassandra @ Cassandra(_, _) =>
-        searchDocsUsingSearchQuery(input, Some(Local), temporaryPath)
-        CassandraSink
-          .handleCassandraChannel(
-            File(JSON, temporaryPath),
-            cassandra,
-            Some(Local),
-            Some(Consistency.toConsistency(saveMode))
-          )
-      case elasticsearch @ Elasticsearch(_, _, _) =>
-        searchDocsUsingSearchQuery(input, Some(Local), temporaryPath)
-        ElasticSink
-          .handleElasticsearchChannel(File(JSON, temporaryPath), elasticsearch, Some(Local))
-      case kafka @ Kafka(_, _) =>
-        searchDocsUsingSearchQuery(input, Some(Local), temporaryPath)
-        KafkaSink.handleKafkaChannel(File(JSON, temporaryPath), kafka, Some(Local))
+    val result = consistency match {
+      case Some(_) =>
+        handleRoutesWithExplicitSaveModes(input, output, storage, consistency, temporaryPath)
+      case None =>
+        handleRoutesWithIntermediateSaveModes(input, output, temporaryPath)
     }
     cleanupTmp(tempoBasePath, storage)
     SharedUtils
@@ -463,6 +442,66 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
         result.leftMap(_.toThrowable),
         SUCCESS
       )
+  }
+
+  private def handleRoutesWithIntermediateSaveModes(
+      input: Elasticsearch,
+      output: Output,
+      temporaryPath: String
+  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+    output match {
+      case elasticsearch @ Elasticsearch(_, _, _) =>
+        searchDocsUsingSearchQuery(input, Some(Local), temporaryPath)
+        ElasticSink
+          .handleElasticsearchChannel(File(JSON, temporaryPath), elasticsearch, Some(Local))
+      case kafka @ Kafka(_, _) =>
+        searchDocsUsingSearchQuery(input, Some(Local), temporaryPath)
+        KafkaSink.handleKafkaChannel(File(JSON, temporaryPath), kafka, Some(Local))
+      case _ =>
+        Left(
+          DataHighwayErrorResponse(
+            "MissingSaveMode",
+            "Missing 'save-mode' field",
+            ""
+          )
+        )
+    }
+  }
+
+  private def handleRoutesWithExplicitSaveModes(
+      input: Elasticsearch,
+      output: Output,
+      storage: Option[Storage],
+      consistency: Option[Consistency],
+      temporaryPath: String
+  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+    output match {
+      case file @ File(_, _) =>
+        searchDocsUsingSearchQuery(input, storage, temporaryPath)
+        BasicSink.handleChannel(
+          File(JSON, temporaryPath),
+          file,
+          storage,
+          consistency
+        )
+      case cassandra @ Cassandra(_, _) =>
+        searchDocsUsingSearchQuery(input, Some(Local), temporaryPath)
+        CassandraSink
+          .handleCassandraChannel(
+            File(JSON, temporaryPath),
+            cassandra,
+            Some(Local),
+            consistency
+          )
+      case _ =>
+        Left(
+          DataHighwayErrorResponse(
+            "ShouldUseIntermediateSaveMode",
+            "'save-mode' field should be not present",
+            ""
+          )
+        )
+    }
   }
 
   private def searchDocsUsingSearchQuery(

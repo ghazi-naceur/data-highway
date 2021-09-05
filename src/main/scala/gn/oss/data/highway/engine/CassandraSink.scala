@@ -85,6 +85,14 @@ object CassandraSink extends HdfsUtils {
               fs
             )
         }
+      case (None, None) =>
+        Left(
+          DataHighwayErrorResponse(
+            "MissingFileSystemStorage and MissingSaveMode",
+            "Missing 'storage' and 'save-mode' fields",
+            ""
+          )
+        )
       case (None, _) =>
         Left(
           DataHighwayErrorResponse(
@@ -98,14 +106,6 @@ object CassandraSink extends HdfsUtils {
           DataHighwayErrorResponse(
             "MissingSaveMode",
             "Missing 'save-mode' field",
-            ""
-          )
-        )
-      case (None, None) =>
-        Left(
-          DataHighwayErrorResponse(
-            "MissingFileSystemStorage and MissingSaveMode",
-            "Missing 'storage' and 'save-mode' fields",
             ""
           )
         )

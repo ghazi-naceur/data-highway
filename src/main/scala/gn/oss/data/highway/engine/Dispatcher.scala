@@ -60,7 +60,7 @@ object Dispatcher {
             input: File,
             output: Elasticsearch,
             storage: Option[Storage],
-            saveMode: Option[Consistency]
+            _: Option[Consistency]
           ) =>
         ElasticSink.handleElasticsearchChannel(input, output, storage)
       case Route(
@@ -69,7 +69,7 @@ object Dispatcher {
             storage: Option[Storage],
             saveMode: Option[Consistency]
           ) =>
-        ElasticSampler.saveDocuments(input, output, Overwrite, storage)
+        ElasticSampler.saveDocuments(input, output, storage, saveMode)
       case Route(
             input: File,
             output: Kafka,
