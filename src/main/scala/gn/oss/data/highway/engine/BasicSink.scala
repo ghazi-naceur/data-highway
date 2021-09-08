@@ -4,9 +4,18 @@ import java.io.File
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
 import gn.oss.data.highway.models
-import gn.oss.data.highway.models.{DataType, HDFS, Local, Storage, XLSX}
-import gn.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils}
-import gn.oss.data.highway.models.DataHighwayError.DataHighwayFileError
+import gn.oss.data.highway.models.{
+  Consistency,
+  DataHighwayErrorResponse,
+  DataHighwayResponse,
+  DataType,
+  HDFS,
+  Local,
+  Storage,
+  XLSX
+}
+import gn.oss.data.highway.utils.Constants.SUCCESS
+import gn.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils, SharedUtils}
 import org.apache.hadoop.fs.FileSystem
 import org.apache.log4j.Logger
 
@@ -45,45 +54,60 @@ object BasicSink extends HdfsUtils {
     * @param input The input DataHighway File Entity
     * @param output The output DataHighway File Entity
     * @param storage The file system storage : It can be Local or HDFS
-    * @param saveMode The file saving mode
-    * @return List of List of Path as String, otherwise Throwable
+    * @param consistency The file saving mode
+    * @return DataHighwayResponse, otherwise a DataHighwayErrorResponse
     */
   def handleChannel(
       input: models.File,
       output: models.File,
       storage: Option[Storage],
-      saveMode: SaveMode
-  ): Either[Throwable, List[List[String]]] = {
+      consistency: Option[Consistency]
+  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
     val basePath = new File(input.path).getParent
-    storage match {
-      case Some(value) =>
-        value match {
+    (storage, consistency) match {
+      case (Some(filesystem), Some(consist)) =>
+        filesystem match {
           case Local =>
             handleLocalFS(
               input,
               output,
               basePath,
-              saveMode
+              consist.toSaveMode
             )
           case HDFS =>
             handleHDFS(
               input,
               output,
               basePath,
-              saveMode,
+              consist.toSaveMode,
               fs
             )
         }
-      case None =>
+      case (None, None) =>
         Left(
-          DataHighwayFileError(
+          DataHighwayErrorResponse(
+            "MissingFileSystemStorage and MissingSaveMode",
+            "Missing 'storage' and 'save-mode' fields",
+            ""
+          )
+        )
+      case (None, _) =>
+        Left(
+          DataHighwayErrorResponse(
             "MissingFileSystemStorage",
-            new RuntimeException("Missing 'storage' field"),
-            Array[StackTraceElement]()
+            "Missing 'storage' field",
+            ""
+          )
+        )
+      case (_, None) =>
+        Left(
+          DataHighwayErrorResponse(
+            "MissingSaveMode",
+            "Missing 'save-mode' field",
+            ""
           )
         )
     }
-
   }
 
   /**
@@ -94,7 +118,7 @@ object BasicSink extends HdfsUtils {
     * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
     * @param fs The provided File System
-    * @return List of List of Path as String, otherwise Throwable
+    * @return DataHighwayResponse, otherwise a DataHighwayErrorResponse
     */
   private def handleHDFS(
       input: models.File,
@@ -102,8 +126,8 @@ object BasicSink extends HdfsUtils {
       basePath: String,
       saveMode: SaveMode,
       fs: FileSystem
-  ): Either[Throwable, List[List[String]]] = {
-    for {
+  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+    val result = for {
       folders <- HdfsUtils.listFolders(fs, input.path)
       _ = logger.info("Folders to be processed : " + folders)
       filtered <- HdfsUtils.filterNonEmptyFolders(fs, folders)
@@ -144,6 +168,7 @@ object BasicSink extends HdfsUtils {
       }
       _ = HdfsUtils.cleanup(fs, input.path)
     } yield res
+    SharedUtils.constructIOResponse(input, output, result, SUCCESS)
   }
 
   /**
@@ -153,15 +178,15 @@ object BasicSink extends HdfsUtils {
     * @param output The output DataHighway File Entity
     * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
-    * @return List of List of Path as String, otherwise Throwable
+    * @return DataHighwayFileResponse, otherwise a DataHighwayErrorResponse
     */
   private def handleLocalFS(
       input: models.File,
       output: models.File,
       basePath: String,
       saveMode: SaveMode
-  ): Either[Throwable, List[List[String]]] = {
-    for {
+  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+    val result = for {
       folders <- FilesUtils.listNonEmptyFoldersRecursively(input.path)
       _ = logger.info("Folders to be processed : " + folders)
       filtered <- FilesUtils.filterNonEmptyFolders(folders)
@@ -208,5 +233,6 @@ object BasicSink extends HdfsUtils {
       }
       _ = FilesUtils.cleanup(input.path)
     } yield res
+    SharedUtils.constructIOResponse(input, output, result, SUCCESS)
   }
 }

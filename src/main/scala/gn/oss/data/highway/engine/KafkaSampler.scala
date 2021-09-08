@@ -9,6 +9,9 @@ import monix.execution.Scheduler.{global => scheduler}
 import cats.implicits._
 import gn.oss.data.highway.models.{
   Cassandra,
+  Consistency,
+  DataHighwayErrorResponse,
+  DataHighwayResponse,
   Earliest,
   Elasticsearch,
   File,
@@ -25,9 +28,15 @@ import gn.oss.data.highway.models.{
   SparkKafkaPluginStreamsConsumer,
   Storage
 }
-import gn.oss.data.highway.models.DataHighwayError.DataHighwayFileError
+import gn.oss.data.highway.utils.Constants.{SUCCESS, TRIGGER}
 import gn.oss.data.highway.utils.DataFrameUtils.sparkSession
-import gn.oss.data.highway.utils.{FilesUtils, HdfsUtils, KafkaTopicConsumer, KafkaUtils}
+import gn.oss.data.highway.utils.{
+  FilesUtils,
+  HdfsUtils,
+  KafkaTopicConsumer,
+  KafkaUtils,
+  SharedUtils
+}
 import org.apache.hadoop.fs.FileSystem
 import org.apache.spark.sql.functions.{struct, to_json}
 
@@ -44,67 +53,71 @@ object KafkaSampler extends HdfsUtils {
     * @param input The input Kafka entity
     * @param output The output File entity
     * @param storage The output file system storage
-    * @return a Unit, otherwise a Throwable
+    * @return DataHighwayResponse, otherwise a DataHighwayErrorResponse
     */
   def consumeFromTopic(
       input: Kafka,
       output: Output,
-      saveMode: SaveMode,
-      storage: Option[Storage]
-  ): Either[Throwable, Unit] = {
-    val tempoPathSuffix =
-      s"/tmp/data-highway/kafka-sampler/kafka-plugin/${System.currentTimeMillis().toString}/"
-    val temporaryPath = tempoPathSuffix + UUID.randomUUID().toString
-    val consumer      = input.kafkaMode.asInstanceOf[Option[KafkaConsumer]]
-    (storage, consumer) match {
-      case (Some(filesystem), Some(km)) =>
+      storage: Option[Storage],
+      consistency: Option[Consistency]
+  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+    val (temporaryPath, tempoBasePath) =
+      SharedUtils.setTempoFilePath("kafka-sampler", storage)
+    val consumer = input.kafkaMode.asInstanceOf[Option[KafkaConsumer]]
+    val fsys     = SharedUtils.setFileSystem(output, storage)
+    consumer match {
+      case Some(km) =>
         KafkaUtils.verifyTopicExistence(input.topic, km.brokers, enableTopicCreation = false)
         km match {
           case PureKafkaConsumer(brokers, consGroup, offset) =>
             // Continuous job - to be triggered once
-            Either.catchNonFatal(scheduler.scheduleWithFixedDelay(0.seconds, 5.seconds) {
-              sinkWithPureKafkaConsumer(
-                input.topic,
-                temporaryPath,
-                tempoPathSuffix,
-                output,
-                filesystem,
-                saveMode,
-                brokers,
-                offset,
-                consGroup,
-                fs
-              )
-            })
+            val result =
+              Either.catchNonFatal(scheduler.scheduleWithFixedDelay(0.seconds, 5.seconds) {
+                sinkWithPureKafkaConsumer(
+                  input.topic,
+                  temporaryPath,
+                  tempoBasePath,
+                  output,
+                  fsys,
+                  consistency,
+                  brokers,
+                  offset,
+                  consGroup,
+                  fs
+                )
+              })
+            SharedUtils.constructIOResponse(input, output, result, TRIGGER)
           case PureKafkaStreamsConsumer(brokers, streamAppId, offset) =>
             // Continuous job - to be triggered once
-            sinkWithPureKafkaStreamsConsumer(
+            val result = sinkWithPureKafkaStreamsConsumer(
               input.topic,
               temporaryPath,
-              tempoPathSuffix,
+              tempoBasePath,
               output,
-              filesystem,
-              saveMode,
+              fsys,
+              consistency,
               brokers,
               offset,
               streamAppId,
               fs
             )
+            SharedUtils.constructIOResponse(input, output, result, TRIGGER)
           case SparkKafkaPluginConsumer(brokers, offset) =>
             // Batch/One-shot job - to be triggered everytime
-            Either.catchNonFatal {
+            val result = Either.catchNonFatal {
               sinkWithSparkKafkaConnector(
                 sparkSession,
                 input,
                 output,
                 temporaryPath,
-                tempoPathSuffix,
-                filesystem,
-                saveMode,
+                tempoBasePath,
+                fsys,
+                consistency,
                 brokers,
                 offset
               )
             }
+            SharedUtils.constructIOResponse(input, output, result, SUCCESS)
 //          case SparkKafkaPluginStreamsConsumer(brokers, offset) =>
 //            // only json data type support
 //            Either.catchNonFatal {
@@ -127,14 +140,6 @@ object KafkaSampler extends HdfsUtils {
                 s"and ${SparkKafkaPluginStreamsConsumer.getClass}. The provided input kafka mode is '$km'."
             )
         }
-      case _ =>
-        Left(
-          DataHighwayFileError(
-            "MissingFileSystemStorage",
-            new RuntimeException("Missing 'storage' field"),
-            Array[StackTraceElement]()
-          )
-        )
     }
   }
 
@@ -143,10 +148,10 @@ object KafkaSampler extends HdfsUtils {
     *
     * @param inputTopic The input kafka topic
     * @param temporaryPath The temporary output folder
-    * @param tempoPathSuffix The suffix of the temporary output folder
+    * @param tempoBasePath The base of the temporary output folder
     * @param output The output File entity
     * @param storage The output file system storage
-    * @param saveMode The output save mode
+    * @param consistency The output save mode
     * @param brokerUrls The kafka brokers urls
     * @param offset The kafka consumer offset
     * @param consumerGroup The consumer group name
@@ -156,16 +161,15 @@ object KafkaSampler extends HdfsUtils {
   private[engine] def sinkWithPureKafkaConsumer(
       inputTopic: String,
       temporaryPath: String,
-      tempoPathSuffix: String,
+      tempoBasePath: String,
       output: Output,
       storage: Storage,
-      saveMode: SaveMode,
+      consistency: Option[Consistency],
       brokerUrls: String,
       offset: Offset,
       consumerGroup: String,
       fs: FileSystem
   ): Either[Throwable, Unit] = {
-    val tempoBasePath = new java.io.File(temporaryPath).getParent
     KafkaTopicConsumer
       .consume(inputTopic, brokerUrls, offset, consumerGroup)
       .map(consumed => {
@@ -194,11 +198,10 @@ object KafkaSampler extends HdfsUtils {
       })
     dispatchDataToOutput(
       temporaryPath,
-      tempoPathSuffix,
       tempoBasePath,
       output,
       storage,
-      saveMode
+      consistency
     )
   }
 
@@ -207,10 +210,10 @@ object KafkaSampler extends HdfsUtils {
     *
     * @param inputTopic The input kafka topic
     * @param temporaryPath The temporary output folder
-    * @param tempoPathSuffix The suffix of the temporary output folder
+    * @param tempoBasePath The base of the temporary output folder
     * @param output The output File entity
     * @param storage The output file system storage
-    * @param saveMode The output save mode
+    * @param consistency The output save mode
     * @param brokerUrls The kafka brokers urls
     * @param offset The kafka consumer offset
     * @param streamAppId The identifier of the streaming application
@@ -220,17 +223,16 @@ object KafkaSampler extends HdfsUtils {
   private[engine] def sinkWithPureKafkaStreamsConsumer(
       inputTopic: String,
       temporaryPath: String,
-      tempoPathSuffix: String,
+      tempoBasePath: String,
       output: Output,
       storage: Storage,
-      saveMode: SaveMode,
+      consistency: Option[Consistency],
       brokerUrls: String,
       offset: Offset,
       streamAppId: String,
       fs: FileSystem
   ): Either[Throwable, Unit] = {
     Either.catchNonFatal {
-      val tempoBasePath = new java.io.File(temporaryPath).getParent
       val kafkaStreamEntity =
         KafkaTopicConsumer.consumeWithStream(streamAppId, inputTopic, offset, brokerUrls)
       kafkaStreamEntity.dataKStream.mapValues(data => {
@@ -247,11 +249,10 @@ object KafkaSampler extends HdfsUtils {
         )
         dispatchDataToOutput(
           temporaryPath,
-          tempoPathSuffix,
           tempoBasePath,
           output,
           storage,
-          saveMode
+          consistency
         )
       })
       val streams = new KafkaStreams(kafkaStreamEntity.builder.build(), kafkaStreamEntity.props)
@@ -266,9 +267,9 @@ object KafkaSampler extends HdfsUtils {
     * @param kafka The input Kafka entity
     * @param output The output File entity
     * @param temporaryPath The temporary output folder
-    * @param tempoPathSuffix The suffix of the temporary output folder
+    * @param tempoBasePath The base of the temporary output folder
     * @param storage The output file system storage
-    * @param saveMode The output save mode
+    * @param consistency The output save mode
     * @param brokerUrls The kafka brokers urls
     * @param offset The kafka consumer offset
     * @return Unit, otherwise a Throwable
@@ -278,14 +279,14 @@ object KafkaSampler extends HdfsUtils {
       kafka: Kafka,
       output: Output,
       temporaryPath: String,
-      tempoPathSuffix: String,
+      tempoBasePath: String,
       storage: Storage,
-      saveMode: SaveMode,
+      consistency: Option[Consistency],
       brokerUrls: String,
       offset: Offset
   ): Either[Throwable, Unit] = {
-    val tempoBasePath = new java.io.File(temporaryPath).getParent
     import session.implicits._
+    // todo to be removed and set to Earliest == Batch Mode
     var mutableOffset = offset
     if (mutableOffset != Earliest) {
       logger.warn(
@@ -332,11 +333,10 @@ object KafkaSampler extends HdfsUtils {
       })
     dispatchDataToOutput(
       temporaryPath,
-      tempoPathSuffix,
       tempoBasePath,
       output,
       storage,
-      saveMode
+      consistency
     )
   }
 
@@ -398,43 +398,62 @@ object KafkaSampler extends HdfsUtils {
     * Dispatches intermediate data to the provided output
     *
     * @param temporaryPath The temporary path
-    * @param tempoPathSuffix The suffix of the temporary path
     * @param tempoBasePath The base of the temporary path
     * @param output The provided output entity
     * @param storage The file system storage
-    * @param saveMode The Spark save mode
+    * @param consistency The Spark save mode
     * @return Unit, otherwise a Throwable
     */
   private def dispatchDataToOutput(
       temporaryPath: String,
-      tempoPathSuffix: String,
       tempoBasePath: String,
       output: Output,
       storage: Storage,
-      saveMode: SaveMode
+      consistency: Option[Consistency]
   ): Either[Throwable, Unit] = {
     Either.catchNonFatal {
-      output match {
-        case file @ File(_, _) =>
-          convertUsingBasicSink(temporaryPath, tempoPathSuffix, file, storage, saveMode)
-        case cassandra @ Cassandra(_, _) =>
-          CassandraSink.insertRows(
-            File(JSON, temporaryPath),
-            cassandra,
-            tempoBasePath,
-            saveMode
-          )
-        case elasticsearch @ Elasticsearch(_, _, _) =>
-          ElasticSink
-            .insertDocuments(
-              File(JSON, temporaryPath),
-              elasticsearch,
-              tempoBasePath,
-              storage
-            )
-        case Kafka(_, _) =>
-//          KafkaSink.mirrorTopic(Kafka(inputTopic, None), kafka)
-          new RuntimeException("Already taken care of by kafka-to-kafka routes")
+      consistency match {
+        case Some(consist) =>
+          output match {
+            case file @ File(_, _) =>
+              convertUsingBasicSink(temporaryPath, tempoBasePath, file, storage, consist.toSaveMode)
+            case cassandra @ Cassandra(_, _) =>
+              CassandraSink.insertRows(
+                File(JSON, temporaryPath),
+                cassandra,
+                tempoBasePath,
+                consist.toSaveMode
+              )
+            case _ =>
+              Left(
+                DataHighwayErrorResponse(
+                  "ShouldUseIntermediateSaveMode",
+                  "'save-mode' field should be not present",
+                  ""
+                )
+              )
+          }
+        case None =>
+          output match {
+            case elasticsearch @ Elasticsearch(_, _, _) =>
+              ElasticSink
+                .insertDocuments(
+                  File(JSON, temporaryPath),
+                  elasticsearch,
+                  tempoBasePath,
+                  storage
+                )
+            case Kafka(_, _) =>
+              new RuntimeException("Already taken care of by kafka-to-kafka routes")
+            case _ =>
+              Left(
+                DataHighwayErrorResponse(
+                  "MissingSaveMode",
+                  "Missing 'save-mode' field",
+                  ""
+                )
+              )
+          }
       }
     }
   }
@@ -443,48 +462,28 @@ object KafkaSampler extends HdfsUtils {
     * Converts the temporary json data to the output dataset
     *
     * @param temporaryPath The temporary json path
-    * @param tempoPathSuffix The suffix of the temporary json path
+    * @param tempoBasePath The base of the temporary json path
     * @param output The output File entity
     * @param storage The output file system storage
     * @param saveMode The output save mode
-    * @return Serializable
+    * @return DataHighwayResponse, otherwise a DataHighwayErrorResponse
     */
   def convertUsingBasicSink(
       temporaryPath: String,
-      tempoPathSuffix: String,
+      tempoBasePath: String,
       output: File,
       storage: Storage,
       saveMode: SaveMode
-  ): java.io.Serializable = {
-    val tempInputPath = new java.io.File(temporaryPath).getParent
-    BasicSink.handleChannel(File(JSON, tempInputPath), output, Some(storage), saveMode)
-    cleanupTmp(tempoPathSuffix, Some(storage))
-  }
-
-  /**
-    * Cleanups the temporary folder
-    *
-    * @param output The tmp suffix path
-    * @param storage The tmp file system storage
-    * @return Serializable
-    */
-  private def cleanupTmp(output: String, storage: Option[Storage]): java.io.Serializable = {
-    storage match {
-      case Some(filesystem) =>
-        filesystem match {
-          case Local =>
-            FilesUtils.delete(output)
-          case HDFS =>
-            HdfsUtils.delete(fs, output)
-        }
-      case None =>
-        Left(
-          DataHighwayFileError(
-            "MissingFileSystemStorage",
-            new RuntimeException("Missing 'storage' field"),
-            Array[StackTraceElement]()
-          )
-        )
+  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+    val tempInputPath = storage match {
+      case Local => new java.io.File(temporaryPath).getParent
+      case HDFS  => HdfsUtils.getPathWithoutUriPrefix(new java.io.File(temporaryPath).getParent)
     }
+    BasicSink.handleChannel(
+      File(JSON, tempInputPath),
+      output,
+      Some(storage),
+      Some(Consistency.toConsistency(saveMode))
+    )
   }
 }

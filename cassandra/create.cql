@@ -20,4 +20,6 @@ CREATE TABLE data_entities.persons(
    ip_address text
 );
 select * from data_entities.persons;
-select count(*) from data_entities.persons ;
+select count(*) from data_entities.persons;
+truncate table data_entities.persons;
+

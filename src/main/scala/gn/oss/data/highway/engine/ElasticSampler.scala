@@ -15,6 +15,9 @@ import gn.oss.data.highway.models.{
   BoolMatchPhraseQuery,
   Cassandra,
   CommonTermsQuery,
+  Consistency,
+  DataHighwayErrorResponse,
+  DataHighwayResponse,
   Elasticsearch,
   ExistsQuery,
   Field,
@@ -48,9 +51,9 @@ import gn.oss.data.highway.models.{
   TermsQuery,
   WildcardQuery
 }
-import gn.oss.data.highway.utils.{ElasticUtils, FilesUtils, HdfsUtils}
+import gn.oss.data.highway.utils.{ElasticUtils, FilesUtils, HdfsUtils, SharedUtils}
 import gn.oss.data.highway.models.DataHighwayError.DataHighwayFileError
-import org.apache.spark.sql.SaveMode
+import gn.oss.data.highway.utils.Constants.SUCCESS
 
 import java.util.UUID
 
@@ -414,90 +417,171 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     * @param input The Elasticsearch index
     * @param output The output base folder
     * @param storage The output file system storage
-    * @return List of Unit, otherwise an Error
+    * @param consistency The file saving mode
+    * @return DataHighwayFileResponse, otherwise a DataHighwayErrorResponse
     */
   def saveDocuments(
       input: Elasticsearch,
       output: Output,
-      saveMode: SaveMode,
-      storage: Option[Storage]
+      storage: Option[Storage],
+      consistency: Option[Consistency]
+  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+    val (temporaryPath, tempoBasePath) =
+      SharedUtils.setTempoFilePath("elasticsearch-sampler", storage)
+    val result = consistency match {
+      case Some(_) =>
+        handleRoutesWithExplicitSaveModes(input, output, storage, consistency, temporaryPath)
+      case None =>
+        handleRoutesWithIntermediateSaveModes(input, output, temporaryPath)
+    }
+    cleanupTmp(tempoBasePath, storage)
+    SharedUtils
+      .constructIOResponse(
+        input,
+        output,
+        result.leftMap(_.toThrowable),
+        SUCCESS
+      )
+  }
+
+  private def handleRoutesWithIntermediateSaveModes(
+      input: Elasticsearch,
+      output: Output,
+      temporaryPath: String
+  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+    output match {
+      case elasticsearch @ Elasticsearch(_, _, _) =>
+        searchDocsUsingSearchQuery(input, Some(Local), temporaryPath)
+        ElasticSink
+          .handleElasticsearchChannel(File(JSON, temporaryPath), elasticsearch, Some(Local))
+      case kafka @ Kafka(_, _) =>
+        searchDocsUsingSearchQuery(input, Some(Local), temporaryPath)
+        KafkaSink.handleKafkaChannel(File(JSON, temporaryPath), kafka, Some(Local))
+      case _ =>
+        Left(
+          DataHighwayErrorResponse(
+            "MissingSaveMode",
+            "Missing 'save-mode' field",
+            ""
+          )
+        )
+    }
+  }
+
+  private def handleRoutesWithExplicitSaveModes(
+      input: Elasticsearch,
+      output: Output,
+      storage: Option[Storage],
+      consistency: Option[Consistency],
+      temporaryPath: String
+  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+    output match {
+      case file @ File(_, _) =>
+        searchDocsUsingSearchQuery(input, storage, temporaryPath)
+        BasicSink.handleChannel(
+          File(JSON, temporaryPath),
+          file,
+          storage,
+          consistency
+        )
+      case cassandra @ Cassandra(_, _) =>
+        searchDocsUsingSearchQuery(input, Some(Local), temporaryPath)
+        CassandraSink
+          .handleCassandraChannel(
+            File(JSON, temporaryPath),
+            cassandra,
+            Some(Local),
+            consistency
+          )
+      case _ =>
+        Left(
+          DataHighwayErrorResponse(
+            "ShouldUseIntermediateSaveMode",
+            "'save-mode' field should be not present",
+            ""
+          )
+        )
+    }
+  }
+
+  private def searchDocsUsingSearchQuery(
+      input: Elasticsearch,
+      storage: Option[Storage],
+      temporaryPath: String
   ): Either[Throwable, List[Unit]] = {
-    val tempoPathSuffix =
-      s"/tmp/data-highway/elasticsearch-sampler/${System.currentTimeMillis().toString}/"
-    val temporaryPath = tempoPathSuffix + UUID.randomUUID().toString
-    val res = storage match {
+    storage match {
       case Some(filesystem) =>
         input.searchQuery match {
           case Some(query) =>
             query match {
               case MatchAllQuery =>
                 searchWithMatchAllQuery(input.index)
-                  .traverse(saveSearchHit(temporaryPath, filesystem))
+                  .traverse(searchHit => saveSearchHit(searchHit, temporaryPath, filesystem))
 
               case MatchQuery(field) =>
                 searchWithMatchQuery(input.index, field)
-                  .traverse(saveSearchHit(temporaryPath, filesystem))
+                  .traverse(searchHit => saveSearchHit(searchHit, temporaryPath, filesystem))
 
               case MultiMatchQuery(values) =>
                 searchWithMultiMatchQuery(input.index, values).flatMap(hits => {
-                  hits.traverse(saveSearchHit(temporaryPath, filesystem))
+                  hits.traverse(searchHit => saveSearchHit(searchHit, temporaryPath, filesystem))
                 })
 
               case TermQuery(field) =>
                 searchWithTermQuery(input.index, field)
-                  .traverse(saveSearchHit(temporaryPath, filesystem))
+                  .traverse(searchHit => saveSearchHit(searchHit, temporaryPath, filesystem))
 
               case TermsQuery(fieldValues) =>
                 searchWithTermsQuery(input.index, fieldValues)
-                  .traverse(saveSearchHit(temporaryPath, filesystem))
+                  .traverse(searchHit => saveSearchHit(searchHit, temporaryPath, filesystem))
 
               case CommonTermsQuery(field) =>
                 searchWithCommonTermsQuery(input.index, field)
-                  .traverse(saveSearchHit(temporaryPath, filesystem))
+                  .traverse(searchHit => saveSearchHit(searchHit, temporaryPath, filesystem))
 
               case QueryStringQuery(query) =>
                 searchWithQueryStringQuery(input.index, query)
-                  .traverse(saveSearchHit(temporaryPath, filesystem))
+                  .traverse(searchHit => saveSearchHit(searchHit, temporaryPath, filesystem))
 
               case SimpleStringQuery(query) =>
                 searchWithSimpleStringQuery(input.index, query)
-                  .traverse(saveSearchHit(temporaryPath, filesystem))
+                  .traverse(searchHit => saveSearchHit(searchHit, temporaryPath, filesystem))
 
               case PrefixQuery(query) =>
                 searchWithPrefixQuery(input.index, query)
-                  .traverse(saveSearchHit(temporaryPath, filesystem))
+                  .traverse(searchHit => saveSearchHit(searchHit, temporaryPath, filesystem))
 
               case MoreLikeThisQuery(likeFields) =>
                 searchWithMoreLikeThisQuery(input.index, likeFields)
-                  .traverse(saveSearchHit(temporaryPath, filesystem))
+                  .traverse(searchHit => saveSearchHit(searchHit, temporaryPath, filesystem))
 
               case RangeQuery(rangeField) =>
                 searchWithRangeQuery(input.index, rangeField)
-                  .traverse(saveSearchHit(temporaryPath, filesystem))
+                  .traverse(searchHit => saveSearchHit(searchHit, temporaryPath, filesystem))
 
               case ExistsQuery(fieldName) =>
                 searchWithExistsQuery(input.index, fieldName)
-                  .traverse(saveSearchHit(temporaryPath, filesystem))
+                  .traverse(searchHit => saveSearchHit(searchHit, temporaryPath, filesystem))
 
               case WildcardQuery(field) =>
                 searchWithWildcardQuery(input.index, field)
-                  .traverse(saveSearchHit(temporaryPath, filesystem))
+                  .traverse(searchHit => saveSearchHit(searchHit, temporaryPath, filesystem))
 
               case RegexQuery(field) =>
                 searchWithRegexQuery(input.index, field)
-                  .traverse(saveSearchHit(temporaryPath, filesystem))
+                  .traverse(searchHit => saveSearchHit(searchHit, temporaryPath, filesystem))
 
               case FuzzyQuery(field) =>
                 searchWithFuzzyQuery(input.index, field)
-                  .traverse(saveSearchHit(temporaryPath, filesystem))
+                  .traverse(searchHit => saveSearchHit(searchHit, temporaryPath, filesystem))
 
               case IdsQuery(ids) =>
                 searchWithIdsQuery(input.index, ids)
-                  .traverse(saveSearchHit(temporaryPath, filesystem))
+                  .traverse(searchHit => saveSearchHit(searchHit, temporaryPath, filesystem))
 
               case BoolMatchPhraseQuery(boolFilter, fields) =>
                 searchWithBoolMatchPhraseQuery(input.index, boolFilter, fields).traverse(
-                  saveSearchHit(temporaryPath, filesystem)
+                  searchHit => saveSearchHit(searchHit, temporaryPath, filesystem)
                 )
 
               case _ => Either.catchNonFatal(List())
@@ -515,25 +599,6 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
           )
         )
     }
-    output match {
-      case file @ File(_, _) =>
-        BasicSink.handleChannel(File(JSON, temporaryPath), file, storage, saveMode)
-      case cassandra @ Cassandra(_, _) =>
-        CassandraSink
-          .handleCassandraChannel(
-            File(JSON, temporaryPath),
-            cassandra,
-            Some(Local),
-            SaveMode.Append
-          )
-      case elasticsearch @ Elasticsearch(_, _, _) =>
-        ElasticSink
-          .handleElasticsearchChannel(File(JSON, temporaryPath), elasticsearch, Some(Local))
-      case kafka @ Kafka(_, _) =>
-        KafkaSink.handleKafkaChannel(File(JSON, temporaryPath), kafka, Some(Local))
-    }
-    cleanupTmp(tempoPathSuffix, storage)
-    res
   }
 
   /**
@@ -610,26 +675,25 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     * @return Unit, otherwise a Throwable
     */
   private def saveSearchHit(
+      searchHit: SearchHit,
       out: String,
       storage: Storage
-  ): SearchHit => Either[Throwable, Unit] = { (searchHit: SearchHit) =>
-    {
-      storage match {
-        case HDFS =>
-          HdfsUtils.save(
-            fs,
-            s"$out/${searchHit.index}/es-${searchHit.id}-${UUID.randomUUID()}-${System
-              .currentTimeMillis()}.${JSON.extension}",
-            searchHit.sourceAsMap.mapValues(_.toString).asJson.noSpaces
-          )
-        case Local =>
-          FilesUtils.createFile(
-            s"$out/${searchHit.index}",
-            s"es-${searchHit.id}-${UUID.randomUUID()}-${System
-              .currentTimeMillis()}.${JSON.extension}",
-            searchHit.sourceAsMap.mapValues(_.toString).asJson.noSpaces
-          )
-      }
+  ): Either[Throwable, Unit] = {
+    storage match {
+      case HDFS =>
+        HdfsUtils.save(
+          fs,
+          s"$out/${searchHit.index}/es-${searchHit.id}-${UUID.randomUUID()}-${System
+            .currentTimeMillis()}.${JSON.extension}",
+          searchHit.sourceAsMap.mapValues(_.toString).asJson.noSpaces
+        )
+      case Local =>
+        FilesUtils.createFile(
+          s"$out/${searchHit.index}",
+          s"es-${searchHit.id}-${UUID.randomUUID()}-${System
+            .currentTimeMillis()}.${JSON.extension}",
+          searchHit.sourceAsMap.mapValues(_.toString).asJson.noSpaces
+        )
     }
   }
 }

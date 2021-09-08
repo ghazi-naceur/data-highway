@@ -1,9 +1,15 @@
 package gn.oss.data.highway.engine
 
-import com.sksamuel.elastic4s.requests.indexes.{CreateIndexResponse, PutMappingResponse}
-import com.sksamuel.elastic4s.requests.indexes.admin.DeleteIndexResponse
 import cats.syntax.either._
-import gn.oss.data.highway.models.{ElasticOperation, IndexCreation, IndexDeletion, IndexMapping}
+import gn.oss.data.highway.models.{
+  DataHighwayElasticResponse,
+  DataHighwayErrorResponse,
+  DataHighwayResponse,
+  ElasticOperation,
+  IndexCreation,
+  IndexDeletion,
+  IndexMapping
+}
 import gn.oss.data.highway.utils.ElasticUtils
 
 object ElasticAdminOps extends ElasticUtils {
@@ -14,7 +20,9 @@ object ElasticAdminOps extends ElasticUtils {
     * @param operation THe ES operation
     * @return Product, other an Throwable
     */
-  def execute(operation: ElasticOperation): Either[Throwable, Product] = {
+  def execute(
+      operation: ElasticOperation
+  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
     operation match {
       case IndexCreation(indexName, optMapping) =>
         optMapping match {
@@ -36,13 +44,17 @@ object ElasticAdminOps extends ElasticUtils {
     * @param indexName THe index to be created
     * @return CreateIndexResponse, otherwise a Throwable
     */
-  def createIndice(indexName: String): Either[Throwable, CreateIndexResponse] = {
+  def createIndice(indexName: String): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
     import com.sksamuel.elastic4s.ElasticDsl._
     Either.catchNonFatal {
-      esClient.execute {
+      val result = esClient.execute {
         createIndex(indexName)
       }.await.result
-    }
+      if (result.acknowledged)
+        DataHighwayElasticResponse(indexName, "Index created successfully")
+      else
+        DataHighwayElasticResponse(indexName, "Index is not created")
+    }.leftMap(thr => DataHighwayErrorResponse(thr.getMessage, thr.getCause.toString, ""))
   }
 
   /**
@@ -52,16 +64,23 @@ object ElasticAdminOps extends ElasticUtils {
     * @param mappings THe index mapping to be applied
     * @return PutMappingResponse, otherwise a Throwable
     */
-  def createIndice(indexName: String, mappings: String): Either[Throwable, PutMappingResponse] = {
+  def createIndice(
+      indexName: String,
+      mappings: String
+  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
     import com.sksamuel.elastic4s.ElasticDsl._
     Either.catchNonFatal {
       esClient.execute {
         createIndex(indexName)
       }.await.result
-      esClient.execute {
+      val result = esClient.execute {
         putMapping(indexName).rawSource(mappings)
       }.await.result
-    }
+      if (result.acknowledged)
+        DataHighwayElasticResponse(indexName, "Index created successfully")
+      else
+        DataHighwayElasticResponse(indexName, "Index is not created")
+    }.leftMap(thr => DataHighwayErrorResponse(thr.getMessage, thr.getCause.toString, ""))
   }
 
   /**
@@ -70,13 +89,17 @@ object ElasticAdminOps extends ElasticUtils {
     * @param indexName The ES index to be deleted
     * @return DeleteIndexResponse, otherwise a Throwable
     */
-  def deleteIndice(indexName: String): Either[Throwable, DeleteIndexResponse] = {
+  def deleteIndice(indexName: String): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
     import com.sksamuel.elastic4s.ElasticDsl._
     Either.catchNonFatal {
-      esClient.execute {
+      val result = esClient.execute {
         deleteIndex(indexName)
       }.await.result
-    }
+      if (result.acknowledged)
+        DataHighwayElasticResponse(indexName, "Index deleted successfully")
+      else
+        DataHighwayElasticResponse(indexName, "Index is not deleted")
+    }.leftMap(thr => DataHighwayErrorResponse(thr.getMessage, thr.getCause.toString, ""))
   }
 
   /**
@@ -86,12 +109,19 @@ object ElasticAdminOps extends ElasticUtils {
     * @param mappings The mapping to be applied
     * @return PutMappingResponse, otherwise a Throwable
     */
-  def addMapping(indexName: String, mappings: String): Either[Throwable, PutMappingResponse] = {
+  def addMapping(
+      indexName: String,
+      mappings: String
+  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
     import com.sksamuel.elastic4s.ElasticDsl._
     Either.catchNonFatal {
-      esClient.execute {
+      val result = esClient.execute {
         putMapping(indexName).rawSource(mappings)
       }.await.result
-    }
+      if (result.acknowledged)
+        DataHighwayElasticResponse(indexName, "Mapping added successfully")
+      else
+        DataHighwayElasticResponse(indexName, "Mapping is not added")
+    }.leftMap(thr => DataHighwayErrorResponse(thr.getMessage, thr.getCause.toString, ""))
   }
 }

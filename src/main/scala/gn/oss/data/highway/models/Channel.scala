@@ -1,11 +1,20 @@
 package gn.oss.data.highway.models
 
+import org.apache.spark.sql.SaveMode
+
 sealed trait Channel
 
-sealed trait Input
-sealed trait Output
+sealed trait Plug
 
-case class Route(input: Input, output: Output, storage: Option[Storage]) extends Channel
+sealed trait Input  extends Plug
+sealed trait Output extends Plug
+
+case class Route(
+    input: Input,
+    output: Output,
+    storage: Option[Storage],
+    saveMode: Option[Consistency]
+) extends Channel
 
 case class File(dataType: DataType, path: String)     extends Input with Output
 case class Cassandra(keyspace: String, table: String) extends Input with Output
