@@ -10,16 +10,28 @@ services:
       - "5555:5555"
     container_name: bungee-gum-app
     volumes:
-      - /the-path-to-spark-input-data-located-in-your-host-machine/:/app/data/spark/input
-      - /the-path-to-the-generated-spark-output-in-your-host-machine/:/app/data/spark/output
-      - /the-path-to-the-generated-spark-processed-in-your-host-machine/:/app/data/spark/processed
-      - /the-path-to-kafka-input-data-located-in-your-host-machine/:/app/data/kafka/input
-      - /the-path-to-the-generated-kafka-output-in-your-host-machine/:/app/data/kafka/output
-      - /the-path-to-the-generated-kafka-processed-in-your-host-machine/:/app/data/kafka/processed
-      - /the-path-to-elasticsearch-input-data-located-in-your-host-machine/:/app/data/elasticsearch/input
-      - /the-path-to-the-generated-elasticsearch-output-in-your-host-machine/:/app/data/elasticsearch/output
-      - /the-path-to-the-generated-elasticsearch-processed-in-your-host-machine/:/app/data/elasticsearch/processed
-      - /the-path-to-your-log-file/log4j.properties:/app/config/log4j.properties
-      - /the-path-to-your-config-file/application.conf:/app/config/application.conf
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/parquet/input:/app/data/parquet/input
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/parquet/output:/app/data/parquet/output
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/parquet/processed:/app/data/parquet/processed
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/json/input:/app/data/json/input
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/json/output:/app/data/json/output
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/json/processed:/app/data/json/processed
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/avro/input:/app/data/avro/input
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/avro/output:/app/data/avro/output
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/avro/processed:/app/data/avro/processed
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/csv/input:/app/data/csv/input
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/csv/output:/app/data/csv/output
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/csv/processed:/app/data/csv/processed
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/xlsx/input:/app/data/xlsx/input
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/xlsx/output:/app/data/xlsx/output
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/xlsx/processed:/app/data/xlsx/processed
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/input:/app/data/elasticsearch/input
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output:/app/data/elasticsearch/output
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/processed:/app/data/elasticsearch/processed
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/kafka/input:/app/data/kafka/input
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/kafka/output:/app/data/kafka/output
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/kafka/processed:/app/data/kafka/processed
+      - /home/ghazi/workspace/data-highway/src/main/resources/log4j.properties:/app/config/log4j.properties
+      - /home/ghazi/workspace/data-highway/src/main/resources/application.conf:/app/config/application.conf
     network_mode: "host"
     entrypoint: ["java", "-cp", "/app/jar/data-highway-${version}.jar", "gn.oss.data.highway.IOMain", "-Dlog4j.configuration=/app/config/log4j.properties", "-Dconfig.file=/app/config/application.conf"]
