@@ -125,6 +125,122 @@
 					]
 				},
 				{
+					"name": "file_to_orc",
+					"item": [
+						{
+							"name": "file-to-orc_docker",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"/app/data/avro/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"orc\",\n            \"compression\": {\n                \"type\": \"none\"\n            }\n        },\n        \"path\": \"/app/data/orc/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"overwrite\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									],
+									"query": [
+										{
+											"key": "",
+											"value": null,
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "file-to-orc_local",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/json/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"orc\",\n            \"compression\": {\n                \"type\": \"zlib\"\n            }\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/orc/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"overwrite\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									],
+									"query": [
+										{
+											"key": "",
+											"value": null,
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "file-to-orc_hdfs",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/avro/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"orc\",\n            \"compression\": {\n                \"type\": \"none\"\n            }\n        },\n        \"path\": \"hdfs://localhost:9000/data/orc/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"save-mode\": {\n        \"type\": \"overwrite\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/route",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"route"
+									],
+									"query": [
+										{
+											"key": "",
+											"value": null,
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
 					"name": "file_to_avro",
 					"item": [
 						{
