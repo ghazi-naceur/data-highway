@@ -10,7 +10,7 @@ case object JSON extends DataType {
 case object CSV extends DataType {
   override val extension: String = "csv"
 }
-case object PARQUET extends DataType {
+case class PARQUET(compression: Option[ParquetCompression]) extends DataType {
   override val extension: String = "parquet"
 }
 case object AVRO extends DataType {
@@ -19,26 +19,42 @@ case object AVRO extends DataType {
 case object XLSX extends DataType {
   override val extension: String = "xlsx"
 }
-case class ORC(compression: Option[Compression]) extends DataType {
+case class ORC(compression: Option[OrcCompression]) extends DataType {
   override val extension: String = "orc"
 }
 case class CassandraDB(keyspace: String, table: String) extends DataType {
   override val extension: String = ""
 }
 
-sealed trait Compression {
+sealed trait OrcCompression {
   val value: String
 }
 
-case object Lzo extends Compression {
+case object Lzo extends OrcCompression with ParquetCompression {
   override val value: String = "lzo"
 }
-case object Snappy extends Compression {
+case object Snappy extends OrcCompression with ParquetCompression {
   override val value: String = "snappy"
 }
-case object Zlib extends Compression {
+case object Zlib extends OrcCompression {
   override val value: String = "zlib"
 }
-case object None extends Compression {
+case object None extends OrcCompression with ParquetCompression {
   override val value: String = "none"
+}
+
+sealed trait ParquetCompression {
+  val value: String
+}
+case object Uncompressed extends ParquetCompression {
+  override val value: String = "uncompressed"
+}
+case object Gzip extends ParquetCompression {
+  override val value: String = "gzip"
+}
+case object Brotli extends ParquetCompression {
+  override val value: String = "brotli"
+}
+case object Lz4 extends ParquetCompression {
+  override val value: String = "lz4"
 }

@@ -21,7 +21,7 @@ class JsonSinkSpec
 
   "BasicSink.convert" should "convert parquet to json" in {
     BasicSink.convert(
-      PARQUET,
+      PARQUET(None),
       parquetFolder + "input/mock-data-2",
       JSON,
       jsonFolder + "output/mock-data-2",

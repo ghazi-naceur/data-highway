@@ -21,7 +21,7 @@ class OrcSinkSpec
 
   "BasicSink.convert" should "convert parquet to orc" in {
     BasicSink.convert(
-      PARQUET,
+      PARQUET(None),
       parquetFolder + "input/mock-data-2",
       ORC(Some(Zlib)),
       orcFolder + "output/mock-data-2",

@@ -75,7 +75,7 @@ class XlsxSinkSpec
 
   "BasicSink.convert" should "convert parquet to xlsx" in {
     BasicSink.convert(
-      PARQUET,
+      PARQUET(None),
       parquetFolder + "input/mock-data-2",
       XLSX,
       xlsxFolder + "output/mock-data-2",

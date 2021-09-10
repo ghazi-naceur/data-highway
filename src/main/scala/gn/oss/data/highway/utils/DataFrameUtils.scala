@@ -38,7 +38,7 @@ object DataFrameUtils extends SparkUtils {
             .option("header", "true")
             .option("sep", SEPARATOR)
             .csv(in)
-        case PARQUET =>
+        case PARQUET(_) =>
           sparkSession.read
             .parquet(in)
         case ORC(_) =>
@@ -100,10 +100,20 @@ object DataFrameUtils extends SparkUtils {
             .option("header", "true")
             .option("sep", SEPARATOR)
             .csv(out)
-        case PARQUET =>
-          df.write
-            .mode(saveMode)
-            .parquet(out)
+        case PARQUET(compression) =>
+          compression match {
+            case Some(comp) =>
+              df.write
+                .mode(saveMode)
+                .option("compression", comp.value)
+                .parquet(out)
+            case None =>
+              DataHighwayErrorResponse(
+                "MissingCompressionType",
+                "Must specify 'compression' for Parquet data type while trying to save converted output.",
+                ""
+              ).toThrowable
+          }
         case ORC(compression) =>
           compression match {
             case Some(comp) =>

@@ -22,7 +22,7 @@ class AvroSinkSpec
   "BasicSink.convert" should "convert parquet to avro" in {
     BasicSink
       .convert(
-        PARQUET,
+        PARQUET(None),
         parquetFolder + "input/mock-data-2",
         AVRO,
         avroFolder + "output/mock-data-2",

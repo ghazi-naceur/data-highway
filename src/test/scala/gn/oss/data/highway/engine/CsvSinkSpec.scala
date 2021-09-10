@@ -21,7 +21,7 @@ class CsvSinkSpec
 
   "BasicSink.convert" should "convert parquet to csv" in {
     BasicSink.convert(
-      PARQUET,
+      PARQUET(None),
       parquetFolder + "input/mock-data-2",
       CSV,
       csvFolder + "output/mock-data-2",
