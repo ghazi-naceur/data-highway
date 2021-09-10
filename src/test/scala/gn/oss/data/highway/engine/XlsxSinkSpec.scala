@@ -1,7 +1,7 @@
 package gn.oss.data.highway.engine
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
-import gn.oss.data.highway.models.{AVRO, CSV, JSON, PARQUET, XLSX}
+import gn.oss.data.highway.models.{AVRO, CSV, JSON, ORC, PARQUET, XLSX}
 import gn.oss.data.highway.utils.{DataFrameUtils, FilesUtils, TestHelper}
 import org.apache.spark.sql.SaveMode
 import org.scalatest.BeforeAndAfterEach
@@ -81,6 +81,34 @@ class XlsxSinkSpec
       xlsxFolder + "output/mock-data-2",
       SaveMode.Overwrite
     )
+    val filename =
+      FilesUtils
+        .listFiles(List(xlsxFolder + "output/mock-data-2"))
+        .right
+        .get
+        .filterNot(_.getName.startsWith("."))
+        .head
+        .getName
+    val actual =
+      DataFrameUtils
+        .loadDataFrame(XLSX, xlsxFolder + s"output/mock-data-2/$filename")
+        .right
+        .get
+        .orderBy("id")
+        .select("id", "first_name", "last_name", "email", "gender", "ip_address")
+
+    assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
+  }
+
+  "BasicSink.convert" should "convert orc to xlsx" in {
+    BasicSink
+      .convert(
+        ORC(None),
+        orcFolder + "input/mock-data-2",
+        XLSX,
+        xlsxFolder + "output/mock-data-2",
+        SaveMode.Overwrite
+      )
     val filename =
       FilesUtils
         .listFiles(List(xlsxFolder + "output/mock-data-2"))

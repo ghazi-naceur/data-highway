@@ -1,14 +1,14 @@
 package gn.oss.data.highway.engine
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
-import gn.oss.data.highway.models.{AVRO, CSV, JSON, ORC, PARQUET, XLSX}
+import gn.oss.data.highway.models.{AVRO, CSV, JSON, ORC, PARQUET, XLSX, Zlib}
 import gn.oss.data.highway.utils.{DataFrameUtils, TestHelper}
 import org.apache.spark.sql.SaveMode
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class CsvSinkSpec
+class OrcSinkSpec
     extends AnyFlatSpec
     with Matchers
     with BeforeAndAfterEach
@@ -16,78 +16,56 @@ class CsvSinkSpec
     with TestHelper {
 
   override def beforeEach(): Unit = {
-    deleteFolderWithItsContent(csvFolder + "output")
+    deleteFolderWithItsContent(orcFolder + "output")
   }
 
-  "BasicSink.convert" should "convert parquet to csv" in {
+  "BasicSink.convert" should "convert parquet to orc" in {
     BasicSink.convert(
       PARQUET,
       parquetFolder + "input/mock-data-2",
-      CSV,
-      csvFolder + "output/mock-data-2",
+      ORC(Some(Zlib)),
+      orcFolder + "output/mock-data-2",
       SaveMode.Overwrite
     )
     val actual =
       DataFrameUtils
-        .loadDataFrame(CSV, csvFolder + "output/mock-data-2")
+        .loadDataFrame(ORC(None), orcFolder + "output/mock-data-2")
         .right
         .get
         .orderBy("id")
         .select("id", "first_name", "last_name", "email", "gender", "ip_address")
-
     assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
   }
 
-  "BasicSink.convert" should "convert json to csv" in {
+  "BasicSink.convert" should "convert json to orc" in {
     BasicSink.convert(
       JSON,
       jsonFolder + "input/mock-data-2",
-      CSV,
-      csvFolder + "output/mock-data-2",
+      ORC(Some(Zlib)),
+      orcFolder + "output/mock-data-2",
       SaveMode.Overwrite
     )
     val actual =
       DataFrameUtils
-        .loadDataFrame(CSV, csvFolder + "output/mock-data-2")
+        .loadDataFrame(ORC(None), orcFolder + "output/mock-data-2")
         .right
         .get
         .orderBy("id")
         .select("id", "first_name", "last_name", "email", "gender", "ip_address")
-
     assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
   }
 
-  "BasicSink.convert" should "convert orc to csv" in {
-    BasicSink
-      .convert(
-        ORC(None),
-        orcFolder + "input/mock-data-2",
-        CSV,
-        csvFolder + "output/mock-data-2",
-        SaveMode.Overwrite
-      )
-    val actual =
-      DataFrameUtils
-        .loadDataFrame(CSV, csvFolder + "output/mock-data-2")
-        .right
-        .get
-        .orderBy("id")
-        .select("id", "first_name", "last_name", "email", "gender", "ip_address")
-
-    assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
-  }
-
-  "BasicSink.convert" should "convert avro to csv" in {
+  "BasicSink.convert" should "convert avro to orc" in {
     BasicSink.convert(
       AVRO,
       avroFolder + "input/mock-data-2",
-      CSV,
-      csvFolder + "output/mock-data-2",
+      ORC(Some(Zlib)),
+      orcFolder + "output/mock-data-2",
       SaveMode.Overwrite
     )
     val actual =
       DataFrameUtils
-        .loadDataFrame(CSV, csvFolder + "output/mock-data-2")
+        .loadDataFrame(ORC(None), orcFolder + "output/mock-data-2")
         .right
         .get
         .orderBy("id")
@@ -96,17 +74,39 @@ class CsvSinkSpec
     assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
   }
 
-  "BasicSink.convert" should "convert xlsx to csv" in {
+  "BasicSink.convert" should "convert csv to orc" in {
     BasicSink.convert(
-      XLSX,
-      xlsxFolder + "input/folder1/mock-xlsx-data-13.xlsx",
       CSV,
-      csvFolder + "output/folder1/mock-xlsx-data-13",
+      csvFolder + "input/mock-data-2",
+      ORC(Some(Zlib)),
+      orcFolder + "output/mock-data-2",
       SaveMode.Overwrite
     )
     val actual =
       DataFrameUtils
-        .loadDataFrame(CSV, csvFolder + "output/folder1/mock-xlsx-data-13")
+        .loadDataFrame(ORC(None), orcFolder + "output/mock-data-2")
+        .right
+        .get
+        .orderBy("id")
+        .select("id", "first_name", "last_name", "email", "gender", "ip_address")
+
+    assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
+  }
+
+  "BasicSink.convert" should "convert xlsx to orc" in {
+    BasicSink.convert(
+      XLSX,
+      xlsxFolder + "input/folder1/mock-xlsx-data-13.xlsx",
+      ORC(Some(Zlib)),
+      orcFolder + "output/folder1/mock-xlsx-data-13",
+      SaveMode.Overwrite
+    )
+    val actual =
+      DataFrameUtils
+        .loadDataFrame(
+          ORC(None),
+          orcFolder + "output/folder1/mock-xlsx-data-13"
+        )
         .right
         .get
         .orderBy("id")

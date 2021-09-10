@@ -1,7 +1,7 @@
 package gn.oss.data.highway.engine
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
-import gn.oss.data.highway.models.{AVRO, CSV, JSON, PARQUET, XLSX}
+import gn.oss.data.highway.models.{AVRO, CSV, JSON, ORC, PARQUET, XLSX}
 import gn.oss.data.highway.utils.{DataFrameUtils, TestHelper}
 import org.apache.spark.sql.SaveMode
 import org.scalatest.BeforeAndAfterEach
@@ -63,6 +63,26 @@ class AvroSinkSpec
       .convert(
         CSV,
         csvFolder + "input/mock-data-2",
+        AVRO,
+        avroFolder + "output/mock-data-2",
+        SaveMode.Overwrite
+      )
+    val actual =
+      DataFrameUtils
+        .loadDataFrame(AVRO, avroFolder + "output/mock-data-2")
+        .right
+        .get
+        .orderBy("id")
+        .select("id", "first_name", "last_name", "email", "gender", "ip_address")
+
+    assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
+  }
+
+  "BasicSink.convert" should "convert orc to avro" in {
+    BasicSink
+      .convert(
+        ORC(None),
+        orcFolder + "input/mock-data-2",
         AVRO,
         avroFolder + "output/mock-data-2",
         SaveMode.Overwrite

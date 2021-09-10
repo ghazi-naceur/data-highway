@@ -24,6 +24,7 @@ trait TestHelper {
 
   val parquetFolder = "src/test/resources/data/parquet/"
   val jsonFolder    = "src/test/resources/data/json/"
+  val orcFolder     = "src/test/resources/data/orc/"
   val avroFolder    = "src/test/resources/data/avro/"
   val xlsxFolder    = "src/test/resources/data/xlsx/"
   val csvFolder     = "src/test/resources/data/csv/"
