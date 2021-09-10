@@ -2,7 +2,17 @@ package gn.oss.data.highway.utils
 
 import org.apache.spark.sql.{DataFrame, SaveMode}
 import cats.syntax.either._
-import gn.oss.data.highway.models.{AVRO, CSV, CassandraDB, DataType, JSON, PARQUET, XLSX}
+import gn.oss.data.highway.models.{
+  AVRO,
+  CSV,
+  CassandraDB,
+  DataHighwayErrorResponse,
+  DataType,
+  JSON,
+  ORC,
+  PARQUET,
+  XLSX
+}
 import Constants.SEPARATOR
 
 import java.util.UUID
@@ -31,6 +41,9 @@ object DataFrameUtils extends SparkUtils {
         case PARQUET =>
           sparkSession.read
             .parquet(in)
+        case ORC(_) =>
+          sparkSession.read
+            .orc(in)
         case AVRO =>
           sparkSession.read
             .format(AVRO.extension)
@@ -91,6 +104,20 @@ object DataFrameUtils extends SparkUtils {
           df.write
             .mode(saveMode)
             .parquet(out)
+        case ORC(compression) =>
+          compression match {
+            case Some(comp) =>
+              df.write
+                .mode(saveMode)
+                .option("compression", comp.value)
+                .orc(out)
+            case None =>
+              DataHighwayErrorResponse(
+                "MissingCompressionType",
+                "Must specify 'compression' for ORC data type while trying to save converted output.",
+                ""
+              ).toThrowable
+          }
         case AVRO =>
           df.write
             .format(AVRO.extension)
