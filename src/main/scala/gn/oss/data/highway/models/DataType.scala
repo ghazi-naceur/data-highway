@@ -29,8 +29,7 @@ case class CassandraDB(keyspace: String, table: String) extends DataType {
 sealed trait OrcCompression {
   val value: String
 }
-
-case object Lzo extends OrcCompression with ParquetCompression {
+case object Lzo extends OrcCompression {
   override val value: String = "lzo"
 }
 case object Snappy extends OrcCompression with ParquetCompression {
@@ -46,15 +45,6 @@ case object None extends OrcCompression with ParquetCompression {
 sealed trait ParquetCompression {
   val value: String
 }
-case object Uncompressed extends ParquetCompression {
-  override val value: String = "uncompressed"
-}
 case object Gzip extends ParquetCompression {
   override val value: String = "gzip"
-}
-case object Brotli extends ParquetCompression {
-  override val value: String = "brotli"
-}
-case object Lz4 extends ParquetCompression {
-  override val value: String = "lz4"
 }

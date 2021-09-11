@@ -210,8 +210,8 @@ that will be created automatically.
 }
 ```
 
-You can set compression for these output data types as follows :
-  - **Parquet**: The supported compression types for parquet are **none**, **uncompressed**, **snappy**, **gzip**, **lzo**, **brotli** and **lz4**
+You can set **compression** for these **output** data types as follows :
+  - **Parquet**: The supported compression types for parquet are **none**, **snappy** and **gzip**
 ```json
 ...........
   "output": {
@@ -219,7 +219,7 @@ You can set compression for these output data types as follows :
     "data-type": {
         "type": "parquet",
         "compression": {
-            "type": "gzip" // supported values are: 'none', 'uncompressed', 'snappy', 'gzip', 'lzo', 'brotli' and 'lz4'
+            "type": "gzip" // supported values are: 'none', 'snappy' and 'gzip'
         }
     },
     "path": "/path/to/parquet/output"
@@ -237,7 +237,7 @@ You can set compression for these output data types as follows :
             "type": "snappy" // supported values are: 'none', 'snappy', 'lzo', and 'zlib'
         }
     },
-    "path": "/path/to/parquet/orc"
+    "path": "/path/to/orc/output"
   }
 ..........
 ```
