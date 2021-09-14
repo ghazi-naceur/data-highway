@@ -11,6 +11,9 @@ RUN mkdir -p /app/config && \
   mkdir -p /app/data/avro/input && \
   mkdir -p /app/data/avro/output && \
   mkdir -p /app/data/avro/processed && \
+  mkdir -p /app/data/orc/input && \
+  mkdir -p /app/data/orc/output && \
+  mkdir -p /app/data/orc/processed && \
   mkdir -p /app/data/csv/input && \
   mkdir -p /app/data/csv/output && \
   mkdir -p /app/data/csv/processed && \
