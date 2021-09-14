@@ -6,7 +6,7 @@ import gn.oss.data.highway.models.{
   AVRO,
   CSV,
   CassandraDB,
-  DataHighwayErrorResponse,
+  Compression,
   DataType,
   JSON,
   ORC,
@@ -101,33 +101,17 @@ object DataFrameUtils extends SparkUtils {
             .option("sep", SEPARATOR)
             .csv(out)
         case PARQUET(compression) =>
-          compression match {
-            case Some(comp) =>
-              df.write
-                .mode(saveMode)
-                .option("compression", comp.value)
-                .parquet(out)
-            case None =>
-              DataHighwayErrorResponse(
-                "MissingCompressionType",
-                "Must specify 'compression' for Parquet data type while trying to save converted output.",
-                ""
-              ).toThrowable
-          }
+          val computedCompression = computeCompression(compression)
+          df.write
+            .mode(saveMode)
+            .option("compression", computedCompression.value)
+            .parquet(out)
         case ORC(compression) =>
-          compression match {
-            case Some(comp) =>
-              df.write
-                .mode(saveMode)
-                .option("compression", comp.value)
-                .orc(out)
-            case None =>
-              DataHighwayErrorResponse(
-                "MissingCompressionType",
-                "Must specify 'compression' for ORC data type while trying to save converted output.",
-                ""
-              ).toThrowable
-          }
+          val computedCompression = computeCompression(compression)
+          df.write
+            .mode(saveMode)
+            .option("compression", computedCompression.value)
+            .orc(out)
         case AVRO =>
           df.write
             .format(AVRO.extension)
@@ -151,6 +135,15 @@ object DataFrameUtils extends SparkUtils {
             .mode(saveMode)
             .save()
       }
+    }
+  }
+
+  private def computeCompression(compression: Option[Compression]): Compression = {
+    compression match {
+      case Some(comp) =>
+        comp
+      case None =>
+        gn.oss.data.highway.models.None
     }
   }
 

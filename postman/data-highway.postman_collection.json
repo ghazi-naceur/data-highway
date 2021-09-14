@@ -2298,7 +2298,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-7\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"ids-query\",\n            \"ids\": [\"wcOPfnsBllGEOdBS7-HB\", \"zMOPfnsBllGEOdBS8OGr\", \"zsOPfnsBllGEOdBS8OHM\"]\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
+							"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-7\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"ids-query\",\n            \"ids\": [\"wcOPfnsBllGEOdBS7-HB\", \"zMOPfnsBllGEOdBS8OGr\", \"zsOPfnsBllGEOdBS8OHM\"]\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"orc\",\n            \"compression\": {\n                \"type\": \"snappy\"\n            }\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/orc/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"overwrite\"\n    }\n  }\n}"
 						},
 						"url": {
 							"raw": "http://localhost:5555/conversion/route",
