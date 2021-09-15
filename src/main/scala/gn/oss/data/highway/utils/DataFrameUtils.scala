@@ -2,7 +2,17 @@ package gn.oss.data.highway.utils
 
 import org.apache.spark.sql.{DataFrame, SaveMode}
 import cats.syntax.either._
-import gn.oss.data.highway.models.{AVRO, CSV, CassandraDB, DataType, JSON, PARQUET, XLSX}
+import gn.oss.data.highway.models.{
+  AVRO,
+  CSV,
+  CassandraDB,
+  Compression,
+  DataType,
+  JSON,
+  ORC,
+  PARQUET,
+  XLSX
+}
 import Constants.SEPARATOR
 
 import java.util.UUID
@@ -28,9 +38,12 @@ object DataFrameUtils extends SparkUtils {
             .option("header", "true")
             .option("sep", SEPARATOR)
             .csv(in)
-        case PARQUET =>
+        case PARQUET(_) =>
           sparkSession.read
             .parquet(in)
+        case ORC(_) =>
+          sparkSession.read
+            .orc(in)
         case AVRO =>
           sparkSession.read
             .format(AVRO.extension)
@@ -87,10 +100,18 @@ object DataFrameUtils extends SparkUtils {
             .option("header", "true")
             .option("sep", SEPARATOR)
             .csv(out)
-        case PARQUET =>
+        case PARQUET(compression) =>
+          val computedCompression = computeCompression(compression)
           df.write
             .mode(saveMode)
+            .option("compression", computedCompression.value)
             .parquet(out)
+        case ORC(compression) =>
+          val computedCompression = computeCompression(compression)
+          df.write
+            .mode(saveMode)
+            .option("compression", computedCompression.value)
+            .orc(out)
         case AVRO =>
           df.write
             .format(AVRO.extension)
@@ -114,6 +135,15 @@ object DataFrameUtils extends SparkUtils {
             .mode(saveMode)
             .save()
       }
+    }
+  }
+
+  private def computeCompression(compression: Option[Compression]): Compression = {
+    compression match {
+      case Some(comp) =>
+        comp
+      case None =>
+        gn.oss.data.highway.models.None
     }
   }
 

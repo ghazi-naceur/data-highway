@@ -1,9 +1,9 @@
 package gn.oss.data.highway.engine
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
-import gn.oss.data.highway.models.{AVRO, CSV, JSON, PARQUET, XLSX}
+import gn.oss.data.highway.models.{AVRO, CSV, JSON, ORC, PARQUET, XLSX}
 import gn.oss.data.highway.utils.{DataFrameUtils, TestHelper}
-import org.apache.spark.sql.{SaveMode, functions}
+import org.apache.spark.sql.SaveMode
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -21,7 +21,7 @@ class JsonSinkSpec
 
   "BasicSink.convert" should "convert parquet to json" in {
     BasicSink.convert(
-      PARQUET,
+      PARQUET(None),
       parquetFolder + "input/mock-data-2",
       JSON,
       jsonFolder + "output/mock-data-2",
@@ -34,25 +34,10 @@ class JsonSinkSpec
         .get
         .orderBy("id")
         .select("id", "first_name", "last_name", "email", "gender", "ip_address")
-    val map = actual
-      .toLocalIterator()
-      .next()
-      .getValuesMap(actual.toLocalIterator().next().schema.fieldNames)
-    new scala.util.parsing.json.JSONObject(
-      map
-    )
-    actual.toJSON
-
-//    val fieldNames = actual.head().schema.fieldNames
-//    actual.foreach(row => {
-//      val map1 = row.getValuesMap(fieldNames)
-//      println(toJson(map1))
-//    })
-
     assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
   }
 
-  "BasicSink.convert" should "convertn avro to json" in {
+  "BasicSink.convert" should "convert avro to json" in {
     BasicSink.convert(
       AVRO,
       avroFolder + "input/mock-data-2",
@@ -60,6 +45,26 @@ class JsonSinkSpec
       jsonFolder + "output/mock-data-2",
       SaveMode.Overwrite
     )
+    val actual =
+      DataFrameUtils
+        .loadDataFrame(JSON, jsonFolder + "output/mock-data-2")
+        .right
+        .get
+        .orderBy("id")
+        .select("id", "first_name", "last_name", "email", "gender", "ip_address")
+
+    assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
+  }
+
+  "BasicSink.convert" should "convert orc to json" in {
+    BasicSink
+      .convert(
+        ORC(None),
+        orcFolder + "input/mock-data-2",
+        JSON,
+        jsonFolder + "output/mock-data-2",
+        SaveMode.Overwrite
+      )
     val actual =
       DataFrameUtils
         .loadDataFrame(JSON, jsonFolder + "output/mock-data-2")

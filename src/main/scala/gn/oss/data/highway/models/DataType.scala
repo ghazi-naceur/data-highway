@@ -10,7 +10,7 @@ case object JSON extends DataType {
 case object CSV extends DataType {
   override val extension: String = "csv"
 }
-case object PARQUET extends DataType {
+case class PARQUET(compression: Option[ParquetCompression]) extends DataType {
   override val extension: String = "parquet"
 }
 case object AVRO extends DataType {
@@ -19,6 +19,32 @@ case object AVRO extends DataType {
 case object XLSX extends DataType {
   override val extension: String = "xlsx"
 }
+case class ORC(compression: Option[OrcCompression]) extends DataType {
+  override val extension: String = "orc"
+}
 case class CassandraDB(keyspace: String, table: String) extends DataType {
   override val extension: String = ""
+}
+
+sealed trait Compression {
+  val value: String
+}
+
+sealed trait OrcCompression     extends Compression
+sealed trait ParquetCompression extends Compression
+
+case object Lzo extends OrcCompression {
+  override val value: String = "lzo"
+}
+case object Zlib extends OrcCompression {
+  override val value: String = "zlib"
+}
+case object Gzip extends ParquetCompression {
+  override val value: String = "gzip"
+}
+case object Snappy extends OrcCompression with ParquetCompression {
+  override val value: String = "snappy"
+}
+case object None extends OrcCompression with ParquetCompression {
+  override val value: String = "none"
 }

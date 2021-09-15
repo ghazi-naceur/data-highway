@@ -3,7 +3,7 @@ FROM ubuntu:18.04
 RUN apt-get update && apt-get install --no-install-recommends -y tzdata && \
  apt install --no-install-recommends -y openjdk-8-jdk openjdk-8-jre git wget curl
 
-ARG DATA_HIGHWAY_VERSION=0.4-rc
+ARG DATA_HIGHWAY_VERSION=0.4
 
 RUN mkdir -p /app/config && \
   mkdir -p /app/data/parquet/input && \
@@ -12,6 +12,9 @@ RUN mkdir -p /app/config && \
   mkdir -p /app/data/avro/input && \
   mkdir -p /app/data/avro/output && \
   mkdir -p /app/data/avro/processed && \
+  mkdir -p /app/data/orc/input && \
+  mkdir -p /app/data/orc/output && \
+  mkdir -p /app/data/orc/processed && \
   mkdir -p /app/data/csv/input && \
   mkdir -p /app/data/csv/output && \
   mkdir -p /app/data/csv/processed && \

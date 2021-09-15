@@ -5,7 +5,7 @@ services:
 
   app:
     build: .
-    image: data-highway-app:v0.4-rc
+    image: data-highway-app:v0.4
     ports:
       - "5555:5555"
     container_name: bungee-gum-app
@@ -13,6 +13,9 @@ services:
       - /home/ghazi/workspace/data-highway/src/test/resources/data/parquet/input:/app/data/parquet/input
       - /home/ghazi/workspace/data-highway/src/test/resources/data/parquet/output:/app/data/parquet/output
       - /home/ghazi/workspace/data-highway/src/test/resources/data/parquet/processed:/app/data/parquet/processed
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/orc/input:/app/data/orc/input
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/orc/output:/app/data/orc/output
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/orc/processed:/app/data/orc/processed
       - /home/ghazi/workspace/data-highway/src/test/resources/data/json/input:/app/data/json/input
       - /home/ghazi/workspace/data-highway/src/test/resources/data/json/output:/app/data/json/output
       - /home/ghazi/workspace/data-highway/src/test/resources/data/json/processed:/app/data/json/processed
