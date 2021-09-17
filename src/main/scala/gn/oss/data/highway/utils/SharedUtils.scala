@@ -30,7 +30,10 @@ object SharedUtils extends HdfsUtils {
             setLocalTempoFilePath(module)
           case HDFS =>
             val tuple = setLocalTempoFilePath(module)
-            (HdfsUtils.hadoopConf.host + tuple._1, HdfsUtils.hadoopConf.host + tuple._2)
+            (
+              s"${HdfsUtils.hadoopConf.host}:${HdfsUtils.hadoopConf.port}" + tuple._1,
+              s"${HdfsUtils.hadoopConf.host}:${HdfsUtils.hadoopConf.port}" + tuple._2
+            )
         }
       case None =>
         setLocalTempoFilePath(module)

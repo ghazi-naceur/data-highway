@@ -9,7 +9,7 @@ trait ElasticUtils {
 
   val esConf: ElasticConfigs = ConfigLoader().loadConfigs[ElasticConfigs]("elasticsearch")
   val esClient: ElasticClient = {
-    val props = ElasticProperties(esConf.esNodes)
+    val props = ElasticProperties(s"${esConf.host}:${esConf.port}")
     ElasticClient(JavaClient(props))
   }
 }
