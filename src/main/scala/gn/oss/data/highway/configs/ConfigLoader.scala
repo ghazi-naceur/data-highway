@@ -6,6 +6,13 @@ import pureconfig.generic.semiauto._
 
 case class ConfigLoader() {
 
+  /**
+    * Loads Config class from the default application.conf file
+    *
+    * @param param The configuration parameter name to be extracted
+    * @tparam T The Config class that maps with @param parameter
+    * @return The Config class
+    */
   def loadConfigs[T: ConfigReader](param: String): T = {
     import pureconfig._
     val confAsString = ConfigSource.defaultApplication.value() match {
@@ -19,6 +26,14 @@ case class ConfigLoader() {
     loadConfigsFromString(param, confAsString)
   }
 
+  /**
+    * Loads Config class from string configuration
+    *
+    * @param param The configuration parameter name to be extracted
+    * @param confAsString The configuration as string
+    * @tparam T The Config class that maps with @param parameter
+    * @return The Config class
+    */
   def loadConfigsFromString[T: ConfigReader](
       param: String,
       confAsString: String
