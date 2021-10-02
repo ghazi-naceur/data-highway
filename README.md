@@ -211,30 +211,30 @@ that will be created automatically.
 ```
 
 You can set **compression** for these **output** data types as follows :
-  - **Parquet**: The supported compression types for parquet are **none**, **snappy** and **gzip**
+  - **Parquet**: The supported compression types for parquet are **snappy** and **gzip**:
 ```json
 ...........
   "output": {
     "type": "file",
     "data-type": {
         "type": "parquet",
-        "compression": {
-            "type": "gzip" // supported values are: 'none', 'snappy' and 'gzip'
+        "compression": {  // option field
+            "type": "gzip" // supported values are: snappy' and 'gzip'
         }
     },
     "path": "/path/to/parquet/output"
   }
 ..........
 ```
-  - **ORC**: The supported compression types for orc are **none**, **snappy**, **lzo** and **zlib**
+  - **ORC**: The supported compression types for orc are **snappy**, **lzo** and **zlib**:
 ```json
 ...........
   "output": {
     "type": "file",
     "data-type": {
         "type": "orc",
-        "compression": {
-            "type": "snappy" // supported values are: 'none', 'snappy', 'lzo', and 'zlib'
+        "compression": { // option field
+            "type": "snappy" // supported values are: snappy', 'lzo', and 'zlib'
         }
     },
     "path": "/path/to/orc/output"

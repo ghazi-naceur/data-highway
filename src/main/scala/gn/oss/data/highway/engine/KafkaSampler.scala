@@ -19,6 +19,7 @@ import gn.oss.data.highway.models.{
   JSON,
   Kafka,
   KafkaConsumer,
+  Latest,
   Local,
   Offset,
   Output,
@@ -286,22 +287,19 @@ object KafkaSampler extends HdfsUtils {
       offset: Offset
   ): Either[Throwable, Unit] = {
     import session.implicits._
-    // todo to be removed and set to Earliest == Batch Mode
-    var mutableOffset = offset
-    if (mutableOffset != Earliest) {
-      logger.warn(
-        s"Starting offset can't be ${mutableOffset.value} for batch queries on Kafka. So, we'll set it at 'Earliest'."
-      )
-      mutableOffset = Earliest
+    val computedOffset = offset match {
+      case Latest =>
+        logger.warn(
+          s"Starting offset can't be '$offset' for batch queries on Kafka. So, we'll set it at 'Earliest'."
+        )
+        Earliest
+      case Earliest =>
+        offset
     }
-    logger.info(
-      s"Starting to sink '${JSON.extension}' data provided by the input topic '${kafka.topic}' in the output folder pattern" +
-        s" '$temporaryPath/spark-kafka-plugin-*****${JSON.extension}'"
-    )
     val frame = session.read
       .format("kafka")
       .option("kafka.bootstrap.servers", brokerUrls)
-      .option("startingOffsets", mutableOffset.value)
+      .option("startingOffsets", computedOffset.value)
       .option("subscribe", kafka.topic)
       .load()
       .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")

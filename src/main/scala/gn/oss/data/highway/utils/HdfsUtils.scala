@@ -15,7 +15,7 @@ import pureconfig.generic.auto._
 trait HdfsUtils {
   val hadoopConf: HadoopConfigs = ConfigLoader().loadConfigs[HadoopConfigs]("hadoop")
   val conf: Configuration       = new Configuration()
-  conf.set("fs.defaultFS", HdfsUtils.hadoopConf.host)
+  conf.set("fs.defaultFS", s"${HdfsUtils.hadoopConf.host}:${HdfsUtils.hadoopConf.port}")
   val fs: FileSystem = FileSystem.get(conf)
 }
 
