@@ -68,7 +68,8 @@ libraryDependencies ++= Seq(
   "io.circe"                %% "circe-generic"             % circeVersion,
   "io.monix"                %% "monix"                     % "3.3.0",
   "com.sksamuel.elastic4s"  %% "elastic4s-client-esjava"   % elastic4sVersion,
-  "com.crealytics"          %% "spark-excel"               % "0.13.7"
+  "com.crealytics"          %% "spark-excel"               % "0.13.7",
+  "org.postgresql"           % "postgresql"                % "42.2.24"
 )
 
 scalacOptions += "-Ypartial-unification"

@@ -25,6 +25,9 @@ case class ORC(compression: Option[OrcCompression]) extends DataType {
 case class CassandraDB(keyspace: String, table: String) extends DataType {
   override val extension: String = ""
 }
+case class PostgresDB(database: String, table: String) extends DataType {
+  override val extension: String = ""
+}
 
 sealed trait Compression {
   val value: String

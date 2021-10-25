@@ -11,13 +11,15 @@ import gn.oss.data.highway.models.{
   JSON,
   ORC,
   PARQUET,
+  PostgresDB,
   XLSX
 }
 import Constants.SEPARATOR
+import gn.oss.data.highway.configs.{PostgresUtils, SparkUtils}
 
 import java.util.UUID
 
-object DataFrameUtils extends SparkUtils {
+object DataFrameUtils extends SparkUtils with PostgresUtils {
 
   /**
     * Loads a dataframe
@@ -61,11 +63,14 @@ object DataFrameUtils extends SparkUtils {
             .option("keyspace", keyspace)
             .option("table", table)
             .load()
-        case _ =>
-          throw new RuntimeException(
-            "This mode is not supported when defining input data types. The supported Kafka Consume Mode are : " +
-              s"'${JSON.getClass.getName}', '${CSV.getClass.getName}', '${PARQUET.getClass.getName}' and '${AVRO.getClass.getName}'."
-          )
+        case PostgresDB(database, table) =>
+          sparkSession.read
+            .format("jdbc")
+            .option("url", s"${postgresConf.host}:${postgresConf.port}/$database")
+            .option("dbtable", table) // can be "tablename" or "schema.tablename"
+            .option("user", postgresConf.user)
+            .option("password", postgresConf.password)
+            .load()
       }
     }
   }
@@ -134,17 +139,24 @@ object DataFrameUtils extends SparkUtils {
             .option("table", table)
             .mode(saveMode)
             .save()
+        case PostgresDB(database, table) =>
+          df.write
+            .format("jdbc")
+            .option("url", s"${postgresConf.host}:${postgresConf.port}/$database")
+            .option("dbtable", table) // can be "tablename" or "schema.tablename"
+            .option("user", postgresConf.user)
+            .option("password", postgresConf.password)
+            .mode(saveMode)
+            .save()
       }
     }
   }
 
   private def computeCompression(compression: Option[Compression]): Compression = {
-    compression match {
-      case Some(comp) =>
-        comp
-      case None =>
-        gn.oss.data.highway.models.None
-    }
+    if (compression.isDefined)
+      compression.get
+    else
+      gn.oss.data.highway.models.None
   }
 
   /**

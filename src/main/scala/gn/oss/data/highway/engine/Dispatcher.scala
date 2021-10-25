@@ -12,6 +12,7 @@ import gn.oss.data.highway.models.{
   File,
   Kafka,
   Output,
+  Postgres,
   Route,
   Storage
 }
@@ -90,6 +91,14 @@ object Dispatcher {
             saveMode: Option[Consistency]
           ) =>
         KafkaSampler.consumeFromTopic(input, output, storage, saveMode)
+      case Route(
+            input: File,
+            output: Postgres,
+            storage: Option[Storage],
+            saveMode: Option[Consistency]
+          ) =>
+        PostgresSink
+          .handlePostgresChannel(input, output, storage, saveMode)
       case _ =>
         throw new RuntimeException(s"""
           | The provided route '$route' is not supported yet. This route will be implemented in the upcoming versions.
