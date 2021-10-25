@@ -11,7 +11,7 @@ lazy val root = (project in file("."))
   .enablePlugins(BuildInfoPlugin)
   .settings(
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
-    buildInfoPackage := "io.oss.data.highway.build.info"
+    buildInfoPackage := "gn.oss.data.highway.build.info"
   )
 
 assemblyJarName in assembly := s"${name.value}-${version.value}.jar"

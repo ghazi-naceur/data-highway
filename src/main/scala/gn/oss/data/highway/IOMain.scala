@@ -2,7 +2,7 @@ package gn.oss.data.highway
 
 import cats.effect._
 import gn.oss.data.highway.controllers.ConversionController
-import io.oss.data.highway.build.info.BuildInfo
+import gn.oss.data.highway.build.info.BuildInfo
 import org.http4s.server.blaze._
 
 import scala.concurrent.ExecutionContext.Implicits.global
