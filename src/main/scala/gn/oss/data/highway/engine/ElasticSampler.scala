@@ -10,6 +10,7 @@ import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext.Implicits.global
 import cats.syntax.either._
 import com.sksamuel.elastic4s.requests.searches.{SearchHit, SearchResponse}
+import gn.oss.data.highway.configs.{ElasticUtils, HdfsUtils}
 import gn.oss.data.highway.models.{
   BoolFilter,
   BoolMatchPhraseQuery,
@@ -51,7 +52,7 @@ import gn.oss.data.highway.models.{
   TermsQuery,
   WildcardQuery
 }
-import gn.oss.data.highway.utils.{ElasticUtils, FilesUtils, HdfsUtils, SharedUtils}
+import gn.oss.data.highway.utils.{FilesUtils, HdfsUtils, SharedUtils}
 import gn.oss.data.highway.models.DataHighwayError.DataHighwayFileError
 import gn.oss.data.highway.utils.Constants.SUCCESS
 

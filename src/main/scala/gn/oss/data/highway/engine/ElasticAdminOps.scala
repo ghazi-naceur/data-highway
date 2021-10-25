@@ -1,6 +1,7 @@
 package gn.oss.data.highway.engine
 
 import cats.syntax.either._
+import gn.oss.data.highway.configs.ElasticUtils
 import gn.oss.data.highway.models.{
   DataHighwayElasticResponse,
   DataHighwayErrorResponse,
@@ -10,7 +11,6 @@ import gn.oss.data.highway.models.{
   IndexDeletion,
   IndexMapping
 }
-import gn.oss.data.highway.utils.ElasticUtils
 
 object ElasticAdminOps extends ElasticUtils {
 

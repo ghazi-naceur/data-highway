@@ -9,6 +9,7 @@ import org.apache.kafka.streams.scala.StreamsBuilder
 import org.apache.kafka.streams.{KafkaStreams, StreamsConfig}
 import org.apache.log4j.Logger
 import cats.implicits.{toTraverseOps, _}
+import gn.oss.data.highway.configs.HdfsUtils
 import gn.oss.data.highway.models.{
   DataHighwayErrorResponse,
   DataHighwayResponse,

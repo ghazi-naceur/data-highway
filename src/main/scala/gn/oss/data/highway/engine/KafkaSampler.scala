@@ -7,6 +7,7 @@ import org.apache.log4j.Logger
 import org.apache.spark.sql.{SaveMode, SparkSession}
 import monix.execution.Scheduler.{global => scheduler}
 import cats.implicits._
+import gn.oss.data.highway.configs.HdfsUtils
 import gn.oss.data.highway.models.{
   Cassandra,
   Consistency,

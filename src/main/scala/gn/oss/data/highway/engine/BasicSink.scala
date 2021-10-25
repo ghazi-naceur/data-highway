@@ -3,6 +3,7 @@ package gn.oss.data.highway.engine
 import java.io.File
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
+import gn.oss.data.highway.configs.HdfsUtils
 import gn.oss.data.highway.models
 import gn.oss.data.highway.models.{
   Consistency,

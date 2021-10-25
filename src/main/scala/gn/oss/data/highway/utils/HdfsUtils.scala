@@ -1,23 +1,14 @@
 package gn.oss.data.highway.utils
 
-import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, LocatedFileStatus, Path, RemoteIterator}
 
 import java.io.{BufferedWriter, File, OutputStreamWriter}
 import scala.annotation.tailrec
 import cats.implicits._
-import gn.oss.data.highway.configs.{ConfigLoader, HadoopConfigs}
+import gn.oss.data.highway.configs.HdfsUtils
 import gn.oss.data.highway.models.DataHighwayError.HdfsError
 
 import java.nio.charset.StandardCharsets
-import pureconfig.generic.auto._
-
-trait HdfsUtils {
-  val hadoopConf: HadoopConfigs = ConfigLoader().loadConfigs[HadoopConfigs]("hadoop")
-  val conf: Configuration       = new Configuration()
-  conf.set("fs.defaultFS", s"${HdfsUtils.hadoopConf.host}:${HdfsUtils.hadoopConf.port}")
-  val fs: FileSystem = FileSystem.get(conf)
-}
 
 object HdfsUtils extends HdfsUtils {
 

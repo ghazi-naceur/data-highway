@@ -5,6 +5,7 @@ import cats.implicits._
 import com.sksamuel.elastic4s.Response
 import com.sksamuel.elastic4s.requests.bulk.BulkResponse
 import com.sksamuel.elastic4s.requests.common.RefreshPolicy
+import gn.oss.data.highway.configs.{ElasticUtils, HdfsUtils}
 import gn.oss.data.highway.models
 import gn.oss.data.highway.models.{
   DataHighwayErrorResponse,
@@ -17,7 +18,7 @@ import gn.oss.data.highway.models.{
   XLSX
 }
 import gn.oss.data.highway.utils.Constants.SUCCESS
-import gn.oss.data.highway.utils.{DataFrameUtils, ElasticUtils, FilesUtils, HdfsUtils, SharedUtils}
+import gn.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils, SharedUtils}
 import org.apache.spark.sql.DataFrame
 
 import java.io.File
