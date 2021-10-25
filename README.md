@@ -25,6 +25,7 @@ In short, **Data Highway** supports the following data flow :
 - Elasticsearch 7.10.2
 - Cassandra 4.0.0
 - Kafka 2.8.0
+- PostgreSQL 12.8
 
 ## Table of contents :
 * [A- Getting started](#A--getting-started)
@@ -66,6 +67,7 @@ In short, **Data Highway** supports the following data flow :
         * [a- Index creation](#a--index-creation)
         * [b- Index mapping](#b--index-mapping)
         * [c- Index deletion](#c--index-deletion)
+    * [18- File to Postgres](#18--file-to-postgres)
 * [D- Scheduling](#D--scheduling)
 
 # A- Getting started:
@@ -79,6 +81,44 @@ In short, **Data Highway** supports the following data flow :
 3- Enter the unzipped folder 
 
 4- Set the configurations in the **application.conf** and **log4j.properties** files
+  - **application.conf**:
+```json
+spark {
+  app-name = your-app-name // The name you can give to your Spark app (you can change it as you want)
+  master-url = "local[*]" // your spark app host (leave it as is)
+  log-level = {
+    type = warn // The spark log level (supported values: info, warn and error)
+  }
+}
+
+elasticsearch {
+  host = "your-elacticsearch-host" // eg: "http://localhost"
+  port = "your-elasticsearch-port" // eg: "9200"
+}
+
+hadoop {
+  host = "your-hadoop-host" // eg: "hdfs://localhost"
+  port = "your-hadoop-port" // eg: "9000"
+}
+
+cassandra {
+  host = "your-cassandra-host" // eg: "localhost"
+  port = "your-cassandra-port" // eg: "9042" 
+}
+
+postgres {
+  host = "your-postgres-host" // eg: "jdbc:postgresql://localhost"
+  port = "your-postgres-port" // eg: "5432"
+  user = "your-postgres-user" // eg: "admin" 
+  password = "your-postgres-password" // eg: "admin"
+}
+```
+- **log4j.properties**:
+```properties
+log4j.rootLogger=INFO, stdout, FILE # Can be INFO, DEBUG, ERROR, ...etc
+.....
+log4j.appender.FILE.File=/path/to/generated/log/output/file.out
+```
 
 5- Run your **data-highway** instance by executing the **start.sh** script :
 ```shell
@@ -1290,6 +1330,36 @@ It adds a mapping for an existing index.
     "operation": {
       "type": "index-deletion",
       "index-name": "index-name"
+    }
+  }
+}
+```
+
+## 18- File to Postgres:
+
+This a one-time job.
+
+`POST http://localhost:5555/conversion/route`
+```json
+{
+  "route": {
+    "input": {
+      "type": "file",
+      "data-type": {
+        "type": "avro" // supported values: 'avro', orc, 'parquet', 'csv', 'json' and 'xlsx'
+      },
+      "path": "/path/to/data/csv/input"
+    },
+    "output": {
+      "type": "postgres",
+      "database": "your-database",
+      "table": "your-table or your-schema.your-table" // "my_table" or "my_schema.my_table"
+    },
+    "storage": {
+      "type": "local" // supported values: 'local' and 'hdfs'
+    },
+    "save-mode": {
+      "type": "append"  // supported values: 'overwrite', 'append', 'error-if-exists' and 'ignore'
     }
   }
 }
