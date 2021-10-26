@@ -99,6 +99,13 @@ object Dispatcher {
           ) =>
         PostgresSink
           .handlePostgresChannel(input, output, storage, saveMode)
+      case Route(
+            input: Postgres,
+            output: Output,
+            _: Option[Storage],
+            saveMode: Option[Consistency]
+          ) =>
+        PostgresSampler.extractRows(input, output, saveMode)
       case _ =>
         throw new RuntimeException(s"""
           | The provided route '$route' is not supported yet. This route will be implemented in the upcoming versions.
