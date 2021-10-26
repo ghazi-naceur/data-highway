@@ -25,6 +25,8 @@ CREATE TABLE persons_schema.persons(
  ip_address VARCHAR(100)
 );
 
+TRUNCATE table persons_schema.persons ;
+
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA persons_schema TO admin;
 
 GRANT ALL ON schema persons_schema TO admin;
@@ -34,3 +36,12 @@ select * from persons_schema.persons ;
 drop table persons_schema.persons;
 drop schema persons_schema;
 drop table persons;
+
+CREATE TABLE persons_schema.persons_stringified(
+ id VARCHAR(50) PRIMARY KEY,
+ first_name VARCHAR(50),
+ last_name VARCHAR(50),
+ email VARCHAR(70),
+ gender VARCHAR(10),
+ ip_address VARCHAR(100)
+);
