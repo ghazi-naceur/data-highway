@@ -12,7 +12,9 @@ import gn.oss.data.highway.models.{
   JSON,
   Kafka,
   Local,
-  Output
+  Output,
+  Postgres,
+  PostgresDB
 }
 import gn.oss.data.highway.utils.Constants.SUCCESS
 import gn.oss.data.highway.utils.{Constants, DataFrameUtils, SharedUtils}
@@ -109,6 +111,20 @@ object CassandraSampler {
           )
           .flatten
         SharedUtils.constructIOResponse(input, cassandra, result, SUCCESS)
+      case postgres @ Postgres(database, table) =>
+        val result = DataFrameUtils
+          .loadDataFrame(CassandraDB(input.keyspace, input.table), Constants.EMPTY)
+          .traverse(df =>
+            DataFrameUtils
+              .saveDataFrame(
+                df,
+                PostgresDB(database, table),
+                Constants.EMPTY,
+                consistency.toSaveMode
+              )
+          )
+          .flatten
+        SharedUtils.constructIOResponse(input, postgres, result, SUCCESS)
       case _ =>
         Left(
           DataHighwayErrorResponse(

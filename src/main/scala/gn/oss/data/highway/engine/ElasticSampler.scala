@@ -39,6 +39,7 @@ import gn.oss.data.highway.models.{
   Must,
   MustNot,
   Output,
+  Postgres,
   Prefix,
   PrefixQuery,
   QueryStringQuery,
@@ -491,6 +492,15 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
           .handleCassandraChannel(
             File(JSON, temporaryPath),
             cassandra,
+            Some(Local),
+            consistency
+          )
+      case postgres @ Postgres(_, _) =>
+        searchDocsUsingSearchQuery(input, Some(Local), temporaryPath)
+        PostgresSink
+          .handlePostgresChannel(
+            File(JSON, temporaryPath),
+            postgres,
             Some(Local),
             consistency
           )

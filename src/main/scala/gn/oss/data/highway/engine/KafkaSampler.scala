@@ -24,6 +24,7 @@ import gn.oss.data.highway.models.{
   Local,
   Offset,
   Output,
+  Postgres,
   PureKafkaConsumer,
   PureKafkaStreamsConsumer,
   SparkKafkaPluginConsumer,
@@ -420,6 +421,13 @@ object KafkaSampler extends HdfsUtils {
               CassandraSink.insertRows(
                 File(JSON, temporaryPath),
                 cassandra,
+                tempoBasePath,
+                consist.toSaveMode
+              )
+            case postgres @ Postgres(_, _) =>
+              PostgresSink.insertRows(
+                File(JSON, temporaryPath),
+                postgres,
                 tempoBasePath,
                 consist.toSaveMode
               )
