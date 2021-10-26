@@ -2,7 +2,7 @@ Yet another ETL.
 
 Using **data-highway**, you can convert your data to multiple data types or send them to other tools.
 The actual supported data types are : **JSON**, **CSV**, **PARQUET**, **AVRO**, **ORC** and **XLSX**.
-**Data Highway** interacts as well with **Cassandra**, **Elasticsearch** and **Kafka**, using multiple modes.
+**Data Highway** interacts as well with **Cassandra**, **Elasticsearch**, **Postgres** and **Kafka**, using multiple modes.
 
 For example, **Data Highway** allows you to :
   - interact with different technologies through a user-friendly **RESTful API**
@@ -68,6 +68,13 @@ In short, **Data Highway** supports the following data flow :
         * [b- Index mapping](#b--index-mapping)
         * [c- Index deletion](#c--index-deletion)
     * [18- File to Postgres](#18--file-to-postgres)
+    * [19- Cassandra to File](#19--cassandra-to-file)
+    * [20- Postgres to Kafka](#20--postgres-to-kafka)
+      * [a- Postgres to Kafka using Kafka Producer](#a--postgres-to-kafka-using-kafka-producer)
+      * [b- Postgres to Kafka using Spark Kafka Connector](#b--postgres-to-kafka-using-spark-kafka-connector)
+    * [21- Postgres to Postgres](#21--postgres-to-postgres)
+    * [22- Postgres to Cassandra](#22--postgres-to-cassandra)
+    * [23- Postgres to Elasticsearch](#23--postgres-to-elasticsearch)
 * [D- Scheduling](#D--scheduling)
 
 # A- Getting started:
@@ -1360,6 +1367,158 @@ This a one-time job.
     },
     "save-mode": {
       "type": "append"  // supported values: 'overwrite', 'append', 'error-if-exists' and 'ignore'
+    }
+  }
+}
+```
+## 19- Postgres to File:
+
+This is a one-time job.
+
+`POST http://localhost:5555/conversion/route`
+```json
+{
+  "route": {
+    "input": {
+      "type": "postgres",
+      "database": "your-database",
+      "table": "your-table or your-schema.your-table" // "my_table" or "my_schema.my_table"
+    },
+    "output": {
+      "type": "file",
+      "data-type": {
+        "type": "json" // supported values: 'avro', orc, 'parquet', 'csv', 'json' and 'xlsx'
+      },
+      "path": "/path/to/data/json/output"
+    },
+    "save-mode": {
+      "type": "append" // supported values: 'overwrite', 'append', 'error-if-exists' and 'ignore'
+    }
+  }
+}
+```
+
+## 20- Postgres to Kafka:
+
+You can produce data to a Kafka topic using one of these 2 modes : `Pure Kafka Producer` or `Spark Kafka Plugin`.
+
+### a- Postgres to Kafka using Kafka Producer:
+
+This is a one-time job.
+
+`POST http://localhost:5555/conversion/route`
+```json
+{
+  "route": {
+    "input": {
+      "type": "postgres",
+      "database": "your-database",
+      "table": "your-table or your-schema.your-table" // "my_table" or "my_schema.my_table"
+    },
+    "output": {
+      "type": "kafka",
+      "topic": "your-output-kafka-topic",
+      "kafka-mode": {
+        "type": "pure-kafka-producer",
+        "brokers" : "your-broker-host:your-broker-port" // eg: localhost:9092
+      }
+    }
+  }
+}
+```
+
+### b- Postgres to Kafka using Spark Kafka Connector:
+
+This is a one-time job.
+
+`POST http://localhost:5555/conversion/route`
+```json
+{
+  "route": {
+    "input": {
+      "type": "postgres",
+      "database": "your-database",
+      "table": "your-table or your-schema.your-table" // "my_table" or "my_schema.my_table"
+    },
+    "output": {
+      "type": "kafka",
+      "topic": "your-output-kafka-topic",
+      "kafka-mode": {
+        "type": "spark-kafka-plugin-producer",
+        "brokers" : "your-broker-host:your-broker-port" // eg: localhost:9092
+      }
+    }
+  }
+}
+```
+
+## 21- Postgres to Postgres:
+
+This is a one-time job.
+
+`POST http://localhost:5555/conversion/route`
+```json
+{
+  "route": {
+    "input": {
+      "type": "postgres",
+      "database": "your-database",
+      "table": "your-table or your-schema.your-table" // "my_table" or "my_schema.my_table"
+    },
+    "output": {
+      "type": "postgres",
+      "database": "your-database",
+      "table": "your-table or your-schema.your-table" // "my_table" or "my_schema.my_table"
+    },
+    "save-mode": {
+      "type": "append" // supported values: 'overwrite', 'append', 'error-if-exists' and 'ignore'
+    }
+  }
+}
+```
+
+## 22- Postgres to Cassandra:
+
+This is a one-time job.
+
+`POST http://localhost:5555/conversion/route`
+```json
+{
+  "route": {
+    "input": {
+      "type": "postgres",
+      "database": "your-database",
+      "table": "your-table or your-schema.your-table" // "my_table" or "my_schema.my_table"
+    },
+    "output": {
+      "type": "cassandra",
+      "keyspace": "your-output-keyspace",
+      "table": "your-output-table"
+    },
+    "save-mode": {
+      "type": "append" // supported values: 'overwrite', 'append', 'error-if-exists' and 'ignore'
+    }
+  }
+}
+```
+
+## 23- Postgres to Elasticsearch:
+
+This is a one-time job.
+
+`POST http://localhost:5555/conversion/route`
+```json
+{
+  "route": {
+    "input": {
+      "type": "postgres",
+      "database": "your-database",
+      "table": "your-table or your-schema.your-table" // "my_table" or "my_schema.my_table"
+    },
+    "output": {
+      "type": "elasticsearch",
+      "index": "your-elasticsearch-index",
+      "bulk-enabled": false // supported values: 'false' and 'true'
     }
   }
 }
