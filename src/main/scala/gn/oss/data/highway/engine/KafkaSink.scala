@@ -9,7 +9,7 @@ import org.apache.kafka.streams.scala.StreamsBuilder
 import org.apache.kafka.streams.{KafkaStreams, StreamsConfig}
 import org.apache.log4j.Logger
 import cats.implicits.{toTraverseOps, _}
-import gn.oss.data.highway.configs.HdfsUtils
+import gn.oss.data.highway.configs.{AppUtils, HdfsUtils}
 import gn.oss.data.highway.models.{
   DataHighwayErrorResponse,
   DataHighwayResponse,
@@ -36,11 +36,11 @@ import org.apache.spark.sql.DataFrame
 import java.io.File
 import scala.sys.ShutdownHookThread
 
-object KafkaSink extends HdfsUtils {
+object KafkaSink extends HdfsUtils with AppUtils {
 
   val logger: Logger           = Logger.getLogger(KafkaSink.getClass.getName)
   val generated: String        = s"${UUID.randomUUID()}-${System.currentTimeMillis().toString}"
-  val checkpointFolder: String = s"/tmp/checkpoint-data-highway/checkpoint-$generated"
+  val checkpointFolder: String = s"${appConf.tmpWorkDir}/checkpoint-$generated"
 
   /**
     * Handles Kafka sink
