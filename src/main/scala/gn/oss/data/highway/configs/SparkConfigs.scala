@@ -4,7 +4,12 @@ import gn.oss.data.highway.models.LogLevel
 import org.apache.spark.sql.SparkSession
 import pureconfig.generic.auto._
 
-case class SparkConfigs(appName: String, masterUrl: String, logLevel: LogLevel)
+case class SparkConfigs(
+    appName: String,
+    masterUrl: String,
+    generateSuccessFile: Boolean,
+    logLevel: LogLevel
+)
 
 trait SparkUtils extends CassandraUtils {
   val sparkConf: SparkConfigs = ConfigLoader().loadConfigs[SparkConfigs]("spark")
@@ -17,6 +22,11 @@ trait SparkUtils extends CassandraUtils {
     ss.sparkContext.setLogLevel(sparkConf.logLevel.value)
     ss.conf.set("spark.cassandra.connection.host", cassandraConf.host)
     ss.conf.set("spark.cassandra.connection.port", cassandraConf.port)
+    ss.sparkContext.hadoopConfiguration
+      .set(
+        "mapreduce.fileoutputcommitter.marksuccessfuljobs",
+        sparkConf.generateSuccessFile.toString
+      )
     ss
   }
 }
