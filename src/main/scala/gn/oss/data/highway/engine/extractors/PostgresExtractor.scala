@@ -1,12 +1,27 @@
-package gn.oss.data.highway.engine
+package gn.oss.data.highway.engine.extractors
 
-import cats.implicits._
-import gn.oss.data.highway.models._
+import gn.oss.data.highway.engine.sinks.{ElasticSink, KafkaSink}
 import gn.oss.data.highway.utils.Constants.SUCCESS
 import gn.oss.data.highway.utils.{Constants, DataFrameUtils, SharedUtils}
 import org.apache.spark.sql.SaveMode.Append
+import cats.implicits._
+import gn.oss.data.highway.models.{
+  Cassandra,
+  CassandraDB,
+  Consistency,
+  DataHighwayErrorResponse,
+  DataHighwayResponse,
+  Elasticsearch,
+  File,
+  JSON,
+  Kafka,
+  Local,
+  Output,
+  Postgres,
+  PostgresDB
+}
 
-object PostgresSampler {
+object PostgresExtractor {
 
   /**
     * Extracts rows from Postgres and save them into files
@@ -26,7 +41,7 @@ object PostgresSampler {
     consistency match {
       case Some(consist) =>
         handleRoutesWithExplicitSaveModes(input, output, consist)
-      case scala.None =>
+      case None =>
         handleRoutesWithIntermediateSaveModes(input, output, temporaryPath, tempoBasePath)
     }
   }

@@ -1,6 +1,7 @@
 package gn.oss.data.highway.engine
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
+import gn.oss.data.highway.engine.sinks.BasicSink
 import gn.oss.data.highway.models.{AVRO, CSV, JSON, ORC, PARQUET, Snappy, XLSX}
 import gn.oss.data.highway.utils.{DataFrameUtils, TestHelper}
 import org.apache.spark.sql.SaveMode

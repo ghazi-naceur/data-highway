@@ -1,15 +1,24 @@
-package gn.oss.data.highway.engine
+package gn.oss.data.highway.engine.sinks
 
-import java.time.Duration
-import org.apache.kafka.clients.producer._
-
-import java.util.{Properties, UUID}
+import gn.oss.data.highway.configs.{AppUtils, HdfsUtils}
+import gn.oss.data.highway.models
+import gn.oss.data.highway.models.DataHighwayError.{DataHighwayFileError, KafkaError}
+import gn.oss.data.highway.utils.Constants.{SUCCESS, TRIGGER}
+import gn.oss.data.highway.utils._
+import org.apache.hadoop.fs.FileSystem
+import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 import org.apache.kafka.common.serialization.{Serdes, StringSerializer}
 import org.apache.kafka.streams.scala.StreamsBuilder
 import org.apache.kafka.streams.{KafkaStreams, StreamsConfig}
 import org.apache.log4j.Logger
-import cats.implicits.{toTraverseOps, _}
-import gn.oss.data.highway.configs.{AppUtils, HdfsUtils}
+import org.apache.spark.sql.DataFrame
+
+import java.io.File
+import java.time.Duration
+import java.util.{Properties, UUID}
+import scala.sys.ShutdownHookThread
+import cats.implicits._
 import gn.oss.data.highway.models.{
   DataHighwayErrorResponse,
   DataHighwayResponse,
@@ -25,16 +34,6 @@ import gn.oss.data.highway.models.{
   Storage,
   XLSX
 }
-import gn.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils, KafkaUtils, SharedUtils}
-import gn.oss.data.highway.models
-import gn.oss.data.highway.models.DataHighwayError.{DataHighwayFileError, KafkaError}
-import gn.oss.data.highway.utils.Constants.{SUCCESS, TRIGGER}
-import org.apache.hadoop.fs.FileSystem
-import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.apache.spark.sql.DataFrame
-
-import java.io.File
-import scala.sys.ShutdownHookThread
 
 object KafkaSink extends HdfsUtils with AppUtils {
 
@@ -327,7 +326,7 @@ object KafkaSink extends HdfsUtils with AppUtils {
       outputTopic: String,
       df: DataFrame
   ): Unit = {
-    import org.apache.spark.sql.functions.{to_json, struct}
+    import org.apache.spark.sql.functions.{struct, to_json}
     df.select(to_json(struct("*")).as("value"))
       .write
       .format("kafka")

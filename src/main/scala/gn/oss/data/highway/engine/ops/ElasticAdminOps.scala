@@ -1,7 +1,7 @@
-package gn.oss.data.highway.engine
+package gn.oss.data.highway.engine.ops
 
-import cats.syntax.either._
 import gn.oss.data.highway.configs.ElasticUtils
+import cats.implicits._
 import gn.oss.data.highway.models.{
   DataHighwayElasticResponse,
   DataHighwayErrorResponse,

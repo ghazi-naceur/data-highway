@@ -11,7 +11,6 @@ import scala.io.Source
 
 object IOMain extends IOApp {
 
-  // Needed by `BlazeServerBuilder`. Provided by `IOApp`.
   implicit val cs: ContextShift[IO]      = IO.contextShift(global)
   override implicit val timer: Timer[IO] = IO.timer(global)
 

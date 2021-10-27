@@ -1,68 +1,58 @@
-package gn.oss.data.highway.engine
+package gn.oss.data.highway.engine.sinks
 
-import cats.implicits._
 import gn.oss.data.highway.configs.HdfsUtils
 import gn.oss.data.highway.models
+import gn.oss.data.highway.utils.Constants.{EMPTY, SUCCESS}
+import gn.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils, SharedUtils}
+import org.apache.hadoop.fs.FileSystem
+import org.apache.log4j.Logger
+import org.apache.spark.sql.SaveMode
+import cats.implicits._
 import gn.oss.data.highway.models.{
+  Cassandra,
+  CassandraDB,
   Consistency,
   DataHighwayErrorResponse,
   DataHighwayResponse,
   DataType,
   HDFS,
   Local,
-  Postgres,
-  PostgresDB,
   Storage,
   XLSX
 }
-import gn.oss.data.highway.utils.Constants.{EMPTY, SUCCESS}
-import gn.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils, SharedUtils}
-import org.apache.hadoop.fs.FileSystem
-import org.apache.log4j.Logger
-import org.apache.spark.sql.SaveMode
 
 import java.io.File
 
-object PostgresSink extends HdfsUtils {
+object CassandraSink extends HdfsUtils {
 
-  val logger: Logger = Logger.getLogger(PostgresSink.getClass.getName)
+  val logger: Logger = Logger.getLogger(CassandraSink.getClass.getName)
 
   /**
-    * Inserts file content into Postgres
+    * Inserts file content into Cassandra
     *
     * @param inputDataType The input data type path
     * @param inputPath The input path
-    * @param output The output Postgres Entity
+    * @param output The output Cassandra Entity
     * @param saveMode The file saving mode
     * @return Path as String, otherwise an Throwable
     */
   def insert(
       inputDataType: DataType,
       inputPath: String,
-      output: Postgres,
+      output: Cassandra,
       saveMode: SaveMode
   ): Either[Throwable, String] = {
-    val result = for {
-      dataframe <- DataFrameUtils.loadDataFrame(inputDataType, inputPath)
-      _ <-
+    DataFrameUtils
+      .loadDataFrame(inputDataType, inputPath)
+      .map(df => {
         DataFrameUtils
-          .saveDataFrame(dataframe, PostgresDB(output.database, output.table), EMPTY, saveMode)
-    } yield ()
-    result match {
-      case Right(_)  => Right(inputPath)
-      case Left(thr) => Left(thr)
-    }
-//    DataFrameUtils
-//      .loadDataFrame(inputDataType, inputPath)
-//      .map(df => {
-//        DataFrameUtils
-//          .saveDataFrame(df, PostgresDB(output.database, output.table), EMPTY, saveMode)
-//        inputPath
-//      })
+          .saveDataFrame(df, CassandraDB(output.keyspace, output.table), EMPTY, saveMode)
+        inputPath
+      })
   }
 
   /**
-    * Inserts files content into Postgres
+    * Inserts files content into Cassandra
     *
     * @param input The input DataHighway File Entity
     * @param output The output DataHighway File Entity
@@ -70,9 +60,9 @@ object PostgresSink extends HdfsUtils {
     * @param consistency The file saving mode
     * @return DataHighwayFileResponse, otherwise a DataHighwayErrorResponse
     */
-  def handlePostgresChannel(
+  def handleCassandraChannel(
       input: models.File,
-      output: Postgres,
+      output: Cassandra,
       storage: Option[Storage],
       consistency: Option[Consistency]
   ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
@@ -124,32 +114,10 @@ object PostgresSink extends HdfsUtils {
   }
 
   /**
-    * Handles inserting data from Local File System to Postgres
+    * Handles inserting data from HDFS to Cassandra
     *
     * @param input The input DataHighway File Entity
-    * @param output The output Postgres Entity
-    * @param basePath The base path for input, output and processed folders
-    * @param saveMode The file saving mode
-    * @return DataHighwayFileResponse, otherwise a DataHighwayErrorResponse
-    */
-  private def handleLocalFS(
-      input: models.File,
-      output: Postgres,
-      basePath: String,
-      saveMode: SaveMode
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
-    val result = for {
-      res <- insertRows(input, output, basePath, saveMode)
-      _ = FilesUtils.cleanup(input.path)
-    } yield res
-    SharedUtils.constructIOResponse(input, output, result, SUCCESS)
-  }
-
-  /**
-    * Handles inserting data from HDFS to Postgres
-    *
-    * @param input The input DataHighway File Entity
-    * @param output The output Postgres Entity
+    * @param output The output Cassandra Entity
     * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
     * @param fs The provided File System
@@ -157,7 +125,7 @@ object PostgresSink extends HdfsUtils {
     */
   private def handleHDFS(
       input: models.File,
-      output: Postgres,
+      output: Cassandra,
       basePath: String,
       saveMode: SaveMode,
       fs: FileSystem
@@ -203,17 +171,39 @@ object PostgresSink extends HdfsUtils {
   }
 
   /**
-    * Inserts rows in Postgres
+    * Handles inserting data from Local File System to Cassandra
+    *
+    * @param input The input DataHighway File Entity
+    * @param output The output Cassandra Entity
+    * @param basePath The base path for input, output and processed folders
+    * @param saveMode The file saving mode
+    * @return DataHighwayFileResponse, otherwise a DataHighwayErrorResponse
+    */
+  private def handleLocalFS(
+      input: models.File,
+      output: Cassandra,
+      basePath: String,
+      saveMode: SaveMode
+  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+    val result = for {
+      res <- insertRows(input, output, basePath, saveMode)
+      _ = FilesUtils.cleanup(input.path)
+    } yield res
+    SharedUtils.constructIOResponse(input, output, result, SUCCESS)
+  }
+
+  /**
+    * Inserts rows in Cassandra
     *
     * @param input The File input entity
-    * @param output The Postgres output entity
+    * @param output The Cassandra output entity
     * @param basePath The File entity base path
     * @param saveMode The Spark save mode
     * @return List of List of Path as String, otherwise a Throwable
     */
   def insertRows(
       input: models.File,
-      output: Postgres,
+      output: Cassandra,
       basePath: String,
       saveMode: SaveMode
   ): Either[Throwable, List[List[String]]] = {

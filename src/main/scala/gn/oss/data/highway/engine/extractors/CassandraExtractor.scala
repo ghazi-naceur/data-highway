@@ -1,5 +1,9 @@
-package gn.oss.data.highway.engine
+package gn.oss.data.highway.engine.extractors
 
+import gn.oss.data.highway.engine.sinks.{ElasticSink, KafkaSink}
+import gn.oss.data.highway.utils.Constants.SUCCESS
+import gn.oss.data.highway.utils.{Constants, DataFrameUtils, SharedUtils}
+import org.apache.spark.sql.SaveMode.Append
 import cats.implicits._
 import gn.oss.data.highway.models.{
   Cassandra,
@@ -16,11 +20,8 @@ import gn.oss.data.highway.models.{
   Postgres,
   PostgresDB
 }
-import gn.oss.data.highway.utils.Constants.SUCCESS
-import gn.oss.data.highway.utils.{Constants, DataFrameUtils, SharedUtils}
-import org.apache.spark.sql.SaveMode.Append
 
-object CassandraSampler {
+object CassandraExtractor {
 
   /**
     * Extracts rows from Cassandra and save them into files

@@ -1,16 +1,19 @@
-package gn.oss.data.highway.engine
+package gn.oss.data.highway.engine.extractors
 
-import cats.implicits.toTraverseOps
+import com.sksamuel.elastic4s.requests.searches.{SearchHit, SearchResponse}
 import com.sksamuel.elastic4s.{RequestFailure, RequestSuccess}
+import gn.oss.data.highway.configs.{ElasticUtils, HdfsUtils}
+import gn.oss.data.highway.engine.sinks._
+import gn.oss.data.highway.models.DataHighwayError.DataHighwayFileError
+import gn.oss.data.highway.utils.Constants.SUCCESS
+import gn.oss.data.highway.utils.{FilesUtils, HdfsUtils, SharedUtils}
 import io.circe.Json
 import io.circe.syntax.EncoderOps
 import org.apache.log4j.Logger
 
+import java.util.UUID
 import scala.annotation.tailrec
-import scala.concurrent.ExecutionContext.Implicits.global
-import cats.syntax.either._
-import com.sksamuel.elastic4s.requests.searches.{SearchHit, SearchResponse}
-import gn.oss.data.highway.configs.{ElasticUtils, HdfsUtils}
+import cats.implicits._
 import gn.oss.data.highway.models.{
   BoolFilter,
   BoolMatchPhraseQuery,
@@ -53,15 +56,10 @@ import gn.oss.data.highway.models.{
   TermsQuery,
   WildcardQuery
 }
-import gn.oss.data.highway.utils.{FilesUtils, HdfsUtils, SharedUtils}
-import gn.oss.data.highway.models.DataHighwayError.DataHighwayFileError
-import gn.oss.data.highway.utils.Constants.SUCCESS
 
-import java.util.UUID
+object ElasticExtractor extends ElasticUtils with HdfsUtils {
 
-object ElasticSampler extends ElasticUtils with HdfsUtils {
-
-  val logger: Logger = Logger.getLogger(ElasticSampler.getClass.getName)
+  val logger: Logger = Logger.getLogger(ElasticExtractor.getClass.getName)
 
   /**
     * Gets the first 10 documents from an Index
@@ -623,10 +621,8 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     storage match {
       case Some(filesystem) =>
         filesystem match {
-          case Local =>
-            FilesUtils.delete(output)
-          case HDFS =>
-            HdfsUtils.delete(fs, output)
+          case Local => FilesUtils.delete(output)
+          case HDFS  => HdfsUtils.delete(fs, output)
         }
       case None =>
         Left(
@@ -647,10 +643,8 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     */
   private def collectSearchHits(result: SearchResponse): List[SearchHit] = {
     result.scrollId match {
-      case Some(scrollId) =>
-        scrollOnDocs(scrollId, result.hits.hits.toList)
-      case None =>
-        List[SearchHit]()
+      case Some(scrollId) => scrollOnDocs(scrollId, result.hits.hits.toList)
+      case None           => List[SearchHit]()
     }
   }
 
@@ -670,10 +664,8 @@ object ElasticSampler extends ElasticUtils with HdfsUtils {
     if (resp.hits.hits.isEmpty) hits
     else {
       resp.scrollId match {
-        case Some(scrollId) =>
-          scrollOnDocs(scrollId, hits ::: resp.hits.hits.toList)
-        case None =>
-          hits
+        case Some(scrollId) => scrollOnDocs(scrollId, hits ::: resp.hits.hits.toList)
+        case None           => hits
       }
     }
   }
