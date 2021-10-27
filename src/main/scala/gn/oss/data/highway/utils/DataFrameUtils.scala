@@ -14,7 +14,6 @@ import gn.oss.data.highway.models.{
   PostgresDB,
   XLSX
 }
-import Constants.SEPARATOR
 import gn.oss.data.highway.configs.{PostgresUtils, SparkUtils}
 
 import java.util.UUID
@@ -34,11 +33,11 @@ object DataFrameUtils extends SparkUtils with PostgresUtils {
         case JSON =>
           sparkSession.read
             .json(in)
-        case CSV =>
+        case CSV(inferSchema, header, separator) =>
           sparkSession.read
-            .option("inferSchema", "true")
-            .option("header", "true")
-            .option("sep", SEPARATOR)
+            .option("inferSchema", inferSchema)
+            .option("header", header)
+            .option("sep", separator)
             .csv(in)
         case PARQUET(_) =>
           sparkSession.read
@@ -97,13 +96,13 @@ object DataFrameUtils extends SparkUtils with PostgresUtils {
             .write
             .mode(saveMode)
             .json(out)
-        case CSV =>
+        case CSV(inferSchema, header, separator) =>
           df.coalesce(1)
             .write
             .mode(saveMode)
-            .option("inferSchema", "true")
-            .option("header", "true")
-            .option("sep", SEPARATOR)
+            .option("inferSchema", inferSchema)
+            .option("header", header)
+            .option("sep", separator)
             .csv(out)
         case PARQUET(compression) =>
           val computedCompression = computeCompression(compression)

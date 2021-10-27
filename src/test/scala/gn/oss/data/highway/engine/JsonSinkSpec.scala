@@ -79,7 +79,7 @@ class JsonSinkSpec
 
   "BasicSink.convert" should "convert csv to json" in {
     BasicSink.convert(
-      CSV,
+      CSV(inferSchema = true, header = true, ";"),
       csvFolder + "input/mock-data-2",
       JSON,
       jsonFolder + "output/mock-data-2",

@@ -62,7 +62,7 @@ class AvroSinkSpec
   "BasicSink.convert" should "convert csv to avro" in {
     BasicSink
       .convert(
-        CSV,
+        CSV(inferSchema = true, header = true, ";"),
         csvFolder + "input/mock-data-2",
         AVRO,
         avroFolder + "output/mock-data-2",

@@ -7,7 +7,7 @@ sealed trait DataType {
 case object JSON extends DataType {
   override val extension: String = "json"
 }
-case object CSV extends DataType {
+case class CSV(inferSchema: Boolean, header: Boolean, separator: String) extends DataType {
   override val extension: String = "csv"
 }
 case class PARQUET(compression: Option[ParquetCompression]) extends DataType {

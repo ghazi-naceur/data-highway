@@ -22,7 +22,7 @@ class ParquetSinkSpec
 
   "BasicSink.convert" should "convert csv to parquet" in {
     BasicSink.convert(
-      CSV,
+      CSV(inferSchema = true, header = true, ";"),
       csvFolder + "input/mock-data-2",
       PARQUET(Some(Snappy)),
       parquetFolder + "output/mock-data-2",

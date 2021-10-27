@@ -77,7 +77,7 @@ class OrcSinkSpec
 
   "BasicSink.convert" should "convert csv to orc" in {
     BasicSink.convert(
-      CSV,
+      CSV(inferSchema = true, header = true, ";"),
       csvFolder + "input/mock-data-2",
       ORC(Some(Zlib)),
       orcFolder + "output/mock-data-2",

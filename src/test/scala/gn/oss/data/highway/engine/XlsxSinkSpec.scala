@@ -22,7 +22,7 @@ class XlsxSinkSpec
 
   "BasicSink.convert" should "convert csv to xlsx" in {
     BasicSink.convert(
-      CSV,
+      CSV(inferSchema = true, header = true, ";"),
       csvFolder + "input/mock-data-2",
       XLSX,
       xlsxFolder + "output/mock-data-2",
