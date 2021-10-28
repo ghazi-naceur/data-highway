@@ -1,5 +1,6 @@
 package gn.oss.data.highway.engine
 
+import gn.oss.data.highway.engine.sinks.KafkaSink
 import gn.oss.data.highway.models.DataHighwayError.KafkaError
 import gn.oss.data.highway.models.Earliest
 import gn.oss.data.highway.utils.{FilesUtils, TestHelper}

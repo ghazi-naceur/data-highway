@@ -11,7 +11,7 @@ import org.scalatest.wordspec.AnyWordSpecLike
 import java.io.File
 import java.nio.file.Files
 
-class KafkaSamplerSpec
+class KafkaExtractorSpec
     extends AnyWordSpecLike
     with BeforeAndAfterEach
     with Matchers

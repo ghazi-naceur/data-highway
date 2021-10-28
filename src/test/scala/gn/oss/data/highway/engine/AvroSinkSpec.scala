@@ -1,6 +1,7 @@
 package gn.oss.data.highway.engine
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
+import gn.oss.data.highway.engine.sinks.BasicSink
 import gn.oss.data.highway.models.{AVRO, CSV, JSON, ORC, PARQUET, XLSX}
 import gn.oss.data.highway.utils.{DataFrameUtils, TestHelper}
 import org.apache.spark.sql.SaveMode
@@ -61,7 +62,7 @@ class AvroSinkSpec
   "BasicSink.convert" should "convert csv to avro" in {
     BasicSink
       .convert(
-        CSV,
+        CSV(inferSchema = true, header = true, ";"),
         csvFolder + "input/mock-data-2",
         AVRO,
         avroFolder + "output/mock-data-2",

@@ -1,6 +1,20 @@
 package gn.oss.data.highway.engine
 
 import gn.oss.data.highway.configs.ConfigLoader
+import gn.oss.data.highway.engine.extractors.{
+  CassandraExtractor,
+  ElasticExtractor,
+  KafkaExtractor,
+  PostgresExtractor
+}
+import gn.oss.data.highway.engine.ops.ElasticAdminOps
+import gn.oss.data.highway.engine.sinks.{
+  BasicSink,
+  CassandraSink,
+  ElasticSink,
+  KafkaSink,
+  PostgresSink
+}
 import gn.oss.data.highway.models.{
   Cassandra,
   Channel,
@@ -12,6 +26,7 @@ import gn.oss.data.highway.models.{
   File,
   Kafka,
   Output,
+  Postgres,
   Route,
   Storage
 }
@@ -54,7 +69,7 @@ object Dispatcher {
             _: Option[Storage],
             saveMode: Option[Consistency]
           ) =>
-        CassandraSampler.extractRows(input, output, saveMode)
+        CassandraExtractor.extractRows(input, output, saveMode)
       case Route(
             input: File,
             output: Elasticsearch,
@@ -68,7 +83,7 @@ object Dispatcher {
             storage: Option[Storage],
             saveMode: Option[Consistency]
           ) =>
-        ElasticSampler.saveDocuments(input, output, storage, saveMode)
+        ElasticExtractor.saveDocuments(input, output, storage, saveMode)
       case Route(
             input: File,
             output: Kafka,
@@ -89,7 +104,22 @@ object Dispatcher {
             storage: Option[Storage],
             saveMode: Option[Consistency]
           ) =>
-        KafkaSampler.consumeFromTopic(input, output, storage, saveMode)
+        KafkaExtractor.consumeFromTopic(input, output, storage, saveMode)
+      case Route(
+            input: File,
+            output: Postgres,
+            storage: Option[Storage],
+            saveMode: Option[Consistency]
+          ) =>
+        PostgresSink
+          .handlePostgresChannel(input, output, storage, saveMode)
+      case Route(
+            input: Postgres,
+            output: Output,
+            _: Option[Storage],
+            saveMode: Option[Consistency]
+          ) =>
+        PostgresExtractor.extractRows(input, output, saveMode)
       case _ =>
         throw new RuntimeException(s"""
           | The provided route '$route' is not supported yet. This route will be implemented in the upcoming versions.

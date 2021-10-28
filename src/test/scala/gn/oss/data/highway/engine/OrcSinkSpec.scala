@@ -1,6 +1,7 @@
 package gn.oss.data.highway.engine
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
+import gn.oss.data.highway.engine.sinks.BasicSink
 import gn.oss.data.highway.models.{AVRO, CSV, JSON, Lzo, ORC, PARQUET, XLSX, Zlib}
 import gn.oss.data.highway.utils.{DataFrameUtils, TestHelper}
 import org.apache.spark.sql.SaveMode
@@ -76,7 +77,7 @@ class OrcSinkSpec
 
   "BasicSink.convert" should "convert csv to orc" in {
     BasicSink.convert(
-      CSV,
+      CSV(inferSchema = true, header = true, ";"),
       csvFolder + "input/mock-data-2",
       ORC(Some(Zlib)),
       orcFolder + "output/mock-data-2",

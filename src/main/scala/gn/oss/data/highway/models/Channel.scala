@@ -18,6 +18,7 @@ case class Route(
 
 case class File(dataType: DataType, path: String)     extends Input with Output
 case class Cassandra(keyspace: String, table: String) extends Input with Output
+case class Postgres(database: String, table: String)  extends Input with Output
 case class Elasticsearch(index: String, bulkEnabled: Boolean, searchQuery: Option[SearchQuery])
     extends Input
     with Output

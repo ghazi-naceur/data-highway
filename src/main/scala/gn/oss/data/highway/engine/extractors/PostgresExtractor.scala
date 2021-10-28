@@ -1,5 +1,9 @@
-package gn.oss.data.highway.engine
+package gn.oss.data.highway.engine.extractors
 
+import gn.oss.data.highway.engine.sinks.{ElasticSink, KafkaSink}
+import gn.oss.data.highway.utils.Constants.SUCCESS
+import gn.oss.data.highway.utils.{Constants, DataFrameUtils, SharedUtils}
+import org.apache.spark.sql.SaveMode.Append
 import cats.implicits._
 import gn.oss.data.highway.models.{
   Cassandra,
@@ -12,29 +16,28 @@ import gn.oss.data.highway.models.{
   JSON,
   Kafka,
   Local,
-  Output
+  Output,
+  Postgres,
+  PostgresDB
 }
-import gn.oss.data.highway.utils.Constants.SUCCESS
-import gn.oss.data.highway.utils.{Constants, DataFrameUtils, SharedUtils}
-import org.apache.spark.sql.SaveMode.Append
 
-object CassandraSampler {
+object PostgresExtractor {
 
   /**
-    * Extracts rows from Cassandra and save them into files
+    * Extracts rows from Postgres and save them into files
     *
-    * @param input The input Cassandra entity
+    * @param input The input Postgres entity
     * @param output The output entity
     * @param consistency The output save mode
     * @return DataHighwayFileResponse, otherwise a DataHighwayErrorResponse
     */
   def extractRows(
-      input: Cassandra,
+      input: Postgres,
       output: Output,
       consistency: Option[Consistency]
   ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
     val (temporaryPath, tempoBasePath) =
-      SharedUtils.setTempoFilePath("cassandra-sampler", Some(Local))
+      SharedUtils.setTempoFilePath("postgres-sampler", Some(Local))
     consistency match {
       case Some(consist) =>
         handleRoutesWithExplicitSaveModes(input, output, consist)
@@ -44,7 +47,7 @@ object CassandraSampler {
   }
 
   private def handleRoutesWithIntermediateSaveModes(
-      input: Cassandra,
+      input: Postgres,
       output: Output,
       temporaryPath: String,
       tempoBasePath: String
@@ -52,7 +55,7 @@ object CassandraSampler {
     output match {
       case elasticsearch @ Elasticsearch(_, _, _) =>
         DataFrameUtils
-          .loadDataFrame(CassandraDB(input.keyspace, input.table), Constants.EMPTY)
+          .loadDataFrame(PostgresDB(input.database, input.table), Constants.EMPTY)
           .traverse(df => DataFrameUtils.saveDataFrame(df, JSON, temporaryPath, Append))
           .flatten
         val result = ElasticSink
@@ -61,7 +64,7 @@ object CassandraSampler {
           .constructIOResponse(input, elasticsearch, result, SUCCESS)
       case kafka @ Kafka(_, _) =>
         DataFrameUtils
-          .loadDataFrame(CassandraDB(input.keyspace, input.table), Constants.EMPTY)
+          .loadDataFrame(PostgresDB(input.database, input.table), Constants.EMPTY)
           .traverse(df => DataFrameUtils.saveDataFrame(df, JSON, temporaryPath, Append))
           .flatten
         val result = KafkaSink.handleKafkaChannel(File(JSON, temporaryPath), kafka, Some(Local))
@@ -84,20 +87,34 @@ object CassandraSampler {
   }
 
   private def handleRoutesWithExplicitSaveModes(
-      input: Cassandra,
+      input: Postgres,
       output: Output,
       consistency: Consistency
   ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
     output match {
       case file @ File(dataType, path) =>
         val result = DataFrameUtils
-          .loadDataFrame(CassandraDB(input.keyspace, input.table), Constants.EMPTY)
+          .loadDataFrame(PostgresDB(input.database, input.table), Constants.EMPTY)
           .traverse(df => DataFrameUtils.saveDataFrame(df, dataType, path, consistency.toSaveMode))
           .flatten
         SharedUtils.constructIOResponse(input, file, result, SUCCESS)
+      case postgres @ Postgres(database, table) =>
+        val result = DataFrameUtils
+          .loadDataFrame(PostgresDB(input.database, input.table), Constants.EMPTY)
+          .traverse(df =>
+            DataFrameUtils
+              .saveDataFrame(
+                df,
+                PostgresDB(database, table),
+                Constants.EMPTY,
+                consistency.toSaveMode
+              )
+          )
+          .flatten
+        SharedUtils.constructIOResponse(input, postgres, result, SUCCESS)
       case cassandra @ Cassandra(keyspace, table) =>
         val result = DataFrameUtils
-          .loadDataFrame(CassandraDB(input.keyspace, input.table), Constants.EMPTY)
+          .loadDataFrame(PostgresDB(input.database, input.table), Constants.EMPTY)
           .traverse(df =>
             DataFrameUtils
               .saveDataFrame(

@@ -7,7 +7,7 @@ sealed trait DataType {
 case object JSON extends DataType {
   override val extension: String = "json"
 }
-case object CSV extends DataType {
+case class CSV(inferSchema: Boolean, header: Boolean, separator: String) extends DataType {
   override val extension: String = "csv"
 }
 case class PARQUET(compression: Option[ParquetCompression]) extends DataType {
@@ -23,6 +23,9 @@ case class ORC(compression: Option[OrcCompression]) extends DataType {
   override val extension: String = "orc"
 }
 case class CassandraDB(keyspace: String, table: String) extends DataType {
+  override val extension: String = ""
+}
+case class PostgresDB(database: String, table: String) extends DataType {
   override val extension: String = ""
 }
 

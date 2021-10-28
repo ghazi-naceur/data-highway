@@ -1,9 +1,13 @@
-package gn.oss.data.highway.engine
+package gn.oss.data.highway.engine.sinks
 
-import java.io.File
+import gn.oss.data.highway.models
+import gn.oss.data.highway.configs.HdfsUtils
+import gn.oss.data.highway.utils.Constants.SUCCESS
+import gn.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils, SharedUtils}
+import org.apache.hadoop.fs.FileSystem
+import org.apache.log4j.Logger
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
-import gn.oss.data.highway.models
 import gn.oss.data.highway.models.{
   Consistency,
   DataHighwayErrorResponse,
@@ -14,10 +18,8 @@ import gn.oss.data.highway.models.{
   Storage,
   XLSX
 }
-import gn.oss.data.highway.utils.Constants.SUCCESS
-import gn.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils, SharedUtils}
-import org.apache.hadoop.fs.FileSystem
-import org.apache.log4j.Logger
+
+import java.io.File
 
 object BasicSink extends HdfsUtils {
 

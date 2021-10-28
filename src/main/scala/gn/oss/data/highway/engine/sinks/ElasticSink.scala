@@ -1,11 +1,15 @@
-package gn.oss.data.highway.engine
+package gn.oss.data.highway.engine.sinks
 
-import org.apache.log4j.Logger
-import cats.implicits._
 import com.sksamuel.elastic4s.Response
 import com.sksamuel.elastic4s.requests.bulk.BulkResponse
 import com.sksamuel.elastic4s.requests.common.RefreshPolicy
+import gn.oss.data.highway.configs.{ElasticUtils, HdfsUtils}
 import gn.oss.data.highway.models
+import gn.oss.data.highway.utils.Constants.SUCCESS
+import gn.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils, SharedUtils}
+import org.apache.log4j.Logger
+import org.apache.spark.sql.DataFrame
+import cats.implicits._
 import gn.oss.data.highway.models.{
   DataHighwayErrorResponse,
   DataHighwayResponse,
@@ -16,9 +20,6 @@ import gn.oss.data.highway.models.{
   Storage,
   XLSX
 }
-import gn.oss.data.highway.utils.Constants.SUCCESS
-import gn.oss.data.highway.utils.{DataFrameUtils, ElasticUtils, FilesUtils, HdfsUtils, SharedUtils}
-import org.apache.spark.sql.DataFrame
 
 import java.io.File
 

@@ -1,5 +1,6 @@
 package gn.oss.data.highway.utils
 
+import gn.oss.data.highway.configs.{AppUtils, HdfsUtils}
 import gn.oss.data.highway.models.DataHighwayError.DataHighwayFileError
 import gn.oss.data.highway.models.{
   Cassandra,
@@ -14,13 +15,14 @@ import gn.oss.data.highway.models.{
   Local,
   Output,
   Plug,
+  Postgres,
   Storage
 }
 import gn.oss.data.highway.utils.Constants.FAILURE
 
 import java.util.UUID
 
-object SharedUtils extends HdfsUtils {
+object SharedUtils extends HdfsUtils with AppUtils {
 
   def setTempoFilePath(module: String, storage: Option[Storage]): (String, String) = {
     storage match {
@@ -31,8 +33,8 @@ object SharedUtils extends HdfsUtils {
           case HDFS =>
             val tuple = setLocalTempoFilePath(module)
             (
-              s"${HdfsUtils.hadoopConf.host}:${HdfsUtils.hadoopConf.port}" + tuple._1,
-              s"${HdfsUtils.hadoopConf.host}:${HdfsUtils.hadoopConf.port}" + tuple._2
+              s"${hadoopConf.host}:${hadoopConf.port}" + tuple._1,
+              s"${hadoopConf.host}:${hadoopConf.port}" + tuple._2
             )
         }
       case None =>
@@ -42,7 +44,7 @@ object SharedUtils extends HdfsUtils {
 
   private def setLocalTempoFilePath(module: String): (String, String) = {
     val tempoBasePath =
-      s"/tmp/data-highway/$module/${System.currentTimeMillis().toString}/"
+      s"${appConf.tmpWorkDir}/$module/${System.currentTimeMillis().toString}/"
     val temporaryPath = tempoBasePath + UUID.randomUUID().toString
     (temporaryPath, tempoBasePath)
   }
@@ -118,6 +120,7 @@ object SharedUtils extends HdfsUtils {
     plug match {
       case File(dataType, path)       => s"File: Path '$path' in '$dataType' format"
       case Cassandra(keyspace, table) => s"Cassandra: Keyspace '$keyspace' - Table '$table'"
+      case Postgres(database, table)  => s"Postgres: Database '$database' - Table '$table'"
       case Elasticsearch(index, _, _) => s"Elasticsearch: Index '$index'"
       case Kafka(topic, _)            => s"Kafka: Topic '$topic'"
     }

@@ -1,6 +1,7 @@
 package gn.oss.data.highway.engine
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
+import gn.oss.data.highway.engine.sinks.BasicSink
 import gn.oss.data.highway.models.{AVRO, CSV, JSON, ORC, PARQUET, XLSX}
 import gn.oss.data.highway.utils.{DataFrameUtils, TestHelper}
 import org.apache.spark.sql.SaveMode
@@ -23,13 +24,16 @@ class CsvSinkSpec
     BasicSink.convert(
       PARQUET(None),
       parquetFolder + "input/mock-data-2",
-      CSV,
+      CSV(inferSchema = true, header = true, ";"),
       csvFolder + "output/mock-data-2",
       SaveMode.Overwrite
     )
     val actual =
       DataFrameUtils
-        .loadDataFrame(CSV, csvFolder + "output/mock-data-2")
+        .loadDataFrame(
+          CSV(inferSchema = true, header = true, ";"),
+          csvFolder + "output/mock-data-2"
+        )
         .right
         .get
         .orderBy("id")
@@ -42,13 +46,16 @@ class CsvSinkSpec
     BasicSink.convert(
       JSON,
       jsonFolder + "input/mock-data-2",
-      CSV,
+      CSV(inferSchema = true, header = true, ";"),
       csvFolder + "output/mock-data-2",
       SaveMode.Overwrite
     )
     val actual =
       DataFrameUtils
-        .loadDataFrame(CSV, csvFolder + "output/mock-data-2")
+        .loadDataFrame(
+          CSV(inferSchema = true, header = true, ";"),
+          csvFolder + "output/mock-data-2"
+        )
         .right
         .get
         .orderBy("id")
@@ -62,13 +69,16 @@ class CsvSinkSpec
       .convert(
         ORC(None),
         orcFolder + "input/mock-data-2",
-        CSV,
+        CSV(inferSchema = true, header = true, ";"),
         csvFolder + "output/mock-data-2",
         SaveMode.Overwrite
       )
     val actual =
       DataFrameUtils
-        .loadDataFrame(CSV, csvFolder + "output/mock-data-2")
+        .loadDataFrame(
+          CSV(inferSchema = true, header = true, ";"),
+          csvFolder + "output/mock-data-2"
+        )
         .right
         .get
         .orderBy("id")
@@ -81,13 +91,16 @@ class CsvSinkSpec
     BasicSink.convert(
       AVRO,
       avroFolder + "input/mock-data-2",
-      CSV,
+      CSV(inferSchema = true, header = true, ";"),
       csvFolder + "output/mock-data-2",
       SaveMode.Overwrite
     )
     val actual =
       DataFrameUtils
-        .loadDataFrame(CSV, csvFolder + "output/mock-data-2")
+        .loadDataFrame(
+          CSV(inferSchema = true, header = true, ";"),
+          csvFolder + "output/mock-data-2"
+        )
         .right
         .get
         .orderBy("id")
@@ -100,13 +113,16 @@ class CsvSinkSpec
     BasicSink.convert(
       XLSX,
       xlsxFolder + "input/folder1/mock-xlsx-data-13.xlsx",
-      CSV,
+      CSV(inferSchema = true, header = true, ";"),
       csvFolder + "output/folder1/mock-xlsx-data-13",
       SaveMode.Overwrite
     )
     val actual =
       DataFrameUtils
-        .loadDataFrame(CSV, csvFolder + "output/folder1/mock-xlsx-data-13")
+        .loadDataFrame(
+          CSV(inferSchema = true, header = true, ";"),
+          csvFolder + "output/folder1/mock-xlsx-data-13"
+        )
         .right
         .get
         .orderBy("id")

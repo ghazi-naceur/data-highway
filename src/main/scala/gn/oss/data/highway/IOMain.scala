@@ -2,7 +2,7 @@ package gn.oss.data.highway
 
 import cats.effect._
 import gn.oss.data.highway.controllers.ConversionController
-import io.oss.data.highway.build.info.BuildInfo
+import gn.oss.data.highway.build.info.BuildInfo
 import org.http4s.server.blaze._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -11,7 +11,6 @@ import scala.io.Source
 
 object IOMain extends IOApp {
 
-  // Needed by `BlazeServerBuilder`. Provided by `IOApp`.
   implicit val cs: ContextShift[IO]      = IO.contextShift(global)
   override implicit val timer: Timer[IO] = IO.timer(global)
 

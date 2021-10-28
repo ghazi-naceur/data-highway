@@ -1,4 +1,4 @@
-package gn.oss.data.highway.engine
+package gn.oss.data.highway.engine.extractors
 
 import java.time.Duration
 import java.util.UUID
@@ -7,6 +7,8 @@ import org.apache.log4j.Logger
 import org.apache.spark.sql.{SaveMode, SparkSession}
 import monix.execution.Scheduler.{global => scheduler}
 import cats.implicits._
+import gn.oss.data.highway.configs.HdfsUtils
+import gn.oss.data.highway.engine.sinks.{BasicSink, CassandraSink, ElasticSink, PostgresSink}
 import gn.oss.data.highway.models.{
   Cassandra,
   Consistency,
@@ -23,6 +25,7 @@ import gn.oss.data.highway.models.{
   Local,
   Offset,
   Output,
+  Postgres,
   PureKafkaConsumer,
   PureKafkaStreamsConsumer,
   SparkKafkaPluginConsumer,
@@ -31,22 +34,16 @@ import gn.oss.data.highway.models.{
 }
 import gn.oss.data.highway.utils.Constants.{SUCCESS, TRIGGER}
 import gn.oss.data.highway.utils.DataFrameUtils.sparkSession
-import gn.oss.data.highway.utils.{
-  FilesUtils,
-  HdfsUtils,
-  KafkaTopicConsumer,
-  KafkaUtils,
-  SharedUtils
-}
+import gn.oss.data.highway.utils._
 import org.apache.hadoop.fs.FileSystem
 import org.apache.spark.sql.functions.{struct, to_json}
 
 import scala.concurrent.duration.DurationInt
 import scala.jdk.CollectionConverters._
 
-object KafkaSampler extends HdfsUtils {
+object KafkaExtractor extends HdfsUtils {
 
-  val logger: Logger = Logger.getLogger(KafkaSampler.getClass.getName)
+  val logger: Logger = Logger.getLogger(KafkaExtractor.getClass.getName)
 
   /**
     * Consumes data from a topic
@@ -419,6 +416,13 @@ object KafkaSampler extends HdfsUtils {
               CassandraSink.insertRows(
                 File(JSON, temporaryPath),
                 cassandra,
+                tempoBasePath,
+                consist.toSaveMode
+              )
+            case postgres @ Postgres(_, _) =>
+              PostgresSink.insertRows(
+                File(JSON, temporaryPath),
+                postgres,
                 tempoBasePath,
                 consist.toSaveMode
               )

@@ -1,6 +1,7 @@
 package gn.oss.data.highway.engine
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
+import gn.oss.data.highway.engine.sinks.BasicSink
 import gn.oss.data.highway.models.{AVRO, CSV, JSON, ORC, PARQUET, XLSX}
 import gn.oss.data.highway.utils.{DataFrameUtils, FilesUtils, TestHelper}
 import org.apache.spark.sql.SaveMode
@@ -21,7 +22,7 @@ class XlsxSinkSpec
 
   "BasicSink.convert" should "convert csv to xlsx" in {
     BasicSink.convert(
-      CSV,
+      CSV(inferSchema = true, header = true, ";"),
       csvFolder + "input/mock-data-2",
       XLSX,
       xlsxFolder + "output/mock-data-2",
