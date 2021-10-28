@@ -870,7 +870,7 @@ You can index data into Elasticsearch by triggering one of these 3 modes :
 2 Streaming modes by :`Pure Consumer with continuous poll` and `Pure Consumer with Kafka Streams` or
 1 Batch mode by `Spark Kafka Connector`.
 
-#### a- Pure consumer with continuous poll to Elasticsearch:
+#### a- Consumer with continuous poll to Elasticsearch:
 
 This is a long-running job.
 
@@ -899,7 +899,7 @@ This is a long-running job.
 }
 ```
 
-#### b- Pure consumer with Kafka Streams to Elasticsearch:
+#### b- Consumer with Kafka Streams to Elasticsearch:
 
 This is a long-running job.
 
