@@ -9,8 +9,9 @@ import gn.oss.data.highway.models.{
   Cassandra,
   CassandraDB,
   Consistency,
+  DHErrorResponse,
   DataHighwayErrorResponse,
-  DataHighwayResponse,
+  DataHighwaySuccessResponse,
   Elasticsearch,
   File,
   JSON,
@@ -29,29 +30,38 @@ object CassandraExtractor {
     * @param input The input Cassandra entity
     * @param output The output entity
     * @param consistency The output save mode
-    * @return DataHighwayFileResponse, otherwise a DataHighwayErrorResponse
+    * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   def extractRows(
       input: Cassandra,
       output: Output,
       consistency: Option[Consistency]
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     val (temporaryPath, tempoBasePath) =
-      SharedUtils.setTempoFilePath("cassandra-sampler", Some(Local))
+      SharedUtils.setTempoFilePath("cassandra-extractor", Some(Local))
     consistency match {
       case Some(consist) =>
         handleRoutesWithExplicitSaveModes(input, output, consist)
       case None =>
-        handleRoutesWithIntermediateSaveModes(input, output, temporaryPath, tempoBasePath)
+        handleRoutesWithImplicitSaveModes(input, output, temporaryPath, tempoBasePath)
     }
   }
 
-  private def handleRoutesWithIntermediateSaveModes(
+  /**
+    * Handles routes that uses implicit save modes. It handles the following outputs: Elasticsearch and Kafka.
+    *
+    * @param input The Cassandra entity
+    * @param output The output plug: Elasticsearch or Kafka
+    * @param temporaryPath The temporary path that will contain the intermediate JSON dataset that will be transferred to the output
+    * @param tempoBasePath The base path for the intermediate JSON dataset
+    * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
+    */
+  private def handleRoutesWithImplicitSaveModes(
       input: Cassandra,
       output: Output,
       temporaryPath: String,
       tempoBasePath: String
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     output match {
       case elasticsearch @ Elasticsearch(_, _, _) =>
         DataFrameUtils
@@ -60,24 +70,17 @@ object CassandraExtractor {
           .flatten
         val result = ElasticSink
           .insertDocuments(File(JSON, temporaryPath), elasticsearch, tempoBasePath, Local)
-        SharedUtils
-          .constructIOResponse(input, elasticsearch, result, SUCCESS)
+        SharedUtils.constructIOResponse(input, elasticsearch, result, SUCCESS)
       case kafka @ Kafka(_, _) =>
         DataFrameUtils
           .loadDataFrame(CassandraDB(input.keyspace, input.table), Constants.EMPTY)
           .traverse(df => DataFrameUtils.saveDataFrame(df, JSON, temporaryPath, Append))
           .flatten
         val result = KafkaSink.handleKafkaChannel(File(JSON, temporaryPath), kafka, Some(Local))
-        SharedUtils
-          .constructIOResponse(
-            input,
-            kafka,
-            result.leftMap(_.toThrowable),
-            SUCCESS
-          )
+        SharedUtils.constructIOResponse(input, kafka, result.leftMap(_.toThrowable), SUCCESS)
       case _ =>
         Left(
-          DataHighwayErrorResponse(
+          DHErrorResponse(
             "MissingSaveMode",
             "Missing 'save-mode' field",
             ""
@@ -86,11 +89,19 @@ object CassandraExtractor {
     }
   }
 
+  /**
+    * Handles routes that uses explicit save modes. It handles the following outputs: File, Postgres and Cassandra.
+    *
+    * @param input The Cassandra entity
+    * @param output The output plug: File, Postgres or Cassandra
+    * @param consistency A representation for the Spark Save Mode
+    * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
+    */
   private def handleRoutesWithExplicitSaveModes(
       input: Cassandra,
       output: Output,
       consistency: Consistency
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     output match {
       case file @ File(dataType, path) =>
         val result = DataFrameUtils
@@ -128,7 +139,7 @@ object CassandraExtractor {
         SharedUtils.constructIOResponse(input, postgres, result, SUCCESS)
       case _ =>
         Left(
-          DataHighwayErrorResponse(
+          DHErrorResponse(
             "ShouldUseIntermediateSaveMode",
             "'save-mode' field should be not present",
             ""

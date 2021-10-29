@@ -11,8 +11,10 @@ import org.apache.log4j.Logger
 import org.apache.spark.sql.DataFrame
 import cats.implicits._
 import gn.oss.data.highway.models.{
+  DHErrorResponse,
   DataHighwayErrorResponse,
   DataHighwayResponse,
+  DataHighwaySuccessResponse,
   DataType,
   Elasticsearch,
   HDFS,
@@ -224,7 +226,7 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
       input: models.File,
       output: Elasticsearch,
       storage: Option[Storage]
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     val basePath = new File(input.path).getParent
     storage match {
       case Some(value) =>
@@ -252,7 +254,7 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
         }
       case None =>
         Left(
-          DataHighwayErrorResponse(
+          DHErrorResponse(
             "MissingFileSystemStorage",
             "Missing 'storage' field",
             ""

@@ -12,8 +12,9 @@ import gn.oss.data.highway.engine.sinks.{BasicSink, CassandraSink, ElasticSink, 
 import gn.oss.data.highway.models.{
   Cassandra,
   Consistency,
+  DHErrorResponse,
   DataHighwayErrorResponse,
-  DataHighwayResponse,
+  DataHighwaySuccessResponse,
   Earliest,
   Elasticsearch,
   File,
@@ -58,9 +59,9 @@ object KafkaExtractor extends HdfsUtils {
       output: Output,
       storage: Option[Storage],
       consistency: Option[Consistency]
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     val (temporaryPath, tempoBasePath) =
-      SharedUtils.setTempoFilePath("kafka-sampler", storage)
+      SharedUtils.setTempoFilePath("kafka-extractor", storage)
     val consumer = input.kafkaMode.asInstanceOf[Option[KafkaConsumer]]
     val fsys     = SharedUtils.setFileSystem(output, storage)
     consumer match {
@@ -428,7 +429,7 @@ object KafkaExtractor extends HdfsUtils {
               )
             case _ =>
               Left(
-                DataHighwayErrorResponse(
+                DHErrorResponse(
                   "ShouldUseIntermediateSaveMode",
                   "'save-mode' field should be not present",
                   ""
@@ -449,7 +450,7 @@ object KafkaExtractor extends HdfsUtils {
               new RuntimeException("Already taken care of by kafka-to-kafka routes")
             case _ =>
               Left(
-                DataHighwayErrorResponse(
+                DHErrorResponse(
                   "MissingSaveMode",
                   "Missing 'save-mode' field",
                   ""
@@ -468,7 +469,7 @@ object KafkaExtractor extends HdfsUtils {
     * @param output The output File entity
     * @param storage The output file system storage
     * @param saveMode The output save mode
-    * @return DataHighwayResponse, otherwise a DataHighwayErrorResponse
+    * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   def convertUsingBasicSink(
       temporaryPath: String,
@@ -476,7 +477,7 @@ object KafkaExtractor extends HdfsUtils {
       output: File,
       storage: Storage,
       saveMode: SaveMode
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     val tempInputPath = storage match {
       case Local => new java.io.File(temporaryPath).getParent
       case HDFS  => HdfsUtils.getPathWithoutUriPrefix(new java.io.File(temporaryPath).getParent)

@@ -12,8 +12,9 @@ import java.io.File
 import cats.implicits._
 import gn.oss.data.highway.models.{
   Consistency,
+  DHErrorResponse,
   DataHighwayErrorResponse,
-  DataHighwayResponse,
+  DataHighwaySuccessResponse,
   DataType,
   HDFS,
   Local,
@@ -68,14 +69,14 @@ object PostgresSink extends HdfsUtils {
     * @param output The output DataHighway File Entity
     * @param storage The file system storage : It can be Local or HDFS
     * @param consistency The file saving mode
-    * @return DataHighwayFileResponse, otherwise a DataHighwayErrorResponse
+    * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   def handlePostgresChannel(
       input: models.File,
       output: Postgres,
       storage: Option[Storage],
       consistency: Option[Consistency]
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     val basePath = new File(input.path).getParent
     (storage, consistency) match {
       case (Some(filesystem), Some(consist)) =>
@@ -98,7 +99,7 @@ object PostgresSink extends HdfsUtils {
         }
       case (None, None) =>
         Left(
-          DataHighwayErrorResponse(
+          DHErrorResponse(
             "MissingFileSystemStorage and MissingSaveMode",
             "Missing 'storage' and 'save-mode' fields",
             ""
@@ -106,7 +107,7 @@ object PostgresSink extends HdfsUtils {
         )
       case (None, _) =>
         Left(
-          DataHighwayErrorResponse(
+          DHErrorResponse(
             "MissingFileSystemStorage",
             "Missing 'storage' field",
             ""
@@ -114,7 +115,7 @@ object PostgresSink extends HdfsUtils {
         )
       case (_, None) =>
         Left(
-          DataHighwayErrorResponse(
+          DHErrorResponse(
             "MissingSaveMode",
             "Missing 'save-mode' field",
             ""
@@ -130,14 +131,14 @@ object PostgresSink extends HdfsUtils {
     * @param output The output Postgres Entity
     * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
-    * @return DataHighwayFileResponse, otherwise a DataHighwayErrorResponse
+    * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   private def handleLocalFS(
       input: models.File,
       output: Postgres,
       basePath: String,
       saveMode: SaveMode
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     val result = for {
       res <- insertRows(input, output, basePath, saveMode)
       _ = FilesUtils.cleanup(input.path)
@@ -153,7 +154,7 @@ object PostgresSink extends HdfsUtils {
     * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
     * @param fs The provided File System
-    * @return DataHighwayFileResponse, otherwise a DataHighwayErrorResponse
+    * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   private def handleHDFS(
       input: models.File,
@@ -161,7 +162,7 @@ object PostgresSink extends HdfsUtils {
       basePath: String,
       saveMode: SaveMode,
       fs: FileSystem
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     val result = for {
       folders <- HdfsUtils.listFolders(fs, input.path)
       _ = logger.info("Folders to be processed : " + folders)

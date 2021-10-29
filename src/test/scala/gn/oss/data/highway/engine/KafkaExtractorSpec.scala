@@ -1,6 +1,6 @@
 package gn.oss.data.highway.engine
 
-import gn.oss.data.highway.utils.TestHelper
+import gn.oss.data.highway.helper.TestHelper
 import gn.oss.data.highway.models.DataHighwayError.KafkaError
 import net.manub.embeddedkafka.{EmbeddedKafka, EmbeddedKafkaConfig}
 import org.apache.spark.sql.SaveMode

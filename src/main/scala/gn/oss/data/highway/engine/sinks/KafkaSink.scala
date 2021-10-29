@@ -20,8 +20,9 @@ import java.util.{Properties, UUID}
 import scala.sys.ShutdownHookThread
 import cats.implicits._
 import gn.oss.data.highway.models.{
+  DHErrorResponse,
   DataHighwayErrorResponse,
-  DataHighwayResponse,
+  DataHighwaySuccessResponse,
   DataType,
   HDFS,
   Kafka,
@@ -47,13 +48,13 @@ object KafkaSink extends HdfsUtils with AppUtils {
     * @param input The input File entity
     * @param output The output Kafka entity
     * @param storage The file system storage
-    * @return DataHighwayResponse, otherwise a DataHighwayErrorResponse
+    * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   def handleKafkaChannel(
       input: models.File,
       output: Kafka,
       storage: Option[Storage]
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     val basePath = new File(input.path).getParent
     storage match {
       case Some(value) =>
@@ -92,7 +93,7 @@ object KafkaSink extends HdfsUtils with AppUtils {
         }
       case None =>
         Left(
-          DataHighwayErrorResponse(
+          DHErrorResponse(
             "MissingFileSystemStorage",
             "Missing 'storage' field",
             ""
@@ -167,12 +168,12 @@ object KafkaSink extends HdfsUtils with AppUtils {
     *
     * @param input The input Kafka entity
     * @param output The output Kafka entity
-    * @return DataHighwayResponse, otherwise a DataHighwayErrorResponse
+    * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   def mirrorTopic(
       input: Kafka,
       output: Kafka
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     input.kafkaMode match {
       case Some(km) =>
         val props = new Properties()
@@ -203,7 +204,7 @@ object KafkaSink extends HdfsUtils with AppUtils {
             SharedUtils.constructIOResponse(input, output, result, TRIGGER)
           case _ =>
             Left(
-              DataHighwayErrorResponse(
+              DHErrorResponse(
                 "WrongMirrorKafkaMode",
                 s"Kafka Mode '${input.kafkaMode}' is not supported",
                 s"This mode is not supported while mirroring a Kafka topic. The supported modes are " +
@@ -214,7 +215,7 @@ object KafkaSink extends HdfsUtils with AppUtils {
         }
       case None =>
         Left(
-          DataHighwayErrorResponse(
+          DHErrorResponse(
             "MissingFileSystemStorage",
             "Missing 'storage' field",
             ""

@@ -9,8 +9,9 @@ import gn.oss.data.highway.models.{
   Cassandra,
   CassandraDB,
   Consistency,
+  DHErrorResponse,
   DataHighwayErrorResponse,
-  DataHighwayResponse,
+  DataHighwaySuccessResponse,
   Elasticsearch,
   File,
   JSON,
@@ -29,15 +30,15 @@ object PostgresExtractor {
     * @param input The input Postgres entity
     * @param output The output entity
     * @param consistency The output save mode
-    * @return DataHighwayFileResponse, otherwise a DataHighwayErrorResponse
+    * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   def extractRows(
       input: Postgres,
       output: Output,
       consistency: Option[Consistency]
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     val (temporaryPath, tempoBasePath) =
-      SharedUtils.setTempoFilePath("postgres-sampler", Some(Local))
+      SharedUtils.setTempoFilePath("postgres-extractor", Some(Local))
     consistency match {
       case Some(consist) =>
         handleRoutesWithExplicitSaveModes(input, output, consist)
@@ -51,7 +52,7 @@ object PostgresExtractor {
       output: Output,
       temporaryPath: String,
       tempoBasePath: String
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     output match {
       case elasticsearch @ Elasticsearch(_, _, _) =>
         DataFrameUtils
@@ -77,7 +78,7 @@ object PostgresExtractor {
           )
       case _ =>
         Left(
-          DataHighwayErrorResponse(
+          DHErrorResponse(
             "MissingSaveMode",
             "Missing 'save-mode' field",
             ""
@@ -90,7 +91,7 @@ object PostgresExtractor {
       input: Postgres,
       output: Output,
       consistency: Consistency
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     output match {
       case file @ File(dataType, path) =>
         val result = DataFrameUtils
@@ -128,7 +129,7 @@ object PostgresExtractor {
         SharedUtils.constructIOResponse(input, cassandra, result, SUCCESS)
       case _ =>
         Left(
-          DataHighwayErrorResponse(
+          DHErrorResponse(
             "ShouldUseIntermediateSaveMode",
             "'save-mode' field should be not present",
             ""

@@ -20,7 +20,7 @@ import gn.oss.data.highway.models.{
   Channel,
   Consistency,
   DataHighwayErrorResponse,
-  DataHighwayResponse,
+  DataHighwaySuccessResponse,
   ElasticOps,
   Elasticsearch,
   File,
@@ -43,7 +43,7 @@ object Dispatcher {
     apply(route)
   }
 
-  def apply(route: Channel): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+  def apply(route: Channel): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     logger.info(s"${route.toString} route is activated ...")
     route match {
       case ElasticOps(operation) =>

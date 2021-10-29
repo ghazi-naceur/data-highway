@@ -4,9 +4,10 @@ import gn.oss.data.highway.configs.{AppUtils, HdfsUtils}
 import gn.oss.data.highway.models.DataHighwayError.DataHighwayFileError
 import gn.oss.data.highway.models.{
   Cassandra,
+  DHErrorResponse,
   DataHighwayErrorResponse,
   DataHighwayIOResponse,
-  DataHighwayResponse,
+  DataHighwaySuccessResponse,
   Elasticsearch,
   File,
   HDFS,
@@ -95,7 +96,7 @@ object SharedUtils extends HdfsUtils with AppUtils {
       output: Output,
       result: Either[Throwable, Any],
       message: String
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     result match {
       case Right(_) =>
         Right(
@@ -107,7 +108,7 @@ object SharedUtils extends HdfsUtils with AppUtils {
         )
       case Left(thr) =>
         Left(
-          DataHighwayErrorResponse(
+          DHErrorResponse(
             thr.getMessage,
             thr.getCause.toString,
             FAILURE

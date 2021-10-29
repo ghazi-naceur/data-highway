@@ -20,8 +20,10 @@ import gn.oss.data.highway.models.{
   Cassandra,
   CommonTermsQuery,
   Consistency,
+  DHErrorResponse,
   DataHighwayErrorResponse,
   DataHighwayResponse,
+  DataHighwaySuccessResponse,
   Elasticsearch,
   ExistsQuery,
   Field,
@@ -418,21 +420,21 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
     * @param output The output base folder
     * @param storage The output file system storage
     * @param consistency The file saving mode
-    * @return DataHighwayFileResponse, otherwise a DataHighwayErrorResponse
+    * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   def saveDocuments(
       input: Elasticsearch,
       output: Output,
       storage: Option[Storage],
       consistency: Option[Consistency]
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     val (temporaryPath, tempoBasePath) =
       SharedUtils.setTempoFilePath("elasticsearch-sampler", storage)
     val result = consistency match {
       case Some(_) =>
         handleRoutesWithExplicitSaveModes(input, output, storage, consistency, temporaryPath)
       case None =>
-        handleRoutesWithIntermediateSaveModes(input, output, temporaryPath)
+        handleRoutesWithImplicitSaveModes(input, output, temporaryPath)
     }
     cleanupTmp(tempoBasePath, storage)
     SharedUtils
@@ -444,11 +446,11 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
       )
   }
 
-  private def handleRoutesWithIntermediateSaveModes(
+  private def handleRoutesWithImplicitSaveModes(
       input: Elasticsearch,
       output: Output,
       temporaryPath: String
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     output match {
       case elasticsearch @ Elasticsearch(_, _, _) =>
         searchDocsUsingSearchQuery(input, Some(Local), temporaryPath)
@@ -459,7 +461,7 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
         KafkaSink.handleKafkaChannel(File(JSON, temporaryPath), kafka, Some(Local))
       case _ =>
         Left(
-          DataHighwayErrorResponse(
+          DHErrorResponse(
             "MissingSaveMode",
             "Missing 'save-mode' field",
             ""
@@ -474,7 +476,7 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
       storage: Option[Storage],
       consistency: Option[Consistency],
       temporaryPath: String
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     output match {
       case file @ File(_, _) =>
         searchDocsUsingSearchQuery(input, storage, temporaryPath)
@@ -504,7 +506,7 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
           )
       case _ =>
         Left(
-          DataHighwayErrorResponse(
+          DHErrorResponse(
             "ShouldUseIntermediateSaveMode",
             "'save-mode' field should be not present",
             ""

@@ -1,5 +1,6 @@
 package gn.oss.data.highway.utils
 
+import gn.oss.data.highway.helper.TestHelper
 import gn.oss.data.highway.models.DataHighwayError.DataHighwayFileError
 import org.scalactic.source.Position
 

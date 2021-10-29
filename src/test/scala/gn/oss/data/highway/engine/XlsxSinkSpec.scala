@@ -2,8 +2,9 @@ package gn.oss.data.highway.engine
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
 import gn.oss.data.highway.engine.sinks.BasicSink
+import gn.oss.data.highway.helper.TestHelper
 import gn.oss.data.highway.models.{AVRO, CSV, JSON, ORC, PARQUET, XLSX}
-import gn.oss.data.highway.utils.{DataFrameUtils, FilesUtils, TestHelper}
+import gn.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
 import org.apache.spark.sql.SaveMode
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
