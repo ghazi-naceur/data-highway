@@ -1,7 +1,7 @@
 package gn.oss.data.highway.utils
 
 import gn.oss.data.highway.helper.TestHelper
-import gn.oss.data.highway.models.DataHighwayError.DataHighwayFileError
+import gn.oss.data.highway.models.DataHighwayErrorObj.DataHighwayFileError
 import org.scalactic.source.Position
 
 import java.io.{BufferedWriter, File, FileWriter}

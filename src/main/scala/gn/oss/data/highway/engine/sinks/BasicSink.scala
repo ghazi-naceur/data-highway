@@ -2,15 +2,14 @@ package gn.oss.data.highway.engine.sinks
 
 import gn.oss.data.highway.models
 import gn.oss.data.highway.configs.HdfsUtils
-import gn.oss.data.highway.utils.Constants.SUCCESS
 import gn.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils, SharedUtils}
 import org.apache.hadoop.fs.FileSystem
 import org.apache.log4j.Logger
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
+import gn.oss.data.highway.models.DataHighwayRuntimeException.MustHaveFileSystemAndSaveModeError
 import gn.oss.data.highway.models.{
   Consistency,
-  DHErrorResponse,
   DataHighwayErrorResponse,
   DataHighwaySuccessResponse,
   DataType,
@@ -70,46 +69,10 @@ object BasicSink extends HdfsUtils {
     (storage, consistency) match {
       case (Some(filesystem), Some(consist)) =>
         filesystem match {
-          case Local =>
-            handleLocalFS(
-              input,
-              output,
-              basePath,
-              consist.toSaveMode
-            )
-          case HDFS =>
-            handleHDFS(
-              input,
-              output,
-              basePath,
-              consist.toSaveMode,
-              fs
-            )
+          case Local => handleLocalFS(input, output, basePath, consist.toSaveMode)
+          case HDFS  => handleHDFS(input, output, basePath, consist.toSaveMode, fs)
         }
-      case (None, None) =>
-        Left(
-          DHErrorResponse(
-            "MissingFileSystemStorage and MissingSaveMode",
-            "Missing 'storage' and 'save-mode' fields",
-            ""
-          )
-        )
-      case (None, _) =>
-        Left(
-          DHErrorResponse(
-            "MissingFileSystemStorage",
-            "Missing 'storage' field",
-            ""
-          )
-        )
-      case (_, None) =>
-        Left(
-          DHErrorResponse(
-            "MissingSaveMode",
-            "Missing 'save-mode' field",
-            ""
-          )
-        )
+      case (_, _) => Left(MustHaveFileSystemAndSaveModeError)
     }
   }
 
@@ -130,6 +93,7 @@ object BasicSink extends HdfsUtils {
       saveMode: SaveMode,
       fs: FileSystem
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
+    // todo to be refined
     val result = for {
       folders <- HdfsUtils.listFolders(fs, input.path)
       _ = logger.info("Folders to be processed : " + folders)
@@ -171,7 +135,7 @@ object BasicSink extends HdfsUtils {
       }
       _ = HdfsUtils.cleanup(fs, input.path)
     } yield res
-    SharedUtils.constructIOResponse(input, output, result, SUCCESS)
+    SharedUtils.constructIOResponse(input, output, result)
   }
 
   /**
@@ -189,6 +153,7 @@ object BasicSink extends HdfsUtils {
       basePath: String,
       saveMode: SaveMode
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
+    // todo to be refined
     val result = for {
       folders <- FilesUtils.listNonEmptyFoldersRecursively(input.path)
       _ = logger.info("Folders to be processed : " + folders)
@@ -236,6 +201,6 @@ object BasicSink extends HdfsUtils {
       }
       _ = FilesUtils.cleanup(input.path)
     } yield res
-    SharedUtils.constructIOResponse(input, output, result, SUCCESS)
+    SharedUtils.constructIOResponse(input, output, result)
   }
 }

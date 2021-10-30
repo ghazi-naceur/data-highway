@@ -6,7 +6,7 @@ import org.apache.kafka.clients.consumer.{ConsumerConfig, KafkaConsumer}
 import org.apache.kafka.common.serialization.{Serdes, StringDeserializer}
 import cats.syntax.either._
 import gn.oss.data.highway.models.{KafkaStreamEntity, Offset}
-import gn.oss.data.highway.models.DataHighwayError.KafkaError
+import gn.oss.data.highway.models.DataHighwayErrorObj.KafkaError
 import org.apache.kafka.streams.StreamsConfig
 import org.apache.kafka.streams.scala.StreamsBuilder
 import org.apache.log4j.Logger

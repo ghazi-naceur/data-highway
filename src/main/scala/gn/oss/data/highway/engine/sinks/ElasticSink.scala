@@ -11,7 +11,7 @@ import org.apache.log4j.Logger
 import org.apache.spark.sql.DataFrame
 import cats.implicits._
 import gn.oss.data.highway.models.{
-  DHErrorResponse,
+  DataHighwayError,
   DataHighwayErrorResponse,
   DataHighwayResponse,
   DataHighwaySuccessResponse,

@@ -1,7 +1,7 @@
 package gn.oss.data.highway.utils
 
 import java.io.{File, FileWriter}
-import gn.oss.data.highway.models.DataHighwayError.DataHighwayFileError
+import gn.oss.data.highway.models.DataHighwayErrorObj.DataHighwayFileError
 import cats.syntax.either._
 import gn.oss.data.highway.models.XLSX
 import org.apache.commons.io.FileUtils

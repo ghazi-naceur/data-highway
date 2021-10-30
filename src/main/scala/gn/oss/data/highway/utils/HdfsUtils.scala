@@ -6,7 +6,7 @@ import java.io.{BufferedWriter, File, OutputStreamWriter}
 import scala.annotation.tailrec
 import cats.implicits._
 import gn.oss.data.highway.configs.HdfsUtils
-import gn.oss.data.highway.models.DataHighwayError.HdfsError
+import gn.oss.data.highway.models.DataHighwayErrorObj.HdfsError
 
 import java.nio.charset.StandardCharsets
 

@@ -1,7 +1,7 @@
 package gn.oss.data.highway.utils
 
 import gn.oss.data.highway.helper.TestHelper
-import gn.oss.data.highway.models.DataHighwayError.HdfsError
+import gn.oss.data.highway.models.DataHighwayErrorObj.HdfsError
 import org.scalactic.source.Position
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec

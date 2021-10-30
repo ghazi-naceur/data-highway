@@ -1,15 +1,18 @@
 package gn.oss.data.highway.engine.extractors
 
 import gn.oss.data.highway.engine.sinks.{ElasticSink, KafkaSink}
-import gn.oss.data.highway.utils.Constants.SUCCESS
-import gn.oss.data.highway.utils.{Constants, DataFrameUtils, SharedUtils}
+import gn.oss.data.highway.utils.Constants.EMPTY
+import gn.oss.data.highway.utils.{DataFrameUtils, SharedUtils}
 import org.apache.spark.sql.SaveMode.Append
 import cats.implicits._
+import gn.oss.data.highway.models.DataHighwayRuntimeException.{
+  MustHaveExplicitSaveModeError,
+  MustNotHaveExplicitSaveModeError
+}
 import gn.oss.data.highway.models.{
   Cassandra,
   CassandraDB,
   Consistency,
-  DHErrorResponse,
   DataHighwayErrorResponse,
   DataHighwaySuccessResponse,
   Elasticsearch,
@@ -41,14 +44,14 @@ object CassandraExtractor {
       SharedUtils.setTempoFilePath("cassandra-extractor", Some(Local))
     consistency match {
       case Some(consist) =>
-        handleRoutesWithExplicitSaveModes(input, output, consist)
+        handleRouteWithExplicitSaveMode(input, output, consist)
       case None =>
-        handleRoutesWithImplicitSaveModes(input, output, temporaryPath, tempoBasePath)
+        handleRouteWithImplicitSaveMode(input, output, temporaryPath, tempoBasePath)
     }
   }
 
   /**
-    * Handles routes that uses implicit save modes. It handles the following outputs: Elasticsearch and Kafka.
+    * Handles route that uses implicit save modes. It handles the following outputs: Elasticsearch and Kafka.
     *
     * @param input The Cassandra entity
     * @param output The output plug: Elasticsearch or Kafka
@@ -56,95 +59,69 @@ object CassandraExtractor {
     * @param tempoBasePath The base path for the intermediate JSON dataset
     * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
-  private def handleRoutesWithImplicitSaveModes(
+  private def handleRouteWithImplicitSaveMode(
       input: Cassandra,
       output: Output,
       temporaryPath: String,
       tempoBasePath: String
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
-    output match {
+    // todo loadDataFrame x2
+    val result = output match {
       case elasticsearch @ Elasticsearch(_, _, _) =>
         DataFrameUtils
-          .loadDataFrame(CassandraDB(input.keyspace, input.table), Constants.EMPTY)
+          .loadDataFrame(CassandraDB(input.keyspace, input.table), EMPTY)
           .traverse(df => DataFrameUtils.saveDataFrame(df, JSON, temporaryPath, Append))
           .flatten
-        val result = ElasticSink
-          .insertDocuments(File(JSON, temporaryPath), elasticsearch, tempoBasePath, Local)
-        SharedUtils.constructIOResponse(input, elasticsearch, result, SUCCESS)
+        ElasticSink.insertDocuments(File(JSON, temporaryPath), elasticsearch, tempoBasePath, Local)
       case kafka @ Kafka(_, _) =>
         DataFrameUtils
-          .loadDataFrame(CassandraDB(input.keyspace, input.table), Constants.EMPTY)
+          .loadDataFrame(CassandraDB(input.keyspace, input.table), EMPTY)
           .traverse(df => DataFrameUtils.saveDataFrame(df, JSON, temporaryPath, Append))
           .flatten
-        val result = KafkaSink.handleKafkaChannel(File(JSON, temporaryPath), kafka, Some(Local))
-        SharedUtils.constructIOResponse(input, kafka, result.leftMap(_.toThrowable), SUCCESS)
-      case _ =>
-        Left(
-          DHErrorResponse(
-            "MissingSaveMode",
-            "Missing 'save-mode' field",
-            ""
-          )
-        )
+        KafkaSink.handleKafkaChannel(File(JSON, temporaryPath), kafka, Some(Local))
+      case _ => Left(MustNotHaveExplicitSaveModeError)
     }
+    SharedUtils.constructIOResponse(input, output, result)
   }
 
   /**
-    * Handles routes that uses explicit save modes. It handles the following outputs: File, Postgres and Cassandra.
+    * Handles route that uses explicit save modes. It handles the following outputs: File, Postgres and Cassandra.
     *
     * @param input The Cassandra entity
     * @param output The output plug: File, Postgres or Cassandra
     * @param consistency A representation for the Spark Save Mode
     * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
-  private def handleRoutesWithExplicitSaveModes(
+  private def handleRouteWithExplicitSaveMode(
       input: Cassandra,
       output: Output,
       consistency: Consistency
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
-    output match {
-      case file @ File(dataType, path) =>
-        val result = DataFrameUtils
-          .loadDataFrame(CassandraDB(input.keyspace, input.table), Constants.EMPTY)
+    // todo loadDataFrame x3
+    val result = output match {
+      case File(dataType, path) =>
+        DataFrameUtils
+          .loadDataFrame(CassandraDB(input.keyspace, input.table), EMPTY)
           .traverse(df => DataFrameUtils.saveDataFrame(df, dataType, path, consistency.toSaveMode))
           .flatten
-        SharedUtils.constructIOResponse(input, file, result, SUCCESS)
-      case cassandra @ Cassandra(keyspace, table) =>
-        val result = DataFrameUtils
-          .loadDataFrame(CassandraDB(input.keyspace, input.table), Constants.EMPTY)
+      case Cassandra(keyspace, table) =>
+        DataFrameUtils
+          .loadDataFrame(CassandraDB(input.keyspace, input.table), EMPTY)
           .traverse(df =>
             DataFrameUtils
-              .saveDataFrame(
-                df,
-                CassandraDB(keyspace, table),
-                Constants.EMPTY,
-                consistency.toSaveMode
-              )
+              .saveDataFrame(df, CassandraDB(keyspace, table), EMPTY, consistency.toSaveMode)
           )
           .flatten
-        SharedUtils.constructIOResponse(input, cassandra, result, SUCCESS)
-      case postgres @ Postgres(database, table) =>
-        val result = DataFrameUtils
-          .loadDataFrame(CassandraDB(input.keyspace, input.table), Constants.EMPTY)
+      case Postgres(database, table) =>
+        DataFrameUtils
+          .loadDataFrame(CassandraDB(input.keyspace, input.table), EMPTY)
           .traverse(df =>
             DataFrameUtils
-              .saveDataFrame(
-                df,
-                PostgresDB(database, table),
-                Constants.EMPTY,
-                consistency.toSaveMode
-              )
+              .saveDataFrame(df, PostgresDB(database, table), EMPTY, consistency.toSaveMode)
           )
           .flatten
-        SharedUtils.constructIOResponse(input, postgres, result, SUCCESS)
-      case _ =>
-        Left(
-          DHErrorResponse(
-            "ShouldUseIntermediateSaveMode",
-            "'save-mode' field should be not present",
-            ""
-          )
-        )
+      case _ => Left(MustHaveExplicitSaveModeError)
     }
+    SharedUtils.constructIOResponse(input, output, result)
   }
 }

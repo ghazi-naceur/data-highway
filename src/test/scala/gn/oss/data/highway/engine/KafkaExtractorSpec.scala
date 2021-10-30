@@ -1,7 +1,7 @@
 package gn.oss.data.highway.engine
 
 import gn.oss.data.highway.helper.TestHelper
-import gn.oss.data.highway.models.DataHighwayError.KafkaError
+import gn.oss.data.highway.models.DataHighwayErrorObj.KafkaError
 import net.manub.embeddedkafka.{EmbeddedKafka, EmbeddedKafkaConfig}
 import org.apache.spark.sql.SaveMode
 import org.scalatest.BeforeAndAfterEach

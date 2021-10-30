@@ -3,8 +3,8 @@ package gn.oss.data.highway.engine.ops
 import gn.oss.data.highway.configs.ElasticUtils
 import cats.implicits._
 import gn.oss.data.highway.models.{
-  DHErrorResponse,
   DataHighwayElasticResponse,
+  DataHighwayError,
   DataHighwayErrorResponse,
   DataHighwaySuccessResponse,
   ElasticOperation,
@@ -57,7 +57,7 @@ object ElasticAdminOps extends ElasticUtils {
         DataHighwayElasticResponse(indexName, "Index created successfully")
       else
         DataHighwayElasticResponse(indexName, "Index is not created")
-    }.leftMap(thr => DHErrorResponse(thr.getMessage, thr.getCause.toString, ""))
+    }.leftMap(thr => DataHighwayError(thr.getMessage, thr.getCause.toString))
   }
 
   /**
@@ -83,7 +83,7 @@ object ElasticAdminOps extends ElasticUtils {
         DataHighwayElasticResponse(indexName, "Index created successfully")
       else
         DataHighwayElasticResponse(indexName, "Index is not created")
-    }.leftMap(thr => DHErrorResponse(thr.getMessage, thr.getCause.toString, ""))
+    }.leftMap(thr => DataHighwayError(thr.getMessage, thr.getCause.toString))
   }
 
   /**
@@ -104,7 +104,7 @@ object ElasticAdminOps extends ElasticUtils {
         DataHighwayElasticResponse(indexName, "Index deleted successfully")
       else
         DataHighwayElasticResponse(indexName, "Index is not deleted")
-    }.leftMap(thr => DHErrorResponse(thr.getMessage, thr.getCause.toString, ""))
+    }.leftMap(thr => DataHighwayError(thr.getMessage, thr.getCause.toString))
   }
 
   /**
@@ -127,6 +127,6 @@ object ElasticAdminOps extends ElasticUtils {
         DataHighwayElasticResponse(indexName, "Mapping added successfully")
       else
         DataHighwayElasticResponse(indexName, "Mapping is not added")
-    }.leftMap(thr => DHErrorResponse(thr.getMessage, thr.getCause.toString, ""))
+    }.leftMap(thr => DataHighwayError(thr.getMessage, thr.getCause.toString))
   }
 }

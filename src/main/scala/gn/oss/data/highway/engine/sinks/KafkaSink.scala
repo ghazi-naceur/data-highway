@@ -2,8 +2,7 @@ package gn.oss.data.highway.engine.sinks
 
 import gn.oss.data.highway.configs.{AppUtils, HdfsUtils}
 import gn.oss.data.highway.models
-import gn.oss.data.highway.models.DataHighwayError.{DataHighwayFileError, KafkaError}
-import gn.oss.data.highway.utils.Constants.{SUCCESS, TRIGGER}
+import gn.oss.data.highway.models.DataHighwayErrorObj.{DataHighwayFileError, KafkaError}
 import gn.oss.data.highway.utils._
 import org.apache.hadoop.fs.FileSystem
 import org.apache.kafka.clients.consumer.ConsumerConfig
@@ -20,7 +19,6 @@ import java.util.{Properties, UUID}
 import scala.sys.ShutdownHookThread
 import cats.implicits._
 import gn.oss.data.highway.models.{
-  DHErrorResponse,
   DataHighwayErrorResponse,
   DataHighwaySuccessResponse,
   DataType,
@@ -78,7 +76,7 @@ object KafkaSink extends HdfsUtils with AppUtils {
                   .flatten
               _ = HdfsUtils.cleanup(fs, input.path)
             } yield list
-            SharedUtils.constructIOResponse(input, output, result, SUCCESS)
+            SharedUtils.constructIOResponse(input, output, result)
           case Local =>
             val result = for {
               folders <- FilesUtils.listNonEmptyFoldersRecursively(input.path)
@@ -89,7 +87,7 @@ object KafkaSink extends HdfsUtils with AppUtils {
                   })
               _ = FilesUtils.cleanup(input.path)
             } yield list
-            SharedUtils.constructIOResponse(input, output, result, SUCCESS)
+            SharedUtils.constructIOResponse(input, output, result)
         }
       case None =>
         Left(
@@ -186,7 +184,7 @@ object KafkaSink extends HdfsUtils with AppUtils {
         km match {
           case PureKafkaStreamsProducer(brokers, streamAppId, offset) =>
             val result = runStream(streamAppId, input.topic, brokers, output.topic, offset)
-            SharedUtils.constructIOResponse(input, output, result, TRIGGER)
+            SharedUtils.constructIOResponse(input, output, result)
           case SparkKafkaPluginStreamsProducer(brokers, offset) =>
             val result = Either.catchNonFatal {
               val thread = new Thread(() => {
@@ -201,7 +199,7 @@ object KafkaSink extends HdfsUtils with AppUtils {
               })
               thread.start()
             }
-            SharedUtils.constructIOResponse(input, output, result, TRIGGER)
+            SharedUtils.constructIOResponse(input, output, result)
           case _ =>
             Left(
               DHErrorResponse(

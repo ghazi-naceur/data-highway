@@ -4,8 +4,7 @@ import com.sksamuel.elastic4s.requests.searches.{SearchHit, SearchResponse}
 import com.sksamuel.elastic4s.{RequestFailure, RequestSuccess}
 import gn.oss.data.highway.configs.{ElasticUtils, HdfsUtils}
 import gn.oss.data.highway.engine.sinks._
-import gn.oss.data.highway.models.DataHighwayError.DataHighwayFileError
-import gn.oss.data.highway.utils.Constants.SUCCESS
+import gn.oss.data.highway.models.DataHighwayErrorObj.DataHighwayFileError
 import gn.oss.data.highway.utils.{FilesUtils, HdfsUtils, SharedUtils}
 import io.circe.Json
 import io.circe.syntax.EncoderOps
@@ -14,15 +13,19 @@ import org.apache.log4j.Logger
 import java.util.UUID
 import scala.annotation.tailrec
 import cats.implicits._
+import gn.oss.data.highway.models.DataHighwayRuntimeException.{
+  MustHaveExplicitSaveModeError,
+  MustHaveExplicitFileSystemError,
+  MustHaveSearchQueryError,
+  MustNotHaveExplicitSaveModeError
+}
 import gn.oss.data.highway.models.{
   BoolFilter,
   BoolMatchPhraseQuery,
   Cassandra,
   CommonTermsQuery,
   Consistency,
-  DHErrorResponse,
   DataHighwayErrorResponse,
-  DataHighwayResponse,
   DataHighwaySuccessResponse,
   Elasticsearch,
   ExistsQuery,
@@ -71,10 +74,7 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
     */
   def getTenRandomDocsFrom(in: String): Either[Exception, Json] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    esClient.execute {
-      search(in).matchAllQuery()
-    }.await match {
+    esClient.execute { search(in).matchAllQuery() }.await match {
       case RequestSuccess(status, body, headers, result) =>
         logger.info(s"status: '$status', body: '$body', headers: '$headers', result: '$result'")
         Right(
@@ -96,11 +96,7 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
     */
   private def searchWithMatchAllQuery(in: String): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    val result = esClient.execute {
-      search(in).matchAllQuery() scroll "1m"
-    }.await.result
-
+    val result = esClient.execute { search(in).matchAllQuery() scroll "1m" }.await.result
     collectSearchHits(result)
   }
 
@@ -113,11 +109,9 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
     */
   private def searchWithMatchQuery(in: String, field: Field): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
     val result = esClient.execute {
       search(in).matchQuery(field.name, field.value) scroll "1m"
     }.await.result
-
     collectSearchHits(result)
   }
 
@@ -133,18 +127,10 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
       values: List[String]
   ): Either[Throwable, List[SearchHit]] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    val request = values.map(value => search(in).query(value).size(10000))
-
     Either.catchNonFatal {
-      esClient.execute {
-        multi(
-          request
-        )
-      }.await.result.successes.toList
-        .flatMap(searchResponse => {
-          searchResponse.hits.hits
-        })
+      val request = values.map(value => search(in).query(value).size(10000))
+      esClient.execute { multi(request) }.await.result.successes.toList
+        .flatMap(searchResponse => searchResponse.hits.hits)
     }
   }
 
@@ -157,11 +143,9 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
     */
   private def searchWithTermQuery(in: String, field: Field): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    val result =
-      esClient.execute {
-        search(in).query(termQuery(field.name, field.value)) scroll "1m"
-      }.await.result
+    val result = esClient.execute {
+      search(in).query(termQuery(field.name, field.value)) scroll "1m"
+    }.await.result
     collectSearchHits(result)
   }
 
@@ -174,11 +158,9 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
     */
   private def searchWithTermsQuery(in: String, fieldValues: FieldValues): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    val result =
-      esClient.execute {
-        search(in).query(termsQuery(fieldValues.name, fieldValues.values)) scroll "1m"
-      }.await.result
+    val result = esClient.execute {
+      search(in).query(termsQuery(fieldValues.name, fieldValues.values)) scroll "1m"
+    }.await.result
     collectSearchHits(result)
   }
 
@@ -191,11 +173,9 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
     */
   private def searchWithCommonTermsQuery(in: String, field: Field): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    val result =
-      esClient.execute {
-        search(in).query(commonTermsQuery(field.name, field.value)) scroll "1m"
-      }.await.result
+    val result = esClient.execute {
+      search(in).query(commonTermsQuery(field.name, field.value)) scroll "1m"
+    }.await.result
     collectSearchHits(result)
   }
 
@@ -208,11 +188,9 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
     */
   private def searchWithQueryStringQuery(in: String, strQuery: String): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    val result =
-      esClient.execute {
-        search(in).query(queryStringQuery(strQuery)) scroll "1m"
-      }.await.result
+    val result = esClient.execute {
+      search(in).query(queryStringQuery(strQuery)) scroll "1m"
+    }.await.result
     collectSearchHits(result)
   }
 
@@ -225,11 +203,9 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
     */
   private def searchWithSimpleStringQuery(in: String, strQuery: String): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    val result =
-      esClient.execute {
-        search(in).query(simpleStringQuery(strQuery)) scroll "1m"
-      }.await.result
+    val result = esClient.execute {
+      search(in).query(simpleStringQuery(strQuery)) scroll "1m"
+    }.await.result
     collectSearchHits(result)
   }
 
@@ -242,11 +218,9 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
     */
   private def searchWithPrefixQuery(in: String, prefix: Prefix): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    val result =
-      esClient.execute {
-        search(in).query(prefixQuery(prefix.fieldName, prefix.value)) scroll "1m"
-      }.await.result
+    val result = esClient.execute {
+      search(in).query(prefixQuery(prefix.fieldName, prefix.value)) scroll "1m"
+    }.await.result
     collectSearchHits(result)
   }
 
@@ -260,15 +234,13 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
   private def searchWithMoreLikeThisQuery(in: String, likeFields: LikeFields): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
     import com.sksamuel.elastic4s.requests.searches.queries.MoreLikeThisQuery
-
-    val result =
-      esClient.execute {
-        search(in).query(
-          MoreLikeThisQuery(likeFields.fields, likeFields.likeTexts)
-            .minTermFreq(1)
-            .maxQueryTerms(12)
-        ) scroll "1m"
-      }.await.result
+    val result = esClient.execute {
+      search(in).query(
+        MoreLikeThisQuery(likeFields.fields, likeFields.likeTexts)
+          .minTermFreq(1)
+          .maxQueryTerms(12)
+      ) scroll "1m"
+    }.await.result
     collectSearchHits(result)
   }
 
@@ -283,12 +255,11 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
     import com.sksamuel.elastic4s.ElasticDsl._
     import com.sksamuel.elastic4s.requests.searches.queries.RangeQuery
     val rangeField = GenericRangeField.computeTypedRangeField(range)
-    val result =
-      esClient.execute {
-        search(in).query(
-          RangeQuery(rangeField.name, lte = rangeField.lte, gte = rangeField.gte)
-        ) scroll "1m"
-      }.await.result
+    val result = esClient.execute {
+      search(in).query(
+        RangeQuery(rangeField.name, lte = rangeField.lte, gte = rangeField.gte)
+      ) scroll "1m"
+    }.await.result
     collectSearchHits(result)
   }
 
@@ -301,11 +272,9 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
     */
   private def searchWithExistsQuery(in: String, fieldName: String): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    val result =
-      esClient.execute {
-        search(in).query(existsQuery(fieldName)) scroll "1m"
-      }.await.result
+    val result = esClient.execute {
+      search(in).query(existsQuery(fieldName)) scroll "1m"
+    }.await.result
     collectSearchHits(result)
   }
 
@@ -318,11 +287,9 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
     */
   private def searchWithWildcardQuery(in: String, field: Field): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    val result =
-      esClient.execute {
-        search(in).query(wildcardQuery(field.name, field.value)) scroll "1m"
-      }.await.result
+    val result = esClient.execute {
+      search(in).query(wildcardQuery(field.name, field.value)) scroll "1m"
+    }.await.result
     collectSearchHits(result)
   }
 
@@ -335,11 +302,9 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
     */
   private def searchWithRegexQuery(in: String, field: Field): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    val result =
-      esClient.execute {
-        search(in).query(regexQuery(field.name, field.value)) scroll "1m"
-      }.await.result
+    val result = esClient.execute {
+      search(in).query(regexQuery(field.name, field.value)) scroll "1m"
+    }.await.result
     collectSearchHits(result)
   }
 
@@ -352,11 +317,9 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
     */
   private def searchWithFuzzyQuery(in: String, field: Field): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    val result =
-      esClient.execute {
-        search(in).query(fuzzyQuery(field.name, field.value)) scroll "1m"
-      }.await.result
+    val result = esClient.execute {
+      search(in).query(fuzzyQuery(field.name, field.value)) scroll "1m"
+    }.await.result
     collectSearchHits(result)
   }
 
@@ -369,11 +332,9 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
     */
   private def searchWithIdsQuery(in: String, ids: List[String]): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    val result =
-      esClient.execute {
-        search(in).query(idsQuery(ids)) scroll "1m"
-      }.await.result
+    val result = esClient.execute {
+      search(in).query(idsQuery(ids)) scroll "1m"
+    }.await.result
     collectSearchHits(result)
   }
 
@@ -391,25 +352,16 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
       fields: List[Field]
   ): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
     val query = boolQuery()
     val queries = fields.map(field => {
       query.must(matchPhraseQuery(field.name, field.value))
     })
-
     val searchQuery = boolFilter match {
-      case Must =>
-        search(in).query(bool(queries, List(), List())) scroll "1m"
-      case MustNot =>
-        search(in).query(bool(List(), List(), queries)) scroll "1m"
-      case Should =>
-        search(in).query(bool(List(), queries, List())) scroll "1m"
+      case Must    => search(in).query(bool(queries, List(), List())) scroll "1m"
+      case MustNot => search(in).query(bool(List(), List(), queries)) scroll "1m"
+      case Should  => search(in).query(bool(List(), queries, List())) scroll "1m"
     }
-
-    val result =
-      esClient.execute {
-        searchQuery
-      }.await.result
+    val result = esClient.execute { searchQuery }.await.result
     collectSearchHits(result)
   }
 
@@ -428,25 +380,20 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
       storage: Option[Storage],
       consistency: Option[Consistency]
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
+    // todo maybe tempoEntity with timestamp
     val (temporaryPath, tempoBasePath) =
-      SharedUtils.setTempoFilePath("elasticsearch-sampler", storage)
+      SharedUtils.setTempoFilePath("elasticsearch-extractor", storage)
     val result = consistency match {
       case Some(_) =>
-        handleRoutesWithExplicitSaveModes(input, output, storage, consistency, temporaryPath)
+        handleRouteWithExplicitSaveMode(input, output, storage, consistency, temporaryPath)
       case None =>
-        handleRoutesWithImplicitSaveModes(input, output, temporaryPath)
+        handleRouteWithImplicitSaveMode(input, output, temporaryPath)
     }
     cleanupTmp(tempoBasePath, storage)
-    SharedUtils
-      .constructIOResponse(
-        input,
-        output,
-        result.leftMap(_.toThrowable),
-        SUCCESS
-      )
+    SharedUtils.constructIOResponse(input, output, result)
   }
 
-  private def handleRoutesWithImplicitSaveModes(
+  private def handleRouteWithImplicitSaveMode(
       input: Elasticsearch,
       output: Output,
       temporaryPath: String
@@ -459,18 +406,11 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
       case kafka @ Kafka(_, _) =>
         searchDocsUsingSearchQuery(input, Some(Local), temporaryPath)
         KafkaSink.handleKafkaChannel(File(JSON, temporaryPath), kafka, Some(Local))
-      case _ =>
-        Left(
-          DHErrorResponse(
-            "MissingSaveMode",
-            "Missing 'save-mode' field",
-            ""
-          )
-        )
+      case _ => Left(MustNotHaveExplicitSaveModeError)
     }
   }
 
-  private def handleRoutesWithExplicitSaveModes(
+  private def handleRouteWithExplicitSaveMode(
       input: Elasticsearch,
       output: Output,
       storage: Option[Storage],
@@ -480,38 +420,16 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
     output match {
       case file @ File(_, _) =>
         searchDocsUsingSearchQuery(input, storage, temporaryPath)
-        BasicSink.handleChannel(
-          File(JSON, temporaryPath),
-          file,
-          storage,
-          consistency
-        )
+        BasicSink.handleChannel(File(JSON, temporaryPath), file, storage, consistency)
       case cassandra @ Cassandra(_, _) =>
         searchDocsUsingSearchQuery(input, Some(Local), temporaryPath)
         CassandraSink
-          .handleCassandraChannel(
-            File(JSON, temporaryPath),
-            cassandra,
-            Some(Local),
-            consistency
-          )
+          .handleCassandraChannel(File(JSON, temporaryPath), cassandra, Some(Local), consistency)
       case postgres @ Postgres(_, _) =>
         searchDocsUsingSearchQuery(input, Some(Local), temporaryPath)
         PostgresSink
-          .handlePostgresChannel(
-            File(JSON, temporaryPath),
-            postgres,
-            Some(Local),
-            consistency
-          )
-      case _ =>
-        Left(
-          DHErrorResponse(
-            "ShouldUseIntermediateSaveMode",
-            "'save-mode' field should be not present",
-            ""
-          )
-        )
+          .handlePostgresChannel(File(JSON, temporaryPath), postgres, Some(Local), consistency)
+      case _ => Left(MustHaveExplicitSaveModeError)
     }
   }
 
@@ -594,46 +512,28 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
                 searchWithBoolMatchPhraseQuery(input.index, boolFilter, fields).traverse(
                   searchHit => saveSearchHit(searchHit, temporaryPath, filesystem)
                 )
-
-              case _ => Either.catchNonFatal(List())
-
             }
-          case None =>
-            Left(new RuntimeException("Missing SearchQuery in the Elasticsearch entity"))
+          case None => Left(MustHaveSearchQueryError)
         }
-      case None =>
-        Left(
-          DataHighwayFileError(
-            "MissingFileSystemStorage",
-            new RuntimeException("Missing 'storage' field"),
-            Array[StackTraceElement]()
-          )
-        )
+      case None => Left(MustHaveExplicitFileSystemError)
     }
   }
 
   /**
-    * Cleanups the temporary folder
+    * Cleanups the folder
     *
     * @param output The tmp suffix path
     * @param storage The tmp file system storage
-    * @return Serializable
+    * @return AnyVal, otherwise a Throwable
     */
-  private def cleanupTmp(output: String, storage: Option[Storage]): java.io.Serializable = {
+  private def cleanupTmp(output: String, storage: Option[Storage]): Either[Throwable, AnyVal] = {
     storage match {
       case Some(filesystem) =>
         filesystem match {
           case Local => FilesUtils.delete(output)
           case HDFS  => HdfsUtils.delete(fs, output)
         }
-      case None =>
-        Left(
-          DataHighwayFileError(
-            "MissingFileSystemStorage",
-            new RuntimeException("Missing 'storage' field"),
-            Array[StackTraceElement]()
-          )
-        )
+      case None => Left(MustHaveExplicitFileSystemError)
     }
   }
 
@@ -685,6 +585,7 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
       storage: Storage
   ): Either[Throwable, Unit] = {
     storage match {
+      // todo use SharedUtils.setTempoFilePath(), instead of generating a path here
       case HDFS =>
         HdfsUtils.save(
           fs,
@@ -695,8 +596,7 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
       case Local =>
         FilesUtils.createFile(
           s"$out/${searchHit.index}",
-          s"es-${searchHit.id}-${UUID.randomUUID()}-${System
-            .currentTimeMillis()}.${JSON.extension}",
+          s"es-${searchHit.id}-${UUID.randomUUID()}-${System.currentTimeMillis()}.${JSON.extension}",
           searchHit.sourceAsMap.mapValues(_.toString).asJson.noSpaces
         )
     }

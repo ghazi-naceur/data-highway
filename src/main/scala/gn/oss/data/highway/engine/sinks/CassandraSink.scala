@@ -12,7 +12,7 @@ import gn.oss.data.highway.models.{
   Cassandra,
   CassandraDB,
   Consistency,
-  DHErrorResponse,
+  DataHighwayError,
   DataHighwayErrorResponse,
   DataHighwaySuccessResponse,
   DataType,

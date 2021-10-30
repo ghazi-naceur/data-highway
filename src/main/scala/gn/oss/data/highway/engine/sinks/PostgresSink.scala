@@ -12,7 +12,7 @@ import java.io.File
 import cats.implicits._
 import gn.oss.data.highway.models.{
   Consistency,
-  DHErrorResponse,
+  DataHighwayError,
   DataHighwayErrorResponse,
   DataHighwaySuccessResponse,
   DataType,

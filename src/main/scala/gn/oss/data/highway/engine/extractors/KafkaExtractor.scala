@@ -9,10 +9,13 @@ import monix.execution.Scheduler.{global => scheduler}
 import cats.implicits._
 import gn.oss.data.highway.configs.HdfsUtils
 import gn.oss.data.highway.engine.sinks.{BasicSink, CassandraSink, ElasticSink, PostgresSink}
+import gn.oss.data.highway.models.DataHighwayRuntimeException.{
+  MustHaveExplicitSaveModeError,
+  MustNotHaveExplicitSaveModeError
+}
 import gn.oss.data.highway.models.{
   Cassandra,
   Consistency,
-  DHErrorResponse,
   DataHighwayErrorResponse,
   DataHighwaySuccessResponse,
   Earliest,
@@ -33,7 +36,6 @@ import gn.oss.data.highway.models.{
   SparkKafkaPluginStreamsConsumer,
   Storage
 }
-import gn.oss.data.highway.utils.Constants.{SUCCESS, TRIGGER}
 import gn.oss.data.highway.utils.DataFrameUtils.sparkSession
 import gn.oss.data.highway.utils._
 import org.apache.hadoop.fs.FileSystem
@@ -85,7 +87,7 @@ object KafkaExtractor extends HdfsUtils {
                   fs
                 )
               })
-            SharedUtils.constructIOResponse(input, output, result, TRIGGER)
+            SharedUtils.constructIOResponse(input, output, result)
           case PureKafkaStreamsConsumer(brokers, streamAppId, offset) =>
             // Continuous job - to be triggered once
             val result = sinkWithPureKafkaStreamsConsumer(
@@ -100,7 +102,7 @@ object KafkaExtractor extends HdfsUtils {
               streamAppId,
               fs
             )
-            SharedUtils.constructIOResponse(input, output, result, TRIGGER)
+            SharedUtils.constructIOResponse(input, output, result)
           case SparkKafkaPluginConsumer(brokers, offset) =>
             // Batch/One-shot job - to be triggered everytime
             val result = Either.catchNonFatal {
@@ -116,7 +118,7 @@ object KafkaExtractor extends HdfsUtils {
                 offset
               )
             }
-            SharedUtils.constructIOResponse(input, output, result, SUCCESS)
+            SharedUtils.constructIOResponse(input, output, result)
 //          case SparkKafkaPluginStreamsConsumer(brokers, offset) =>
 //            // only json data type support
 //            Either.catchNonFatal {
@@ -414,48 +416,19 @@ object KafkaExtractor extends HdfsUtils {
             case file @ File(_, _) =>
               convertUsingBasicSink(temporaryPath, tempoBasePath, file, storage, consist.toSaveMode)
             case cassandra @ Cassandra(_, _) =>
-              CassandraSink.insertRows(
-                File(JSON, temporaryPath),
-                cassandra,
-                tempoBasePath,
-                consist.toSaveMode
-              )
+              CassandraSink
+                .insertRows(File(JSON, temporaryPath), cassandra, tempoBasePath, consist.toSaveMode)
             case postgres @ Postgres(_, _) =>
-              PostgresSink.insertRows(
-                File(JSON, temporaryPath),
-                postgres,
-                tempoBasePath,
-                consist.toSaveMode
-              )
-            case _ =>
-              Left(
-                DHErrorResponse(
-                  "ShouldUseIntermediateSaveMode",
-                  "'save-mode' field should be not present",
-                  ""
-                )
-              )
+              PostgresSink
+                .insertRows(File(JSON, temporaryPath), postgres, tempoBasePath, consist.toSaveMode)
+            case _ => Left(MustNotHaveExplicitSaveModeError)
           }
         case None =>
           output match {
             case elasticsearch @ Elasticsearch(_, _, _) =>
               ElasticSink
-                .insertDocuments(
-                  File(JSON, temporaryPath),
-                  elasticsearch,
-                  tempoBasePath,
-                  storage
-                )
-            case Kafka(_, _) =>
-              new RuntimeException("Already taken care of by kafka-to-kafka routes")
-            case _ =>
-              Left(
-                DHErrorResponse(
-                  "MissingSaveMode",
-                  "Missing 'save-mode' field",
-                  ""
-                )
-              )
+                .insertDocuments(File(JSON, temporaryPath), elasticsearch, tempoBasePath, storage)
+            case _ => Left(MustHaveExplicitSaveModeError)
           }
       }
     }

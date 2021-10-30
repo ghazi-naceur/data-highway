@@ -1,25 +1,20 @@
 package gn.oss.data.highway.utils
 
 import gn.oss.data.highway.configs.{AppUtils, HdfsUtils}
-import gn.oss.data.highway.models.DataHighwayError.DataHighwayFileError
+import gn.oss.data.highway.models.DataHighwayErrorObj.DataHighwayFileError
 import gn.oss.data.highway.models.{
-  Cassandra,
-  DHErrorResponse,
+  DataHighwayError,
   DataHighwayErrorResponse,
-  DataHighwayIOResponse,
+  DataHighwaySuccess,
   DataHighwaySuccessResponse,
-  Elasticsearch,
   File,
   HDFS,
   Input,
-  Kafka,
   Local,
   Output,
   Plug,
-  Postgres,
   Storage
 }
-import gn.oss.data.highway.utils.Constants.FAILURE
 
 import java.util.UUID
 
@@ -94,36 +89,23 @@ object SharedUtils extends HdfsUtils with AppUtils {
   def constructIOResponse(
       input: Input,
       output: Output,
-      result: Either[Throwable, Any],
-      message: String
+      result: Either[Throwable, Any]
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     result match {
       case Right(_) =>
         Right(
-          DataHighwayIOResponse(
-            parsePlug(input),
-            parsePlug(output),
-            message
+          DataHighwaySuccess(
+            Plug.summary(input),
+            Plug.summary(output)
           )
         )
       case Left(thr) =>
         Left(
-          DHErrorResponse(
+          DataHighwayError(
             thr.getMessage,
-            thr.getCause.toString,
-            FAILURE
+            thr.getCause.toString
           )
         )
-    }
-  }
-
-  private def parsePlug(plug: Plug): String = {
-    plug match {
-      case File(dataType, path)       => s"File: Path '$path' in '$dataType' format"
-      case Cassandra(keyspace, table) => s"Cassandra: Keyspace '$keyspace' - Table '$table'"
-      case Postgres(database, table)  => s"Postgres: Database '$database' - Table '$table'"
-      case Elasticsearch(index, _, _) => s"Elasticsearch: Index '$index'"
-      case Kafka(topic, _)            => s"Kafka: Topic '$topic'"
     }
   }
 }
