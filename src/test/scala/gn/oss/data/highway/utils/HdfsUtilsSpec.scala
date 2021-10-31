@@ -1,7 +1,6 @@
 package gn.oss.data.highway.utils
 
 import gn.oss.data.highway.helper.TestHelper
-import gn.oss.data.highway.models.DataHighwayErrorObj.HdfsError
 import org.scalactic.source.Position
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
@@ -29,7 +28,7 @@ class HdfsUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with T
   "HdfsUtils.save" should "throw an exception" in {
     val result = HdfsUtils
       .save(hdfsEntity.fs, "", "some content")
-    result.left.get shouldBe a[HdfsError]
+    result.left.get shouldBe a[Throwable]
   }
 
   "HdfsUtils.mkdir" should "create a folder" in {
@@ -42,7 +41,7 @@ class HdfsUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with T
   "HdfsUtils.mkdir" should "throw an exception" in {
     val result = HdfsUtils
       .mkdir(null, "some content")
-    result.left.get shouldBe a[HdfsError]
+    result.left.get shouldBe a[Throwable]
   }
 
   "HdfsUtils.move" should "move files" in {
@@ -78,7 +77,7 @@ class HdfsUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with T
 
   "HdfsUtils.move" should "throw an exception" in {
     val result = HdfsUtils.move(null, "", "")
-    result.left.get shouldBe a[HdfsError]
+    result.left.get shouldBe a[Throwable]
   }
 
   "HdfsUtils.cleanup" should "cleanup a folder" in {
@@ -105,7 +104,7 @@ class HdfsUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with T
 
   "HdfsUtils.cleanup" should "throw an exception" in {
     val result = HdfsUtils.cleanup(null, "")
-    result.left.get shouldBe a[HdfsError]
+    result.left.get shouldBe a[Throwable]
   }
 
   "HdfsUtils.listFolders" should "list sub-folders inside parent folder" in {
@@ -134,7 +133,7 @@ class HdfsUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with T
 
   "HdfsUtils.listFolders" should "throw an exception" in {
     val result = HdfsUtils.listFolders(null, "")
-    result.left.get shouldBe a[HdfsError]
+    result.left.get shouldBe a[Throwable]
   }
 
   "HdfsUtils.listFiles" should "list files inside a folder" in {
@@ -195,7 +194,7 @@ class HdfsUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with T
 
   "HdfsUtils.movePathContent" should "throw an exception" in {
     val result = HdfsUtils.movePathContent(null, "", "")
-    result.left.get shouldBe a[HdfsError]
+    result.left.get shouldBe a[Throwable]
   }
 
   "HdfsUtils.getPathWithoutUriPrefix" should "get the path without the URI prefix 'hdfs://host:port'" in {
@@ -241,7 +240,7 @@ class HdfsUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with T
 
   "HdfsUtils.filterNonEmptyFolders" should "throw an exception" in {
     val result = HdfsUtils.filterNonEmptyFolders(null, List(""))
-    result.left.get shouldBe a[HdfsError]
+    result.left.get shouldBe a[Throwable]
   }
 
   "HdfsUtils.listFilesRecursively" should "list files recursively from a path" in {

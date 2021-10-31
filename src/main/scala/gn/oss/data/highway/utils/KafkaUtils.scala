@@ -81,6 +81,7 @@ object KafkaUtils {
     * @return Any
     */
   def verifyTopicExistence(topic: String, brokerUrls: String, enableTopicCreation: Boolean): Any = {
+    // todo maybe replace with DHE
     val strings = listTopics(brokerUrls).map(_._1)
     if (!strings.contains(topic)) {
       if (enableTopicCreation) {

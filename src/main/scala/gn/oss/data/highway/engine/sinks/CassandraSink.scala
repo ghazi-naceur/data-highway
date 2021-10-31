@@ -2,17 +2,17 @@ package gn.oss.data.highway.engine.sinks
 
 import gn.oss.data.highway.configs.HdfsUtils
 import gn.oss.data.highway.models
-import gn.oss.data.highway.utils.Constants.{EMPTY, SUCCESS}
+import gn.oss.data.highway.utils.Constants.EMPTY
 import gn.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils, SharedUtils}
 import org.apache.hadoop.fs.FileSystem
 import org.apache.log4j.Logger
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
+import gn.oss.data.highway.models.DataHighwayRuntimeException.MustHaveFileSystemAndSaveModeError
 import gn.oss.data.highway.models.{
   Cassandra,
   CassandraDB,
   Consistency,
-  DataHighwayError,
   DataHighwayErrorResponse,
   DataHighwaySuccessResponse,
   DataType,
@@ -72,45 +72,11 @@ object CassandraSink extends HdfsUtils {
       case (Some(filesystem), Some(consist)) =>
         filesystem match {
           case Local =>
-            handleLocalFS(
-              input,
-              output,
-              basePath,
-              consist.toSaveMode
-            )
+            handleLocalFS(input, output, basePath, consist.toSaveMode)
           case HDFS =>
-            handleHDFS(
-              input,
-              output,
-              basePath,
-              consist.toSaveMode,
-              fs
-            )
+            handleHDFS(input, output, basePath, consist.toSaveMode, fs)
         }
-      case (None, None) =>
-        Left(
-          DHErrorResponse(
-            "MissingFileSystemStorage and MissingSaveMode",
-            "Missing 'storage' and 'save-mode' fields",
-            ""
-          )
-        )
-      case (None, _) =>
-        Left(
-          DHErrorResponse(
-            "MissingFileSystemStorage",
-            "Missing 'storage' field",
-            ""
-          )
-        )
-      case (_, None) =>
-        Left(
-          DHErrorResponse(
-            "MissingSaveMode",
-            "Missing 'save-mode' field",
-            ""
-          )
-        )
+      case (_, _) => Left(MustHaveFileSystemAndSaveModeError)
     }
   }
 
@@ -131,6 +97,7 @@ object CassandraSink extends HdfsUtils {
       saveMode: SaveMode,
       fs: FileSystem
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
+    // todo to be refined
     val result = for {
       folders <- HdfsUtils.listFolders(fs, input.path)
       _ = logger.info("Folders to be processed : " + folders)
@@ -141,34 +108,19 @@ object CassandraSink extends HdfsUtils {
             .traverse(subfolder => {
               HdfsUtils
                 .listFiles(fs, subfolder)
-                .traverse(file => {
-                  insert(
-                    input.dataType,
-                    file,
-                    output,
-                    saveMode
-                  )
-                })
-                .flatMap(_ => {
-                  HdfsUtils.movePathContent(fs, subfolder, basePath)
-                })
+                .traverse(file => insert(input.dataType, file, output, saveMode))
+                .flatMap(_ => HdfsUtils.movePathContent(fs, subfolder, basePath))
             })
         case _ =>
           filtered
-            .traverse(subfolder => {
-              insert(
-                input.dataType,
-                subfolder,
-                output,
-                saveMode
-              ).flatMap(_ => {
-                HdfsUtils.movePathContent(fs, subfolder, basePath)
-              })
-            })
+            .traverse(subfolder =>
+              insert(input.dataType, subfolder, output, saveMode)
+                .flatMap(_ => HdfsUtils.movePathContent(fs, subfolder, basePath))
+            )
       }
       _ = HdfsUtils.cleanup(fs, input.path)
     } yield res
-    SharedUtils.constructIOResponse(input, output, result, SUCCESS)
+    SharedUtils.constructIOResponse(input, output, result)
   }
 
   /**
@@ -186,11 +138,12 @@ object CassandraSink extends HdfsUtils {
       basePath: String,
       saveMode: SaveMode
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
+    // todo maybe substitute for/yield
     val result = for {
       res <- insertRows(input, output, basePath, saveMode)
       _ = FilesUtils.cleanup(input.path)
     } yield res
-    SharedUtils.constructIOResponse(input, output, result, SUCCESS)
+    SharedUtils.constructIOResponse(input, output, result)
   }
 
   /**
@@ -208,6 +161,7 @@ object CassandraSink extends HdfsUtils {
       basePath: String,
       saveMode: SaveMode
   ): Either[Throwable, List[List[String]]] = {
+    // todo to be refined
     for {
       folders <- FilesUtils.listNonEmptyFoldersRecursively(input.path)
       _ = logger.info("Folders to be processed : " + folders)
@@ -217,35 +171,28 @@ object CassandraSink extends HdfsUtils {
           FilesUtils
             .listFiles(filtered)
             .traverse(files => {
-              files.traverse(file => {
-                insert(
-                  input.dataType,
-                  file.toURI.getPath,
-                  output,
-                  saveMode
-                ).flatMap(subInputFolder => {
-                  FilesUtils
-                    .movePathContent(
-                      subInputFolder,
-                      s"$basePath/processed/${new File(
-                        subInputFolder
-                      ).getParentFile.toURI.getPath.split("/").takeRight(1).mkString("/")}"
-                    )
+              files
+                .traverse(file => {
+                  insert(input.dataType, file.toURI.getPath, output, saveMode)
+                    .flatMap(subInputFolder => {
+                      FilesUtils
+                        .movePathContent(
+                          subInputFolder,
+                          s"$basePath/processed/${new File(
+                            subInputFolder
+                          ).getParentFile.toURI.getPath.split("/").takeRight(1).mkString("/")}"
+                        )
+                    })
                 })
-              })
             })
             .flatten
         case _ =>
           filtered
             .traverse(subFolder => {
-              insert(
-                input.dataType,
-                subFolder,
-                output,
-                saveMode
-              ).flatMap(subInputFolder => {
-                FilesUtils.movePathContent(subInputFolder, s"$basePath/processed")
-              })
+              insert(input.dataType, subFolder, output, saveMode)
+                .flatMap(subInputFolder =>
+                  FilesUtils.movePathContent(subInputFolder, s"$basePath/processed")
+                )
             })
       }
     } yield res

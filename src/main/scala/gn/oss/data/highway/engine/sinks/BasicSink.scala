@@ -105,32 +105,18 @@ object BasicSink extends HdfsUtils {
               HdfsUtils
                 .listFiles(fs, subFolder)
                 .traverse(file => {
-                  val fileNameWithParentFolder = FilesUtils.getFileNameAndParentFolderFromPath(file)
-                  convert(
-                    input.dataType,
-                    file,
-                    output.dataType,
-                    s"${output.path}/$fileNameWithParentFolder",
-                    saveMode
-                  )
+                  val fullOutputPath =
+                    s"${output.path}/${FilesUtils.getFileNameAndParentFolderFromPath(file)}"
+                  convert(input.dataType, file, output.dataType, fullOutputPath, saveMode)
                 })
-                .flatMap(_ => {
-                  HdfsUtils.movePathContent(fs, subFolder, basePath)
-                })
+                .flatMap(_ => HdfsUtils.movePathContent(fs, subFolder, basePath))
             })
         case _ =>
           filtered
             .traverse(subFolder => {
-              val subFolderName = subFolder.split("/").last
-              convert(
-                input.dataType,
-                subFolder,
-                output.dataType,
-                s"${output.path}/$subFolderName",
-                saveMode
-              ).flatMap(_ => {
-                HdfsUtils.movePathContent(fs, subFolder, basePath)
-              })
+              val fullOutputPath = s"${output.path}/${subFolder.split("/").last}"
+              convert(input.dataType, subFolder, output.dataType, fullOutputPath, saveMode)
+                .flatMap(_ => HdfsUtils.movePathContent(fs, subFolder, basePath))
             })
       }
       _ = HdfsUtils.cleanup(fs, input.path)
@@ -165,13 +151,13 @@ object BasicSink extends HdfsUtils {
             .traverse(files => {
               files
                 .traverse(file => {
-                  val fileNameWithParentFolder =
-                    FilesUtils.getFileNameAndParentFolderFromPath(file.toURI.getPath)
+                  val fullOutputPath =
+                    s"${output.path}/${FilesUtils.getFileNameAndParentFolderFromPath(file.toURI.getPath)}"
                   convert(
                     input.dataType,
                     file.toURI.getPath,
                     output.dataType,
-                    s"${output.path}/$fileNameWithParentFolder",
+                    fullOutputPath,
                     saveMode
                   ).flatMap(subInputFolder => {
                     FilesUtils
@@ -187,16 +173,12 @@ object BasicSink extends HdfsUtils {
             .flatten
         case _ =>
           filtered.traverse(subFolder => {
-            val subFolderName = FilesUtils.reversePathSeparator(subFolder).split("/").last
-            convert(
-              input.dataType,
-              subFolder,
-              output.dataType,
-              s"${output.path}/$subFolderName",
-              saveMode
-            ).flatMap(subInputFolder => {
-              FilesUtils.movePathContent(subInputFolder, s"$basePath/processed")
-            })
+            val fullOutPutPath =
+              s"${output.path}/${FilesUtils.reversePathSeparator(subFolder).split("/").last}"
+            convert(input.dataType, subFolder, output.dataType, fullOutPutPath, saveMode)
+              .flatMap(subInputFolder =>
+                FilesUtils.movePathContent(subInputFolder, s"$basePath/processed")
+              )
           })
       }
       _ = FilesUtils.cleanup(input.path)

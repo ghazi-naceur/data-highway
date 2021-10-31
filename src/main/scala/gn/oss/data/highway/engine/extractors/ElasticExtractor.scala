@@ -4,7 +4,6 @@ import com.sksamuel.elastic4s.requests.searches.{SearchHit, SearchResponse}
 import com.sksamuel.elastic4s.{RequestFailure, RequestSuccess}
 import gn.oss.data.highway.configs.{ElasticUtils, HdfsUtils}
 import gn.oss.data.highway.engine.sinks._
-import gn.oss.data.highway.models.DataHighwayErrorObj.DataHighwayFileError
 import gn.oss.data.highway.utils.{FilesUtils, HdfsUtils, SharedUtils}
 import io.circe.Json
 import io.circe.syntax.EncoderOps
@@ -14,10 +13,10 @@ import java.util.UUID
 import scala.annotation.tailrec
 import cats.implicits._
 import gn.oss.data.highway.models.DataHighwayRuntimeException.{
-  MustHaveExplicitSaveModeError,
-  MustHaveExplicitFileSystemError,
+  MustHaveSaveModeError,
+  MustHaveFileSystemError,
   MustHaveSearchQueryError,
-  MustNotHaveExplicitSaveModeError
+  MustNotHaveSaveModeError
 }
 import gn.oss.data.highway.models.{
   BoolFilter,
@@ -406,7 +405,7 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
       case kafka @ Kafka(_, _) =>
         searchDocsUsingSearchQuery(input, Some(Local), temporaryPath)
         KafkaSink.handleKafkaChannel(File(JSON, temporaryPath), kafka, Some(Local))
-      case _ => Left(MustNotHaveExplicitSaveModeError)
+      case _ => Left(MustNotHaveSaveModeError)
     }
   }
 
@@ -429,7 +428,7 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
         searchDocsUsingSearchQuery(input, Some(Local), temporaryPath)
         PostgresSink
           .handlePostgresChannel(File(JSON, temporaryPath), postgres, Some(Local), consistency)
-      case _ => Left(MustHaveExplicitSaveModeError)
+      case _ => Left(MustHaveSaveModeError)
     }
   }
 
@@ -515,7 +514,7 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
             }
           case None => Left(MustHaveSearchQueryError)
         }
-      case None => Left(MustHaveExplicitFileSystemError)
+      case None => Left(MustHaveFileSystemError)
     }
   }
 
@@ -533,7 +532,7 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
           case Local => FilesUtils.delete(output)
           case HDFS  => HdfsUtils.delete(fs, output)
         }
-      case None => Left(MustHaveExplicitFileSystemError)
+      case None => Left(MustHaveFileSystemError)
     }
   }
 

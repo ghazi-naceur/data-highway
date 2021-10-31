@@ -5,8 +5,8 @@ import gn.oss.data.highway.utils.{DataFrameUtils, SharedUtils}
 import org.apache.spark.sql.SaveMode.Append
 import cats.implicits._
 import gn.oss.data.highway.models.DataHighwayRuntimeException.{
-  MustHaveExplicitSaveModeError,
-  MustNotHaveExplicitSaveModeError
+  MustHaveSaveModeError,
+  MustNotHaveSaveModeError
 }
 import gn.oss.data.highway.models.{
   Cassandra,
@@ -69,7 +69,7 @@ object PostgresExtractor {
           .traverse(df => DataFrameUtils.saveDataFrame(df, JSON, temporaryPath, Append))
           .flatten
         KafkaSink.handleKafkaChannel(File(JSON, temporaryPath), kafka, Some(Local))
-      case _ => Left(MustNotHaveExplicitSaveModeError)
+      case _ => Left(MustNotHaveSaveModeError)
     }
     SharedUtils.constructIOResponse(input, output, result)
   }
@@ -101,7 +101,7 @@ object PostgresExtractor {
               .saveDataFrame(df, CassandraDB(keyspace, table), EMPTY, consistency.toSaveMode)
           )
           .flatten
-      case _ => Left(MustHaveExplicitSaveModeError)
+      case _ => Left(MustHaveSaveModeError)
     }
     SharedUtils.constructIOResponse(input, output, result)
   }

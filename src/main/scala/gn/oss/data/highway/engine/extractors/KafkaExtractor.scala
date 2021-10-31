@@ -10,8 +10,8 @@ import cats.implicits._
 import gn.oss.data.highway.configs.HdfsUtils
 import gn.oss.data.highway.engine.sinks.{BasicSink, CassandraSink, ElasticSink, PostgresSink}
 import gn.oss.data.highway.models.DataHighwayRuntimeException.{
-  MustHaveExplicitSaveModeError,
-  MustNotHaveExplicitSaveModeError
+  MustHaveSaveModeError,
+  MustNotHaveSaveModeError
 }
 import gn.oss.data.highway.models.{
   Cassandra,
@@ -421,14 +421,14 @@ object KafkaExtractor extends HdfsUtils {
             case postgres @ Postgres(_, _) =>
               PostgresSink
                 .insertRows(File(JSON, temporaryPath), postgres, tempoBasePath, consist.toSaveMode)
-            case _ => Left(MustNotHaveExplicitSaveModeError)
+            case _ => Left(MustNotHaveSaveModeError)
           }
         case None =>
           output match {
             case elasticsearch @ Elasticsearch(_, _, _) =>
               ElasticSink
                 .insertDocuments(File(JSON, temporaryPath), elasticsearch, tempoBasePath, storage)
-            case _ => Left(MustHaveExplicitSaveModeError)
+            case _ => Left(MustHaveSaveModeError)
           }
       }
     }

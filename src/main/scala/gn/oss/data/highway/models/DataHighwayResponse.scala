@@ -14,22 +14,22 @@ case class DataHighwayError(message: String, cause: String) extends DataHighwayE
 
 sealed trait DataHighwayRuntimeException extends DataHighwayErrorResponse
 object DataHighwayRuntimeException {
-  val MustNotHaveExplicitSaveModeError: DataHighwayErrorResponse =
+  val MustNotHaveSaveModeError: DataHighwayErrorResponse =
     DataHighwayError(
       "The 'Consistency' property must not be set.",
-      "This route should not have an explicit 'consistency' field, which represents the 'SaveMode', " +
+      "This route should not have a 'consistency' field, which represents the 'SaveMode', " +
         "because it uses an implicit one. This route should handle 'Kafka' or 'Elasticsearch' as an output."
     )
-  val MustHaveExplicitSaveModeError: DataHighwayErrorResponse =
+  val MustHaveSaveModeError: DataHighwayErrorResponse =
     DataHighwayError(
       "The 'Consistency' property must be set.",
-      "This route should have an explicit 'consistency' field, which represents the 'SaveMode'. " +
+      "This route should have a 'consistency' field, which represents the 'SaveMode'. " +
         "It should handle 'File', 'Postgres' or 'Cassandra' as an output."
     )
-  val MustHaveExplicitFileSystemError: DataHighwayErrorResponse =
+  val MustHaveFileSystemError: DataHighwayErrorResponse =
     DataHighwayError(
       "The 'Storage' property must be set.",
-      "This route should have an explicit 'storage' field, which represents the 'FileSystem'."
+      "This route should have a 'storage' field, which represents the 'FileSystem'."
     )
   val MustHaveFileSystemAndSaveModeError: DataHighwayErrorResponse =
     DataHighwayError(
@@ -39,6 +39,17 @@ object DataHighwayRuntimeException {
   val MustHaveSearchQueryError: DataHighwayErrorResponse =
     DataHighwayError(
       "The 'SearchQuery' property must be set.",
-      "This route should have an explicit 'search-query' field."
+      "This route should have a 'search-query' field."
+    )
+  val KafkaProducerSupportModeError: DataHighwayErrorResponse =
+    DataHighwayError(
+      "This mode is not supported while publishing files' content to Kafka topic.",
+      s"The supported modes are ${PureKafkaProducer.getClass} and ${SparkKafkaPluginProducer.getClass}."
+    )
+  val KafkaMirrorSupportModeError: DataHighwayErrorResponse =
+    DataHighwayError(
+      "This mode is not supported while mirroring kafka topics",
+      s"This mode is not supported while mirroring a Kafka topic. The supported modes are " +
+        s"${PureKafkaStreamsProducer.getClass} and ${SparkKafkaPluginStreamsProducer.getClass}."
     )
 }

@@ -2,7 +2,7 @@ package gn.oss.data.highway.engine.sinks
 
 import gn.oss.data.highway.configs.HdfsUtils
 import gn.oss.data.highway.models
-import gn.oss.data.highway.utils.Constants.{EMPTY, SUCCESS}
+import gn.oss.data.highway.utils.Constants.EMPTY
 import gn.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils, SharedUtils}
 import org.apache.hadoop.fs.FileSystem
 import org.apache.log4j.Logger
@@ -10,9 +10,9 @@ import org.apache.spark.sql.SaveMode
 
 import java.io.File
 import cats.implicits._
+import gn.oss.data.highway.models.DataHighwayRuntimeException.MustHaveFileSystemAndSaveModeError
 import gn.oss.data.highway.models.{
   Consistency,
-  DataHighwayError,
   DataHighwayErrorResponse,
   DataHighwaySuccessResponse,
   DataType,
@@ -43,23 +43,20 @@ object PostgresSink extends HdfsUtils {
       output: Postgres,
       saveMode: SaveMode
   ): Either[Throwable, String] = {
+    // todo maybe fuse input, output and datatype
     val result = for {
       dataframe <- DataFrameUtils.loadDataFrame(inputDataType, inputPath)
-      _ <-
-        DataFrameUtils
-          .saveDataFrame(dataframe, PostgresDB(output.database, output.table), EMPTY, saveMode)
+      _ <- DataFrameUtils.saveDataFrame(
+        dataframe,
+        PostgresDB(output.database, output.table),
+        EMPTY,
+        saveMode
+      )
     } yield ()
     result match {
       case Right(_)  => Right(inputPath)
       case Left(thr) => Left(thr)
     }
-//    DataFrameUtils
-//      .loadDataFrame(inputDataType, inputPath)
-//      .map(df => {
-//        DataFrameUtils
-//          .saveDataFrame(df, PostgresDB(output.database, output.table), EMPTY, saveMode)
-//        inputPath
-//      })
   }
 
   /**
@@ -81,46 +78,10 @@ object PostgresSink extends HdfsUtils {
     (storage, consistency) match {
       case (Some(filesystem), Some(consist)) =>
         filesystem match {
-          case Local =>
-            handleLocalFS(
-              input,
-              output,
-              basePath,
-              consist.toSaveMode
-            )
-          case HDFS =>
-            handleHDFS(
-              input,
-              output,
-              basePath,
-              consist.toSaveMode,
-              fs
-            )
+          case Local => handleLocalFS(input, output, basePath, consist.toSaveMode)
+          case HDFS  => handleHDFS(input, output, basePath, consist.toSaveMode, fs)
         }
-      case (None, None) =>
-        Left(
-          DHErrorResponse(
-            "MissingFileSystemStorage and MissingSaveMode",
-            "Missing 'storage' and 'save-mode' fields",
-            ""
-          )
-        )
-      case (None, _) =>
-        Left(
-          DHErrorResponse(
-            "MissingFileSystemStorage",
-            "Missing 'storage' field",
-            ""
-          )
-        )
-      case (_, None) =>
-        Left(
-          DHErrorResponse(
-            "MissingSaveMode",
-            "Missing 'save-mode' field",
-            ""
-          )
-        )
+      case (_, _) => Left(MustHaveFileSystemAndSaveModeError)
     }
   }
 
@@ -139,11 +100,12 @@ object PostgresSink extends HdfsUtils {
       basePath: String,
       saveMode: SaveMode
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
+    // todo maybe substitute for/yield
     val result = for {
       res <- insertRows(input, output, basePath, saveMode)
       _ = FilesUtils.cleanup(input.path)
     } yield res
-    SharedUtils.constructIOResponse(input, output, result, SUCCESS)
+    SharedUtils.constructIOResponse(input, output, result)
   }
 
   /**
@@ -173,34 +135,19 @@ object PostgresSink extends HdfsUtils {
             .traverse(subfolder => {
               HdfsUtils
                 .listFiles(fs, subfolder)
-                .traverse(file => {
-                  insert(
-                    input.dataType,
-                    file,
-                    output,
-                    saveMode
-                  )
-                })
-                .flatMap(_ => {
-                  HdfsUtils.movePathContent(fs, subfolder, basePath)
-                })
+                .traverse(file => insert(input.dataType, file, output, saveMode))
+                .flatMap(_ => HdfsUtils.movePathContent(fs, subfolder, basePath))
             })
         case _ =>
           filtered
-            .traverse(subfolder => {
-              insert(
-                input.dataType,
-                subfolder,
-                output,
-                saveMode
-              ).flatMap(_ => {
-                HdfsUtils.movePathContent(fs, subfolder, basePath)
-              })
-            })
+            .traverse(subfolder =>
+              insert(input.dataType, subfolder, output, saveMode)
+                .flatMap(_ => HdfsUtils.movePathContent(fs, subfolder, basePath))
+            )
       }
       _ = HdfsUtils.cleanup(fs, input.path)
     } yield res
-    SharedUtils.constructIOResponse(input, output, result, SUCCESS)
+    SharedUtils.constructIOResponse(input, output, result)
   }
 
   /**
@@ -218,6 +165,7 @@ object PostgresSink extends HdfsUtils {
       basePath: String,
       saveMode: SaveMode
   ): Either[Throwable, List[List[String]]] = {
+    // todo to be refined
     for {
       folders <- FilesUtils.listNonEmptyFoldersRecursively(input.path)
       _ = logger.info("Folders to be processed : " + folders)
@@ -228,34 +176,26 @@ object PostgresSink extends HdfsUtils {
             .listFiles(filtered)
             .traverse(files => {
               files.traverse(file => {
-                insert(
-                  input.dataType,
-                  file.toURI.getPath,
-                  output,
-                  saveMode
-                ).flatMap(subInputFolder => {
-                  FilesUtils
-                    .movePathContent(
-                      subInputFolder,
-                      s"$basePath/processed/${new File(
-                        subInputFolder
-                      ).getParentFile.toURI.getPath.split("/").takeRight(1).mkString("/")}"
-                    )
-                })
+                insert(input.dataType, file.toURI.getPath, output, saveMode)
+                  .flatMap(subInputFolder =>
+                    FilesUtils
+                      .movePathContent(
+                        subInputFolder,
+                        s"$basePath/processed/${new File(
+                          subInputFolder
+                        ).getParentFile.toURI.getPath.split("/").takeRight(1).mkString("/")}"
+                      )
+                  )
               })
             })
             .flatten
         case _ =>
           filtered
             .traverse(subFolder => {
-              insert(
-                input.dataType,
-                subFolder,
-                output,
-                saveMode
-              ).flatMap(subInputFolder => {
-                FilesUtils.movePathContent(subInputFolder, s"$basePath/processed")
-              })
+              insert(input.dataType, subFolder, output, saveMode)
+                .flatMap(subInputFolder =>
+                  FilesUtils.movePathContent(subInputFolder, s"$basePath/processed")
+                )
             })
       }
     } yield res

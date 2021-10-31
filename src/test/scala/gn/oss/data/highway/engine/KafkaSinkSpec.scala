@@ -2,7 +2,6 @@ package gn.oss.data.highway.engine
 
 import gn.oss.data.highway.engine.sinks.KafkaSink
 import gn.oss.data.highway.helper.TestHelper
-import gn.oss.data.highway.models.DataHighwayErrorObj.KafkaError
 import gn.oss.data.highway.models.Earliest
 import gn.oss.data.highway.utils.FilesUtils
 import net.manub.embeddedkafka.{EmbeddedKafka, EmbeddedKafkaConfig}
@@ -93,7 +92,7 @@ class KafkaSinkSpec
           producer
         )
 
-        result.left.get shouldBe a[KafkaError]
+        result.left.get shouldBe a[Throwable]
       }
     }
     EmbeddedKafka.stop()
@@ -117,7 +116,7 @@ class KafkaSinkSpec
       val userDefinedConfig = EmbeddedKafkaConfig(kafkaPort = 0, zooKeeperPort = 0)
       withRunningKafkaOnFoundPort(userDefinedConfig) { implicit actualConfig =>
         val result = KafkaSink.runStream("", "", "", "", Earliest)
-        result.left.get shouldBe a[KafkaError]
+        result.left.get shouldBe a[Throwable]
       }
     }
     EmbeddedKafka.stop()

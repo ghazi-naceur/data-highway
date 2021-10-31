@@ -6,7 +6,6 @@ import java.io.{BufferedWriter, File, OutputStreamWriter}
 import scala.annotation.tailrec
 import cats.implicits._
 import gn.oss.data.highway.configs.HdfsUtils
-import gn.oss.data.highway.models.DataHighwayErrorObj.HdfsError
 
 import java.nio.charset.StandardCharsets
 
@@ -28,7 +27,7 @@ object HdfsUtils extends HdfsUtils {
         new BufferedWriter(new OutputStreamWriter(fsDataOutputStream, StandardCharsets.UTF_8))
       bufferedWriter.write(content)
       bufferedWriter.close()
-    }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }
   }
 
   /**
@@ -41,7 +40,7 @@ object HdfsUtils extends HdfsUtils {
   def mkdir(fs: FileSystem, folder: String): Either[Throwable, Boolean] = {
     Either.catchNonFatal {
       fs.mkdirs(new Path(folder))
-    }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }
   }
 
   /**
@@ -55,7 +54,7 @@ object HdfsUtils extends HdfsUtils {
   def move(fs: FileSystem, src: String, dest: String): Either[Throwable, Boolean] = {
     Either.catchNonFatal {
       fs.rename(new Path(src), new Path(dest))
-    }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }
   }
 
   /**
@@ -69,7 +68,7 @@ object HdfsUtils extends HdfsUtils {
     Either.catchNonFatal {
       fs.delete(new Path(folder), true)
       fs.mkdirs(new Path(folder))
-    }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }
   }
 
   /**
@@ -85,7 +84,7 @@ object HdfsUtils extends HdfsUtils {
         .filter(_.isDirectory)
         .map(_.getPath.toUri.toString)
         .toList
-    }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }
   }
 
   /**
@@ -149,7 +148,7 @@ object HdfsUtils extends HdfsUtils {
             s"$subDestFolder/${file.split("/").last}"
           })
       }
-    }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }
   }
 
   /**
@@ -175,7 +174,7 @@ object HdfsUtils extends HdfsUtils {
   ): Either[Throwable, List[String]] = {
     Either.catchNonFatal {
       folders.filter(folder => fs.listFiles(new Path(folder), false).hasNext)
-    }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }
   }
 
   /**

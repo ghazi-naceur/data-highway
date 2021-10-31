@@ -5,15 +5,13 @@ import com.sksamuel.elastic4s.requests.bulk.BulkResponse
 import com.sksamuel.elastic4s.requests.common.RefreshPolicy
 import gn.oss.data.highway.configs.{ElasticUtils, HdfsUtils}
 import gn.oss.data.highway.models
-import gn.oss.data.highway.utils.Constants.SUCCESS
 import gn.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils, SharedUtils}
 import org.apache.log4j.Logger
 import org.apache.spark.sql.DataFrame
 import cats.implicits._
+import gn.oss.data.highway.models.DataHighwayRuntimeException.MustHaveFileSystemError
 import gn.oss.data.highway.models.{
-  DataHighwayError,
   DataHighwayErrorResponse,
-  DataHighwayResponse,
   DataHighwaySuccessResponse,
   DataType,
   Elasticsearch,
@@ -227,6 +225,7 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
       output: Elasticsearch,
       storage: Option[Storage]
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
+    // todo to be refined
     val basePath = new File(input.path).getParent
     storage match {
       case Some(value) =>
@@ -237,29 +236,23 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
                 HdfsUtils
                   .listFolders(fs, input.path)
                   .traverse(folders => {
-                    folders.traverse(folder => {
+                    folders.traverse(folder =>
                       sendToElasticsearch(input.dataType, folder, output, basePath, value)
-                    })
+                    )
                   })
                   .flatten
               _ = HdfsUtils.cleanup(fs, input.path)
             } yield list
-            SharedUtils.constructIOResponse(input, output, result, SUCCESS)
+            SharedUtils.constructIOResponse(input, output, result)
           case Local =>
+            // todo maybe substitute for/yield
             val result = for {
               list <- insertDocuments(input, output, basePath, value)
               _ = FilesUtils.cleanup(input.path)
             } yield list
-            SharedUtils.constructIOResponse(input, output, result, SUCCESS)
+            SharedUtils.constructIOResponse(input, output, result)
         }
-      case None =>
-        Left(
-          DHErrorResponse(
-            "MissingFileSystemStorage",
-            "Missing 'storage' field",
-            ""
-          )
-        )
+      case None => Left(MustHaveFileSystemError)
     }
   }
 
@@ -283,9 +276,9 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
       res <-
         folders
           .filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)
-          .traverse(folder => {
+          .traverse(folder =>
             sendToElasticsearch(input.dataType, folder, output, basePath, storage)
-          })
+          )
     } yield res
   }
 }

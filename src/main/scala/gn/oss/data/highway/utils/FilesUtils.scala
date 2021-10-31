@@ -1,7 +1,6 @@
 package gn.oss.data.highway.utils
 
 import java.io.{File, FileWriter}
-import gn.oss.data.highway.models.DataHighwayErrorObj.DataHighwayFileError
 import cats.syntax.either._
 import gn.oss.data.highway.models.XLSX
 import org.apache.commons.io.FileUtils
@@ -47,7 +46,7 @@ object FilesUtils {
       folders.flatMap(subfolder => {
         new File(subfolder).listFiles
       })
-    }.leftMap(thr => DataHighwayFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }
   }
 
   /**
@@ -66,9 +65,9 @@ object FilesUtils {
     * Lists non-empty folders (contains at least 1 file) recursively from a path
     *
     * @param path The provided path
-    * @return a List of String, otherwise an Error
+    * @return a List of String, otherwise a Throwable
     */
-  def listNonEmptyFoldersRecursively(path: String): Either[DataHighwayFileError, List[String]] = {
+  def listNonEmptyFoldersRecursively(path: String): Either[Throwable, List[String]] = {
     @tailrec
     def getFolders(path: List[File], results: List[File]): Seq[File] =
       path match {
@@ -83,7 +82,7 @@ object FilesUtils {
 
     Either.catchNonFatal {
       getFolders(new File(path) :: Nil, Nil).map(_.getPath).reverse.toList
-    }.leftMap(thr => DataHighwayFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }
   }
 
   /**
@@ -101,16 +100,19 @@ object FilesUtils {
     * @param path The path
     * @param fileName The file name
     * @param content The file's content
-    * @return Unit, otherwise Error
+    * @return Unit, otherwise a Throwable
     */
-  def createFile(path: String, fileName: String, content: String): Either[Throwable, Unit] = {
+  def createFile(
+      path: String,
+      fileName: String,
+      content: String
+  ): Either[Throwable, Unit] = {
     Try {
       new File(path).mkdirs()
       val fileWriter = new FileWriter(new File(s"$path/$fileName"))
       fileWriter.write(content)
       fileWriter.close()
     }.toEither
-      .leftMap(thr => DataHighwayFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
   }
 
   /**
@@ -122,7 +124,7 @@ object FilesUtils {
     *
     * @param src The input path
     * @param processedFolder The sub destination path
-    * @return List of String, otherwise an Error
+    * @return List of String, otherwise a Throwable
     */
   def movePathContent(
       src: String,
@@ -149,7 +151,7 @@ object FilesUtils {
         List(processedFolder)
       }
 
-    }.leftMap(thr => DataHighwayFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }
   }
 
   /**
@@ -159,6 +161,7 @@ object FilesUtils {
     * @return Array of Unit
     */
   def cleanup(in: String): Array[Unit] = {
+    // todo check exception
     if (new File(in).exists())
       new File(in)
         .listFiles()
@@ -174,6 +177,7 @@ object FilesUtils {
     * @return an Iterator of String
     */
   def getLines(jsonPath: String): Iterator[String] = {
+    // todo exception handling
     val jsonFile = Source.fromFile(jsonPath)
     jsonFile.getLines
   }
@@ -187,7 +191,7 @@ object FilesUtils {
   def filterNonEmptyFolders(folders: List[String]): Either[Throwable, List[String]] = {
     Either.catchNonFatal {
       folders.filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)
-    }.leftMap(thr => DataHighwayFileError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }
   }
 
   /**

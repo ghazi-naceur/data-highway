@@ -1,7 +1,6 @@
 package gn.oss.data.highway.utils
 
 import gn.oss.data.highway.helper.TestHelper
-import gn.oss.data.highway.models.DataHighwayErrorObj.DataHighwayFileError
 import org.scalactic.source.Position
 
 import java.io.{BufferedWriter, File, FileWriter}
@@ -68,7 +67,7 @@ class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with 
 
   "FilesUtils.listFiles" should "throw an exception" in {
     val result = FilesUtils.listFiles(List(""))
-    result.left.get shouldBe a[DataHighwayFileError]
+    result.left.get shouldBe a[Throwable]
   }
 
   "FilesUtils.filterByExtension" should "valid file's extension againt the provided ones : 1st test" in {
@@ -107,7 +106,7 @@ class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with 
 
   "FilesUtils.listNonEmptyFoldersRecursively" should "throw an exception" in {
     val result = FilesUtils.listNonEmptyFoldersRecursively("")
-    result.left.get shouldBe a[DataHighwayFileError]
+    result.left.get shouldBe a[Throwable]
   }
 
   "FilesUtils.reversePathSeparator" should "reverse path separator" in {
@@ -125,7 +124,7 @@ class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with 
 
   "FilesUtils.create" should "throw an exception" in {
     val result = FilesUtils.createFile("", "", "some content")
-    result.left.get shouldBe a[DataHighwayFileError]
+    result.left.get shouldBe a[Throwable]
   }
 
   "FilesUtils.movePathContent" should "move folder from source to destination" in {
@@ -167,7 +166,7 @@ class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with 
     Files.createDirectories(new File(srcPath).toPath)
     Files.createFile(new File(srcPath + "/file.txt").toPath)
     val result = FilesUtils.movePathContent(srcPath + "/non-existent", destPath + "/non-existent")
-    result.left.get shouldBe a[DataHighwayFileError]
+    result.left.get shouldBe a[Throwable]
   }
 
   "FilesUtils.cleanup" should "delete the path content" in {
@@ -216,7 +215,7 @@ class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with 
     val srcPath3 = s"/tmp/data-highway/input-$time/dataset3"
 
     val result = FilesUtils.filterNonEmptyFolders(List(srcPath1, srcPath2, srcPath3))
-    result.left.get shouldBe a[DataHighwayFileError]
+    result.left.get shouldBe a[Throwable]
   }
 
   "FilesUtils.getFileNameAndParentFolderFromPath" should "get filename and its parent" in {

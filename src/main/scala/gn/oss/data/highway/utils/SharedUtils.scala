@@ -1,7 +1,7 @@
 package gn.oss.data.highway.utils
 
 import gn.oss.data.highway.configs.{AppUtils, HdfsUtils}
-import gn.oss.data.highway.models.DataHighwayErrorObj.DataHighwayFileError
+import gn.oss.data.highway.models.DataHighwayRuntimeException.MustHaveFileSystemError
 import gn.oss.data.highway.models.{
   DataHighwayError,
   DataHighwayErrorResponse,
@@ -20,6 +20,7 @@ import java.util.UUID
 
 object SharedUtils extends HdfsUtils with AppUtils {
 
+  // todo maybe return tempo entity instead of tuple
   def setTempoFilePath(module: String, storage: Option[Storage]): (String, String) = {
     storage match {
       case Some(filesystem) =>
@@ -45,6 +46,7 @@ object SharedUtils extends HdfsUtils with AppUtils {
     (temporaryPath, tempoBasePath)
   }
 
+  // todo maybe rework
   def setFileSystem(output: Output, storage: Option[Storage]): Storage = {
     storage match {
       case Some(fileSystem) =>
@@ -66,23 +68,15 @@ object SharedUtils extends HdfsUtils with AppUtils {
     * @param storage The tmp file system storage
     * @return Serializable
     */
+  // todo can be Either
   def cleanupTmp(output: String, storage: Option[Storage]): java.io.Serializable = {
     storage match {
       case Some(filesystem) =>
         filesystem match {
-          case Local =>
-            FilesUtils.delete(output)
-          case HDFS =>
-            HdfsUtils.delete(fs, output)
+          case Local => FilesUtils.delete(output)
+          case HDFS  => HdfsUtils.delete(fs, output)
         }
-      case None =>
-        Left(
-          DataHighwayFileError(
-            "MissingFileSystemStorage",
-            new RuntimeException("Missing 'storage' field"),
-            Array[StackTraceElement]()
-          )
-        )
+      case None => MustHaveFileSystemError
     }
   }
 
@@ -92,20 +86,8 @@ object SharedUtils extends HdfsUtils with AppUtils {
       result: Either[Throwable, Any]
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     result match {
-      case Right(_) =>
-        Right(
-          DataHighwaySuccess(
-            Plug.summary(input),
-            Plug.summary(output)
-          )
-        )
-      case Left(thr) =>
-        Left(
-          DataHighwayError(
-            thr.getMessage,
-            thr.getCause.toString
-          )
-        )
+      case Right(_)  => Right(DataHighwaySuccess(Plug.summary(input), Plug.summary(output)))
+      case Left(thr) => Left(DataHighwayError(thr.getMessage, thr.getCause.toString))
     }
   }
 }

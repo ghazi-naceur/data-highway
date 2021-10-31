@@ -28,6 +28,7 @@ object DataFrameUtils extends SparkUtils with PostgresUtils {
     * @return A DataFrame, otherwise a Throwable
     */
   def loadDataFrame(dataType: DataType, in: String): Either[Throwable, DataFrame] = {
+    // todo divide on multiple methods per datatype
     Either.catchNonFatal {
       dataType match {
         case JSON =>
@@ -89,6 +90,7 @@ object DataFrameUtils extends SparkUtils with PostgresUtils {
       out: String,
       saveMode: SaveMode
   ): Either[Throwable, Unit] = {
+    // todo divide on multiple methods per datatype
     Either.catchNonFatal {
       dataType match {
         case JSON =>
@@ -164,6 +166,7 @@ object DataFrameUtils extends SparkUtils with PostgresUtils {
     * @param element The element to be converted
     * @return Json String
     */
+  // todo to debug
   private def toJson(element: Any): String =
     element match {
       case mapElem: Map[String, Any] => s"{${mapElem.map(toJson(_)).mkString(",")}}"
