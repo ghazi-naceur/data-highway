@@ -13,15 +13,15 @@ import gn.oss.data.highway.models.{
   Local,
   Output,
   Plug,
-  Storage
+  Storage,
+  TemporaryLocation
 }
 
 import java.util.UUID
 
 object SharedUtils extends HdfsUtils with AppUtils {
 
-  // todo maybe return tempo entity instead of tuple
-  def setTempoFilePath(module: String, storage: Option[Storage]): (String, String) = {
+  def setTempoFilePath(module: String, storage: Option[Storage]): TemporaryLocation = {
     storage match {
       case Some(filesystem) =>
         filesystem match {
@@ -29,9 +29,9 @@ object SharedUtils extends HdfsUtils with AppUtils {
             setLocalTempoFilePath(module)
           case HDFS =>
             val tuple = setLocalTempoFilePath(module)
-            (
-              s"${hadoopConf.host}:${hadoopConf.port}" + tuple._1,
-              s"${hadoopConf.host}:${hadoopConf.port}" + tuple._2
+            TemporaryLocation(
+              s"${hadoopConf.host}:${hadoopConf.port}" + tuple.path,
+              s"${hadoopConf.host}:${hadoopConf.port}" + tuple.basePath
             )
         }
       case None =>
@@ -39,11 +39,10 @@ object SharedUtils extends HdfsUtils with AppUtils {
     }
   }
 
-  private def setLocalTempoFilePath(module: String): (String, String) = {
-    val tempoBasePath =
-      s"${appConf.tmpWorkDir}/$module/${System.currentTimeMillis().toString}/"
+  private def setLocalTempoFilePath(module: String): TemporaryLocation = {
+    val tempoBasePath = s"${appConf.tmpWorkDir}/$module/${System.currentTimeMillis().toString}/"
     val temporaryPath = tempoBasePath + UUID.randomUUID().toString
-    (temporaryPath, tempoBasePath)
+    TemporaryLocation(temporaryPath, tempoBasePath)
   }
 
   // todo maybe rework

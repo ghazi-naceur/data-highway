@@ -21,7 +21,8 @@ import gn.oss.data.highway.models.{
   Local,
   Output,
   Postgres,
-  PostgresDB
+  PostgresDB,
+  TemporaryLocation
 }
 import gn.oss.data.highway.utils.Constants.EMPTY
 
@@ -40,35 +41,37 @@ object PostgresExtractor {
       output: Output,
       consistency: Option[Consistency]
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
-    val (temporaryPath, tempoBasePath) =
-      SharedUtils.setTempoFilePath("postgres-extractor", Some(Local))
+    val temporaryLocation = SharedUtils.setTempoFilePath("postgres-extractor", Some(Local))
     consistency match {
-      case Some(consist) =>
-        handleRouteWithExplicitSaveMode(input, output, consist)
-      case None =>
-        handleRouteWithImplicitSaveMode(input, output, temporaryPath, tempoBasePath)
+      case Some(consist) => handleRouteWithExplicitSaveMode(input, output, consist)
+      case None          => handleRouteWithImplicitSaveMode(input, output, temporaryLocation)
     }
   }
 
   private def handleRouteWithImplicitSaveMode(
       input: Postgres,
       output: Output,
-      temporaryPath: String,
-      tempoBasePath: String
+      tempoLocation: TemporaryLocation
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     val result = output match {
       case elasticsearch @ Elasticsearch(_, _, _) =>
         DataFrameUtils
           .loadDataFrame(PostgresDB(input.database, input.table), EMPTY)
-          .traverse(df => DataFrameUtils.saveDataFrame(df, JSON, temporaryPath, Append))
+          .traverse(df => DataFrameUtils.saveDataFrame(df, JSON, tempoLocation.path, Append))
           .flatten
-        ElasticSink.insertDocuments(File(JSON, temporaryPath), elasticsearch, tempoBasePath, Local)
+        ElasticSink
+          .insertDocuments(
+            File(JSON, tempoLocation.path),
+            elasticsearch,
+            tempoLocation.basePath,
+            Local
+          )
       case kafka @ Kafka(_, _) =>
         DataFrameUtils
           .loadDataFrame(PostgresDB(input.database, input.table), EMPTY)
-          .traverse(df => DataFrameUtils.saveDataFrame(df, JSON, temporaryPath, Append))
+          .traverse(df => DataFrameUtils.saveDataFrame(df, JSON, tempoLocation.path, Append))
           .flatten
-        KafkaSink.handleKafkaChannel(File(JSON, temporaryPath), kafka, Some(Local))
+        KafkaSink.handleKafkaChannel(File(JSON, tempoLocation.path), kafka, Some(Local))
       case _ => Left(MustNotHaveSaveModeError)
     }
     SharedUtils.constructIOResponse(input, output, result)

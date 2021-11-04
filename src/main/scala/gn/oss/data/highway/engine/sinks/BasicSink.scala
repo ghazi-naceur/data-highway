@@ -160,6 +160,7 @@ object BasicSink extends HdfsUtils {
                     fullOutputPath,
                     saveMode
                   ).flatMap(subInputFolder => {
+                    // todo rework
                     FilesUtils
                       .movePathContent(
                         subInputFolder,
@@ -176,9 +177,7 @@ object BasicSink extends HdfsUtils {
             val fullOutPutPath =
               s"${output.path}/${FilesUtils.reversePathSeparator(subFolder).split("/").last}"
             convert(input.dataType, subFolder, output.dataType, fullOutPutPath, saveMode)
-              .flatMap(subInputFolder =>
-                FilesUtils.movePathContent(subInputFolder, s"$basePath/processed")
-              )
+              .flatMap(subInputFolder => FilesUtils.movePathContent(subInputFolder, s"$basePath/processed"))
           })
       }
       _ = FilesUtils.cleanup(input.path)

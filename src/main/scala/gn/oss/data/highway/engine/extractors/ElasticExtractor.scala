@@ -379,16 +379,13 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
       storage: Option[Storage],
       consistency: Option[Consistency]
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
-    // todo maybe tempoEntity with timestamp
-    val (temporaryPath, tempoBasePath) =
-      SharedUtils.setTempoFilePath("elasticsearch-extractor", storage)
+    val temporaryLocation = SharedUtils.setTempoFilePath("elasticsearch-extractor", storage)
     val result = consistency match {
       case Some(_) =>
-        handleRouteWithExplicitSaveMode(input, output, storage, consistency, temporaryPath)
-      case None =>
-        handleRouteWithImplicitSaveMode(input, output, temporaryPath)
+        handleRouteWithExplicitSaveMode(input, output, storage, consistency, temporaryLocation.path)
+      case None => handleRouteWithImplicitSaveMode(input, output, temporaryLocation.path)
     }
-    cleanupTmp(tempoBasePath, storage)
+    cleanupTmp(temporaryLocation.basePath, storage)
     SharedUtils.constructIOResponse(input, output, result)
   }
 

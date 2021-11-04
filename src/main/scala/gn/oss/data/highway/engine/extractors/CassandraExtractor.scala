@@ -22,7 +22,8 @@ import gn.oss.data.highway.models.{
   Local,
   Output,
   Postgres,
-  PostgresDB
+  PostgresDB,
+  TemporaryLocation
 }
 
 object CassandraExtractor {
@@ -40,13 +41,10 @@ object CassandraExtractor {
       output: Output,
       consistency: Option[Consistency]
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
-    val (temporaryPath, tempoBasePath) =
-      SharedUtils.setTempoFilePath("cassandra-extractor", Some(Local))
+    val temporaryLocation = SharedUtils.setTempoFilePath("cassandra-extractor", Some(Local))
     consistency match {
-      case Some(consist) =>
-        handleRouteWithExplicitSaveMode(input, output, consist)
-      case None =>
-        handleRouteWithImplicitSaveMode(input, output, temporaryPath, tempoBasePath)
+      case Some(consist) => handleRouteWithExplicitSaveMode(input, output, consist)
+      case None          => handleRouteWithImplicitSaveMode(input, output, temporaryLocation)
     }
   }
 
@@ -55,30 +53,33 @@ object CassandraExtractor {
     *
     * @param input The Cassandra entity
     * @param output The output plug: Elasticsearch or Kafka
-    * @param temporaryPath The temporary path that will contain the intermediate JSON dataset that will be transferred to the output
-    * @param tempoBasePath The base path for the intermediate JSON dataset
+    * @param temporaryLocation The temporary path location for intermediate processing
     * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   private def handleRouteWithImplicitSaveMode(
       input: Cassandra,
       output: Output,
-      temporaryPath: String,
-      tempoBasePath: String
+      temporaryLocation: TemporaryLocation
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     // todo loadDataFrame x2
     val result = output match {
       case elasticsearch @ Elasticsearch(_, _, _) =>
         DataFrameUtils
           .loadDataFrame(CassandraDB(input.keyspace, input.table), EMPTY)
-          .traverse(df => DataFrameUtils.saveDataFrame(df, JSON, temporaryPath, Append))
+          .traverse(df => DataFrameUtils.saveDataFrame(df, JSON, temporaryLocation.path, Append))
           .flatten
-        ElasticSink.insertDocuments(File(JSON, temporaryPath), elasticsearch, tempoBasePath, Local)
+        ElasticSink.insertDocuments(
+          File(JSON, temporaryLocation.path),
+          elasticsearch,
+          temporaryLocation.basePath,
+          Local
+        )
       case kafka @ Kafka(_, _) =>
         DataFrameUtils
           .loadDataFrame(CassandraDB(input.keyspace, input.table), EMPTY)
-          .traverse(df => DataFrameUtils.saveDataFrame(df, JSON, temporaryPath, Append))
+          .traverse(df => DataFrameUtils.saveDataFrame(df, JSON, temporaryLocation.path, Append))
           .flatten
-        KafkaSink.handleKafkaChannel(File(JSON, temporaryPath), kafka, Some(Local))
+        KafkaSink.handleKafkaChannel(File(JSON, temporaryLocation.path), kafka, Some(Local))
       case _ => Left(MustNotHaveSaveModeError)
     }
     SharedUtils.constructIOResponse(input, output, result)
