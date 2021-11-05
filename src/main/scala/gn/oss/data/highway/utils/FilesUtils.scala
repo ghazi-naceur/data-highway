@@ -26,9 +26,7 @@ object FilesUtils {
     val files = path.listFiles
     val result = files
       .filter(_.isFile)
-      .filter(file => {
-        filterByExtension(file.getPath, extension)
-      })
+      .filter(file => filterByExtension(file.getPath, extension))
     result ++
       files
         .filter(_.isDirectory)
@@ -43,9 +41,7 @@ object FilesUtils {
     */
   def listFiles(folders: List[String]): Either[Throwable, List[File]] = {
     Either.catchNonFatal {
-      folders.flatMap(subfolder => {
-        new File(subfolder).listFiles
-      })
+      folders.flatMap(subfolder => new File(subfolder).listFiles)
     }
   }
 
@@ -72,10 +68,9 @@ object FilesUtils {
     def getFolders(path: List[File], results: List[File]): Seq[File] =
       path match {
         case head :: tail =>
-          val files       = head.listFiles
+          val files = head.listFiles
           val directories = files.filter(_.isDirectory)
-          val updated =
-            if (files.size == directories.length) results else head :: results
+          val updated = if (files.size == directories.length) results else head :: results
           getFolders(tail ++ directories, updated)
         case _ => results
       }
@@ -102,11 +97,7 @@ object FilesUtils {
     * @param content The file's content
     * @return Unit, otherwise a Throwable
     */
-  def createFile(
-      path: String,
-      fileName: String,
-      content: String
-  ): Either[Throwable, Unit] = {
+  def createFile(path: String, fileName: String, content: String): Either[Throwable, Unit] = {
     Try {
       new File(path).mkdirs()
       val fileWriter = new FileWriter(new File(s"$path/$fileName"))
@@ -126,10 +117,7 @@ object FilesUtils {
     * @param processedFolder The sub destination path
     * @return List of String, otherwise a Throwable
     */
-  def movePathContent(
-      src: String,
-      processedFolder: String
-  ): Either[Throwable, List[String]] = {
+  def movePathContent(src: String, processedFolder: String): Either[Throwable, List[String]] = {
     Either.catchNonFatal {
       if (new File(src).isFile) {
         val srcFileName = new File(src).getName
@@ -150,7 +138,6 @@ object FilesUtils {
         }
         List(processedFolder)
       }
-
     }
   }
 
@@ -200,10 +187,7 @@ object FilesUtils {
     * @param path The file path
     * @return String
     */
-  def getFileNameAndParentFolderFromPath(
-      path: String,
-      extension: String = XLSX.extension
-  ): String = {
+  def getFileNameAndParentFolderFromPath(path: String, extension: String = XLSX.extension): String = {
     reversePathSeparator(path)
       .split("/")
       .takeRight(2)

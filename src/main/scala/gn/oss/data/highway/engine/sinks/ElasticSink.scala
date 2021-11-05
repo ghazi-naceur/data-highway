@@ -38,11 +38,11 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
     * @return a Unit, otherwise an Error
     */
   private def sendToElasticsearch(
-      inputDataType: DataType,
-      input: String,
-      output: Elasticsearch,
-      basePath: String,
-      storage: Storage
+    inputDataType: DataType,
+    input: String,
+    output: Elasticsearch,
+    basePath: String,
+    storage: Storage
   ): Either[Throwable, Unit] = {
     Either.catchNonFatal {
       if (!output.bulkEnabled)
@@ -64,11 +64,11 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
     * @return Any
     */
   private def indexWithIndexQuery(
-      inputDataType: DataType,
-      input: String,
-      output: String,
-      basePath: String,
-      storage: Storage
+    inputDataType: DataType,
+    input: String,
+    output: String,
+    basePath: String,
+    storage: Storage
   ): Any = {
     inputDataType match {
       case XLSX =>
@@ -96,10 +96,8 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
           .map(df => indexDataFrameWithIndexQuery(df, output))
     }
     storage match {
-      case HDFS =>
-        HdfsUtils.movePathContent(fs, input, basePath)
-      case Local =>
-        FilesUtils.movePathContent(input, s"$basePath/processed")
+      case HDFS  => HdfsUtils.movePathContent(fs, input, basePath)
+      case Local => FilesUtils.movePathContent(input, s"$basePath/processed")
     }
   }
 
@@ -125,11 +123,11 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
     * @return Any
     */
   private def indexWithBulkQuery(
-      inputDataType: DataType,
-      input: String,
-      output: String,
-      basePath: String,
-      storage: Storage
+    inputDataType: DataType,
+    input: String,
+    output: String,
+    basePath: String,
+    storage: Storage
   ): Any = {
     inputDataType match {
       case XLSX =>
@@ -153,24 +151,18 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
                   .loadDataFrame(inputDataType, file.getAbsolutePath)
                   .map(df => {
                     indexDataFrameWithBulk(df, output)
-                    FilesUtils.movePathContent(
-                      file.getAbsolutePath,
-                      s"$basePath/processed/${file.getParentFile.getName}"
-                    )
+                    FilesUtils
+                      .movePathContent(file.getAbsolutePath, s"$basePath/processed/${file.getParentFile.getName}")
                   })
               })
         }
       case _ =>
         DataFrameUtils
           .loadDataFrame(inputDataType, input)
-          .map(df => {
-            indexDataFrameWithBulk(df, output)
-          })
+          .map(df => indexDataFrameWithBulk(df, output))
         storage match {
-          case HDFS =>
-            HdfsUtils.movePathContent(fs, input, basePath)
-          case Local =>
-            FilesUtils.movePathContent(input, s"$basePath/processed")
+          case HDFS  => HdfsUtils.movePathContent(fs, input, basePath)
+          case Local => FilesUtils.movePathContent(input, s"$basePath/processed")
         }
     }
   }
@@ -182,19 +174,13 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
     * @param output The ES index
     * @return Response of BulkResponse, otherwise a Throwable
     */
-  private def indexDataFrameWithBulk(
-      df: DataFrame,
-      output: String
-  ): Either[Throwable, Response[BulkResponse]] = {
+  private def indexDataFrameWithBulk(df: DataFrame, output: String): Either[Throwable, Response[BulkResponse]] = {
     import com.sksamuel.elastic4s.ElasticDsl._
     DataFrameUtils
       .convertDataFrameToJsonLines(df)
       .map(lines => {
-        val queries =
-          lines.map(line => indexInto(output) doc line refresh RefreshPolicy.IMMEDIATE)
-        esClient.execute {
-          bulk(queries).refresh(RefreshPolicy.Immediate)
-        }.await
+        val queries = lines.map(line => indexInto(output) doc line refresh RefreshPolicy.IMMEDIATE)
+        esClient.execute { bulk(queries).refresh(RefreshPolicy.Immediate) }.await
       })
   }
 
@@ -221,11 +207,10 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
     * @return DataHighwayFileResponse, otherwise a DataHighwayErrorResponse
     */
   def handleElasticsearchChannel(
-      input: models.File,
-      output: Elasticsearch,
-      storage: Option[Storage]
+    input: models.File,
+    output: Elasticsearch,
+    storage: Option[Storage]
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
-    // todo to be refined
     val basePath = new File(input.path).getParent
     storage match {
       case Some(value) =>
@@ -235,21 +220,14 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
               list <-
                 HdfsUtils
                   .listFolders(fs, input.path)
-                  .traverse(folders => {
-                    folders.traverse(folder =>
-                      sendToElasticsearch(input.dataType, folder, output, basePath, value)
-                    )
-                  })
+                  .traverse(_.traverse(folder => sendToElasticsearch(input.dataType, folder, output, basePath, value)))
                   .flatten
               _ = HdfsUtils.cleanup(fs, input.path)
             } yield list
             SharedUtils.constructIOResponse(input, output, result)
           case Local =>
-            // todo maybe substitute for/yield
-            val result = for {
-              list <- insertDocuments(input, output, basePath, value)
-              _ = FilesUtils.cleanup(input.path)
-            } yield list
+            val result = insertDocuments(input, output, basePath, value)
+            FilesUtils.cleanup(input.path)
             SharedUtils.constructIOResponse(input, output, result)
         }
       case None => Left(MustHaveFileSystemError)
@@ -266,19 +244,17 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
     * @return List of Unit, otherwise a Throwable
     */
   def insertDocuments(
-      input: models.File,
-      output: Elasticsearch,
-      basePath: String,
-      storage: Storage
+    input: models.File,
+    output: Elasticsearch,
+    basePath: String,
+    storage: Storage
   ): Either[Throwable, List[Unit]] = {
     for {
       folders <- FilesUtils.listNonEmptyFoldersRecursively(input.path)
       res <-
         folders
           .filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)
-          .traverse(folder =>
-            sendToElasticsearch(input.dataType, folder, output, basePath, storage)
-          )
+          .traverse(folder => sendToElasticsearch(input.dataType, folder, output, basePath, storage))
     } yield res
   }
 }

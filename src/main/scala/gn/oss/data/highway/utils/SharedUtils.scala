@@ -25,8 +25,7 @@ object SharedUtils extends HdfsUtils with AppUtils {
     storage match {
       case Some(filesystem) =>
         filesystem match {
-          case Local =>
-            setLocalTempoFilePath(module)
+          case Local => setLocalTempoFilePath(module)
           case HDFS =>
             val tuple = setLocalTempoFilePath(module)
             TemporaryLocation(
@@ -34,8 +33,7 @@ object SharedUtils extends HdfsUtils with AppUtils {
               s"${hadoopConf.host}:${hadoopConf.port}" + tuple.basePath
             )
         }
-      case None =>
-        setLocalTempoFilePath(module)
+      case None => setLocalTempoFilePath(module)
     }
   }
 
@@ -45,44 +43,21 @@ object SharedUtils extends HdfsUtils with AppUtils {
     TemporaryLocation(temporaryPath, tempoBasePath)
   }
 
-  // todo maybe rework
   def setFileSystem(output: Output, storage: Option[Storage]): Storage = {
     storage match {
       case Some(fileSystem) =>
         output match {
-          case File(_, _) =>
-            fileSystem
-          case _ =>
-            Local
+          case File(_, _) => fileSystem
+          case _          => Local
         }
-      case None =>
-        Local
-    }
-  }
-
-  /**
-    * Cleanups the temporary folder
-    *
-    * @param output The tmp base path
-    * @param storage The tmp file system storage
-    * @return Serializable
-    */
-  // todo can be Either
-  def cleanupTmp(output: String, storage: Option[Storage]): java.io.Serializable = {
-    storage match {
-      case Some(filesystem) =>
-        filesystem match {
-          case Local => FilesUtils.delete(output)
-          case HDFS  => HdfsUtils.delete(fs, output)
-        }
-      case None => MustHaveFileSystemError
+      case None => Local
     }
   }
 
   def constructIOResponse(
-      input: Input,
-      output: Output,
-      result: Either[Throwable, Any]
+    input: Input,
+    output: Output,
+    result: Either[Throwable, Any]
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     result match {
       case Right(_)  => Right(DataHighwaySuccess(Plug.summary(input), Plug.summary(output)))

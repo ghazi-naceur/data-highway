@@ -4,10 +4,7 @@ import gn.oss.data.highway.engine.sinks.{ElasticSink, KafkaSink}
 import gn.oss.data.highway.utils.{DataFrameUtils, SharedUtils}
 import org.apache.spark.sql.SaveMode.Append
 import cats.implicits._
-import gn.oss.data.highway.models.DataHighwayRuntimeException.{
-  MustHaveSaveModeError,
-  MustNotHaveSaveModeError
-}
+import gn.oss.data.highway.models.DataHighwayRuntimeException.{MustHaveSaveModeError, MustNotHaveSaveModeError}
 import gn.oss.data.highway.models.{
   Cassandra,
   CassandraDB,
@@ -37,9 +34,9 @@ object PostgresExtractor {
     * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   def extractRows(
-      input: Postgres,
-      output: Output,
-      consistency: Option[Consistency]
+    input: Postgres,
+    output: Output,
+    consistency: Option[Consistency]
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     val temporaryLocation = SharedUtils.setTempoFilePath("postgres-extractor", Some(Local))
     consistency match {
@@ -48,39 +45,49 @@ object PostgresExtractor {
     }
   }
 
+  /**
+    * Handles route that uses implicit save modes. It handles the following outputs: Elasticsearch and Kafka.
+    *
+    * @param input The Postgres entity
+    * @param output The output plug: Elasticsearch or Kafka
+    * @param temporaryLocation The temporary path location for intermediate processing
+    * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
+    */
   private def handleRouteWithImplicitSaveMode(
-      input: Postgres,
-      output: Output,
-      tempoLocation: TemporaryLocation
+    input: Postgres,
+    output: Output,
+    temporaryLocation: TemporaryLocation
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     val result = output match {
       case elasticsearch @ Elasticsearch(_, _, _) =>
         DataFrameUtils
           .loadDataFrame(PostgresDB(input.database, input.table), EMPTY)
-          .traverse(df => DataFrameUtils.saveDataFrame(df, JSON, tempoLocation.path, Append))
+          .traverse(df => DataFrameUtils.saveDataFrame(df, JSON, temporaryLocation.path, Append))
           .flatten
-        ElasticSink
-          .insertDocuments(
-            File(JSON, tempoLocation.path),
-            elasticsearch,
-            tempoLocation.basePath,
-            Local
-          )
+        ElasticSink.insertDocuments(File(JSON, temporaryLocation.path), elasticsearch, temporaryLocation.basePath, Local)
       case kafka @ Kafka(_, _) =>
         DataFrameUtils
           .loadDataFrame(PostgresDB(input.database, input.table), EMPTY)
-          .traverse(df => DataFrameUtils.saveDataFrame(df, JSON, tempoLocation.path, Append))
+          .traverse(df => DataFrameUtils.saveDataFrame(df, JSON, temporaryLocation.path, Append))
           .flatten
-        KafkaSink.handleKafkaChannel(File(JSON, tempoLocation.path), kafka, Some(Local))
+        KafkaSink.handleKafkaChannel(File(JSON, temporaryLocation.path), kafka, Some(Local))
       case _ => Left(MustNotHaveSaveModeError)
     }
     SharedUtils.constructIOResponse(input, output, result)
   }
 
+  /**
+    * Handles route that uses explicit save modes. It handles the following outputs: File, Postgres and Cassandra.
+    *
+    * @param input The Postgres entity
+    * @param output The output plug: File, Postgres or Cassandra
+    * @param consistency A representation for the Spark Save Mode
+    * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
+    */
   private def handleRouteWithExplicitSaveMode(
-      input: Postgres,
-      output: Output,
-      consistency: Consistency
+    input: Postgres,
+    output: Output,
+    consistency: Consistency
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     val result = output match {
       case File(dataType, path) =>
@@ -91,18 +98,12 @@ object PostgresExtractor {
       case Postgres(database, table) =>
         DataFrameUtils
           .loadDataFrame(PostgresDB(input.database, input.table), EMPTY)
-          .traverse(df =>
-            DataFrameUtils
-              .saveDataFrame(df, PostgresDB(database, table), EMPTY, consistency.toSaveMode)
-          )
+          .traverse(df => DataFrameUtils.saveDataFrame(df, PostgresDB(database, table), EMPTY, consistency.toSaveMode))
           .flatten
       case Cassandra(keyspace, table) =>
         DataFrameUtils
           .loadDataFrame(PostgresDB(input.database, input.table), EMPTY)
-          .traverse(df =>
-            DataFrameUtils
-              .saveDataFrame(df, CassandraDB(keyspace, table), EMPTY, consistency.toSaveMode)
-          )
+          .traverse(df => DataFrameUtils.saveDataFrame(df, CassandraDB(keyspace, table), EMPTY, consistency.toSaveMode))
           .flatten
       case _ => Left(MustHaveSaveModeError)
     }

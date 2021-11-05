@@ -5,10 +5,7 @@ import gn.oss.data.highway.utils.Constants.EMPTY
 import gn.oss.data.highway.utils.{DataFrameUtils, SharedUtils}
 import org.apache.spark.sql.SaveMode.Append
 import cats.implicits._
-import gn.oss.data.highway.models.DataHighwayRuntimeException.{
-  MustHaveSaveModeError,
-  MustNotHaveSaveModeError
-}
+import gn.oss.data.highway.models.DataHighwayRuntimeException.{MustHaveSaveModeError, MustNotHaveSaveModeError}
 import gn.oss.data.highway.models.{
   Cassandra,
   CassandraDB,
@@ -37,9 +34,9 @@ object CassandraExtractor {
     * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   def extractRows(
-      input: Cassandra,
-      output: Output,
-      consistency: Option[Consistency]
+    input: Cassandra,
+    output: Output,
+    consistency: Option[Consistency]
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     val temporaryLocation = SharedUtils.setTempoFilePath("cassandra-extractor", Some(Local))
     consistency match {
@@ -57,23 +54,17 @@ object CassandraExtractor {
     * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   private def handleRouteWithImplicitSaveMode(
-      input: Cassandra,
-      output: Output,
-      temporaryLocation: TemporaryLocation
+    input: Cassandra,
+    output: Output,
+    temporaryLocation: TemporaryLocation
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
-    // todo loadDataFrame x2
     val result = output match {
       case elasticsearch @ Elasticsearch(_, _, _) =>
         DataFrameUtils
           .loadDataFrame(CassandraDB(input.keyspace, input.table), EMPTY)
           .traverse(df => DataFrameUtils.saveDataFrame(df, JSON, temporaryLocation.path, Append))
           .flatten
-        ElasticSink.insertDocuments(
-          File(JSON, temporaryLocation.path),
-          elasticsearch,
-          temporaryLocation.basePath,
-          Local
-        )
+        ElasticSink.insertDocuments(File(JSON, temporaryLocation.path), elasticsearch, temporaryLocation.basePath, Local)
       case kafka @ Kafka(_, _) =>
         DataFrameUtils
           .loadDataFrame(CassandraDB(input.keyspace, input.table), EMPTY)
@@ -94,11 +85,10 @@ object CassandraExtractor {
     * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   private def handleRouteWithExplicitSaveMode(
-      input: Cassandra,
-      output: Output,
-      consistency: Consistency
+    input: Cassandra,
+    output: Output,
+    consistency: Consistency
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
-    // todo loadDataFrame x3
     val result = output match {
       case File(dataType, path) =>
         DataFrameUtils
@@ -108,18 +98,12 @@ object CassandraExtractor {
       case Cassandra(keyspace, table) =>
         DataFrameUtils
           .loadDataFrame(CassandraDB(input.keyspace, input.table), EMPTY)
-          .traverse(df =>
-            DataFrameUtils
-              .saveDataFrame(df, CassandraDB(keyspace, table), EMPTY, consistency.toSaveMode)
-          )
+          .traverse(df => DataFrameUtils.saveDataFrame(df, CassandraDB(keyspace, table), EMPTY, consistency.toSaveMode))
           .flatten
       case Postgres(database, table) =>
         DataFrameUtils
           .loadDataFrame(CassandraDB(input.keyspace, input.table), EMPTY)
-          .traverse(df =>
-            DataFrameUtils
-              .saveDataFrame(df, PostgresDB(database, table), EMPTY, consistency.toSaveMode)
-          )
+          .traverse(df => DataFrameUtils.saveDataFrame(df, PostgresDB(database, table), EMPTY, consistency.toSaveMode))
           .flatten
       case _ => Left(MustHaveSaveModeError)
     }

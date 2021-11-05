@@ -24,10 +24,10 @@ object KafkaTopicConsumer {
     * @return A KafkaConsumer, otherwise a Throwable
     */
   def consume(
-      topic: String,
-      brokerUrls: String,
-      offset: Offset,
-      consumerGroup: String
+    topic: String,
+    brokerUrls: String,
+    offset: Offset,
+    consumerGroup: String
   ): Either[Throwable, KafkaConsumer[String, String]] = {
     val props = new Properties()
     props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerUrls)
@@ -53,10 +53,10 @@ object KafkaTopicConsumer {
     * @return KafkaStreamEntity
     */
   def consumeWithStream(
-      streamAppId: String,
-      topic: String,
-      offset: Offset,
-      bootstrapServers: String
+    streamAppId: String,
+    topic: String,
+    offset: Offset,
+    bootstrapServers: String
   ): KafkaStreamEntity = {
     import org.apache.kafka.streams.scala.ImplicitConversions._
     import org.apache.kafka.streams.scala.Serdes._

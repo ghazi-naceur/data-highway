@@ -21,21 +21,15 @@ object ElasticAdminOps extends ElasticUtils {
     * @param operation THe ES operation
     * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
-  def execute(
-      operation: ElasticOperation
-  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
+  def execute(operation: ElasticOperation): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     operation match {
       case IndexCreation(indexName, optMapping) =>
         optMapping match {
-          case Some(raw) =>
-            createIndice(indexName, raw)
-          case None =>
-            createIndice(indexName)
+          case Some(raw) => createIndice(indexName, raw)
+          case None      => createIndice(indexName)
         }
-      case IndexDeletion(indexName) =>
-        deleteIndice(indexName)
-      case IndexMapping(indexName, mapping) =>
-        addMapping(indexName, mapping)
+      case IndexDeletion(indexName)         => deleteIndice(indexName)
+      case IndexMapping(indexName, mapping) => addMapping(indexName, mapping)
     }
   }
 
@@ -45,9 +39,7 @@ object ElasticAdminOps extends ElasticUtils {
     * @param indexName THe index to be created
     * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
-  def createIndice(
-      indexName: String
-  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
+  def createIndice(indexName: String): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     import com.sksamuel.elastic4s.ElasticDsl._
     Either.catchNonFatal {
       val result = esClient.execute {
@@ -61,16 +53,13 @@ object ElasticAdminOps extends ElasticUtils {
   }
 
   /**
-    * Create an ES index with a mapping
+    * Creates an ES index with a mapping
     *
     * @param indexName The index to be created
     * @param mappings THe index mapping to be applied
     * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
-  def createIndice(
-      indexName: String,
-      mappings: String
-  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
+  def createIndice(indexName: String, mappings: String): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     import com.sksamuel.elastic4s.ElasticDsl._
     Either.catchNonFatal {
       esClient.execute {
@@ -92,9 +81,7 @@ object ElasticAdminOps extends ElasticUtils {
     * @param indexName The ES index to be deleted
     * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
-  def deleteIndice(
-      indexName: String
-  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
+  def deleteIndice(indexName: String): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     import com.sksamuel.elastic4s.ElasticDsl._
     Either.catchNonFatal {
       val result = esClient.execute {
@@ -114,10 +101,7 @@ object ElasticAdminOps extends ElasticUtils {
     * @param mappings The mapping to be applied
     * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
-  def addMapping(
-      indexName: String,
-      mappings: String
-  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
+  def addMapping(indexName: String, mappings: String): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     import com.sksamuel.elastic4s.ElasticDsl._
     Either.catchNonFatal {
       val result = esClient.execute {

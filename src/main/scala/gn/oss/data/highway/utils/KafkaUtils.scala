@@ -44,8 +44,8 @@ object KafkaUtils {
     val props = new Properties()
     props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, brokerUrls)
     Try {
-      val adminClient        = AdminClient.create(props)
-      val newTopic           = new NewTopic(topic, 1, 1.asInstanceOf[Short])
+      val adminClient = AdminClient.create(props)
+      val newTopic = new NewTopic(topic, 1, 1.asInstanceOf[Short])
       val createTopicsResult = adminClient.createTopics(Collections.singleton(newTopic))
       createTopicsResult.values().get(topic).get()
       logger.info(s"The topic '$topic' was successfully created.")
@@ -63,7 +63,7 @@ object KafkaUtils {
     val props = new Properties()
     props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, brokerUrls)
     Try {
-      val adminClient        = AdminClient.create(props)
+      val adminClient = AdminClient.create(props)
       val deleteTopicsResult = adminClient.deleteTopics(Collections.singleton(topic))
       deleteTopicsResult.values().get(topic).get()
       logger.info(s"The topic '$topic' was successfully deleted")
@@ -82,8 +82,8 @@ object KafkaUtils {
     */
   def verifyTopicExistence(topic: String, brokerUrls: String, enableTopicCreation: Boolean): Any = {
     // todo maybe replace with DHE
-    val strings = listTopics(brokerUrls).map(_._1)
-    if (!strings.contains(topic)) {
+    val topics = listTopics(brokerUrls).map(_._1)
+    if (!topics.contains(topic)) {
       if (enableTopicCreation) {
         createTopic(topic, brokerUrls)
       } else {

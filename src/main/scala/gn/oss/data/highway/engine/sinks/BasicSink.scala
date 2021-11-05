@@ -36,11 +36,11 @@ object BasicSink extends HdfsUtils {
     * @return Path as String, otherwise an Throwable
     */
   def convert(
-      inputDataType: DataType,
-      inputPath: String,
-      outputDataType: DataType,
-      outputPath: String,
-      saveMode: SaveMode
+    inputDataType: DataType,
+    inputPath: String,
+    outputDataType: DataType,
+    outputPath: String,
+    saveMode: SaveMode
   ): Either[Throwable, String] = {
     DataFrameUtils
       .loadDataFrame(inputDataType, inputPath)
@@ -60,10 +60,10 @@ object BasicSink extends HdfsUtils {
     * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   def handleChannel(
-      input: models.File,
-      output: models.File,
-      storage: Option[Storage],
-      consistency: Option[Consistency]
+    input: models.File,
+    output: models.File,
+    storage: Option[Storage],
+    consistency: Option[Consistency]
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     val basePath = new File(input.path).getParent
     (storage, consistency) match {
@@ -87,13 +87,12 @@ object BasicSink extends HdfsUtils {
     * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   private def handleHDFS(
-      input: models.File,
-      output: models.File,
-      basePath: String,
-      saveMode: SaveMode,
-      fs: FileSystem
+    input: models.File,
+    output: models.File,
+    basePath: String,
+    saveMode: SaveMode,
+    fs: FileSystem
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
-    // todo to be refined
     val result = for {
       folders <- HdfsUtils.listFolders(fs, input.path)
       _ = logger.info("Folders to be processed : " + folders)
@@ -105,8 +104,7 @@ object BasicSink extends HdfsUtils {
               HdfsUtils
                 .listFiles(fs, subFolder)
                 .traverse(file => {
-                  val fullOutputPath =
-                    s"${output.path}/${FilesUtils.getFileNameAndParentFolderFromPath(file)}"
+                  val fullOutputPath = s"${output.path}/${FilesUtils.getFileNameAndParentFolderFromPath(file)}"
                   convert(input.dataType, file, output.dataType, fullOutputPath, saveMode)
                 })
                 .flatMap(_ => HdfsUtils.movePathContent(fs, subFolder, basePath))
@@ -134,12 +132,11 @@ object BasicSink extends HdfsUtils {
     * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   private def handleLocalFS(
-      input: models.File,
-      output: models.File,
-      basePath: String,
-      saveMode: SaveMode
+    input: models.File,
+    output: models.File,
+    basePath: String,
+    saveMode: SaveMode
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
-    // todo to be refined
     val result = for {
       folders <- FilesUtils.listNonEmptyFoldersRecursively(input.path)
       _ = logger.info("Folders to be processed : " + folders)
@@ -153,29 +150,18 @@ object BasicSink extends HdfsUtils {
                 .traverse(file => {
                   val fullOutputPath =
                     s"${output.path}/${FilesUtils.getFileNameAndParentFolderFromPath(file.toURI.getPath)}"
-                  convert(
-                    input.dataType,
-                    file.toURI.getPath,
-                    output.dataType,
-                    fullOutputPath,
-                    saveMode
-                  ).flatMap(subInputFolder => {
-                    // todo rework
-                    FilesUtils
-                      .movePathContent(
-                        subInputFolder,
-                        s"$basePath/processed/${new File(
-                          subInputFolder
-                        ).getParentFile.toURI.getPath.split("/").takeRight(1).mkString("/")}"
-                      )
-                  })
+                  convert(input.dataType, file.toURI.getPath, output.dataType, fullOutputPath, saveMode)
+                    .flatMap(subInputFolder => {
+                      val baseFolderName =
+                        s"${new File(subInputFolder).getParentFile.toURI.getPath.split("/").takeRight(1).mkString("/")}"
+                      FilesUtils.movePathContent(subInputFolder, s"$basePath/processed/$baseFolderName")
+                    })
                 })
             })
             .flatten
         case _ =>
           filtered.traverse(subFolder => {
-            val fullOutPutPath =
-              s"${output.path}/${FilesUtils.reversePathSeparator(subFolder).split("/").last}"
+            val fullOutPutPath = s"${output.path}/${FilesUtils.reversePathSeparator(subFolder).split("/").last}"
             convert(input.dataType, subFolder, output.dataType, fullOutPutPath, saveMode)
               .flatMap(subInputFolder => FilesUtils.movePathContent(subInputFolder, s"$basePath/processed"))
           })

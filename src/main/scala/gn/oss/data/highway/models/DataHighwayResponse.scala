@@ -7,8 +7,7 @@ sealed trait DataHighwayErrorResponse extends Throwable
 
 case class DataHighwaySuccess(input: String, output: String) extends DataHighwaySuccessResponse
 
-case class DataHighwayElasticResponse(index: String, description: String)
-    extends DataHighwaySuccessResponse
+case class DataHighwayElasticResponse(index: String, description: String) extends DataHighwaySuccessResponse
 
 case class DataHighwayError(message: String, cause: String) extends DataHighwayErrorResponse
 
@@ -37,10 +36,7 @@ object DataHighwayRuntimeException {
       "This route should have a 'storage' and 'consistency' fields, which represents respectively the 'FileSystem' and the 'SaveMode'."
     )
   val MustHaveSearchQueryError: DataHighwayErrorResponse =
-    DataHighwayError(
-      "The 'SearchQuery' property must be set.",
-      "This route should have a 'search-query' field."
-    )
+    DataHighwayError("The 'SearchQuery' property must be set.", "This route should have a 'search-query' field.")
   val KafkaProducerSupportModeError: DataHighwayErrorResponse =
     DataHighwayError(
       "This mode is not supported while publishing files' content to Kafka topic.",
@@ -48,8 +44,19 @@ object DataHighwayRuntimeException {
     )
   val KafkaMirrorSupportModeError: DataHighwayErrorResponse =
     DataHighwayError(
-      "This mode is not supported while mirroring kafka topics",
-      s"This mode is not supported while mirroring a Kafka topic. The supported modes are " +
-        s"${PureKafkaStreamsProducer.getClass} and ${SparkKafkaPluginStreamsProducer.getClass}."
+      "This mode is not supported while mirroring kafka topics.",
+      s"The supported modes are ${PureKafkaStreamsProducer.getClass} and ${SparkKafkaPluginStreamsProducer.getClass}."
+    )
+  val KafkaConsumerSupportModeError: DataHighwayErrorResponse =
+    DataHighwayError(
+      "This mode is not supported while consuming Kafka topics.",
+      s"The supported modes are ${PureKafkaConsumer.getClass}, ${SparkKafkaPluginConsumer.getClass} and ${PureKafkaStreamsConsumer.getClass}."
+    )
+
+  val RouteError: DataHighwayErrorResponse =
+    DataHighwayError(
+      "The provided route is not supported yet. ",
+      "This route will be implemented in the upcoming versions. For now, you can combine all the available routes to " +
+        "ensure sending data to your desired destination."
     )
 }

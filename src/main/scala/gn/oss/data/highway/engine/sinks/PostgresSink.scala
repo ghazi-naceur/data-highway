@@ -38,20 +38,14 @@ object PostgresSink extends HdfsUtils {
     * @return Path as String, otherwise an Throwable
     */
   def insert(
-      inputDataType: DataType,
-      inputPath: String,
-      output: Postgres,
-      saveMode: SaveMode
+    inputDataType: DataType,
+    inputPath: String,
+    output: Postgres,
+    saveMode: SaveMode
   ): Either[Throwable, String] = {
-    // todo maybe fuse input, output and datatype
     val result = for {
       dataframe <- DataFrameUtils.loadDataFrame(inputDataType, inputPath)
-      _ <- DataFrameUtils.saveDataFrame(
-        dataframe,
-        PostgresDB(output.database, output.table),
-        EMPTY,
-        saveMode
-      )
+      _ <- DataFrameUtils.saveDataFrame(dataframe, PostgresDB(output.database, output.table), EMPTY, saveMode)
     } yield ()
     result match {
       case Right(_)  => Right(inputPath)
@@ -69,10 +63,10 @@ object PostgresSink extends HdfsUtils {
     * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   def handlePostgresChannel(
-      input: models.File,
-      output: Postgres,
-      storage: Option[Storage],
-      consistency: Option[Consistency]
+    input: models.File,
+    output: Postgres,
+    storage: Option[Storage],
+    consistency: Option[Consistency]
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     val basePath = new File(input.path).getParent
     (storage, consistency) match {
@@ -95,16 +89,14 @@ object PostgresSink extends HdfsUtils {
     * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   private def handleLocalFS(
-      input: models.File,
-      output: Postgres,
-      basePath: String,
-      saveMode: SaveMode
+    input: models.File,
+    output: Postgres,
+    basePath: String,
+    saveMode: SaveMode
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
-    // todo maybe substitute for/yield
-    val result = for {
-      res <- insertRows(input, output, basePath, saveMode)
-      _ = FilesUtils.cleanup(input.path)
-    } yield res
+    // todo to be reviewed
+    val result = insertRows(input, output, basePath, saveMode)
+    FilesUtils.cleanup(input.path)
     SharedUtils.constructIOResponse(input, output, result)
   }
 
@@ -119,11 +111,11 @@ object PostgresSink extends HdfsUtils {
     * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   private def handleHDFS(
-      input: models.File,
-      output: Postgres,
-      basePath: String,
-      saveMode: SaveMode,
-      fs: FileSystem
+    input: models.File,
+    output: Postgres,
+    basePath: String,
+    saveMode: SaveMode,
+    fs: FileSystem
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     val result = for {
       folders <- HdfsUtils.listFolders(fs, input.path)
@@ -140,10 +132,10 @@ object PostgresSink extends HdfsUtils {
             })
         case _ =>
           filtered
-            .traverse(subfolder =>
+            .traverse(subfolder => {
               insert(input.dataType, subfolder, output, saveMode)
                 .flatMap(_ => HdfsUtils.movePathContent(fs, subfolder, basePath))
-            )
+            })
       }
       _ = HdfsUtils.cleanup(fs, input.path)
     } yield res
@@ -160,44 +152,36 @@ object PostgresSink extends HdfsUtils {
     * @return List of List of Path as String, otherwise a Throwable
     */
   def insertRows(
-      input: models.File,
-      output: Postgres,
-      basePath: String,
-      saveMode: SaveMode
+    input: models.File,
+    output: Postgres,
+    basePath: String,
+    saveMode: SaveMode
   ): Either[Throwable, List[List[String]]] = {
-    // todo to be refined
     for {
       folders <- FilesUtils.listNonEmptyFoldersRecursively(input.path)
       _ = logger.info("Folders to be processed : " + folders)
       filtered <- FilesUtils.filterNonEmptyFolders(folders)
-      res <- input.dataType match {
+      result <- input.dataType match {
         case XLSX =>
+          // todo to be reviewed
           FilesUtils
             .listFiles(filtered)
-            .traverse(files => {
-              files.traverse(file => {
-                insert(input.dataType, file.toURI.getPath, output, saveMode)
-                  .flatMap(subInputFolder =>
-                    FilesUtils
-                      .movePathContent(
-                        subInputFolder,
-                        s"$basePath/processed/${new File(
-                          subInputFolder
-                        ).getParentFile.toURI.getPath.split("/").takeRight(1).mkString("/")}"
-                      )
-                  )
-              })
-            })
+            .traverse(_.traverse(file => {
+              insert(input.dataType, file.toURI.getPath, output, saveMode)
+                .flatMap(subInputFolder => {
+                  val baseFolderName =
+                    s"${new File(subInputFolder).getParentFile.toURI.getPath.split("/").takeRight(1).mkString("/")}"
+                  FilesUtils.movePathContent(subInputFolder, s"$basePath/processed/$baseFolderName")
+                })
+            }))
             .flatten
         case _ =>
           filtered
             .traverse(subFolder => {
               insert(input.dataType, subFolder, output, saveMode)
-                .flatMap(subInputFolder =>
-                  FilesUtils.movePathContent(subInputFolder, s"$basePath/processed")
-                )
+                .flatMap(subInputFolder => FilesUtils.movePathContent(subInputFolder, s"$basePath/processed"))
             })
       }
-    } yield res
+    } yield result
   }
 }

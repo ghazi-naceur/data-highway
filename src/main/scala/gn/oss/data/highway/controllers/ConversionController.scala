@@ -24,10 +24,8 @@ object ConversionController {
       case req @ GET -> Root / "conversion" =>
         logger.info("GET Request received : " + req.toString())
         Ok(s"Data Highway REST API.")
-      case req @ POST -> Root / "conversion" / "query" =>
-        handleRestQuery("query", req)
-      case req @ POST -> Root / "conversion" / "route" =>
-        handleRestQuery("route", req)
+      case req @ POST -> Root / "conversion" / "query" => handleRestQuery("query", req)
+      case req @ POST -> Root / "conversion" / "route" => handleRestQuery("route", req)
     }
     .orNotFound
 
@@ -36,10 +34,8 @@ object ConversionController {
     logger.info("POST Request received : " + req.toString())
     val ioResponse = req.asJson.map(request => {
       val parsedRestQuery = param match {
-        case "route" =>
-          ConfigLoader().loadConfigsFromString[Route](param, request.asJson.toString())
-        case "query" =>
-          ConfigLoader().loadConfigsFromString[models.Query](param, request.asJson.toString())
+        case "route" => ConfigLoader().loadConfigsFromString[Route](param, request.asJson.toString())
+        case "query" => ConfigLoader().loadConfigsFromString[models.Query](param, request.asJson.toString())
       }
       Dispatcher.apply(parsedRestQuery)
     })

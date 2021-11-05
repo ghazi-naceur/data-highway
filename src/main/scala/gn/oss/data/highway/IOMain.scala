@@ -11,11 +11,10 @@ import scala.io.Source
 
 object IOMain extends IOApp {
 
-  implicit val cs: ContextShift[IO]      = IO.contextShift(global)
+  implicit val cs: ContextShift[IO] = IO.contextShift(global)
   override implicit val timer: Timer[IO] = IO.timer(global)
 
   override def run(args: List[String]): IO[ExitCode] = {
-
     BlazeServerBuilder[IO](global)
       .withBanner(getBanner)
       .bindHttp(5555, "localhost")

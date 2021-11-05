@@ -2,18 +2,7 @@ package gn.oss.data.highway.utils
 
 import org.apache.spark.sql.{DataFrame, SaveMode}
 import cats.syntax.either._
-import gn.oss.data.highway.models.{
-  AVRO,
-  CSV,
-  CassandraDB,
-  Compression,
-  DataType,
-  JSON,
-  ORC,
-  PARQUET,
-  PostgresDB,
-  XLSX
-}
+import gn.oss.data.highway.models.{AVRO, CSV, CassandraDB, Compression, DataType, JSON, ORC, PARQUET, PostgresDB, XLSX}
 import gn.oss.data.highway.configs.{PostgresUtils, SparkUtils}
 
 import java.util.UUID
@@ -84,12 +73,7 @@ object DataFrameUtils extends SparkUtils with PostgresUtils {
     * @param saveMode The output save mode
     * @return a Unit, otherwise a Throwable
     */
-  def saveDataFrame(
-      df: DataFrame,
-      dataType: DataType,
-      out: String,
-      saveMode: SaveMode
-  ): Either[Throwable, Unit] = {
+  def saveDataFrame(df: DataFrame, dataType: DataType, out: String, saveMode: SaveMode): Either[Throwable, Unit] = {
     // todo divide on multiple methods per datatype
     Either.catchNonFatal {
       dataType match {
@@ -130,9 +114,7 @@ object DataFrameUtils extends SparkUtils with PostgresUtils {
             .option("header", "true")
             .option("dateFormat", "yy-mmm-d")
             .mode(saveMode)
-            .save(
-              s"$out/generated_xlsx-${UUID.randomUUID().toString}-${System.currentTimeMillis().toString}.xlsx"
-            )
+            .save(s"$out/generated_xlsx-${UUID.randomUUID().toString}-${System.currentTimeMillis().toString}.xlsx")
         case CassandraDB(keyspace, table) =>
           df.write
             .format("org.apache.spark.sql.cassandra")

@@ -15,31 +15,14 @@ sealed trait KafkaProducer extends KafkaMode {
 
 case class SparkKafkaPluginConsumer(brokers: String, offset: Offset) extends KafkaConsumer
 
-case class SparkKafkaPluginStreamsConsumer(brokers: String, offset: Offset) extends KafkaConsumer
+case class PureKafkaStreamsConsumer(brokers: String, streamAppId: String, offset: Offset) extends KafkaConsumer
 
-case class PureKafkaStreamsConsumer(
-    brokers: String,
-    streamAppId: String,
-    offset: Offset
-) extends KafkaConsumer
-
-case class PureKafkaConsumer(
-    brokers: String,
-    consumerGroup: String,
-    offset: Offset
-) extends KafkaConsumer
+case class PureKafkaConsumer(brokers: String, consumerGroup: String, offset: Offset) extends KafkaConsumer
 
 case class SparkKafkaPluginProducer(brokers: String) extends KafkaProducer
 
 case class PureKafkaProducer(brokers: String) extends KafkaProducer
 
-case class SparkKafkaPluginStreamsProducer(
-    brokers: String,
-    offset: Offset
-) extends KafkaProducer
+case class SparkKafkaPluginStreamsProducer(brokers: String, offset: Offset) extends KafkaProducer
 
-case class PureKafkaStreamsProducer(
-    brokers: String,
-    streamAppId: String,
-    offset: Offset
-) extends KafkaProducer
+case class PureKafkaStreamsProducer(brokers: String, streamAppId: String, offset: Offset) extends KafkaProducer

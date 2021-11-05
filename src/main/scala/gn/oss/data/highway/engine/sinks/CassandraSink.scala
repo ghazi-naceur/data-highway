@@ -38,10 +38,10 @@ object CassandraSink extends HdfsUtils {
     * @return Path as String, otherwise an Throwable
     */
   def insert(
-      inputDataType: DataType,
-      inputPath: String,
-      output: Cassandra,
-      saveMode: SaveMode
+    inputDataType: DataType,
+    inputPath: String,
+    output: Cassandra,
+    saveMode: SaveMode
   ): Either[Throwable, String] = {
     DataFrameUtils
       .loadDataFrame(inputDataType, inputPath)
@@ -62,10 +62,10 @@ object CassandraSink extends HdfsUtils {
     * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   def handleCassandraChannel(
-      input: models.File,
-      output: Cassandra,
-      storage: Option[Storage],
-      consistency: Option[Consistency]
+    input: models.File,
+    output: Cassandra,
+    storage: Option[Storage],
+    consistency: Option[Consistency]
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     val basePath = new File(input.path).getParent
     (storage, consistency) match {
@@ -91,18 +91,17 @@ object CassandraSink extends HdfsUtils {
     * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   private def handleHDFS(
-      input: models.File,
-      output: Cassandra,
-      basePath: String,
-      saveMode: SaveMode,
-      fs: FileSystem
+    input: models.File,
+    output: Cassandra,
+    basePath: String,
+    saveMode: SaveMode,
+    fs: FileSystem
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
-    // todo to be refined
     val result = for {
       folders <- HdfsUtils.listFolders(fs, input.path)
       _ = logger.info("Folders to be processed : " + folders)
       filtered <- HdfsUtils.filterNonEmptyFolders(fs, folders)
-      res <- input.dataType match {
+      result <- input.dataType match {
         case XLSX =>
           filtered
             .traverse(subfolder => {
@@ -113,13 +112,14 @@ object CassandraSink extends HdfsUtils {
             })
         case _ =>
           filtered
-            .traverse(subfolder =>
-              insert(input.dataType, subfolder, output, saveMode)
-                .flatMap(_ => HdfsUtils.movePathContent(fs, subfolder, basePath))
+            .traverse(
+              subfolder =>
+                insert(input.dataType, subfolder, output, saveMode)
+                  .flatMap(_ => HdfsUtils.movePathContent(fs, subfolder, basePath))
             )
       }
       _ = HdfsUtils.cleanup(fs, input.path)
-    } yield res
+    } yield result
     SharedUtils.constructIOResponse(input, output, result)
   }
 
@@ -133,16 +133,13 @@ object CassandraSink extends HdfsUtils {
     * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   private def handleLocalFS(
-      input: models.File,
-      output: Cassandra,
-      basePath: String,
-      saveMode: SaveMode
+    input: models.File,
+    output: Cassandra,
+    basePath: String,
+    saveMode: SaveMode
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
-    // todo maybe substitute for/yield
-    val result = for {
-      res <- insertRows(input, output, basePath, saveMode)
-      _ = FilesUtils.cleanup(input.path)
-    } yield res
+    val result = insertRows(input, output, basePath, saveMode)
+    FilesUtils.cleanup(input.path)
     SharedUtils.constructIOResponse(input, output, result)
   }
 
@@ -156,18 +153,18 @@ object CassandraSink extends HdfsUtils {
     * @return List of List of Path as String, otherwise a Throwable
     */
   def insertRows(
-      input: models.File,
-      output: Cassandra,
-      basePath: String,
-      saveMode: SaveMode
+    input: models.File,
+    output: Cassandra,
+    basePath: String,
+    saveMode: SaveMode
   ): Either[Throwable, List[List[String]]] = {
-    // todo to be refined
     for {
       folders <- FilesUtils.listNonEmptyFoldersRecursively(input.path)
       _ = logger.info("Folders to be processed : " + folders)
       filtered <- FilesUtils.filterNonEmptyFolders(folders)
-      res <- input.dataType match {
+      result <- input.dataType match {
         case XLSX =>
+          // todo to be reviewed
           FilesUtils
             .listFiles(filtered)
             .traverse(files => {
@@ -175,13 +172,9 @@ object CassandraSink extends HdfsUtils {
                 .traverse(file => {
                   insert(input.dataType, file.toURI.getPath, output, saveMode)
                     .flatMap(subInputFolder => {
-                      FilesUtils
-                        .movePathContent(
-                          subInputFolder,
-                          s"$basePath/processed/${new File(
-                            subInputFolder
-                          ).getParentFile.toURI.getPath.split("/").takeRight(1).mkString("/")}"
-                        )
+                      val baseFolderName =
+                        s"${new File(subInputFolder).getParentFile.toURI.getPath.split("/").takeRight(1).mkString("/")}"
+                      FilesUtils.movePathContent(subInputFolder, s"$basePath/processed/$baseFolderName")
                     })
                 })
             })
@@ -190,11 +183,9 @@ object CassandraSink extends HdfsUtils {
           filtered
             .traverse(subFolder => {
               insert(input.dataType, subFolder, output, saveMode)
-                .flatMap(subInputFolder =>
-                  FilesUtils.movePathContent(subInputFolder, s"$basePath/processed")
-                )
+                .flatMap(subInputFolder => FilesUtils.movePathContent(subInputFolder, s"$basePath/processed"))
             })
       }
-    } yield res
+    } yield result
   }
 }

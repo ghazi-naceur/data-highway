@@ -10,6 +10,7 @@ import cats.implicits._
 import gn.oss.data.highway.configs.HdfsUtils
 import gn.oss.data.highway.engine.sinks.{BasicSink, CassandraSink, ElasticSink, PostgresSink}
 import gn.oss.data.highway.models.DataHighwayRuntimeException.{
+  KafkaConsumerSupportModeError,
   MustHaveSaveModeError,
   MustNotHaveSaveModeError
 }
@@ -33,7 +34,6 @@ import gn.oss.data.highway.models.{
   PureKafkaConsumer,
   PureKafkaStreamsConsumer,
   SparkKafkaPluginConsumer,
-  SparkKafkaPluginStreamsConsumer,
   Storage,
   TemporaryLocation
 }
@@ -58,14 +58,14 @@ object KafkaExtractor extends HdfsUtils {
     * @return DataHighwayResponse, otherwise a DataHighwayErrorResponse
     */
   def consumeFromTopic(
-      input: Kafka,
-      output: Output,
-      storage: Option[Storage],
-      consistency: Option[Consistency]
+    input: Kafka,
+    output: Output,
+    storage: Option[Storage],
+    consistency: Option[Consistency]
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     val temporaryLocation = SharedUtils.setTempoFilePath("kafka-extractor", storage)
-    val consumer          = input.kafkaMode.asInstanceOf[Option[KafkaConsumer]]
-    val fsys              = SharedUtils.setFileSystem(output, storage)
+    val consumer = input.kafkaMode.asInstanceOf[Option[KafkaConsumer]]
+    val fileSystem = SharedUtils.setFileSystem(output, storage)
     consumer match {
       case Some(km) =>
         KafkaUtils.verifyTopicExistence(input.topic, km.brokers, enableTopicCreation = false)
@@ -78,7 +78,7 @@ object KafkaExtractor extends HdfsUtils {
                   input.topic,
                   output,
                   temporaryLocation,
-                  fsys,
+                  fileSystem,
                   consistency,
                   brokers,
                   offset,
@@ -93,7 +93,7 @@ object KafkaExtractor extends HdfsUtils {
               input.topic,
               output,
               temporaryLocation,
-              fsys,
+              fileSystem,
               consistency,
               brokers,
               offset,
@@ -109,34 +109,14 @@ object KafkaExtractor extends HdfsUtils {
                 input,
                 output,
                 temporaryLocation,
-                fsys,
+                fileSystem,
                 consistency,
                 brokers,
                 offset
               )
             }
             SharedUtils.constructIOResponse(input, output, result)
-//          case SparkKafkaPluginStreamsConsumer(brokers, offset) =>
-//            // only json data type support
-//            Either.catchNonFatal {
-//              val thread = new Thread(() => {
-//                sinkWithSparkKafkaStreamsConnector(
-//                  sparkSession,
-//                  input.topic,
-//                  output.path,
-//                  filesystem,
-//                  brokers,
-//                  offset
-//                )
-//              })
-//              thread.start()
-//            }
-          case _ =>
-            throw new RuntimeException(
-              s"This mode is not supported while consuming Kafka topics. The supported modes are " +
-                s"${PureKafkaConsumer.getClass}, ${SparkKafkaPluginConsumer.getClass}, ${PureKafkaStreamsConsumer.getClass}" +
-                s"and ${SparkKafkaPluginStreamsConsumer.getClass}. The provided input kafka mode is '$km'."
-            )
+          case _ => Left(KafkaConsumerSupportModeError)
         }
     }
   }
@@ -156,42 +136,29 @@ object KafkaExtractor extends HdfsUtils {
     * @return Unit, otherwise a Throwable
     */
   private[engine] def sinkWithPureKafkaConsumer(
-      inputTopic: String,
-      output: Output,
-      tempoLocation: TemporaryLocation,
-      storage: Storage,
-      consistency: Option[Consistency],
-      brokerUrls: String,
-      offset: Offset,
-      consumerGroup: String,
-      fs: FileSystem
+    inputTopic: String,
+    output: Output,
+    tempoLocation: TemporaryLocation,
+    storage: Storage,
+    consistency: Option[Consistency],
+    brokerUrls: String,
+    offset: Offset,
+    consumerGroup: String,
+    fs: FileSystem
   ): Either[Throwable, Unit] = {
     KafkaTopicConsumer
       .consume(inputTopic, brokerUrls, offset, consumerGroup)
       .map(consumed => {
         val record = consumed.poll(Duration.ofSeconds(1)).asScala
         for (data <- record.iterator) {
-          logger.info(
-            s"Topic: ${data.topic()}, Key: ${data.key()}, Value: ${data.value()}, " +
-              s"Offset: ${data.offset()}, Partition: ${data.partition()}"
-          )
-          val uuid: String =
-            s"${UUID.randomUUID()}-${System.currentTimeMillis()}"
+          logger.info(s"Topic: ${data.topic()}, Key: ${data.key()}, Value: ${data.value()}, Offset: ${data
+            .offset()}, Partition: ${data.partition()}")
+          val uuid: String = s"${UUID.randomUUID()}-${System.currentTimeMillis()}"
           storage match {
             case Local =>
-              FilesUtils
-                .createFile(
-                  tempoLocation.path,
-                  s"simple-consumer-$uuid.${JSON.extension}",
-                  data.value()
-                )
+              FilesUtils.createFile(tempoLocation.path, s"simple-consumer-$uuid.${JSON.extension}", data.value())
             case HDFS =>
-              HdfsUtils
-                .save(
-                  fs,
-                  s"${tempoLocation.path}/simple-consumer-$uuid.${JSON.extension}",
-                  data.value()
-                )
+              HdfsUtils.save(fs, s"${tempoLocation.path}/simple-consumer-$uuid.${JSON.extension}", data.value())
           }
           logger.info(
             s"Successfully sinking '${JSON.extension}' data provided by the input topic '$inputTopic' in the output folder pattern " +
@@ -200,12 +167,7 @@ object KafkaExtractor extends HdfsUtils {
         }
         consumed.close()
       })
-    dispatchDataToOutput(
-      tempoLocation,
-      output,
-      storage,
-      consistency
-    )
+    dispatchDataToOutput(tempoLocation, output, storage, consistency)
   }
 
   /**
@@ -223,38 +185,29 @@ object KafkaExtractor extends HdfsUtils {
     * @return Unit, otherwise a Throwable
     */
   private[engine] def sinkWithPureKafkaStreamsConsumer(
-      inputTopic: String,
-      output: Output,
-      tempoLocation: TemporaryLocation,
-      storage: Storage,
-      consistency: Option[Consistency],
-      brokerUrls: String,
-      offset: Offset,
-      streamAppId: String,
-      fs: FileSystem
+    inputTopic: String,
+    output: Output,
+    tempoLocation: TemporaryLocation,
+    storage: Storage,
+    consistency: Option[Consistency],
+    brokerUrls: String,
+    offset: Offset,
+    streamAppId: String,
+    fs: FileSystem
   ): Either[Throwable, Unit] = {
     Either.catchNonFatal {
-      val kafkaStreamEntity =
-        KafkaTopicConsumer.consumeWithStream(streamAppId, inputTopic, offset, brokerUrls)
+      val kafkaStreamEntity = KafkaTopicConsumer.consumeWithStream(streamAppId, inputTopic, offset, brokerUrls)
       kafkaStreamEntity.dataKStream.mapValues(data => {
         val uuid: String = s"${UUID.randomUUID()}-${System.currentTimeMillis()}"
         storage match {
-          case Local =>
-            FilesUtils
-              .createFile(tempoLocation.path, s"kafka-streams-$uuid.${JSON.extension}", data)
-          case HDFS =>
-            HdfsUtils.save(fs, s"${tempoLocation.path}/kafka-streams-$uuid.${JSON.extension}", data)
+          case Local => FilesUtils.createFile(tempoLocation.path, s"kafka-streams-$uuid.${JSON.extension}", data)
+          case HDFS  => HdfsUtils.save(fs, s"${tempoLocation.path}/kafka-streams-$uuid.${JSON.extension}", data)
         }
         logger.info(
           s"Successfully sinking '${JSON.extension}' data provided by the input topic '$inputTopic' in the output folder pattern " +
             s"'${tempoLocation.path}/kafka-streams-*****${JSON.extension}'"
         )
-        dispatchDataToOutput(
-          tempoLocation,
-          output,
-          storage,
-          consistency
-        )
+        dispatchDataToOutput(tempoLocation, output, storage, consistency)
       })
       val streams = new KafkaStreams(kafkaStreamEntity.builder.build(), kafkaStreamEntity.props)
       streams.start()
@@ -275,24 +228,21 @@ object KafkaExtractor extends HdfsUtils {
     * @return Unit, otherwise a Throwable
     */
   def sinkWithSparkKafkaConnector(
-      session: SparkSession,
-      kafka: Kafka,
-      output: Output,
-      tempoLocation: TemporaryLocation,
-      storage: Storage,
-      consistency: Option[Consistency],
-      brokerUrls: String,
-      offset: Offset
+    session: SparkSession,
+    kafka: Kafka,
+    output: Output,
+    tempoLocation: TemporaryLocation,
+    storage: Storage,
+    consistency: Option[Consistency],
+    brokerUrls: String,
+    offset: Offset
   ): Either[Throwable, Unit] = {
     import session.implicits._
     val computedOffset = offset match {
       case Latest =>
-        logger.warn(
-          s"Starting offset can't be '$offset' for batch queries on Kafka. So, we'll set it at 'Earliest'."
-        )
+        logger.warn(s"Starting offset can't be '$offset' for batch queries on Kafka. So, we'll set it at 'Earliest'.")
         Earliest
-      case Earliest =>
-        offset
+      case Earliest => offset
     }
     val frame = session.read
       .format("kafka")
@@ -311,83 +261,14 @@ object KafkaExtractor extends HdfsUtils {
       .toList
       .traverse(data => {
         val line = data.toString.substring(11, data.toString().length - 3).replace("\\", "")
+        val jsonFileName = s"spark-kafka-plugin-${UUID.randomUUID()}-${System.currentTimeMillis()}.${JSON.extension}"
         storage match {
-          case Local =>
-            FilesUtils.createFile(
-              tempoLocation.path,
-              s"spark-kafka-plugin-${UUID.randomUUID()}-${System.currentTimeMillis()}.${JSON.extension}",
-              line
-            )
-          case HDFS =>
-            HdfsUtils.save(
-              fs,
-              s"${tempoLocation.path}/spark-kafka-plugin-${UUID.randomUUID()}-${System
-                .currentTimeMillis()}.${JSON.extension}",
-              line
-            )
+          case Local => FilesUtils.createFile(tempoLocation.path, jsonFileName, line)
+          case HDFS  => HdfsUtils.save(fs, s"${tempoLocation.path}/$jsonFileName", line)
         }
       })
-    dispatchDataToOutput(
-      tempoLocation,
-      output,
-      storage,
-      consistency
-    )
+    dispatchDataToOutput(tempoLocation, output, storage, consistency)
   }
-
-//  /**
-//    * Sinks topic content into files using a [[io.oss.data.highway.models.SparkKafkaPluginStreamsConsumer]]
-//    *
-//    * @param session The Spark session
-//    * @param inputTopic The input kafka topic
-//    * @param storage The output file system storage
-//    * @param brokerUrls The kafka brokers urls
-//    * @param offset The kafka consumer offset
-//    */
-//  private[engine] def sinkWithSparkKafkaStreamsConnector(
-//      session: SparkSession,
-//      inputTopic: String,
-//      outputPath: String,
-//      storage: Storage,
-//      brokerUrls: String,
-//      offset: Offset
-//  ): Unit = {
-//    import session.implicits._
-//    logger.info(
-//      s"Starting to sink '${JSON.extension}' data provided by the input topic '$inputTopic' in the output folder pattern " +
-//        s"'$outputPath/spark-kafka-streaming-plugin-*****${JSON.extension}'"
-//    )
-//    val stream = session.readStream
-//      .format("kafka")
-//      .option("kafka.bootstrap.servers", brokerUrls)
-//      .option("startingOffsets", offset.value)
-//      .option("subscribe", inputTopic)
-//      .load()
-//      .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
-//      .as[(String, String)]
-//      .select("value")
-//      .writeStream
-//      .format(JSON.extension)
-//      .option("path", s"$outputPath/spark-kafka-streaming-plugin-${System.currentTimeMillis()}")
-//    storage match {
-//      case Local =>
-//        stream
-//          .option(
-//            "checkpointLocation",
-//            s"/tmp/checkpoint/${UUID.randomUUID()}-${System.currentTimeMillis()}"
-//          )
-//          .start()
-//          .awaitTermination()
-//      case HDFS =>
-//        stream
-//          .option(
-//            "checkpointLocation",
-//            s"${hadoopConf.host}/tmp/checkpoint/${UUID.randomUUID()}-${System.currentTimeMillis()}"
-//          )
-//          .start()
-//          .awaitTermination()
-//    }
-//  }
 
   /**
     * Dispatches intermediate data to the provided output
@@ -399,45 +280,28 @@ object KafkaExtractor extends HdfsUtils {
     * @return Unit, otherwise a Throwable
     */
   private def dispatchDataToOutput(
-      tempoLocation: TemporaryLocation,
-      output: Output,
-      storage: Storage,
-      consistency: Option[Consistency]
+    tempoLocation: TemporaryLocation,
+    output: Output,
+    storage: Storage,
+    consistency: Option[Consistency]
   ): Either[Throwable, Unit] = {
     Either.catchNonFatal {
       consistency match {
         case Some(consist) =>
           output match {
-            case file @ File(_, _) =>
-              convertUsingBasicSink(tempoLocation, file, storage, consist.toSaveMode)
+            case file @ File(_, _) => convertUsingBasicSink(tempoLocation, file, storage, consist.toSaveMode)
             case cassandra @ Cassandra(_, _) =>
               CassandraSink
-                .insertRows(
-                  File(JSON, tempoLocation.path),
-                  cassandra,
-                  tempoLocation.basePath,
-                  consist.toSaveMode
-                )
+                .insertRows(File(JSON, tempoLocation.path), cassandra, tempoLocation.basePath, consist.toSaveMode)
             case postgres @ Postgres(_, _) =>
               PostgresSink
-                .insertRows(
-                  File(JSON, tempoLocation.path),
-                  postgres,
-                  tempoLocation.basePath,
-                  consist.toSaveMode
-                )
+                .insertRows(File(JSON, tempoLocation.path), postgres, tempoLocation.basePath, consist.toSaveMode)
             case _ => Left(MustNotHaveSaveModeError)
           }
         case None =>
           output match {
             case elasticsearch @ Elasticsearch(_, _, _) =>
-              ElasticSink
-                .insertDocuments(
-                  File(JSON, tempoLocation.path),
-                  elasticsearch,
-                  tempoLocation.basePath,
-                  storage
-                )
+              ElasticSink.insertDocuments(File(JSON, tempoLocation.path), elasticsearch, tempoLocation.basePath, storage)
             case _ => Left(MustHaveSaveModeError)
           }
       }
@@ -454,20 +318,15 @@ object KafkaExtractor extends HdfsUtils {
     * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   def convertUsingBasicSink(
-      tempoLocation: TemporaryLocation,
-      output: File,
-      storage: Storage,
-      saveMode: SaveMode
+    tempoLocation: TemporaryLocation,
+    output: File,
+    storage: Storage,
+    saveMode: SaveMode
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     val tempInputPath = storage match {
       case Local => new java.io.File(tempoLocation.path).getParent
       case HDFS  => HdfsUtils.getPathWithoutUriPrefix(new java.io.File(tempoLocation.path).getParent)
     }
-    BasicSink.handleChannel(
-      File(JSON, tempInputPath),
-      output,
-      Some(storage),
-      Some(Consistency.toConsistency(saveMode))
-    )
+    BasicSink.handleChannel(File(JSON, tempInputPath), output, Some(storage), Some(Consistency.toConsistency(saveMode)))
   }
 }
