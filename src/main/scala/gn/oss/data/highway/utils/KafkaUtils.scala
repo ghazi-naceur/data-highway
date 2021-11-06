@@ -8,7 +8,7 @@ import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.PartitionInfo
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.log4j.Logger
-
+import cats.implicits._
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
@@ -78,16 +78,17 @@ object KafkaUtils {
     * @param topic The provided topic
     * @param brokerUrls The Kafka brokers urls
     * @param enableTopicCreation The topic creation flag
-    * @return Any
+    * @return Any, otherwise a Throwable
     */
-  def verifyTopicExistence(topic: String, brokerUrls: String, enableTopicCreation: Boolean): Any = {
-    // todo maybe replace with DHE
-    val topics = listTopics(brokerUrls).map(_._1)
-    if (!topics.contains(topic)) {
-      if (enableTopicCreation) {
-        createTopic(topic, brokerUrls)
-      } else {
-        throw new RuntimeException(s"The topic '$topic' does not exist.")
+  def verifyTopicExistence(topic: String, brokerUrls: String, enableTopicCreation: Boolean): Either[Throwable, Any] = {
+    Either.catchNonFatal {
+      val topics = listTopics(brokerUrls).map(_._1)
+      if (!topics.contains(topic)) {
+        if (enableTopicCreation) {
+          createTopic(topic, brokerUrls)
+        } else {
+          throw new RuntimeException(s"The topic '$topic' does not exist.")
+        }
       }
     }
   }

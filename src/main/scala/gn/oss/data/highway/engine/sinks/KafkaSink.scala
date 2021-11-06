@@ -229,17 +229,23 @@ object KafkaSink extends HdfsUtils with AppUtils {
     * @param brokers The Kafka brokers
     * @param outputTopic THe output Kafka Topic
     * @param dataframe The Dataframe to be published
+    * @return Unit, otherwise a Throwable
     */
-  private def publishToTopicWithConnector(brokers: String, outputTopic: String, dataframe: DataFrame): Unit = {
-    // todo check exception
-    import org.apache.spark.sql.functions.{struct, to_json}
-    dataframe
-      .select(to_json(struct("*")).as("value"))
-      .write
-      .format("kafka")
-      .option("kafka.bootstrap.servers", brokers)
-      .option("topic", outputTopic)
-      .save()
+  private def publishToTopicWithConnector(
+    brokers: String,
+    outputTopic: String,
+    dataframe: DataFrame
+  ): Either[Throwable, Unit] = {
+    Either.catchNonFatal {
+      import org.apache.spark.sql.functions.{struct, to_json}
+      dataframe
+        .select(to_json(struct("*")).as("value"))
+        .write
+        .format("kafka")
+        .option("kafka.bootstrap.servers", brokers)
+        .option("topic", outputTopic)
+        .save()
+    }
   }
 
   /**
@@ -251,7 +257,7 @@ object KafkaSink extends HdfsUtils with AppUtils {
     * @param outputTopic The output Kafka topic
     * @param checkpointFolder The checkpoint folder
     * @param offset The Kafka offset from where the message consumption will begin
-    * @return Unit, otherwise an Error
+    * @return Unit, otherwise a Throwable
     */
   private def publishWithSparkKafkaStreamsPlugin(
     inputTopic: String,

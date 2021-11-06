@@ -18,7 +18,7 @@ class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with 
   }
 
   "FilesUtils.listFilesRecursively" should "list files recursively from path" in {
-    val time    = System.currentTimeMillis().toString
+    val time = System.currentTimeMillis().toString
     val srcPath = s"/tmp/data-highway/input-$time/dataset"
     Files.createDirectories(new File(srcPath).toPath)
     Files.createDirectories(new File(srcPath + "/a").toPath)
@@ -42,7 +42,7 @@ class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with 
   }
 
   "FilesUtils.listFiles" should "list files from folders" in {
-    val time    = System.currentTimeMillis().toString
+    val time = System.currentTimeMillis().toString
     val srcPath = s"/tmp/data-highway/input-$time/dataset"
     Files.createDirectories(new File(srcPath).toPath)
     Files.createDirectories(new File(srcPath + "/a").toPath)
@@ -81,7 +81,7 @@ class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with 
   }
 
   "FilesUtils.listNonEmptyFoldersRecursively" should "list folders recursively" in {
-    val time    = System.currentTimeMillis().toString
+    val time = System.currentTimeMillis().toString
     val srcPath = s"/tmp/data-highway/input-$time/dataset"
     Files.createDirectories(new File(srcPath).toPath)
     Files.createDirectories(new File(srcPath + "/a").toPath)
@@ -115,11 +115,11 @@ class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with 
   }
 
   "FilesUtils.create" should "create a file" in {
-    val time    = System.currentTimeMillis().toString
+    val time = System.currentTimeMillis().toString
     val srcPath = s"/tmp/data-highway/input-$time/dataset"
-    val result  = FilesUtils.createFile(srcPath, "file.txt", "some content")
+    val result = FilesUtils.createFile(srcPath, "file.txt", "some content")
     result.right.get shouldBe ()
-    FilesUtils.getLines(srcPath + "/file.txt").toList.head shouldBe "some content"
+    FilesUtils.getLines(srcPath + "/file.txt").right.get.toList.head shouldBe "some content"
   }
 
   "FilesUtils.create" should "throw an exception" in {
@@ -128,8 +128,8 @@ class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with 
   }
 
   "FilesUtils.movePathContent" should "move folder from source to destination" in {
-    val time     = System.currentTimeMillis().toString
-    val srcPath  = s"/tmp/data-highway/input-$time/dataset"
+    val time = System.currentTimeMillis().toString
+    val srcPath = s"/tmp/data-highway/input-$time/dataset"
     val destPath = s"/tmp/data-highway/processed-$time"
     Files.createDirectories(new File(srcPath).toPath)
     Files.createFile(new File(srcPath + "/file.txt").toPath)
@@ -144,8 +144,8 @@ class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with 
   }
 
   "FilesUtils.movePathContent" should "move file from source to destination" in {
-    val time     = System.currentTimeMillis().toString
-    val srcPath  = s"/tmp/data-highway/input-$time/dataset"
+    val time = System.currentTimeMillis().toString
+    val srcPath = s"/tmp/data-highway/input-$time/dataset"
     val destPath = s"/tmp/data-highway/processed-$time"
     Files.createDirectories(new File(srcPath).toPath)
     Files.createFile(new File(srcPath + "/file.txt").toPath)
@@ -160,8 +160,8 @@ class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with 
   }
 
   "FilesUtils.movePathContent" should "throw an exception" in {
-    val time     = System.currentTimeMillis().toString
-    val srcPath  = s"/tmp/data-highway/input-$time/dataset"
+    val time = System.currentTimeMillis().toString
+    val srcPath = s"/tmp/data-highway/input-$time/dataset"
     val destPath = s"/tmp/data-highway/processed-$time"
     Files.createDirectories(new File(srcPath).toPath)
     Files.createFile(new File(srcPath + "/file.txt").toPath)
@@ -170,7 +170,7 @@ class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with 
   }
 
   "FilesUtils.cleanup" should "delete the path content" in {
-    val uuid    = UUID.randomUUID().toString
+    val uuid = UUID.randomUUID().toString
     val srcPath = s"/tmp/data-highway/input-$uuid/dataset"
     Files.createDirectories(new File(srcPath).toPath)
     Files.createFile(new File(srcPath + s"/file-*$uuid.txt").toPath)
@@ -182,19 +182,19 @@ class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with 
   }
 
   "FilesUtils.getJsonLines" should "get lines from file" in {
-    val time    = System.currentTimeMillis().toString
+    val time = System.currentTimeMillis().toString
     val srcPath = s"/tmp/data-highway/input-$time/dataset"
     Files.createDirectories(new File(srcPath).toPath)
     val fstream = new FileWriter(srcPath + s"/file-$time.txt", true)
-    val out     = new BufferedWriter(fstream)
+    val out = new BufferedWriter(fstream)
     out.write("line1\nline2\nline3")
     out.close()
-    val result = FilesUtils.getLines(srcPath + s"/file-$time.txt").toList
+    val result = FilesUtils.getLines(srcPath + s"/file-$time.txt").right.get.toList
     result shouldBe List("line1", "line2", "line3")
   }
 
   "FilesUtils.filterNonEmptyFolders" should "return non empty folders" in {
-    val time     = System.currentTimeMillis().toString
+    val time = System.currentTimeMillis().toString
     val srcPath1 = s"/tmp/data-highway/input-$time/dataset1"
     val srcPath2 = s"/tmp/data-highway/input-$time/dataset2"
     val srcPath3 = s"/tmp/data-highway/input-$time/dataset3"
@@ -209,7 +209,7 @@ class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with 
   }
 
   "FilesUtils.filterNonEmptyFolders" should "throw an exception" in {
-    val time     = System.currentTimeMillis().toString
+    val time = System.currentTimeMillis().toString
     val srcPath1 = s"/tmp/data-highway/input-$time/dataset1"
     val srcPath2 = s"/tmp/data-highway/input-$time/dataset2"
     val srcPath3 = s"/tmp/data-highway/input-$time/dataset3"
@@ -219,7 +219,7 @@ class FilesUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with 
   }
 
   "FilesUtils.getFileNameAndParentFolderFromPath" should "get filename and its parent" in {
-    val time    = System.currentTimeMillis().toString
+    val time = System.currentTimeMillis().toString
     val srcPath = s"/tmp/data-highway/input-$time/dataset"
     Files.createDirectories(new File(srcPath).toPath)
     Files.createFile(new File(srcPath + "/file.txt").toPath)

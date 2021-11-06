@@ -145,28 +145,30 @@ object FilesUtils {
     * Cleanups a folder
     *
     * @param in The folder to be cleaned
-    * @return Array of Unit
+    * @return Array of Unit, otherwise a Throwable
     */
-  def cleanup(in: String): Array[Unit] = {
-    // todo check exception
-    if (new File(in).exists())
-      new File(in)
-        .listFiles()
-        .map(FileUtils.forceDelete)
-    else
-      Array()
+  def cleanup(in: String): Either[Throwable, Array[Unit]] = {
+    Either.catchNonFatal {
+      if (new File(in).exists())
+        new File(in)
+          .listFiles()
+          .map(FileUtils.forceDelete)
+      else
+        Array()
+    }
   }
 
   /**
     * Get lines from json file
     *
     * @param jsonPath The json file
-    * @return an Iterator of String
+    * @return an Iterator of String, otherwise a Throwable
     */
-  def getLines(jsonPath: String): Iterator[String] = {
-    // todo exception handling
-    val jsonFile = Source.fromFile(jsonPath)
-    jsonFile.getLines
+  def getLines(jsonPath: String): Either[Throwable, Iterator[String]] = {
+    Either.catchNonFatal {
+      val jsonFile = Source.fromFile(jsonPath)
+      jsonFile.getLines
+    }
   }
 
   /**
