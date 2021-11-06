@@ -267,15 +267,14 @@ object DataFrameUtils extends SparkUtils with PostgresUtils {
     * @param element The element to be converted
     * @return Json String
     */
-  @annotation.nowarn
   private def toJson(element: Any): String =
     element match {
-      case mapElem: Map[String, Any] => s"{${mapElem.map(toJson(_)).mkString(",")}}"
-      case tupleElem: (String, Any)  => s""""${tupleElem._1}":${toJson(tupleElem._2)}"""
-      case seqElem: Seq[Any]         => s"""[${seqElem.map(toJson).mkString(",")}]"""
-      case stringElem: String        => s""""$stringElem""""
-      case null                      => "null"
-      case _                         => element.toString
+      case mapElem: Map[String, Any] @unchecked => s"{${mapElem.map(toJson(_)).mkString(",")}}"
+      case tupleElem: (String, Any) @unchecked  => s""""${tupleElem._1}":${toJson(tupleElem._2)}"""
+      case seqElem: Seq[Any]                    => s"""[${seqElem.map(toJson).mkString(",")}]"""
+      case stringElem: String                   => s""""$stringElem""""
+      case null                                 => "null"
+      case _                                    => element.toString
     }
 
   /**

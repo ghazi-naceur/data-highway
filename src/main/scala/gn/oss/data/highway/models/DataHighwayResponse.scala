@@ -52,7 +52,11 @@ object DataHighwayRuntimeException {
       "This mode is not supported while consuming Kafka topics.",
       s"The supported modes are ${PureKafkaConsumer.getClass}, ${SparkKafkaPluginConsumer.getClass} and ${PureKafkaStreamsConsumer.getClass}."
     )
-
+  val KafkaConsumerMissingModeError: DataHighwayErrorResponse =
+    DataHighwayError(
+      "This mode needs a Kafka consumer mode.",
+      s"The supported modes are ${PureKafkaConsumer.getClass}, ${SparkKafkaPluginConsumer.getClass} and ${PureKafkaStreamsConsumer.getClass}."
+    )
   val RouteError: DataHighwayErrorResponse =
     DataHighwayError(
       "The provided route is not supported yet. ",

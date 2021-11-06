@@ -10,6 +10,7 @@ import cats.implicits._
 import gn.oss.data.highway.configs.HdfsUtils
 import gn.oss.data.highway.engine.sinks.{BasicSink, CassandraSink, ElasticSink, PostgresSink}
 import gn.oss.data.highway.models.DataHighwayRuntimeException.{
+  KafkaConsumerMissingModeError,
   KafkaConsumerSupportModeError,
   MustHaveSaveModeError,
   MustNotHaveSaveModeError
@@ -118,6 +119,7 @@ object KafkaExtractor extends HdfsUtils {
             SharedUtils.constructIOResponse(input, output, result)
           case _ => Left(KafkaConsumerSupportModeError)
         }
+      case None => Left(KafkaConsumerMissingModeError)
     }
   }
 
