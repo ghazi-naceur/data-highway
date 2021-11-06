@@ -43,14 +43,10 @@ object PostgresSink extends HdfsUtils {
     output: Postgres,
     saveMode: SaveMode
   ): Either[Throwable, String] = {
-    val result = for {
+    for {
       dataframe <- DataFrameUtils.loadDataFrame(inputDataType, inputPath)
       _ <- DataFrameUtils.saveDataFrame(dataframe, PostgresDB(output.database, output.table), EMPTY, saveMode)
-    } yield ()
-    result match {
-      case Right(_)  => Right(inputPath)
-      case Left(thr) => Left(thr)
-    }
+    } yield inputPath
   }
 
   /**
@@ -94,7 +90,6 @@ object PostgresSink extends HdfsUtils {
     basePath: String,
     saveMode: SaveMode
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
-    // todo to be reviewed
     val result = insertRows(input, output, basePath, saveMode)
     FilesUtils.cleanup(input.path)
     SharedUtils.constructIOResponse(input, output, result)
@@ -163,18 +158,17 @@ object PostgresSink extends HdfsUtils {
       filtered <- FilesUtils.filterNonEmptyFolders(folders)
       result <- input.dataType match {
         case XLSX =>
-          // todo to be reviewed
-          FilesUtils
-            .listFiles(filtered)
-            .traverse(_.traverse(file => {
+          for {
+            files <- FilesUtils.listFiles(filtered)
+            processedFolders <- files.traverse(file => {
               insert(input.dataType, file.toURI.getPath, output, saveMode)
                 .flatMap(subInputFolder => {
                   val baseFolderName =
                     s"${new File(subInputFolder).getParentFile.toURI.getPath.split("/").takeRight(1).mkString("/")}"
                   FilesUtils.movePathContent(subInputFolder, s"$basePath/processed/$baseFolderName")
                 })
-            }))
-            .flatten
+            })
+          } yield processedFolders
         case _ =>
           filtered
             .traverse(subFolder => {

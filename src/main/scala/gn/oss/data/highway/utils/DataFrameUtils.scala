@@ -162,15 +162,16 @@ object DataFrameUtils extends SparkUtils with PostgresUtils {
   /**
     * Converts a dataframe to a list of json lines
     *
-    * @param df The dataframe to be converted
+    * @param dataframe The dataframe to be converted
     * @return a list of Json lines, otherwise a Throwable
     */
-  def convertDataFrameToJsonLines(df: DataFrame): Either[Throwable, List[String]] = {
+  def convertDataFrameToJsonLines(dataframe: DataFrame): Either[Throwable, List[String]] = {
     Either.catchNonFatal {
       import scala.collection.JavaConverters._
       import DataFrameUtils.sparkSession.implicits._
-      val fieldNames = df.head().schema.fieldNames
-      df.map(row => {
+      val fieldNames = dataframe.head().schema.fieldNames
+      dataframe
+        .map(row => {
           val rowAsMap = row.getValuesMap(fieldNames)
           DataFrameUtils.toJson(rowAsMap)
         })

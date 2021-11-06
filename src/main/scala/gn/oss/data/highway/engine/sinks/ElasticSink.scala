@@ -217,13 +217,10 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
         value match {
           case HDFS =>
             val result = for {
-              list <-
-                HdfsUtils
-                  .listFolders(fs, input.path)
-                  .traverse(_.traverse(folder => sendToElasticsearch(input.dataType, folder, output, basePath, value)))
-                  .flatten
+              folders <- HdfsUtils.listFolders(fs, input.path)
+              _ <- folders.traverse(folder => sendToElasticsearch(input.dataType, folder, output, basePath, value))
               _ = HdfsUtils.cleanup(fs, input.path)
-            } yield list
+            } yield folders
             SharedUtils.constructIOResponse(input, output, result)
           case Local =>
             val result = insertDocuments(input, output, basePath, value)
@@ -251,10 +248,10 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
   ): Either[Throwable, List[Unit]] = {
     for {
       folders <- FilesUtils.listNonEmptyFoldersRecursively(input.path)
-      res <-
+      result <-
         folders
           .filterNot(path => new File(path).listFiles.filter(_.isFile).toList.isEmpty)
           .traverse(folder => sendToElasticsearch(input.dataType, folder, output, basePath, storage))
-    } yield res
+    } yield result
   }
 }

@@ -131,8 +131,8 @@ object HdfsUtils extends HdfsUtils {
         val srcPath = new File(src)
         val subDestFolder = s"$basePath/$zone/${srcPath.getName}"
         HdfsUtils.mkdir(fs, getPathWithoutUriPrefix(subDestFolder))
-        val files = HdfsUtils.listFiles(fs, src)
-        files
+        HdfsUtils
+          .listFiles(fs, src)
           .map(file => {
             val outputDest = s"${getPathWithoutUriPrefix(subDestFolder)}/${file.split("/").last}"
             HdfsUtils.move(fs, getPathWithoutUriPrefix(file), outputDest)

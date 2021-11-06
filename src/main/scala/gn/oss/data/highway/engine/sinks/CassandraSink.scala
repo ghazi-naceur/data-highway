@@ -43,13 +43,10 @@ object CassandraSink extends HdfsUtils {
     output: Cassandra,
     saveMode: SaveMode
   ): Either[Throwable, String] = {
-    DataFrameUtils
-      .loadDataFrame(inputDataType, inputPath)
-      .map(df => {
-        DataFrameUtils
-          .saveDataFrame(df, CassandraDB(output.keyspace, output.table), EMPTY, saveMode)
-        inputPath
-      })
+    for {
+      dataframe <- DataFrameUtils.loadDataFrame(inputDataType, inputPath)
+      _ <- DataFrameUtils.saveDataFrame(dataframe, CassandraDB(output.keyspace, output.table), EMPTY, saveMode)
+    } yield inputPath
   }
 
   /**
@@ -71,10 +68,8 @@ object CassandraSink extends HdfsUtils {
     (storage, consistency) match {
       case (Some(filesystem), Some(consist)) =>
         filesystem match {
-          case Local =>
-            handleLocalFS(input, output, basePath, consist.toSaveMode)
-          case HDFS =>
-            handleHDFS(input, output, basePath, consist.toSaveMode, fs)
+          case Local => handleLocalFS(input, output, basePath, consist.toSaveMode)
+          case HDFS  => handleHDFS(input, output, basePath, consist.toSaveMode, fs)
         }
       case (_, _) => Left(MustHaveFileSystemAndSaveModeError)
     }
@@ -112,11 +107,10 @@ object CassandraSink extends HdfsUtils {
             })
         case _ =>
           filtered
-            .traverse(
-              subfolder =>
-                insert(input.dataType, subfolder, output, saveMode)
-                  .flatMap(_ => HdfsUtils.movePathContent(fs, subfolder, basePath))
-            )
+            .traverse(subfolder => {
+              insert(input.dataType, subfolder, output, saveMode)
+                .flatMap(_ => HdfsUtils.movePathContent(fs, subfolder, basePath))
+            })
       }
       _ = HdfsUtils.cleanup(fs, input.path)
     } yield result
@@ -164,21 +158,17 @@ object CassandraSink extends HdfsUtils {
       filtered <- FilesUtils.filterNonEmptyFolders(folders)
       result <- input.dataType match {
         case XLSX =>
-          // todo to be reviewed
-          FilesUtils
-            .listFiles(filtered)
-            .traverse(files => {
-              files
-                .traverse(file => {
-                  insert(input.dataType, file.toURI.getPath, output, saveMode)
-                    .flatMap(subInputFolder => {
-                      val baseFolderName =
-                        s"${new File(subInputFolder).getParentFile.toURI.getPath.split("/").takeRight(1).mkString("/")}"
-                      FilesUtils.movePathContent(subInputFolder, s"$basePath/processed/$baseFolderName")
-                    })
+          for {
+            files <- FilesUtils.listFiles(filtered)
+            processedFolders <- files.traverse(file => {
+              insert(input.dataType, file.toURI.getPath, output, saveMode)
+                .flatMap(subInputFolder => {
+                  val baseFolderName =
+                    s"${new File(subInputFolder).getParentFile.toURI.getPath.split("/").takeRight(1).mkString("/")}"
+                  FilesUtils.movePathContent(subInputFolder, s"$basePath/processed/$baseFolderName")
                 })
             })
-            .flatten
+          } yield processedFolders
         case _ =>
           filtered
             .traverse(subFolder => {

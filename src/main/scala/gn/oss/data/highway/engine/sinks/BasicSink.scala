@@ -42,12 +42,10 @@ object BasicSink extends HdfsUtils {
     outputPath: String,
     saveMode: SaveMode
   ): Either[Throwable, String] = {
-    DataFrameUtils
-      .loadDataFrame(inputDataType, inputPath)
-      .map(df => {
-        DataFrameUtils.saveDataFrame(df, outputDataType, outputPath, saveMode)
-        inputPath
-      })
+    for {
+      dataframe <- DataFrameUtils.loadDataFrame(inputDataType, inputPath)
+      _ <- DataFrameUtils.saveDataFrame(dataframe, outputDataType, outputPath, saveMode)
+    } yield inputPath
   }
 
   /**
@@ -97,18 +95,17 @@ object BasicSink extends HdfsUtils {
       folders <- HdfsUtils.listFolders(fs, input.path)
       _ = logger.info("Folders to be processed : " + folders)
       filtered <- HdfsUtils.filterNonEmptyFolders(fs, folders)
-      res <- input.dataType match {
+      result <- input.dataType match {
         case XLSX =>
-          filtered
-            .traverse(subFolder => {
-              HdfsUtils
-                .listFiles(fs, subFolder)
-                .traverse(file => {
-                  val fullOutputPath = s"${output.path}/${FilesUtils.getFileNameAndParentFolderFromPath(file)}"
-                  convert(input.dataType, file, output.dataType, fullOutputPath, saveMode)
-                })
-                .flatMap(_ => HdfsUtils.movePathContent(fs, subFolder, basePath))
-            })
+          filtered.traverse(subFolder => {
+            HdfsUtils
+              .listFiles(fs, subFolder)
+              .traverse(file => {
+                val fullOutputPath = s"${output.path}/${FilesUtils.getFileNameAndParentFolderFromPath(file)}"
+                convert(input.dataType, file, output.dataType, fullOutputPath, saveMode)
+              })
+              .flatMap(_ => HdfsUtils.movePathContent(fs, subFolder, basePath))
+          })
         case _ =>
           filtered
             .traverse(subFolder => {
@@ -118,7 +115,7 @@ object BasicSink extends HdfsUtils {
             })
       }
       _ = HdfsUtils.cleanup(fs, input.path)
-    } yield res
+    } yield result
     SharedUtils.constructIOResponse(input, output, result)
   }
 
@@ -143,22 +140,18 @@ object BasicSink extends HdfsUtils {
       filtered <- FilesUtils.filterNonEmptyFolders(folders)
       res <- input.dataType match {
         case XLSX =>
-          FilesUtils
-            .listFiles(filtered)
-            .traverse(files => {
-              files
-                .traverse(file => {
-                  val fullOutputPath =
-                    s"${output.path}/${FilesUtils.getFileNameAndParentFolderFromPath(file.toURI.getPath)}"
-                  convert(input.dataType, file.toURI.getPath, output.dataType, fullOutputPath, saveMode)
-                    .flatMap(subInputFolder => {
-                      val baseFolderName =
-                        s"${new File(subInputFolder).getParentFile.toURI.getPath.split("/").takeRight(1).mkString("/")}"
-                      FilesUtils.movePathContent(subInputFolder, s"$basePath/processed/$baseFolderName")
-                    })
+          for {
+            files <- FilesUtils.listFiles(filtered)
+            processedFolders <- files.traverse(file => {
+              val fullOutputPath = s"${output.path}/${FilesUtils.getFileNameAndParentFolderFromPath(file.toURI.getPath)}"
+              convert(input.dataType, file.toURI.getPath, output.dataType, fullOutputPath, saveMode)
+                .flatMap(subInputFolder => {
+                  val baseFolderName =
+                    s"${new File(subInputFolder).getParentFile.toURI.getPath.split("/").takeRight(1).mkString("/")}"
+                  FilesUtils.movePathContent(subInputFolder, s"$basePath/processed/$baseFolderName")
                 })
             })
-            .flatten
+          } yield processedFolders
         case _ =>
           filtered.traverse(subFolder => {
             val fullOutPutPath = s"${output.path}/${FilesUtils.reversePathSeparator(subFolder).split("/").last}"

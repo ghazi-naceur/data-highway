@@ -64,15 +64,11 @@ object KafkaSink extends HdfsUtils with AppUtils {
         value match {
           case HDFS =>
             val result = for {
-              list <-
-                HdfsUtils
-                  .listFolders(fs, input.path)
-                  .traverse(
-                    _.traverse(folder => publishFilesContentToTopic(input.dataType, folder, output, basePath, storage))
-                  )
-                  .flatten
+              folders <- HdfsUtils.listFolders(fs, input.path)
+              processed <-
+                folders.traverse(folder => publishFilesContentToTopic(input.dataType, folder, output, basePath, storage))
               _ = HdfsUtils.cleanup(fs, input.path)
-            } yield list
+            } yield processed
             SharedUtils.constructIOResponse(input, output, result)
           case Local =>
             val result = for {
@@ -204,27 +200,26 @@ object KafkaSink extends HdfsUtils with AppUtils {
       case _ =>
         storage match {
           case HDFS =>
-            HdfsUtils
-              .listFolders(fs, inputPath)
-              .flatMap(paths => HdfsUtils.filterNonEmptyFolders(fs, paths))
-              .map(_.flatTraverse(path => {
+            for {
+              paths <- HdfsUtils.listFolders(fs, inputPath)
+              filtered <- HdfsUtils.filterNonEmptyFolders(fs, paths)
+              processedFolders <- filtered.flatTraverse(path => {
                 DataFrameUtils
                   .loadDataFrame(inputDataType, path)
                   .map(df => publishToTopicWithConnector(brokers, outputTopic, df))
                 HdfsUtils.movePathContent(fs, path, basePath)
-              }))
-              .flatten
-
+              })
+            } yield processedFolders
           case Local =>
-            FilesUtils
-              .listNonEmptyFoldersRecursively(inputPath)
-              .map(_.flatTraverse(path => {
+            for {
+              folders <- FilesUtils.listNonEmptyFoldersRecursively(inputPath)
+              processedFolders <- folders.flatTraverse(path => {
                 DataFrameUtils
                   .loadDataFrame(inputDataType, path)
                   .map(df => publishToTopicWithConnector(brokers, outputTopic, df))
                 FilesUtils.movePathContent(new File(path).getAbsolutePath, s"$basePath/processed")
-              }))
-              .flatten
+              })
+            } yield processedFolders
         }
     }
   }

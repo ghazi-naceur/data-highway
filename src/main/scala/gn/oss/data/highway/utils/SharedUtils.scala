@@ -1,7 +1,6 @@
 package gn.oss.data.highway.utils
 
 import gn.oss.data.highway.configs.{AppUtils, HdfsUtils}
-import gn.oss.data.highway.models.DataHighwayRuntimeException.MustHaveFileSystemError
 import gn.oss.data.highway.models.{
   DataHighwayError,
   DataHighwayErrorResponse,

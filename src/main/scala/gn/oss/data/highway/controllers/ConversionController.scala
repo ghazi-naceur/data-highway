@@ -6,7 +6,6 @@ import gn.oss.data.highway.configs.ConfigLoader
 import gn.oss.data.highway.engine.Dispatcher
 import gn.oss.data.highway.models
 import gn.oss.data.highway.models.Route
-
 import org.apache.log4j.Logger
 import org.http4s._
 import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
@@ -29,10 +28,17 @@ object ConversionController {
     }
     .orNotFound
 
-  private def handleRestQuery(param: String, req: Request[IO]): IO[Response[IO]] = {
+  /**
+    * Handles the input HTTP query
+    *
+    * @param param The HTTP query body element name
+    * @param request The input HTTP query
+    * @return IO Response
+    */
+  private def handleRestQuery(param: String, request: Request[IO]): IO[Response[IO]] = {
     import pureconfig.generic.auto._
-    logger.info("POST Request received : " + req.toString())
-    val ioResponse = req.asJson.map(request => {
+    logger.info("POST Request received : " + request.toString())
+    val ioResponse = request.asJson.map(request => {
       val parsedRestQuery = param match {
         case "route" => ConfigLoader().loadConfigsFromString[Route](param, request.asJson.toString())
         case "query" => ConfigLoader().loadConfigsFromString[models.Query](param, request.asJson.toString())
