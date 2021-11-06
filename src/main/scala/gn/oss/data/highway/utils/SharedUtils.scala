@@ -1,6 +1,5 @@
 package gn.oss.data.highway.utils
 
-import gn.oss.data.highway.build.info.BuildInfo
 import gn.oss.data.highway.configs.{AppUtils, HdfsUtils}
 import gn.oss.data.highway.models.{
   DataHighwayError,
@@ -18,7 +17,6 @@ import gn.oss.data.highway.models.{
 }
 
 import java.util.UUID
-import scala.io.Source
 
 object SharedUtils extends HdfsUtils with AppUtils {
 
@@ -64,16 +62,5 @@ object SharedUtils extends HdfsUtils with AppUtils {
       case Right(_)  => Right(DataHighwaySuccess(Plug.summary(input), Plug.summary(output)))
       case Left(thr) => Left(DataHighwayError(thr.getMessage, thr.getCause.toString))
     }
-  }
-
-  def getBanner: List[String] = {
-    val lines = Source
-      .fromResource("banner.txt")
-      .getLines()
-      .toList
-    val head = lines.dropRight(1)
-    val lastElement =
-      (lines.diff(head) ::: head.diff(lines)).head + s" version ${BuildInfo.version}"
-    head :+ lastElement
   }
 }

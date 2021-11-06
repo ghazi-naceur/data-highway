@@ -2,6 +2,7 @@ package gn.oss.data.highway.controllers
 
 import cats.data.Kleisli
 import cats.effect._
+import com.typesafe.scalalogging.LazyLogging
 import gn.oss.data.highway.configs.ConfigLoader
 import gn.oss.data.highway.engine.Dispatcher
 import gn.oss.data.highway.models
@@ -15,9 +16,8 @@ import org.http4s.circe._
 import io.circe.generic.auto._
 import io.circe.syntax._
 
-object ConversionController {
+object ConversionController extends LazyLogging {
 
-  val logger: Logger = Logger.getLogger(ConversionController.getClass.getName)
   val httpRequests: Kleisli[IO, Request[IO], Response[IO]] = HttpRoutes
     .of[IO] {
       case req @ GET -> Root / "conversion" =>

@@ -42,9 +42,8 @@ val kafkaVersion = "2.4.0"
 val elastic4sVersion = "7.10.2"
 val postgresVersion = "42.2.24"
 val hadoopVersion = "3.3.0"
-val log4jVersion = "1.7.25"
-val commonsLoggingVersion = "1.2"
-val log4jExtrasVersion = "1.2.17"
+val logbackVersion = "1.2.3"
+val scalaLoggingVersion = "3.9.4"
 
 libraryDependencies ++= Seq(
   "com.github.pureconfig" %% "pureconfig" % pureconfigVersion,
@@ -57,19 +56,18 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-hive" % sparkVersion exclude ("org.slf4j", "slf4j-log4j12"),
   "org.apache.spark" %% "spark-avro" % sparkVersion exclude ("org.slf4j", "slf4j-log4j12"),
   "org.apache.spark" %% "spark-streaming" % sparkVersion exclude ("org.slf4j", "slf4j-log4j12"),
-  "com.crealytics" %% "spark-excel" % sparkExcelVersion,
-  "com.datastax.spark" %% "spark-cassandra-connector" % sparkConnectorVersion,
-  "org.apache.spark" %% "spark-sql-kafka-0-10" % kafkaVersion,
-  "com.github.mrpowers" %% "spark-fast-tests" % sparkFastTestsVersion % Test,
+  "com.crealytics" %% "spark-excel" % sparkExcelVersion exclude ("org.slf4j", "slf4j-log4j12"),
+  "com.datastax.spark" %% "spark-cassandra-connector" % sparkConnectorVersion exclude ("org.slf4j", "slf4j-log4j12"),
+  "org.apache.spark" %% "spark-sql-kafka-0-10" % kafkaVersion exclude ("org.slf4j", "slf4j-log4j12"),
+  "com.github.mrpowers" %% "spark-fast-tests" % sparkFastTestsVersion % Test exclude ("org.slf4j", "slf4j-log4j12"),
   "org.apache.hadoop" % "hadoop-hdfs-client" % hadoopVersion,
   "org.apache.hadoop" % "hadoop-common" % hadoopVersion,
   "org.apache.hadoop" % "hadoop-minicluster" % hadoopVersion % Test,
   "org.apache.kafka" %% "kafka" % kafkaVersion,
   "org.apache.kafka" %% "kafka-streams-scala" % kafkaVersion,
   "io.github.embeddedkafka" %% "embedded-kafka" % kafkaVersion % Test,
-  "org.slf4j" % "slf4j-log4j12" % log4jVersion,
-  "log4j" % "log4j" % log4jExtrasVersion,
-  "commons-logging" % "commons-logging" % commonsLoggingVersion,
+  "ch.qos.logback" % "logback-classic" % logbackVersion,
+  "com.typesafe.scala-logging" %% "scala-logging" % scalaLoggingVersion,
   "org.http4s" %% "http4s-dsl" % http4sVersion,
   "org.http4s" %% "http4s-blaze-server" % http4sVersion,
   "org.http4s" %% "http4s-blaze-client" % http4sVersion,
