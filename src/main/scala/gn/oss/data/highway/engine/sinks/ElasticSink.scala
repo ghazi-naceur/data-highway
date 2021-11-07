@@ -77,8 +77,9 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
             HdfsUtils
               .listFilesRecursively(fs, input)
               .map(file => {
+                val fullFilePath = s"${hadoopConf.host}:${hadoopConf.port}" + file
                 DataFrameUtils
-                  .loadDataFrame(inputDataType, file)
+                  .loadDataFrame(inputDataType, fullFilePath)
                   .map(df => indexDataFrameWithIndexQuery(df, output))
               })
           case Local =>
@@ -136,11 +137,12 @@ object ElasticSink extends ElasticUtils with HdfsUtils {
             HdfsUtils
               .listFilesRecursively(fs, input)
               .map(file => {
+                val fullFilePath = s"${hadoopConf.host}:${hadoopConf.port}" + file
                 DataFrameUtils
-                  .loadDataFrame(inputDataType, file)
+                  .loadDataFrame(inputDataType, fullFilePath)
                   .map(df => {
                     indexDataFrameWithBulk(df, output)
-                    HdfsUtils.movePathContent(fs, file, basePath)
+                    HdfsUtils.movePathContent(fs, fullFilePath, basePath)
                   })
               })
           case Local =>
