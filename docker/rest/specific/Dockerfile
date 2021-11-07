@@ -3,7 +3,7 @@ FROM ubuntu:18.04
 RUN apt-get update && apt-get install --no-install-recommends -y tzdata && \
  apt install --no-install-recommends -y openjdk-8-jdk openjdk-8-jre wget curl
 
-ARG DATA_HIGHWAY_VERSION=0.5-beta
+ARG DATA_HIGHWAY_VERSION=0.5
 RUN mkdir -p /app/config && \
   mkdir -p /app/data/parquet/input && \
   mkdir -p /app/data/parquet/output && \
@@ -31,7 +31,7 @@ RUN mkdir -p /app/config && \
   mkdir -p /app/data/elasticsearch/processed && \
   mkdir /app/jar
 
-COPY data-highway-0.5-beta.jar /app/jar
+COPY data-highway-0.5.jar /app/jar
 WORKDIR /app/jar
 
 # ARG SBT_VERSION=1.4.1
