@@ -179,10 +179,12 @@ object KafkaSink extends HdfsUtils with AppUtils {
             HdfsUtils
               .listFilesRecursively(fs, inputPath)
               .traverse(file => {
+                val fullFilePath = s"${hadoopConf.host}:${hadoopConf.port}" + file
                 DataFrameUtils
-                  .loadDataFrame(inputDataType, file)
+                  .loadDataFrame(inputDataType, fullFilePath)
                   .map(df => publishToTopicWithConnector(brokers, outputTopic, df))
               })
+            HdfsUtils.movePathContent(fs, inputPath, basePath)
           case Local =>
             FilesUtils
               .listFilesRecursively(new File(inputPath), inputDataType.extension)
@@ -192,24 +194,15 @@ object KafkaSink extends HdfsUtils with AppUtils {
                   .loadDataFrame(inputDataType, file.getAbsolutePath)
                   .map(df => publishToTopicWithConnector(brokers, outputTopic, df))
               })
-        }
-        storage match {
-          case HDFS  => HdfsUtils.movePathContent(fs, inputPath, basePath)
-          case Local => FilesUtils.movePathContent(inputPath, s"$basePath/processed")
+            FilesUtils.movePathContent(inputPath, s"$basePath/processed")
         }
       case _ =>
         storage match {
           case HDFS =>
-            for {
-              paths <- HdfsUtils.listFolders(fs, inputPath)
-              filtered <- HdfsUtils.filterNonEmptyFolders(fs, paths)
-              processedFolders <- filtered.flatTraverse(path => {
-                DataFrameUtils
-                  .loadDataFrame(inputDataType, path)
-                  .map(df => publishToTopicWithConnector(brokers, outputTopic, df))
-                HdfsUtils.movePathContent(fs, path, basePath)
-              })
-            } yield processedFolders
+            DataFrameUtils
+              .loadDataFrame(inputDataType, inputPath)
+              .map(df => publishToTopicWithConnector(brokers, outputTopic, df))
+            HdfsUtils.movePathContent(fs, inputPath, basePath)
           case Local =>
             for {
               folders <- FilesUtils.listNonEmptyFoldersRecursively(inputPath)
@@ -358,8 +351,9 @@ object KafkaSink extends HdfsUtils with AppUtils {
               HdfsUtils
                 .listFilesRecursively(fs, inputPath)
                 .flatTraverse(file => {
+                  val fullFilePath = s"${hadoopConf.host}:${hadoopConf.port}" + file
                   DataFrameUtils
-                    .loadDataFrame(inputDataType, file)
+                    .loadDataFrame(inputDataType, fullFilePath)
                     .flatMap(df => DataFrameUtils.convertDataFrameToJsonLines(df))
                 })
             case Local =>
