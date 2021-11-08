@@ -34,7 +34,7 @@ services:
       - /home/ghazi/workspace/data-highway/src/test/resources/data/kafka/input:/app/data/kafka/input
       - /home/ghazi/workspace/data-highway/src/test/resources/data/kafka/output:/app/data/kafka/output
       - /home/ghazi/workspace/data-highway/src/test/resources/data/kafka/processed:/app/data/kafka/processed
-      - /home/ghazi/workspace/data-highway/src/main/resources/log4j.properties:/app/config/log4j.properties
+      - /home/ghazi/workspace/data-highway/src/main/resources/logback.xml:/app/config/logback.xml
       - /home/ghazi/workspace/data-highway/src/main/resources/application.conf:/app/config/application.conf
     network_mode: "host"
-    entrypoint: ["java", "-cp", "/app/jar/data-highway-0.5.jar", "gn.oss.data.highway.IOMain", "-Dlog4j.configuration=/app/config/log4j.properties", "-Dconfig.file=/app/config/application.conf"]
+    entrypoint: ["java", "-cp", "/app/jar/data-highway-0.5.jar", "gn.oss.data.highway.IOMain", "-Dlog4j.configuration=/app/config/logback.xml", "-Dconfig.file=/app/config/application.conf"]
