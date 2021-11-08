@@ -4,9 +4,9 @@ import gn.oss.data.highway.models
 import gn.oss.data.highway.configs.HdfsUtils
 import gn.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils, SharedUtils}
 import org.apache.hadoop.fs.FileSystem
-import org.apache.log4j.Logger
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
+import com.typesafe.scalalogging.LazyLogging
 import gn.oss.data.highway.models.DataHighwayRuntimeException.MustHaveFileSystemAndSaveModeError
 import gn.oss.data.highway.models.{
   Consistency,
@@ -21,9 +21,7 @@ import gn.oss.data.highway.models.{
 
 import java.io.File
 
-object BasicSink extends HdfsUtils {
-
-  val logger: Logger = Logger.getLogger(BasicSink.getClass.getName)
+object BasicSink extends HdfsUtils with LazyLogging {
 
   /**
     * Converts file

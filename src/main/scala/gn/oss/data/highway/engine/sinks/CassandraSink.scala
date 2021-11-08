@@ -5,9 +5,9 @@ import gn.oss.data.highway.models
 import gn.oss.data.highway.utils.Constants.EMPTY
 import gn.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils, SharedUtils}
 import org.apache.hadoop.fs.FileSystem
-import org.apache.log4j.Logger
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
+import com.typesafe.scalalogging.LazyLogging
 import gn.oss.data.highway.models.DataHighwayRuntimeException.MustHaveFileSystemAndSaveModeError
 import gn.oss.data.highway.models.{
   Cassandra,
@@ -24,9 +24,7 @@ import gn.oss.data.highway.models.{
 
 import java.io.File
 
-object CassandraSink extends HdfsUtils {
-
-  val logger: Logger = Logger.getLogger(CassandraSink.getClass.getName)
+object CassandraSink extends HdfsUtils with LazyLogging {
 
   /**
     * Inserts file content into Cassandra

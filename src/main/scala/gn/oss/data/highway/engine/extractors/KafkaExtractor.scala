@@ -3,10 +3,10 @@ package gn.oss.data.highway.engine.extractors
 import java.time.Duration
 import java.util.UUID
 import org.apache.kafka.streams.KafkaStreams
-import org.apache.log4j.Logger
 import org.apache.spark.sql.{SaveMode, SparkSession}
 import monix.execution.Scheduler.{global => scheduler}
 import cats.implicits._
+import com.typesafe.scalalogging.LazyLogging
 import gn.oss.data.highway.configs.HdfsUtils
 import gn.oss.data.highway.engine.sinks.{BasicSink, CassandraSink, ElasticSink, PostgresSink}
 import gn.oss.data.highway.models.DataHighwayRuntimeException.{
@@ -46,9 +46,7 @@ import org.apache.spark.sql.functions.{struct, to_json}
 import scala.concurrent.duration.DurationInt
 import scala.jdk.CollectionConverters._
 
-object KafkaExtractor extends HdfsUtils {
-
-  val logger: Logger = Logger.getLogger(KafkaExtractor.getClass.getName)
+object KafkaExtractor extends HdfsUtils with LazyLogging {
 
   /**
     * Consumes data from a topic

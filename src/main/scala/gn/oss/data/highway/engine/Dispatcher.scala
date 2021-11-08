@@ -1,5 +1,6 @@
 package gn.oss.data.highway.engine
 
+import com.typesafe.scalalogging.LazyLogging
 import gn.oss.data.highway.configs.ConfigLoader
 import gn.oss.data.highway.engine.extractors.{CassandraExtractor, ElasticExtractor, KafkaExtractor, PostgresExtractor}
 import gn.oss.data.highway.engine.ops.ElasticAdminOps
@@ -20,12 +21,10 @@ import gn.oss.data.highway.models.{
   Route,
   Storage
 }
-import org.apache.log4j.{BasicConfigurator, Logger}
+import org.apache.log4j.BasicConfigurator
 import pureconfig.generic.auto._
 
-object Dispatcher {
-
-  val logger: Logger = Logger.getLogger(Dispatcher.getClass.getName)
+object Dispatcher extends LazyLogging {
 
   def main(args: Array[String]): Unit = {
     BasicConfigurator.configure()

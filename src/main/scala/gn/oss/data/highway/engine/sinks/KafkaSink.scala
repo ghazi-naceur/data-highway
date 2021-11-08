@@ -9,7 +9,6 @@ import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 import org.apache.kafka.common.serialization.{Serdes, StringSerializer}
 import org.apache.kafka.streams.scala.StreamsBuilder
 import org.apache.kafka.streams.{KafkaStreams, StreamsConfig}
-import org.apache.log4j.Logger
 import org.apache.spark.sql.DataFrame
 
 import java.io.File
@@ -17,6 +16,7 @@ import java.time.Duration
 import java.util.{Properties, UUID}
 import scala.sys.ShutdownHookThread
 import cats.implicits._
+import com.typesafe.scalalogging.LazyLogging
 import gn.oss.data.highway.models.DataHighwayRuntimeException.{
   KafkaMirrorSupportModeError,
   KafkaProducerSupportModeError,
@@ -40,9 +40,8 @@ import gn.oss.data.highway.models.{
   XLSX
 }
 
-object KafkaSink extends HdfsUtils with AppUtils {
+object KafkaSink extends HdfsUtils with AppUtils with LazyLogging {
 
-  val logger: Logger = Logger.getLogger(KafkaSink.getClass.getName)
   val checkpointFolder: String = SharedUtils.setTempoFilePath("checkpoint", None).path
 
   /**

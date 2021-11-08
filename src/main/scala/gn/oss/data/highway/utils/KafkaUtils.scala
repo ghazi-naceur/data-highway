@@ -7,14 +7,13 @@ import org.apache.kafka.clients.consumer.{ConsumerConfig, KafkaConsumer}
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.PartitionInfo
 import org.apache.kafka.common.serialization.StringDeserializer
-import org.apache.log4j.Logger
 import cats.implicits._
+import com.typesafe.scalalogging.LazyLogging
+
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
-object KafkaUtils {
-
-  val logger: Logger = Logger.getLogger(KafkaUtils.getClass.getName)
+object KafkaUtils extends LazyLogging {
 
   /**
     * Lists the available kafka topics

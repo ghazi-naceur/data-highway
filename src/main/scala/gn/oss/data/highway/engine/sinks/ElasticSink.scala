@@ -6,9 +6,9 @@ import com.sksamuel.elastic4s.requests.common.RefreshPolicy
 import gn.oss.data.highway.configs.{ElasticUtils, HdfsUtils}
 import gn.oss.data.highway.models
 import gn.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils, SharedUtils}
-import org.apache.log4j.Logger
 import org.apache.spark.sql.DataFrame
 import cats.implicits._
+import com.typesafe.scalalogging.LazyLogging
 import gn.oss.data.highway.models.DataHighwayRuntimeException.MustHaveFileSystemError
 import gn.oss.data.highway.models.{
   DataHighwayErrorResponse,
@@ -23,9 +23,7 @@ import gn.oss.data.highway.models.{
 
 import java.io.File
 
-object ElasticSink extends ElasticUtils with HdfsUtils {
-
-  val logger: Logger = Logger.getLogger(ElasticSink.getClass.getName)
+object ElasticSink extends ElasticUtils with HdfsUtils with LazyLogging {
 
   /**
     * Indexes file's content into Elasticsearch

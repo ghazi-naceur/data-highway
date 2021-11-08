@@ -2,18 +2,16 @@ package gn.oss.data.highway.utils
 
 import java.io.{File, FileWriter}
 import cats.syntax.either._
+import com.typesafe.scalalogging.LazyLogging
 import gn.oss.data.highway.models.XLSX
 import org.apache.commons.io.FileUtils
-import org.apache.log4j.Logger
 
 import java.nio.file.Files
 import scala.annotation.tailrec
 import scala.io.Source
 import scala.util.Try
 
-object FilesUtils {
-
-  val logger: Logger = Logger.getLogger(FilesUtils.getClass)
+object FilesUtils extends LazyLogging {
 
   /**
     * Lists files recursively from a path

@@ -7,14 +7,14 @@ import gn.oss.data.highway.engine.sinks._
 import gn.oss.data.highway.utils.{FilesUtils, HdfsUtils, SharedUtils}
 import io.circe.Json
 import io.circe.syntax.EncoderOps
-import org.apache.log4j.Logger
 
 import java.util.UUID
 import scala.annotation.tailrec
 import cats.implicits._
+import com.typesafe.scalalogging.LazyLogging
 import gn.oss.data.highway.models.DataHighwayRuntimeException.{
-  MustHaveSaveModeError,
   MustHaveFileSystemError,
+  MustHaveSaveModeError,
   MustHaveSearchQueryError,
   MustNotHaveSaveModeError
 }
@@ -61,9 +61,7 @@ import gn.oss.data.highway.models.{
   WildcardQuery
 }
 
-object ElasticExtractor extends ElasticUtils with HdfsUtils {
-
-  val logger: Logger = Logger.getLogger(ElasticExtractor.getClass.getName)
+object ElasticExtractor extends ElasticUtils with HdfsUtils with LazyLogging {
 
   /**
     * Gets the first 10 documents from an Index

@@ -5,14 +5,12 @@ import java.util.Properties
 import org.apache.kafka.clients.consumer.{ConsumerConfig, KafkaConsumer}
 import org.apache.kafka.common.serialization.{Serdes, StringDeserializer}
 import cats.syntax.either._
+import com.typesafe.scalalogging.LazyLogging
 import gn.oss.data.highway.models.{KafkaStreamEntity, Offset}
 import org.apache.kafka.streams.StreamsConfig
 import org.apache.kafka.streams.scala.StreamsBuilder
-import org.apache.log4j.Logger
 
-object KafkaTopicConsumer {
-
-  val logger: Logger = Logger.getLogger(KafkaTopicConsumer.getClass.getName)
+object KafkaTopicConsumer extends LazyLogging {
 
   /**
     * Consumes from a kafka topic using a simple kafka consumer
