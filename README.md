@@ -144,10 +144,16 @@ app {
 }
 ```
 - **log4j.properties**:
-```properties
-log4j.rootLogger=INFO, stdout, FILE # Can be INFO, DEBUG, ERROR, ...etc
-.....
-log4j.appender.FILE.File=/path/to/generated/log/output/file.out
+```xml
+ <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+    <file>logs/data-highway.log</file> // Here you can specify the path of the generated log file
+    .......
+</appender>
+
+<root level="info"> // Here you can specify the log level 
+    <appender-ref ref="STDOUT" />
+    <appender-ref ref="FILE" />
+</root>
 ```
 
 5- Run your **data-highway** instance by executing the **start.sh** script :

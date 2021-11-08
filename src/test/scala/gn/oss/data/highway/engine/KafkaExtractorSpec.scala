@@ -1,15 +1,10 @@
 package gn.oss.data.highway.engine
 
-import gn.oss.data.highway.utils.TestHelper
-import gn.oss.data.highway.models.DataHighwayError.KafkaError
+import gn.oss.data.highway.helper.TestHelper
 import net.manub.embeddedkafka.{EmbeddedKafka, EmbeddedKafkaConfig}
-import org.apache.spark.sql.SaveMode
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
-
-import java.io.File
-import java.nio.file.Files
 
 class KafkaExtractorSpec
     extends AnyWordSpecLike

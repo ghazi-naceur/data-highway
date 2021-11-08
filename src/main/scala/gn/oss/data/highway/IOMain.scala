@@ -2,22 +2,22 @@ package gn.oss.data.highway
 
 import cats.effect._
 import gn.oss.data.highway.controllers.ConversionController
-import gn.oss.data.highway.build.info.BuildInfo
+import gn.oss.data.highway.utils.Constants.banner
+import org.apache.log4j.BasicConfigurator
 import org.http4s.server.blaze._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
-import scala.io.Source
 
 object IOMain extends IOApp {
 
-  implicit val cs: ContextShift[IO]      = IO.contextShift(global)
+  implicit val cs: ContextShift[IO] = IO.contextShift(global)
   override implicit val timer: Timer[IO] = IO.timer(global)
 
   override def run(args: List[String]): IO[ExitCode] = {
-
+    BasicConfigurator.configure()
     BlazeServerBuilder[IO](global)
-      .withBanner(getBanner)
+      .withBanner(banner)
       .bindHttp(5555, "localhost")
       .withHttpApp(ConversionController.httpRequests)
       .withIdleTimeout(Duration.Inf)
@@ -25,16 +25,5 @@ object IOMain extends IOApp {
       .resource
       .use(_ => IO.never)
       .as(ExitCode.Success)
-  }
-
-  def getBanner: List[String] = {
-    val lines = Source
-      .fromResource("banner.txt")
-      .getLines()
-      .toList
-    val head = lines.dropRight(1)
-    val lastElement =
-      (lines.diff(head) ::: head.diff(lines)).head + s" version ${BuildInfo.version}"
-    head :+ lastElement
   }
 }

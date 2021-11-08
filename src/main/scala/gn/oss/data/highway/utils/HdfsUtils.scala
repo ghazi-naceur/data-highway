@@ -6,7 +6,6 @@ import java.io.{BufferedWriter, File, OutputStreamWriter}
 import scala.annotation.tailrec
 import cats.implicits._
 import gn.oss.data.highway.configs.HdfsUtils
-import gn.oss.data.highway.models.DataHighwayError.HdfsError
 
 import java.nio.charset.StandardCharsets
 
@@ -22,13 +21,12 @@ object HdfsUtils extends HdfsUtils {
     */
   def save(fs: FileSystem, file: String, content: String): Either[Throwable, Unit] = {
     Either.catchNonFatal {
-      val hdfsWritePath      = new Path(file)
+      val hdfsWritePath = new Path(file)
       val fsDataOutputStream = fs.create(hdfsWritePath, true)
-      val bufferedWriter =
-        new BufferedWriter(new OutputStreamWriter(fsDataOutputStream, StandardCharsets.UTF_8))
+      val bufferedWriter = new BufferedWriter(new OutputStreamWriter(fsDataOutputStream, StandardCharsets.UTF_8))
       bufferedWriter.write(content)
       bufferedWriter.close()
-    }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }
   }
 
   /**
@@ -41,7 +39,7 @@ object HdfsUtils extends HdfsUtils {
   def mkdir(fs: FileSystem, folder: String): Either[Throwable, Boolean] = {
     Either.catchNonFatal {
       fs.mkdirs(new Path(folder))
-    }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }
   }
 
   /**
@@ -55,7 +53,7 @@ object HdfsUtils extends HdfsUtils {
   def move(fs: FileSystem, src: String, dest: String): Either[Throwable, Boolean] = {
     Either.catchNonFatal {
       fs.rename(new Path(src), new Path(dest))
-    }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }
   }
 
   /**
@@ -69,7 +67,7 @@ object HdfsUtils extends HdfsUtils {
     Either.catchNonFatal {
       fs.delete(new Path(folder), true)
       fs.mkdirs(new Path(folder))
-    }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }
   }
 
   /**
@@ -85,7 +83,7 @@ object HdfsUtils extends HdfsUtils {
         .filter(_.isDirectory)
         .map(_.getPath.toUri.toString)
         .toList
-    }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }
   }
 
   /**
@@ -103,9 +101,7 @@ object HdfsUtils extends HdfsUtils {
       if (iterator.hasNext) {
         val uri = iterator.next.getPath.toUri.toString
         iterate(iterator, uri :: acc)
-      } else {
-        acc
-      }
+      } else acc
     }
     iterate(iterator, List.empty[String])
   }
@@ -120,36 +116,30 @@ object HdfsUtils extends HdfsUtils {
     * @return List of Path, otherwise an Error
     */
   def movePathContent(
-      fs: FileSystem,
-      src: String,
-      basePath: String,
-      zone: String = "processed"
+    fs: FileSystem,
+    src: String,
+    basePath: String,
+    zone: String = "processed"
   ): Either[Throwable, List[String]] = {
     Either.catchNonFatal {
       if (fs.getFileStatus(new Path(src)).isFile) {
         val subDestFolder = s"$basePath/$zone/${src.split("/").takeRight(2).mkString("/")}"
-        HdfsUtils.mkdir(
-          fs,
-          getPathWithoutUriPrefix(subDestFolder.split("/").dropRight(1).mkString("/"))
-        )
+        HdfsUtils.mkdir(fs, getPathWithoutUriPrefix(subDestFolder.split("/").dropRight(1).mkString("/")))
         HdfsUtils.move(fs, src, getPathWithoutUriPrefix(subDestFolder))
         List(subDestFolder)
       } else {
-        val srcPath       = new File(src)
+        val srcPath = new File(src)
         val subDestFolder = s"$basePath/$zone/${srcPath.getName}"
         HdfsUtils.mkdir(fs, getPathWithoutUriPrefix(subDestFolder))
-        val files = HdfsUtils.listFiles(fs, src)
-        files
+        HdfsUtils
+          .listFiles(fs, src)
           .map(file => {
-            HdfsUtils.move(
-              fs,
-              getPathWithoutUriPrefix(file),
-              s"${getPathWithoutUriPrefix(subDestFolder)}/${file.split("/").last}"
-            )
+            val outputDest = s"${getPathWithoutUriPrefix(subDestFolder)}/${file.split("/").last}"
+            HdfsUtils.move(fs, getPathWithoutUriPrefix(file), outputDest)
             s"$subDestFolder/${file.split("/").last}"
           })
       }
-    }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }
   }
 
   /**
@@ -158,9 +148,8 @@ object HdfsUtils extends HdfsUtils {
     * @param path The provided path
     * @return String
     */
-  def getPathWithoutUriPrefix(path: String): String = {
+  def getPathWithoutUriPrefix(path: String): String =
     "/" + path.replace("//", "/").split("/").drop(2).mkString("/")
-  }
 
   /**
     * Filters non-empty folders
@@ -169,13 +158,10 @@ object HdfsUtils extends HdfsUtils {
     * @param folders The provided folders
     * @return List of String, otherwise a Throwable
     */
-  def filterNonEmptyFolders(
-      fs: FileSystem,
-      folders: List[String]
-  ): Either[Throwable, List[String]] = {
+  def filterNonEmptyFolders(fs: FileSystem, folders: List[String]): Either[Throwable, List[String]] = {
     Either.catchNonFatal {
       folders.filter(folder => fs.listFiles(new Path(folder), false).hasNext)
-    }.leftMap(thr => HdfsError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }
   }
 
   /**

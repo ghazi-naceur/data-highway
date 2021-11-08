@@ -4,8 +4,6 @@ import com.sksamuel.elastic4s.requests.searches.{SearchHit, SearchResponse}
 import com.sksamuel.elastic4s.{RequestFailure, RequestSuccess}
 import gn.oss.data.highway.configs.{ElasticUtils, HdfsUtils}
 import gn.oss.data.highway.engine.sinks._
-import gn.oss.data.highway.models.DataHighwayError.DataHighwayFileError
-import gn.oss.data.highway.utils.Constants.SUCCESS
 import gn.oss.data.highway.utils.{FilesUtils, HdfsUtils, SharedUtils}
 import io.circe.Json
 import io.circe.syntax.EncoderOps
@@ -14,6 +12,12 @@ import org.apache.log4j.Logger
 import java.util.UUID
 import scala.annotation.tailrec
 import cats.implicits._
+import gn.oss.data.highway.models.DataHighwayRuntimeException.{
+  MustHaveSaveModeError,
+  MustHaveFileSystemError,
+  MustHaveSearchQueryError,
+  MustNotHaveSaveModeError
+}
 import gn.oss.data.highway.models.{
   BoolFilter,
   BoolMatchPhraseQuery,
@@ -21,7 +25,7 @@ import gn.oss.data.highway.models.{
   CommonTermsQuery,
   Consistency,
   DataHighwayErrorResponse,
-  DataHighwayResponse,
+  DataHighwaySuccessResponse,
   Elasticsearch,
   ExistsQuery,
   Field,
@@ -64,15 +68,12 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
   /**
     * Gets the first 10 documents from an Index
     *
-    * @param in The Elasticsearch index
+    * @param esIndex The Elasticsearch index
     * @return Json, otherwise an Error
     */
-  def getTenRandomDocsFrom(in: String): Either[Exception, Json] = {
+  def getTenRandomDocsFrom(esIndex: String): Either[Exception, Json] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    esClient.execute {
-      search(in).matchAllQuery()
-    }.await match {
+    esClient.execute { search(esIndex).matchAllQuery() }.await match {
       case RequestSuccess(status, body, headers, result) =>
         logger.info(s"status: '$status', body: '$body', headers: '$headers', result: '$result'")
         Right(
@@ -89,184 +90,155 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
   /**
     * Searches for documents using Elasticsearch MatchAllQuery
     *
-    * @param in The Elasticsearch index
+    * @param esIndex The Elasticsearch index
     * @return List of SearchHit
     */
-  private def searchWithMatchAllQuery(in: String): List[SearchHit] = {
+  private def searchWithMatchAllQuery(esIndex: String): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
     val result = esClient.execute {
-      search(in).matchAllQuery() scroll "1m"
+      search(esIndex).matchAllQuery() scroll "1m"
     }.await.result
-
     collectSearchHits(result)
   }
 
   /**
     * Searches for documents using Elasticsearch MatchQuery
     *
-    * @param in The Elasticsearch index
+    * @param esIndex The Elasticsearch index
     * @param field The filter field
     * @return List of SearchHit
     */
-  private def searchWithMatchQuery(in: String, field: Field): List[SearchHit] = {
+  private def searchWithMatchQuery(esIndex: String, field: Field): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
     val result = esClient.execute {
-      search(in).matchQuery(field.name, field.value) scroll "1m"
+      search(esIndex).matchQuery(field.name, field.value) scroll "1m"
     }.await.result
-
     collectSearchHits(result)
   }
 
   /**
     * Searches for documents using Elasticsearch MultiMatchQuery
     *
-    * @param in The Elasticsearch index
+    * @param esIndex The Elasticsearch index
     * @param values The list of values to search for
     * @return List of SearchHit
     */
-  private def searchWithMultiMatchQuery(
-      in: String,
-      values: List[String]
-  ): Either[Throwable, List[SearchHit]] = {
+  private def searchWithMultiMatchQuery(esIndex: String, values: List[String]): Either[Throwable, List[SearchHit]] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    val request = values.map(value => search(in).query(value).size(10000))
-
     Either.catchNonFatal {
-      esClient.execute {
-        multi(
-          request
-        )
-      }.await.result.successes.toList
-        .flatMap(searchResponse => {
-          searchResponse.hits.hits
-        })
+      val request = values.map(value => search(esIndex).query(value).size(10000))
+      esClient.execute { multi(request) }.await.result.successes.toList
+        .flatMap(searchResponse => searchResponse.hits.hits)
     }
   }
 
   /**
     * Searches for documents using Elasticsearch TermQuery
     *
-    * @param in The Elasticsearch index
+    * @param esIndex The Elasticsearch index
     * @param field The filter field
     * @return List of SearchHit
     */
-  private def searchWithTermQuery(in: String, field: Field): List[SearchHit] = {
+  private def searchWithTermQuery(esIndex: String, field: Field): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    val result =
-      esClient.execute {
-        search(in).query(termQuery(field.name, field.value)) scroll "1m"
-      }.await.result
+    val result = esClient.execute {
+      search(esIndex).query(termQuery(field.name, field.value)) scroll "1m"
+    }.await.result
     collectSearchHits(result)
   }
 
   /**
     * Searches for documents using Elasticsearch TermsQuery
     *
-    * @param in The Elasticsearch index
+    * @param esIndex The Elasticsearch index
     * @param fieldValues The filter field name with multiple values
     * @return List of SearchHit
     */
-  private def searchWithTermsQuery(in: String, fieldValues: FieldValues): List[SearchHit] = {
+  private def searchWithTermsQuery(esIndex: String, fieldValues: FieldValues): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    val result =
-      esClient.execute {
-        search(in).query(termsQuery(fieldValues.name, fieldValues.values)) scroll "1m"
-      }.await.result
+    val result = esClient.execute {
+      search(esIndex).query(termsQuery(fieldValues.name, fieldValues.values)) scroll "1m"
+    }.await.result
     collectSearchHits(result)
   }
 
   /**
     * Searches for documents using Elasticsearch CommonTermsQuery
     *
-    * @param in The Elasticsearch index
+    * @param esIndex The Elasticsearch index
     * @param field The filter field
     * @return List of SearchHit
     */
-  private def searchWithCommonTermsQuery(in: String, field: Field): List[SearchHit] = {
+  private def searchWithCommonTermsQuery(esIndex: String, field: Field): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    val result =
-      esClient.execute {
-        search(in).query(commonTermsQuery(field.name, field.value)) scroll "1m"
-      }.await.result
+    val result = esClient.execute {
+      search(esIndex).query(commonTermsQuery(field.name, field.value)) scroll "1m"
+    }.await.result
     collectSearchHits(result)
   }
 
   /**
     * Searches for documents using Elasticsearch QueryStringQuery
     *
-    * @param in The Elasticsearch index
+    * @param esIndex The Elasticsearch index
     * @param strQuery The elasticsearch string query
     * @return List of SearchHit
     */
-  private def searchWithQueryStringQuery(in: String, strQuery: String): List[SearchHit] = {
+  private def searchWithQueryStringQuery(esIndex: String, strQuery: String): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    val result =
-      esClient.execute {
-        search(in).query(queryStringQuery(strQuery)) scroll "1m"
-      }.await.result
+    val result = esClient.execute {
+      search(esIndex).query(queryStringQuery(strQuery)) scroll "1m"
+    }.await.result
     collectSearchHits(result)
   }
 
   /**
     * Searches for documents using Elasticsearch SimpleStringQuery
     *
-    * @param in The Elasticsearch index
+    * @param esIndex The Elasticsearch index
     * @param strQuery The elasticsearch string query
     * @return List of SearchHit
     */
-  private def searchWithSimpleStringQuery(in: String, strQuery: String): List[SearchHit] = {
+  private def searchWithSimpleStringQuery(esIndex: String, strQuery: String): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    val result =
-      esClient.execute {
-        search(in).query(simpleStringQuery(strQuery)) scroll "1m"
-      }.await.result
+    val result = esClient.execute {
+      search(esIndex).query(simpleStringQuery(strQuery)) scroll "1m"
+    }.await.result
     collectSearchHits(result)
   }
 
   /**
     * Searches for documents using Elasticsearch PrefixQuery
     *
-    * @param in The Elasticsearch index
+    * @param esIndex The Elasticsearch index
     * @param prefix The filter prefix
     * @return List of SearchHit
     */
-  private def searchWithPrefixQuery(in: String, prefix: Prefix): List[SearchHit] = {
+  private def searchWithPrefixQuery(esIndex: String, prefix: Prefix): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    val result =
-      esClient.execute {
-        search(in).query(prefixQuery(prefix.fieldName, prefix.value)) scroll "1m"
-      }.await.result
+    val result = esClient.execute {
+      search(esIndex).query(prefixQuery(prefix.fieldName, prefix.value)) scroll "1m"
+    }.await.result
     collectSearchHits(result)
   }
 
   /**
     * Searches for documents using Elasticsearch MoreLikeThisQuery
     *
-    * @param in The Elasticsearch index
+    * @param esIndex The Elasticsearch index
     * @param likeFields The filter fields
     * @return List of SearchHit
     */
-  private def searchWithMoreLikeThisQuery(in: String, likeFields: LikeFields): List[SearchHit] = {
+  private def searchWithMoreLikeThisQuery(esIndex: String, likeFields: LikeFields): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
     import com.sksamuel.elastic4s.requests.searches.queries.MoreLikeThisQuery
-
-    val result =
-      esClient.execute {
-        search(in).query(
-          MoreLikeThisQuery(likeFields.fields, likeFields.likeTexts)
-            .minTermFreq(1)
-            .maxQueryTerms(12)
-        ) scroll "1m"
-      }.await.result
+    val result = esClient.execute {
+      search(esIndex).query(
+        MoreLikeThisQuery(likeFields.fields, likeFields.likeTexts)
+          .minTermFreq(1)
+          .maxQueryTerms(12)
+      ) scroll "1m"
+    }.await.result
     collectSearchHits(result)
   }
 
@@ -281,133 +253,109 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
     import com.sksamuel.elastic4s.ElasticDsl._
     import com.sksamuel.elastic4s.requests.searches.queries.RangeQuery
     val rangeField = GenericRangeField.computeTypedRangeField(range)
-    val result =
-      esClient.execute {
-        search(in).query(
-          RangeQuery(rangeField.name, lte = rangeField.lte, gte = rangeField.gte)
-        ) scroll "1m"
-      }.await.result
+    val result = esClient.execute {
+      search(in).query(RangeQuery(rangeField.name, lte = rangeField.lte, gte = rangeField.gte)) scroll "1m"
+    }.await.result
     collectSearchHits(result)
   }
 
   /**
     * Searches for documents using Elasticsearch ExistsQuery
     *
-    * @param in The Elasticsearch index
+    * @param esIndex The Elasticsearch index
     * @param fieldName The filter field name
     * @return List of SearchHit
     */
-  private def searchWithExistsQuery(in: String, fieldName: String): List[SearchHit] = {
+  private def searchWithExistsQuery(esIndex: String, fieldName: String): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    val result =
-      esClient.execute {
-        search(in).query(existsQuery(fieldName)) scroll "1m"
-      }.await.result
+    val result = esClient.execute {
+      search(esIndex).query(existsQuery(fieldName)) scroll "1m"
+    }.await.result
     collectSearchHits(result)
   }
 
   /**
     * Searches for documents using Elasticsearch ExistsQuery
     *
-    * @param in The Elasticsearch index
+    * @param esIndex The Elasticsearch index
     * @param field The filter field name
     * @return List of SearchHit
     */
-  private def searchWithWildcardQuery(in: String, field: Field): List[SearchHit] = {
+  private def searchWithWildcardQuery(esIndex: String, field: Field): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    val result =
-      esClient.execute {
-        search(in).query(wildcardQuery(field.name, field.value)) scroll "1m"
-      }.await.result
+    val result = esClient.execute {
+      search(esIndex).query(wildcardQuery(field.name, field.value)) scroll "1m"
+    }.await.result
     collectSearchHits(result)
   }
 
   /**
     * Searches for documents using Elasticsearch RegexQuery
     *
-    * @param in The Elasticsearch index
+    * @param esIndex The Elasticsearch index
     * @param field The filter field name
     * @return List of SearchHit
     */
-  private def searchWithRegexQuery(in: String, field: Field): List[SearchHit] = {
+  private def searchWithRegexQuery(esIndex: String, field: Field): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    val result =
-      esClient.execute {
-        search(in).query(regexQuery(field.name, field.value)) scroll "1m"
-      }.await.result
+    val result = esClient.execute {
+      search(esIndex).query(regexQuery(field.name, field.value)) scroll "1m"
+    }.await.result
     collectSearchHits(result)
   }
 
   /**
     * Searches for documents using Elasticsearch FuzzyQuery
     *
-    * @param in The Elasticsearch index
+    * @param esIndex The Elasticsearch index
     * @param field The filter field name
     * @return List of SearchHit
     */
-  private def searchWithFuzzyQuery(in: String, field: Field): List[SearchHit] = {
+  private def searchWithFuzzyQuery(esIndex: String, field: Field): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    val result =
-      esClient.execute {
-        search(in).query(fuzzyQuery(field.name, field.value)) scroll "1m"
-      }.await.result
+    val result = esClient.execute {
+      search(esIndex).query(fuzzyQuery(field.name, field.value)) scroll "1m"
+    }.await.result
     collectSearchHits(result)
   }
 
   /**
     * Searches for documents using Elasticsearch IdsQuery
     *
-    * @param in The Elasticsearch index
+    * @param esIndex The Elasticsearch index
     * @param ids The filter Elasticsearch ids
     * @return List of SearchHit
     */
-  private def searchWithIdsQuery(in: String, ids: List[String]): List[SearchHit] = {
+  private def searchWithIdsQuery(esIndex: String, ids: List[String]): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
-    val result =
-      esClient.execute {
-        search(in).query(idsQuery(ids)) scroll "1m"
-      }.await.result
+    val result = esClient.execute {
+      search(esIndex).query(idsQuery(ids)) scroll "1m"
+    }.await.result
     collectSearchHits(result)
   }
 
   /**
     * Searches for documents using Elasticsearch BoolMatchPhraseQuery
     *
-    * @param in The Elasticsearch index
+    * @param esIndex The Elasticsearch index
     * @param boolFilter The bool filter. It could have one of these values : Must, MustNot or Should
     * @param fields The filter fields
     * @return List of SearchHit
     */
   private def searchWithBoolMatchPhraseQuery(
-      in: String,
-      boolFilter: BoolFilter,
-      fields: List[Field]
+    esIndex: String,
+    boolFilter: BoolFilter,
+    fields: List[Field]
   ): List[SearchHit] = {
     import com.sksamuel.elastic4s.ElasticDsl._
-
     val query = boolQuery()
-    val queries = fields.map(field => {
-      query.must(matchPhraseQuery(field.name, field.value))
-    })
-
+    val queries = fields.map(field => query.must(matchPhraseQuery(field.name, field.value)))
     val searchQuery = boolFilter match {
-      case Must =>
-        search(in).query(bool(queries, List(), List())) scroll "1m"
-      case MustNot =>
-        search(in).query(bool(List(), List(), queries)) scroll "1m"
-      case Should =>
-        search(in).query(bool(List(), queries, List())) scroll "1m"
+      case Must    => search(esIndex).query(bool(queries, List(), List())) scroll "1m"
+      case MustNot => search(esIndex).query(bool(List(), List(), queries)) scroll "1m"
+      case Should  => search(esIndex).query(bool(List(), queries, List())) scroll "1m"
     }
-
-    val result =
-      esClient.execute {
-        searchQuery
-      }.await.result
+    val result = esClient.execute(searchQuery).await.result
     collectSearchHits(result)
   }
 
@@ -418,105 +366,64 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
     * @param output The output base folder
     * @param storage The output file system storage
     * @param consistency The file saving mode
-    * @return DataHighwayFileResponse, otherwise a DataHighwayErrorResponse
+    * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   def saveDocuments(
-      input: Elasticsearch,
-      output: Output,
-      storage: Option[Storage],
-      consistency: Option[Consistency]
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
-    val (temporaryPath, tempoBasePath) =
-      SharedUtils.setTempoFilePath("elasticsearch-sampler", storage)
+    input: Elasticsearch,
+    output: Output,
+    storage: Option[Storage],
+    consistency: Option[Consistency]
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
+    val temporaryLocation = SharedUtils.setTempoFilePath("elasticsearch-extractor", storage)
     val result = consistency match {
-      case Some(_) =>
-        handleRoutesWithExplicitSaveModes(input, output, storage, consistency, temporaryPath)
-      case None =>
-        handleRoutesWithIntermediateSaveModes(input, output, temporaryPath)
+      case Some(_) => handleRouteWithExplicitSaveMode(input, output, storage, consistency, temporaryLocation.path)
+      case None    => handleRouteWithImplicitSaveMode(input, output, temporaryLocation.path)
     }
-    cleanupTmp(tempoBasePath, storage)
-    SharedUtils
-      .constructIOResponse(
-        input,
-        output,
-        result.leftMap(_.toThrowable),
-        SUCCESS
-      )
+    cleanupTmp(temporaryLocation.basePath, storage)
+    SharedUtils.constructIOResponse(input, output, result)
   }
 
-  private def handleRoutesWithIntermediateSaveModes(
-      input: Elasticsearch,
-      output: Output,
-      temporaryPath: String
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+  private def handleRouteWithImplicitSaveMode(
+    input: Elasticsearch,
+    output: Output,
+    temporaryPath: String
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     output match {
       case elasticsearch @ Elasticsearch(_, _, _) =>
-        searchDocsUsingSearchQuery(input, Some(Local), temporaryPath)
-        ElasticSink
-          .handleElasticsearchChannel(File(JSON, temporaryPath), elasticsearch, Some(Local))
+        persistDocs(input, Some(Local), temporaryPath)
+        ElasticSink.handleElasticsearchChannel(File(JSON, temporaryPath), elasticsearch, Some(Local))
       case kafka @ Kafka(_, _) =>
-        searchDocsUsingSearchQuery(input, Some(Local), temporaryPath)
+        persistDocs(input, Some(Local), temporaryPath)
         KafkaSink.handleKafkaChannel(File(JSON, temporaryPath), kafka, Some(Local))
-      case _ =>
-        Left(
-          DataHighwayErrorResponse(
-            "MissingSaveMode",
-            "Missing 'save-mode' field",
-            ""
-          )
-        )
+      case _ => Left(MustNotHaveSaveModeError)
     }
   }
 
-  private def handleRoutesWithExplicitSaveModes(
-      input: Elasticsearch,
-      output: Output,
-      storage: Option[Storage],
-      consistency: Option[Consistency],
-      temporaryPath: String
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+  private def handleRouteWithExplicitSaveMode(
+    input: Elasticsearch,
+    output: Output,
+    storage: Option[Storage],
+    consistency: Option[Consistency],
+    temporaryPath: String
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     output match {
       case file @ File(_, _) =>
-        searchDocsUsingSearchQuery(input, storage, temporaryPath)
-        BasicSink.handleChannel(
-          File(JSON, temporaryPath),
-          file,
-          storage,
-          consistency
-        )
+        persistDocs(input, storage, temporaryPath)
+        BasicSink.handleChannel(File(JSON, temporaryPath), file, storage, consistency)
       case cassandra @ Cassandra(_, _) =>
-        searchDocsUsingSearchQuery(input, Some(Local), temporaryPath)
-        CassandraSink
-          .handleCassandraChannel(
-            File(JSON, temporaryPath),
-            cassandra,
-            Some(Local),
-            consistency
-          )
+        persistDocs(input, Some(Local), temporaryPath)
+        CassandraSink.handleCassandraChannel(File(JSON, temporaryPath), cassandra, Some(Local), consistency)
       case postgres @ Postgres(_, _) =>
-        searchDocsUsingSearchQuery(input, Some(Local), temporaryPath)
-        PostgresSink
-          .handlePostgresChannel(
-            File(JSON, temporaryPath),
-            postgres,
-            Some(Local),
-            consistency
-          )
-      case _ =>
-        Left(
-          DataHighwayErrorResponse(
-            "ShouldUseIntermediateSaveMode",
-            "'save-mode' field should be not present",
-            ""
-          )
-        )
+        persistDocs(input, Some(Local), temporaryPath)
+        PostgresSink.handlePostgresChannel(File(JSON, temporaryPath), postgres, Some(Local), consistency)
+      case _ => Left(MustHaveSaveModeError)
     }
   }
 
-  private def searchDocsUsingSearchQuery(
-      input: Elasticsearch,
-      storage: Option[Storage],
-      temporaryPath: String
+  private def persistDocs(
+    input: Elasticsearch,
+    storage: Option[Storage],
+    temporaryPath: String
   ): Either[Throwable, List[Unit]] = {
     storage match {
       case Some(filesystem) =>
@@ -532,9 +439,8 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
                   .traverse(searchHit => saveSearchHit(searchHit, temporaryPath, filesystem))
 
               case MultiMatchQuery(values) =>
-                searchWithMultiMatchQuery(input.index, values).flatMap(hits => {
-                  hits.traverse(searchHit => saveSearchHit(searchHit, temporaryPath, filesystem))
-                })
+                searchWithMultiMatchQuery(input.index, values)
+                  .flatMap(hits => hits.traverse(searchHit => saveSearchHit(searchHit, temporaryPath, filesystem)))
 
               case TermQuery(field) =>
                 searchWithTermQuery(input.index, field)
@@ -589,49 +495,30 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
                   .traverse(searchHit => saveSearchHit(searchHit, temporaryPath, filesystem))
 
               case BoolMatchPhraseQuery(boolFilter, fields) =>
-                searchWithBoolMatchPhraseQuery(input.index, boolFilter, fields).traverse(
-                  searchHit => saveSearchHit(searchHit, temporaryPath, filesystem)
-                )
-
-              case _ => Either.catchNonFatal(List())
-
+                searchWithBoolMatchPhraseQuery(input.index, boolFilter, fields)
+                  .traverse(searchHit => saveSearchHit(searchHit, temporaryPath, filesystem))
             }
-          case None =>
-            Left(new RuntimeException("Missing SearchQuery in the Elasticsearch entity"))
+          case None => Left(MustHaveSearchQueryError)
         }
-      case None =>
-        Left(
-          DataHighwayFileError(
-            "MissingFileSystemStorage",
-            new RuntimeException("Missing 'storage' field"),
-            Array[StackTraceElement]()
-          )
-        )
+      case None => Left(MustHaveFileSystemError)
     }
   }
 
   /**
-    * Cleanups the temporary folder
+    * Cleanups the folder
     *
     * @param output The tmp suffix path
     * @param storage The tmp file system storage
-    * @return Serializable
+    * @return AnyVal, otherwise a Throwable
     */
-  private def cleanupTmp(output: String, storage: Option[Storage]): java.io.Serializable = {
+  private def cleanupTmp(output: String, storage: Option[Storage]): Either[Throwable, AnyVal] = {
     storage match {
       case Some(filesystem) =>
         filesystem match {
           case Local => FilesUtils.delete(output)
           case HDFS  => HdfsUtils.delete(fs, output)
         }
-      case None =>
-        Left(
-          DataHighwayFileError(
-            "MissingFileSystemStorage",
-            new RuntimeException("Missing 'storage' field"),
-            Array[StackTraceElement]()
-          )
-        )
+      case None => Left(MustHaveFileSystemError)
     }
   }
 
@@ -673,28 +560,24 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils {
   /**
     * Saves an ES document as a Json file
     *
+    * @param searchHit The result of the search query, which contains ES documents
     * @param out The output File entity
     * @param storage The output file system : Local or HDFS
     * @return Unit, otherwise a Throwable
     */
-  private def saveSearchHit(
-      searchHit: SearchHit,
-      out: String,
-      storage: Storage
-  ): Either[Throwable, Unit] = {
+  private def saveSearchHit(searchHit: SearchHit, out: String, storage: Storage): Either[Throwable, Unit] = {
+    val jsonFileName = s"es-${searchHit.id}-${UUID.randomUUID()}-${System.currentTimeMillis()}.${JSON.extension}"
     storage match {
       case HDFS =>
         HdfsUtils.save(
           fs,
-          s"$out/${searchHit.index}/es-${searchHit.id}-${UUID.randomUUID()}-${System
-            .currentTimeMillis()}.${JSON.extension}",
+          s"$out/${searchHit.index}/$jsonFileName",
           searchHit.sourceAsMap.mapValues(_.toString).asJson.noSpaces
         )
       case Local =>
         FilesUtils.createFile(
           s"$out/${searchHit.index}",
-          s"es-${searchHit.id}-${UUID.randomUUID()}-${System
-            .currentTimeMillis()}.${JSON.extension}",
+          jsonFileName,
           searchHit.sourceAsMap.mapValues(_.toString).asJson.noSpaces
         )
     }

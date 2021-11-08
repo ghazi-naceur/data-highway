@@ -1,11 +1,20 @@
 package gn.oss.data.highway.utils
 
-object Constants {
+import gn.oss.data.highway.build.info.BuildInfo
 
-  val EMPTY                        = ""
-  val FORMAT                       = "UTF-8"
-  val PATH_WITHOUT_EXTENSION_REGEX = "[.][^.]+$"
-  val SUCCESS                      = "SUCCESS"
-  val FAILURE                      = "FAILURE"
-  val TRIGGER                      = "TRIGGER STREAMING JOB"
+object Constants {
+  val EMPTY = ""
+  private val BANNER_STRINGS = List(
+    ",------.              ,--.              ,--.  ,--. ,--.         ,--.",
+    "|  .-.  \\   ,--,--. ,-'  '-.  ,--,--.   |  '--'  | `--'  ,---.  |  ,---.  ,--.   ,--.  ,--,--. ,--. ,--.",
+    "|  |  \\  : ' ,-.  | '-.  .-' ' ,-.  |   |  .--.  | ,--. | .-. | |  .-.  | |  |.'.|  | ' ,-.  |  \\  '  /",
+    "|  '--'  / \\ '-'  |   |  |   \\ '-'  |   |  |  |  | |  | ' '-' ' |  | |  | |   .'.   | \\ '-'  |   \\   '",
+    "`-------'   `--`--'   `--'    `--`--'   `--'  `--' `--' .`-  /  `--' `--' '--'   '--'  `--`--' .-'  /",
+    "                                                        `---'                                  `---' "
+  )
+  val banner: List[String] = {
+    val head = BANNER_STRINGS.dropRight(1)
+    val lastElement = (BANNER_STRINGS.diff(head) ::: head.diff(BANNER_STRINGS)).head + s" version ${BuildInfo.version}"
+    head :+ lastElement
+  }
 }

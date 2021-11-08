@@ -1,4 +1,4 @@
-package gn.oss.data.highway.utils
+package gn.oss.data.highway.helper
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.FileSystem

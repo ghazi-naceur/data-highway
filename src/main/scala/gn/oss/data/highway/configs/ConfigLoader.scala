@@ -19,9 +19,7 @@ case class ConfigLoader() {
     val configObject = ConfigSource.defaultApplication.value() match {
       case Right(conf) => conf.toConfig
       case Left(thr) =>
-        throw new RuntimeException(
-          s"Error when trying to load configuration : ${thr.toList.mkString("\n")}"
-        )
+        throw new RuntimeException(s"Error when trying to load configuration : ${thr.toList.mkString("\n")}")
     }
     loadConfigsFromConfigObject(param, configObject)
   }
@@ -34,18 +32,12 @@ case class ConfigLoader() {
     * @tparam T The Config class that maps with @param parameter
     * @return The Config class
     */
-  def loadConfigsFromConfigObject[T: ConfigReader](
-      param: String,
-      conf: Config
-  ): T = {
-    implicit val offsetConvert: ConfigReader[LogLevel] =
-      deriveEnumerationReader[LogLevel]
+  def loadConfigsFromConfigObject[T: ConfigReader](param: String, conf: Config): T = {
+    implicit val offsetConvert: ConfigReader[LogLevel] = deriveEnumerationReader[LogLevel]
     ConfigSource.fromConfig(conf).at(param).load[T] match {
       case Right(config) => config
       case Left(errors) =>
-        throw new RuntimeException(
-          s"Error when trying to load configuration : ${errors.toList.mkString("\n")}"
-        )
+        throw new RuntimeException(s"Error when trying to load configuration : ${errors.toList.mkString("\n")}")
     }
   }
 
@@ -57,18 +49,12 @@ case class ConfigLoader() {
     * @tparam T The Config class that maps with @param parameter
     * @return The Config class
     */
-  def loadConfigsFromString[T: ConfigReader](
-      param: String,
-      confAsString: String
-  ): T = {
-    implicit val offsetConvert: ConfigReader[LogLevel] =
-      deriveEnumerationReader[LogLevel]
+  def loadConfigsFromString[T: ConfigReader](param: String, confAsString: String): T = {
+    implicit val offsetConvert: ConfigReader[LogLevel] = deriveEnumerationReader[LogLevel]
     ConfigSource.string(confAsString).at(param).load[T] match {
       case Right(config) => config
       case Left(thr) =>
-        throw new RuntimeException(
-          s"Error when trying to load configuration : ${thr.toList.mkString("\n")}"
-        )
+        throw new RuntimeException(s"Error when trying to load configuration : ${thr.toList.mkString("\n")}")
     }
   }
 }

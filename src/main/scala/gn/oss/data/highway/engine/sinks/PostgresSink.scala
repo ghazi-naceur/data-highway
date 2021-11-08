@@ -2,7 +2,7 @@ package gn.oss.data.highway.engine.sinks
 
 import gn.oss.data.highway.configs.HdfsUtils
 import gn.oss.data.highway.models
-import gn.oss.data.highway.utils.Constants.{EMPTY, SUCCESS}
+import gn.oss.data.highway.utils.Constants.EMPTY
 import gn.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils, SharedUtils}
 import org.apache.hadoop.fs.FileSystem
 import org.apache.log4j.Logger
@@ -10,10 +10,11 @@ import org.apache.spark.sql.SaveMode
 
 import java.io.File
 import cats.implicits._
+import gn.oss.data.highway.models.DataHighwayRuntimeException.MustHaveFileSystemAndSaveModeError
 import gn.oss.data.highway.models.{
   Consistency,
   DataHighwayErrorResponse,
-  DataHighwayResponse,
+  DataHighwaySuccessResponse,
   DataType,
   HDFS,
   Local,
@@ -37,28 +38,15 @@ object PostgresSink extends HdfsUtils {
     * @return Path as String, otherwise an Throwable
     */
   def insert(
-      inputDataType: DataType,
-      inputPath: String,
-      output: Postgres,
-      saveMode: SaveMode
+    inputDataType: DataType,
+    inputPath: String,
+    output: Postgres,
+    saveMode: SaveMode
   ): Either[Throwable, String] = {
-    val result = for {
+    for {
       dataframe <- DataFrameUtils.loadDataFrame(inputDataType, inputPath)
-      _ <-
-        DataFrameUtils
-          .saveDataFrame(dataframe, PostgresDB(output.database, output.table), EMPTY, saveMode)
-    } yield ()
-    result match {
-      case Right(_)  => Right(inputPath)
-      case Left(thr) => Left(thr)
-    }
-//    DataFrameUtils
-//      .loadDataFrame(inputDataType, inputPath)
-//      .map(df => {
-//        DataFrameUtils
-//          .saveDataFrame(df, PostgresDB(output.database, output.table), EMPTY, saveMode)
-//        inputPath
-//      })
+      _ <- DataFrameUtils.saveDataFrame(dataframe, PostgresDB(output.database, output.table), EMPTY, saveMode)
+    } yield inputPath
   }
 
   /**
@@ -68,58 +56,22 @@ object PostgresSink extends HdfsUtils {
     * @param output The output DataHighway File Entity
     * @param storage The file system storage : It can be Local or HDFS
     * @param consistency The file saving mode
-    * @return DataHighwayFileResponse, otherwise a DataHighwayErrorResponse
+    * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   def handlePostgresChannel(
-      input: models.File,
-      output: Postgres,
-      storage: Option[Storage],
-      consistency: Option[Consistency]
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+    input: models.File,
+    output: Postgres,
+    storage: Option[Storage],
+    consistency: Option[Consistency]
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     val basePath = new File(input.path).getParent
     (storage, consistency) match {
       case (Some(filesystem), Some(consist)) =>
         filesystem match {
-          case Local =>
-            handleLocalFS(
-              input,
-              output,
-              basePath,
-              consist.toSaveMode
-            )
-          case HDFS =>
-            handleHDFS(
-              input,
-              output,
-              basePath,
-              consist.toSaveMode,
-              fs
-            )
+          case Local => handleLocalFS(input, output, basePath, consist.toSaveMode)
+          case HDFS  => handleHDFS(input, output, basePath, consist.toSaveMode, fs)
         }
-      case (None, None) =>
-        Left(
-          DataHighwayErrorResponse(
-            "MissingFileSystemStorage and MissingSaveMode",
-            "Missing 'storage' and 'save-mode' fields",
-            ""
-          )
-        )
-      case (None, _) =>
-        Left(
-          DataHighwayErrorResponse(
-            "MissingFileSystemStorage",
-            "Missing 'storage' field",
-            ""
-          )
-        )
-      case (_, None) =>
-        Left(
-          DataHighwayErrorResponse(
-            "MissingSaveMode",
-            "Missing 'save-mode' field",
-            ""
-          )
-        )
+      case (_, _) => Left(MustHaveFileSystemAndSaveModeError)
     }
   }
 
@@ -130,19 +82,17 @@ object PostgresSink extends HdfsUtils {
     * @param output The output Postgres Entity
     * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
-    * @return DataHighwayFileResponse, otherwise a DataHighwayErrorResponse
+    * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   private def handleLocalFS(
-      input: models.File,
-      output: Postgres,
-      basePath: String,
-      saveMode: SaveMode
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
-    val result = for {
-      res <- insertRows(input, output, basePath, saveMode)
-      _ = FilesUtils.cleanup(input.path)
-    } yield res
-    SharedUtils.constructIOResponse(input, output, result, SUCCESS)
+    input: models.File,
+    output: Postgres,
+    basePath: String,
+    saveMode: SaveMode
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
+    val result = insertRows(input, output, basePath, saveMode)
+    FilesUtils.cleanup(input.path)
+    SharedUtils.constructIOResponse(input, output, result)
   }
 
   /**
@@ -153,15 +103,15 @@ object PostgresSink extends HdfsUtils {
     * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
     * @param fs The provided File System
-    * @return DataHighwayFileResponse, otherwise a DataHighwayErrorResponse
+    * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   private def handleHDFS(
-      input: models.File,
-      output: Postgres,
-      basePath: String,
-      saveMode: SaveMode,
-      fs: FileSystem
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
+    input: models.File,
+    output: Postgres,
+    basePath: String,
+    saveMode: SaveMode,
+    fs: FileSystem
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     val result = for {
       folders <- HdfsUtils.listFolders(fs, input.path)
       _ = logger.info("Folders to be processed : " + folders)
@@ -172,34 +122,19 @@ object PostgresSink extends HdfsUtils {
             .traverse(subfolder => {
               HdfsUtils
                 .listFiles(fs, subfolder)
-                .traverse(file => {
-                  insert(
-                    input.dataType,
-                    file,
-                    output,
-                    saveMode
-                  )
-                })
-                .flatMap(_ => {
-                  HdfsUtils.movePathContent(fs, subfolder, basePath)
-                })
+                .traverse(file => insert(input.dataType, file, output, saveMode))
+                .flatMap(_ => HdfsUtils.movePathContent(fs, subfolder, basePath))
             })
         case _ =>
           filtered
             .traverse(subfolder => {
-              insert(
-                input.dataType,
-                subfolder,
-                output,
-                saveMode
-              ).flatMap(_ => {
-                HdfsUtils.movePathContent(fs, subfolder, basePath)
-              })
+              insert(input.dataType, subfolder, output, saveMode)
+                .flatMap(_ => HdfsUtils.movePathContent(fs, subfolder, basePath))
             })
       }
       _ = HdfsUtils.cleanup(fs, input.path)
     } yield res
-    SharedUtils.constructIOResponse(input, output, result, SUCCESS)
+    SharedUtils.constructIOResponse(input, output, result)
   }
 
   /**
@@ -212,51 +147,35 @@ object PostgresSink extends HdfsUtils {
     * @return List of List of Path as String, otherwise a Throwable
     */
   def insertRows(
-      input: models.File,
-      output: Postgres,
-      basePath: String,
-      saveMode: SaveMode
+    input: models.File,
+    output: Postgres,
+    basePath: String,
+    saveMode: SaveMode
   ): Either[Throwable, List[List[String]]] = {
     for {
       folders <- FilesUtils.listNonEmptyFoldersRecursively(input.path)
       _ = logger.info("Folders to be processed : " + folders)
       filtered <- FilesUtils.filterNonEmptyFolders(folders)
-      res <- input.dataType match {
+      result <- input.dataType match {
         case XLSX =>
-          FilesUtils
-            .listFiles(filtered)
-            .traverse(files => {
-              files.traverse(file => {
-                insert(
-                  input.dataType,
-                  file.toURI.getPath,
-                  output,
-                  saveMode
-                ).flatMap(subInputFolder => {
-                  FilesUtils
-                    .movePathContent(
-                      subInputFolder,
-                      s"$basePath/processed/${new File(
-                        subInputFolder
-                      ).getParentFile.toURI.getPath.split("/").takeRight(1).mkString("/")}"
-                    )
+          for {
+            files <- FilesUtils.listFiles(filtered)
+            processedFolders <- files.traverse(file => {
+              insert(input.dataType, file.toURI.getPath, output, saveMode)
+                .flatMap(subInputFolder => {
+                  val baseFolderName =
+                    s"${new File(subInputFolder).getParentFile.toURI.getPath.split("/").takeRight(1).mkString("/")}"
+                  FilesUtils.movePathContent(subInputFolder, s"$basePath/processed/$baseFolderName")
                 })
-              })
             })
-            .flatten
+          } yield processedFolders
         case _ =>
           filtered
             .traverse(subFolder => {
-              insert(
-                input.dataType,
-                subFolder,
-                output,
-                saveMode
-              ).flatMap(subInputFolder => {
-                FilesUtils.movePathContent(subInputFolder, s"$basePath/processed")
-              })
+              insert(input.dataType, subFolder, output, saveMode)
+                .flatMap(subInputFolder => FilesUtils.movePathContent(subInputFolder, s"$basePath/processed"))
             })
       }
-    } yield res
+    } yield result
   }
 }

@@ -6,7 +6,6 @@ import org.apache.kafka.clients.consumer.{ConsumerConfig, KafkaConsumer}
 import org.apache.kafka.common.serialization.{Serdes, StringDeserializer}
 import cats.syntax.either._
 import gn.oss.data.highway.models.{KafkaStreamEntity, Offset}
-import gn.oss.data.highway.models.DataHighwayError.KafkaError
 import org.apache.kafka.streams.StreamsConfig
 import org.apache.kafka.streams.scala.StreamsBuilder
 import org.apache.log4j.Logger
@@ -22,14 +21,14 @@ object KafkaTopicConsumer {
     * @param brokerUrls The kafka brokers urls
     * @param offset The consumer offset
     * @param consumerGroup The consumer group name
-    * @return A KafkaConsumer, otherwise a KafkaError
+    * @return A KafkaConsumer, otherwise a Throwable
     */
   def consume(
-      topic: String,
-      brokerUrls: String,
-      offset: Offset,
-      consumerGroup: String
-  ): Either[KafkaError, KafkaConsumer[String, String]] = {
+    topic: String,
+    brokerUrls: String,
+    offset: Offset,
+    consumerGroup: String
+  ): Either[Throwable, KafkaConsumer[String, String]] = {
     val props = new Properties()
     props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerUrls)
     props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, classOf[StringDeserializer].getName)
@@ -41,7 +40,7 @@ object KafkaTopicConsumer {
       consumer.subscribe(util.Arrays.asList(topic))
       logger.info(s"Successfully subscribing to '$topic' topic.")
       consumer
-    }.leftMap(thr => KafkaError(thr.getMessage, thr.getCause, thr.getStackTrace))
+    }
   }
 
   /**
@@ -54,10 +53,10 @@ object KafkaTopicConsumer {
     * @return KafkaStreamEntity
     */
   def consumeWithStream(
-      streamAppId: String,
-      topic: String,
-      offset: Offset,
-      bootstrapServers: String
+    streamAppId: String,
+    topic: String,
+    offset: Offset,
+    bootstrapServers: String
   ): KafkaStreamEntity = {
     import org.apache.kafka.streams.scala.ImplicitConversions._
     import org.apache.kafka.streams.scala.Serdes._

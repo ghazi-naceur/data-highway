@@ -8,7 +8,7 @@ import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.PartitionInfo
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.log4j.Logger
-
+import cats.implicits._
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
@@ -44,8 +44,8 @@ object KafkaUtils {
     val props = new Properties()
     props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, brokerUrls)
     Try {
-      val adminClient        = AdminClient.create(props)
-      val newTopic           = new NewTopic(topic, 1, 1.asInstanceOf[Short])
+      val adminClient = AdminClient.create(props)
+      val newTopic = new NewTopic(topic, 1, 1.asInstanceOf[Short])
       val createTopicsResult = adminClient.createTopics(Collections.singleton(newTopic))
       createTopicsResult.values().get(topic).get()
       logger.info(s"The topic '$topic' was successfully created.")
@@ -63,7 +63,7 @@ object KafkaUtils {
     val props = new Properties()
     props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, brokerUrls)
     Try {
-      val adminClient        = AdminClient.create(props)
+      val adminClient = AdminClient.create(props)
       val deleteTopicsResult = adminClient.deleteTopics(Collections.singleton(topic))
       deleteTopicsResult.values().get(topic).get()
       logger.info(s"The topic '$topic' was successfully deleted")
@@ -78,15 +78,17 @@ object KafkaUtils {
     * @param topic The provided topic
     * @param brokerUrls The Kafka brokers urls
     * @param enableTopicCreation The topic creation flag
-    * @return Any
+    * @return Any, otherwise a Throwable
     */
-  def verifyTopicExistence(topic: String, brokerUrls: String, enableTopicCreation: Boolean): Any = {
-    val strings = listTopics(brokerUrls).map(_._1)
-    if (!strings.contains(topic)) {
-      if (enableTopicCreation) {
-        createTopic(topic, brokerUrls)
-      } else {
-        throw new RuntimeException(s"The topic '$topic' does not exist.")
+  def verifyTopicExistence(topic: String, brokerUrls: String, enableTopicCreation: Boolean): Either[Throwable, Any] = {
+    Either.catchNonFatal {
+      val topics = listTopics(brokerUrls).map(_._1)
+      if (!topics.contains(topic)) {
+        if (enableTopicCreation) {
+          createTopic(topic, brokerUrls)
+        } else {
+          throw new RuntimeException(s"The topic '$topic' does not exist.")
+        }
       }
     }
   }

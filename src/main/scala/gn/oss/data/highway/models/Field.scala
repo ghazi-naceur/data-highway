@@ -22,12 +22,7 @@ case object StringRange extends RangeType {
   override val value: String = "string"
 }
 
-case class RangeField(
-    rangeType: RangeType,
-    name: String,
-    lte: Option[String],
-    gte: Option[String]
-)
+case class RangeField(rangeType: RangeType, name: String, lte: Option[String], gte: Option[String])
 
 sealed trait GenericRangeField {
   val name: String
@@ -51,11 +46,8 @@ object GenericRangeField {
 
 case class IntRangeField(name: String, lte: Option[Int], gte: Option[Int]) extends GenericRangeField
 
-case class LongRangeField(name: String, lte: Option[Long], gte: Option[Long])
-    extends GenericRangeField
+case class LongRangeField(name: String, lte: Option[Long], gte: Option[Long]) extends GenericRangeField
 
-case class DoubleRangeField(name: String, lte: Option[Double], gte: Option[Double])
-    extends GenericRangeField
+case class DoubleRangeField(name: String, lte: Option[Double], gte: Option[Double]) extends GenericRangeField
 
-case class StringRangeField(name: String, lte: Option[String], gte: Option[String])
-    extends GenericRangeField
+case class StringRangeField(name: String, lte: Option[String], gte: Option[String]) extends GenericRangeField

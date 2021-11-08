@@ -1,16 +1,17 @@
 package gn.oss.data.highway.engine.extractors
 
 import gn.oss.data.highway.engine.sinks.{ElasticSink, KafkaSink}
-import gn.oss.data.highway.utils.Constants.SUCCESS
-import gn.oss.data.highway.utils.{Constants, DataFrameUtils, SharedUtils}
+import gn.oss.data.highway.utils.Constants.EMPTY
+import gn.oss.data.highway.utils.{DataFrameUtils, SharedUtils}
 import org.apache.spark.sql.SaveMode.Append
 import cats.implicits._
+import gn.oss.data.highway.models.DataHighwayRuntimeException.{MustHaveSaveModeError, MustNotHaveSaveModeError}
 import gn.oss.data.highway.models.{
   Cassandra,
   CassandraDB,
   Consistency,
   DataHighwayErrorResponse,
-  DataHighwayResponse,
+  DataHighwaySuccessResponse,
   Elasticsearch,
   File,
   JSON,
@@ -18,7 +19,8 @@ import gn.oss.data.highway.models.{
   Local,
   Output,
   Postgres,
-  PostgresDB
+  PostgresDB,
+  TemporaryLocation
 }
 
 object CassandraExtractor {
@@ -29,111 +31,82 @@ object CassandraExtractor {
     * @param input The input Cassandra entity
     * @param output The output entity
     * @param consistency The output save mode
-    * @return DataHighwayFileResponse, otherwise a DataHighwayErrorResponse
+    * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   def extractRows(
-      input: Cassandra,
-      output: Output,
-      consistency: Option[Consistency]
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
-    val (temporaryPath, tempoBasePath) =
-      SharedUtils.setTempoFilePath("cassandra-sampler", Some(Local))
+    input: Cassandra,
+    output: Output,
+    consistency: Option[Consistency]
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
+    val temporaryLocation = SharedUtils.setTempoFilePath("cassandra-extractor", Some(Local))
     consistency match {
-      case Some(consist) =>
-        handleRoutesWithExplicitSaveModes(input, output, consist)
-      case None =>
-        handleRoutesWithIntermediateSaveModes(input, output, temporaryPath, tempoBasePath)
+      case Some(consist) => handleRouteWithExplicitSaveMode(input, output, consist)
+      case None          => handleRouteWithImplicitSaveMode(input, output, temporaryLocation)
     }
   }
 
-  private def handleRoutesWithIntermediateSaveModes(
-      input: Cassandra,
-      output: Output,
-      temporaryPath: String,
-      tempoBasePath: String
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
-    output match {
+  /**
+    * Handles route that uses implicit save modes. It handles the following outputs: Elasticsearch and Kafka.
+    *
+    * @param input The Cassandra entity
+    * @param output The output plug: Elasticsearch or Kafka
+    * @param temporaryLocation The temporary path location for intermediate processing
+    * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
+    */
+  private def handleRouteWithImplicitSaveMode(
+    input: Cassandra,
+    output: Output,
+    temporaryLocation: TemporaryLocation
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
+    val result = output match {
       case elasticsearch @ Elasticsearch(_, _, _) =>
         DataFrameUtils
-          .loadDataFrame(CassandraDB(input.keyspace, input.table), Constants.EMPTY)
-          .traverse(df => DataFrameUtils.saveDataFrame(df, JSON, temporaryPath, Append))
+          .loadDataFrame(CassandraDB(input.keyspace, input.table), EMPTY)
+          .traverse(df => DataFrameUtils.saveDataFrame(df, JSON, temporaryLocation.path, Append))
           .flatten
-        val result = ElasticSink
-          .insertDocuments(File(JSON, temporaryPath), elasticsearch, tempoBasePath, Local)
-        SharedUtils
-          .constructIOResponse(input, elasticsearch, result, SUCCESS)
+        ElasticSink.insertDocuments(File(JSON, temporaryLocation.path), elasticsearch, temporaryLocation.basePath, Local)
       case kafka @ Kafka(_, _) =>
         DataFrameUtils
-          .loadDataFrame(CassandraDB(input.keyspace, input.table), Constants.EMPTY)
-          .traverse(df => DataFrameUtils.saveDataFrame(df, JSON, temporaryPath, Append))
+          .loadDataFrame(CassandraDB(input.keyspace, input.table), EMPTY)
+          .traverse(df => DataFrameUtils.saveDataFrame(df, JSON, temporaryLocation.path, Append))
           .flatten
-        val result = KafkaSink.handleKafkaChannel(File(JSON, temporaryPath), kafka, Some(Local))
-        SharedUtils
-          .constructIOResponse(
-            input,
-            kafka,
-            result.leftMap(_.toThrowable),
-            SUCCESS
-          )
-      case _ =>
-        Left(
-          DataHighwayErrorResponse(
-            "MissingSaveMode",
-            "Missing 'save-mode' field",
-            ""
-          )
-        )
+        KafkaSink.handleKafkaChannel(File(JSON, temporaryLocation.path), kafka, Some(Local))
+      case _ => Left(MustNotHaveSaveModeError)
     }
+    SharedUtils.constructIOResponse(input, output, result)
   }
 
-  private def handleRoutesWithExplicitSaveModes(
-      input: Cassandra,
-      output: Output,
-      consistency: Consistency
-  ): Either[DataHighwayErrorResponse, DataHighwayResponse] = {
-    output match {
-      case file @ File(dataType, path) =>
-        val result = DataFrameUtils
-          .loadDataFrame(CassandraDB(input.keyspace, input.table), Constants.EMPTY)
+  /**
+    * Handles route that uses explicit save modes. It handles the following outputs: File, Postgres and Cassandra.
+    *
+    * @param input The Cassandra entity
+    * @param output The output plug: File, Postgres or Cassandra
+    * @param consistency A representation for the Spark Save Mode
+    * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
+    */
+  private def handleRouteWithExplicitSaveMode(
+    input: Cassandra,
+    output: Output,
+    consistency: Consistency
+  ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
+    val result = output match {
+      case File(dataType, path) =>
+        DataFrameUtils
+          .loadDataFrame(CassandraDB(input.keyspace, input.table), EMPTY)
           .traverse(df => DataFrameUtils.saveDataFrame(df, dataType, path, consistency.toSaveMode))
           .flatten
-        SharedUtils.constructIOResponse(input, file, result, SUCCESS)
-      case cassandra @ Cassandra(keyspace, table) =>
-        val result = DataFrameUtils
-          .loadDataFrame(CassandraDB(input.keyspace, input.table), Constants.EMPTY)
-          .traverse(df =>
-            DataFrameUtils
-              .saveDataFrame(
-                df,
-                CassandraDB(keyspace, table),
-                Constants.EMPTY,
-                consistency.toSaveMode
-              )
-          )
+      case Cassandra(keyspace, table) =>
+        DataFrameUtils
+          .loadDataFrame(CassandraDB(input.keyspace, input.table), EMPTY)
+          .traverse(df => DataFrameUtils.saveDataFrame(df, CassandraDB(keyspace, table), EMPTY, consistency.toSaveMode))
           .flatten
-        SharedUtils.constructIOResponse(input, cassandra, result, SUCCESS)
-      case postgres @ Postgres(database, table) =>
-        val result = DataFrameUtils
-          .loadDataFrame(CassandraDB(input.keyspace, input.table), Constants.EMPTY)
-          .traverse(df =>
-            DataFrameUtils
-              .saveDataFrame(
-                df,
-                PostgresDB(database, table),
-                Constants.EMPTY,
-                consistency.toSaveMode
-              )
-          )
+      case Postgres(database, table) =>
+        DataFrameUtils
+          .loadDataFrame(CassandraDB(input.keyspace, input.table), EMPTY)
+          .traverse(df => DataFrameUtils.saveDataFrame(df, PostgresDB(database, table), EMPTY, consistency.toSaveMode))
           .flatten
-        SharedUtils.constructIOResponse(input, postgres, result, SUCCESS)
-      case _ =>
-        Left(
-          DataHighwayErrorResponse(
-            "ShouldUseIntermediateSaveMode",
-            "'save-mode' field should be not present",
-            ""
-          )
-        )
+      case _ => Left(MustHaveSaveModeError)
     }
+    SharedUtils.constructIOResponse(input, output, result)
   }
 }
