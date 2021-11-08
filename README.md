@@ -104,7 +104,7 @@ In short, **Data Highway** supports the following data flow :
 
 3- Enter the unzipped folder 
 
-4- Set the configurations in the **application.conf** and **log4j.properties** files
+4- Set the configurations in the **application.conf** and **logback.xml** files
   - **application.conf**:
 ```json
 spark {
@@ -143,7 +143,7 @@ app {
                                                 // You need want to specify a folder that exposes enough ACLs for reading and writing.
 }
 ```
-- **log4j.properties**:
+- **logback.xml**:
 ```xml
  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
     <file>logs/data-highway.log</file> // Here you can specify the path of the generated log file
@@ -171,7 +171,7 @@ in your POSTMAN instance. You will find more samples here in this documentation 
 
 1- Clone this repository
 
-2- Set configurations in the **data-highway/src/main/resources/application.conf** and **data-highway/src/main/resources/log4j.properties** files 
+2- Set configurations in the **data-highway/src/main/resources/application.conf** and **data-highway/src/main/resources/logback.xml** files 
 (to be mounted in the next step)
 
 3- Specify your mounted volumes in the `docker-compose.yml` file located under `data-highway/docker/rest/generic` and 
@@ -189,10 +189,10 @@ specify your data-highway version (located in the release file name) :
       - /the-path-to-csv-processed-data-located-in-your-host-machine/:/app/data/csv/processed
       - ........
       - ........
-      - /the-path-to-your-log4j-conf-file/log4j.properties:/app/config/log4j.properties
+      - /the-path-to-your-log4j-conf-file/logback.xml:/app/config/logback.xml
       - /the-path-to-your-app-config-file/application.conf:/app/config/application.conf
     network_mode: "host"
-    entrypoint: ["java", "-cp", "/app/jar/data-highway-${version}.jar", "gn.oss.data.highway.IOMain", "-Dlog4j.configuration=/app/config/log4j.properties", "-Dconfig.file=/app/config/application.conf"]
+    entrypoint: ["java", "-cp", "/app/jar/data-highway-${version}.jar", "gn.oss.data.highway.IOMain", "-Dlog4j.configuration=/app/config/logback.xml", "-Dconfig.file=/app/config/application.conf"]
 ```
 4- Run the `start.sh` script under `data-highway/docker/rest/generic` to generate your Data Highway Docker image.
 
