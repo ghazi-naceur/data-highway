@@ -1015,7 +1015,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/avro/input\"\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"avro\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/avro/input\"\n    },\n    \"output\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1080,7 +1080,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"xlsx\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/xlsx/input\"\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-6\",\n        \"bulk-enabled\": false\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"xlsx\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/xlsx/input\"\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-2\",\n        \"bulk-enabled\": true\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1110,7 +1110,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\",\n            \"infer-schema\": true,\n            \"header\": true,\n            \"separator\": \";\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/csv/output\"\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-7\",\n        \"bulk-enabled\": false\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"xlsx\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/xlsx/input\"\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-3\",\n        \"bulk-enabled\": true\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1313,7 +1313,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"spark-kafka-plugin-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/csv/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}\n"
+											"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_2\",\n        \"kafka-mode\" : {\n            \"type\" : \"spark-kafka-plugin-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/parquet/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}\n"
 										},
 										"url": {
 											"raw": "http://localhost:5555/conversion/route",
@@ -1388,7 +1388,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"spark-kafka-plugin-streams-producer\",\n            \"brokers\" : \"localhost:9092\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_2\"\n    }\n  }\n}\n"
+											"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_2\",\n        \"kafka-mode\" : {\n            \"type\" : \"spark-kafka-plugin-streams-producer\",\n            \"brokers\" : \"localhost:9092\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\"\n    }\n  }\n}\n"
 										},
 										"url": {
 											"raw": "http://localhost:5555/conversion/route",
@@ -1648,7 +1648,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"pure-kafka-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"consumer-group\" : \"consumer-group-1\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-7\",\n        \"bulk-enabled\": false\n    }\n  }\n}\n"
+											"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"pure-kafka-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"consumer-group\" : \"consumer-group-6\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-4\",\n        \"bulk-enabled\": true\n    }\n  }\n}\n"
 										},
 										"url": {
 											"raw": "http://localhost:5555/conversion/route",
@@ -1683,7 +1683,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"pure-kafka-streams-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"stream-app-id\" : \"app-id-6\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-7\",\n        \"bulk-enabled\": false\n    }\n  }\n}\n"
+											"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"pure-kafka-streams-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"stream-app-id\" : \"app-id-8\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-4\",\n        \"bulk-enabled\": true\n    }\n  }\n}\n"
 										},
 										"url": {
 											"raw": "http://localhost:5555/conversion/route",
@@ -1718,7 +1718,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"spark-kafka-plugin-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-7\",\n        \"bulk-enabled\": true\n    }\n  }\n}\n"
+											"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\" : {\n            \"type\" : \"spark-kafka-plugin-consumer\",\n            \"brokers\" : \"localhost:9092\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-4\",\n        \"bulk-enabled\": false\n    }\n  }\n}\n"
 										},
 										"url": {
 											"raw": "http://localhost:5555/conversion/route",
@@ -1990,7 +1990,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"postgres\",\n        \"database\": \"data_entities\",\n        \"table\": \"persons_schema.persons\"\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-7\",\n        \"bulk-enabled\": true\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"postgres\",\n        \"database\": \"data_entities\",\n        \"table\": \"persons_schema.persons\"\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-4\",\n        \"bulk-enabled\": false\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2090,7 +2090,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/avro/output\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"json\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/json/output\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2260,7 +2260,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-7\",\n        \"bulk-enabled\": false\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"cassandra\",\n        \"keyspace\": \"data_entities\",\n        \"table\": \"persons\"\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-4\",\n        \"bulk-enabled\": true\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2886,7 +2886,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-7\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"ids-query\",\n            \"ids\": [\"wcOPfnsBllGEOdBS7-HB\", \"zMOPfnsBllGEOdBS8OGr\", \"zsOPfnsBllGEOdBS8OHM\"]\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\",\n            \"compression\": {\n                \"type\": \"snappy\"\n            }\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/parquet/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"overwrite\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-7\",\n        \"bulk-enabled\": true,\n        \"search-query\": {\n            \"type\": \"ids-query\",\n            \"ids\": [\"wcOPfnsBllGEOdBS7-HB\", \"zMOPfnsBllGEOdBS8OGr\", \"zsOPfnsBllGEOdBS8OHM\"]\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\",\n            \"compression\": {\n                \"type\": \"snappy\"\n            }\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/parquet/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"overwrite\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -2916,7 +2916,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-7\",\n        \"bulk-enabled\": false,\n        \"search-query\": {\n            \"type\": \"ids-query\",\n            \"ids\": [\"wcOPfnsBllGEOdBS7-HB\", \"zMOPfnsBllGEOdBS8OGr\", \"zsOPfnsBllGEOdBS8OHM\"]\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\",\n            \"infer-schema\": true,\n            \"header\": true,\n            \"separator\": \";\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/csv/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-7\",\n        \"bulk-enabled\": true,\n        \"search-query\": {\n            \"type\": \"ids-query\",\n            \"ids\": [\"wcOPfnsBllGEOdBS7-HB\", \"zMOPfnsBllGEOdBS8OGr\", \"zsOPfnsBllGEOdBS8OHM\"]\n        }\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\",\n            \"infer-schema\": true,\n            \"header\": true,\n            \"separator\": \";\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/csv/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"save-mode\": {\n        \"type\": \"append\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
