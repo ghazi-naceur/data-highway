@@ -75,9 +75,8 @@ object ElasticSink extends ElasticUtils with HdfsUtils with LazyLogging {
             HdfsUtils
               .listFilesRecursively(fs, input)
               .map(file => {
-                val fullFilePath = s"${hadoopConf.host}:${hadoopConf.port}" + file
                 DataFrameUtils
-                  .loadDataFrame(inputDataType, fullFilePath)
+                  .loadDataFrame(inputDataType, file)
                   .map(df => indexDataFrameWithIndexQuery(df, output))
               })
           case Local =>
@@ -135,12 +134,11 @@ object ElasticSink extends ElasticUtils with HdfsUtils with LazyLogging {
             HdfsUtils
               .listFilesRecursively(fs, input)
               .map(file => {
-                val fullFilePath = s"${hadoopConf.host}:${hadoopConf.port}" + file
                 DataFrameUtils
-                  .loadDataFrame(inputDataType, fullFilePath)
+                  .loadDataFrame(inputDataType, file)
                   .map(df => {
                     indexDataFrameWithBulk(df, output)
-                    HdfsUtils.movePathContent(fs, fullFilePath, basePath)
+                    HdfsUtils.movePathContent(fs, file, basePath)
                   })
               })
           case Local =>

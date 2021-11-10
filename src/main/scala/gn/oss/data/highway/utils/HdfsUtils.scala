@@ -175,7 +175,7 @@ object HdfsUtils extends HdfsUtils {
     fs.listStatus(new Path(hdfsPath))
       .flatMap { status =>
         if (status.isFile)
-          List(status.getPath.toUri.getPath)
+          List(s"${hadoopConf.host}:${hadoopConf.port}" + status.getPath.toUri.getPath)
         else
           listFilesRecursively(fs, status.getPath.toUri.getPath)
       }

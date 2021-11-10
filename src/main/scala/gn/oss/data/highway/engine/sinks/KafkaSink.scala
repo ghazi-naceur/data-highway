@@ -178,9 +178,8 @@ object KafkaSink extends HdfsUtils with AppUtils with LazyLogging {
             HdfsUtils
               .listFilesRecursively(fs, inputPath)
               .traverse(file => {
-                val fullFilePath = s"${hadoopConf.host}:${hadoopConf.port}" + file
                 DataFrameUtils
-                  .loadDataFrame(inputDataType, fullFilePath)
+                  .loadDataFrame(inputDataType, file)
                   .map(df => publishToTopicWithConnector(brokers, outputTopic, df))
               })
             HdfsUtils.movePathContent(fs, inputPath, basePath)
@@ -350,9 +349,8 @@ object KafkaSink extends HdfsUtils with AppUtils with LazyLogging {
               HdfsUtils
                 .listFilesRecursively(fs, inputPath)
                 .flatTraverse(file => {
-                  val fullFilePath = s"${hadoopConf.host}:${hadoopConf.port}" + file
                   DataFrameUtils
-                    .loadDataFrame(inputDataType, fullFilePath)
+                    .loadDataFrame(inputDataType, file)
                     .flatMap(df => DataFrameUtils.convertDataFrameToJsonLines(df))
                 })
             case Local =>
