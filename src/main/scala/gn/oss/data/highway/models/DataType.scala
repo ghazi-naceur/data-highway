@@ -22,6 +22,9 @@ case object XLSX extends DataType {
 case class ORC(compression: Option[OrcCompression]) extends DataType {
   override val extension: String = "orc"
 }
+case class XML(rootTag: String, rowTag: String) extends DataType {
+  override val extension: String = "xml"
+}
 case class CassandraDB(keyspace: String, table: String) extends DataType {
   override val extension: String = ""
 }
@@ -33,7 +36,7 @@ sealed trait Compression {
   val value: String
 }
 
-sealed trait OrcCompression     extends Compression
+sealed trait OrcCompression extends Compression
 sealed trait ParquetCompression extends Compression
 
 case object Lzo extends OrcCompression {

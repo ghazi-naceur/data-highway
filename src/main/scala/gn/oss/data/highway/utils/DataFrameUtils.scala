@@ -14,7 +14,8 @@ import gn.oss.data.highway.models.{
   PARQUET,
   ParquetCompression,
   PostgresDB,
-  XLSX
+  XLSX,
+  XML
 }
 import gn.oss.data.highway.configs.{PostgresUtils, SparkUtils}
 
@@ -26,7 +27,7 @@ object DataFrameUtils extends SparkUtils with PostgresUtils {
     * Loads a dataframe
     *
     * @param in The input path
-    * @param dataType a datatype to be load : CSV, JSON, PARQUET, AVRO, Cassandra or XLSX
+    * @param dataType a datatype to be load : CSV, JSON, PARQUET, AVRO, XLSX, XML, Cassandra and Postgres
     * @return A DataFrame, otherwise a Throwable
     */
   def loadDataFrame(dataType: DataType, in: String): Either[Throwable, DataFrame] = {
@@ -37,6 +38,7 @@ object DataFrameUtils extends SparkUtils with PostgresUtils {
       case ORC(_)                              => loadOrc(in)
       case AVRO                                => loadAvro(in)
       case XLSX                                => loadXlsx(in)
+      case XML(rootTag, rowTag)                => loadXml(in, rootTag, rowTag)
       case CassandraDB(keyspace, table)        => loadFromCassandra(keyspace, table)
       case PostgresDB(database, table)         => loadFromPostgres(database, table)
     }
@@ -46,7 +48,7 @@ object DataFrameUtils extends SparkUtils with PostgresUtils {
     * Saves a dataframe
     *
     * @param df Dataframe to be saved
-    * @param dataType a datatype to be load : CSV, JSON, PARQUET, AVRO, Cassandra or XLSX
+    * @param dataType a datatype to be load : CSV, JSON, PARQUET, AVRO, XLSX, XML, Cassandra and Postgres
     * @param out The output path
     * @param saveMode The output save mode
     * @return a Unit, otherwise a Throwable
@@ -59,6 +61,7 @@ object DataFrameUtils extends SparkUtils with PostgresUtils {
       case ORC(compression)                    => saveOrc(df, out, saveMode, compression)
       case AVRO                                => saveAvro(df, out, saveMode)
       case XLSX                                => saveXlsx(df, out, saveMode)
+      case XML(rootTag, rowTag)                => saveXml(df, out, rootTag, rowTag, saveMode)
       case CassandraDB(keyspace, table)        => saveInCassandra(df, saveMode, keyspace, table)
       case PostgresDB(database, table)         => saveInPostgres(df, saveMode, database, table)
     }
@@ -138,6 +141,16 @@ object DataFrameUtils extends SparkUtils with PostgresUtils {
     Either.catchNonFatal {
       sparkSession.read
         .json(in)
+    }
+  }
+
+  private def loadXml(in: String, rootTag: String, rowTag: String): Either[Throwable, DataFrame] = {
+    Either.catchNonFatal {
+      sparkSession.read
+        .format("com.databricks.spark.xml")
+        .option("rootTag", rootTag)
+        .option("rowTag", rowTag)
+        .load(in)
     }
   }
 
@@ -251,6 +264,24 @@ object DataFrameUtils extends SparkUtils with PostgresUtils {
         .write
         .mode(saveMode)
         .json(out)
+    }
+  }
+
+  private def saveXml(
+    df: DataFrame,
+    out: String,
+    rootTag: String,
+    rowTag: String,
+    saveMode: SaveMode
+  ): Either[Throwable, Unit] = {
+    Either.catchNonFatal {
+      df.coalesce(1)
+        .write
+        .mode(saveMode)
+        .format("com.databricks.spark.xml")
+        .option("rootTag", rootTag)
+        .option("rowTag", rowTag)
+        .save(out)
     }
   }
 
