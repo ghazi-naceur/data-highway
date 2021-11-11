@@ -32,6 +32,12 @@ In short, **Data Highway** supports the following data flow :
     * [1- Run data-highway jar](#1--run-data-highway-jar)
     * [2- Run data-highway Docker Image](#2--run-data-highway-docker-image)
 * [B- Routes](#B--routes)
+    * [1- Query structure](#1--query-structure)
+    * [2- Notes about data types](#2--notes-about-data-types)
+      * [a- Note about CSV](#a--note-about-csv)
+      * [b- Note about XML](#b--note-about-xml)
+      * [c- Note about Parquet](#c--note-about-parquet)
+      * [d- Note about ORC](#d--note-about-orc)
 * [C- Samples](#C--samples)
   * [I- File as an input](#I--file-as-an-input)
       * [1- File to File](#1--file-to-file)
@@ -201,6 +207,8 @@ You can find as well some data samples [here](https://github.com/ghazi-naceur/da
 
 # B- Routes:
 
+## 1- Query structure:
+
 **Data-Highway** channel is composed by types of routes :
 
   - **Conversion route**: It can be performed by invoking an HTTP POST request on the url `http://localhost:5555/conversion/route`, 
@@ -243,6 +251,82 @@ path/to/data/
         ├─────────────────/person-6.json
 ```
 
+## 2- Notes about data types:
+
+### a- Note about CSV:
+
+If your input or output **File** type is **CSV**, you need to provide some additional information to ensure a successful processing
+in much secure way. You need to configure your entity as follows:
+```json
+.....
+"input": { // or "output"
+      "type": "file",
+      "data-type": {
+        "type": "csv",
+        "infer-schema": true, // infer schema when reading or writing the data as CSV. It can be "true" or "false"
+        "header": true, // Specify that the first line of the CSV file is a header. It can be "true" or "false" 
+        "separator": ";" // Specify the separator between fields in the CSV file
+      },
+      "path": "/path/to/data/csv/input"
+},
+......
+```
+
+### b- Note about XML:
+
+If your input or output **File** type is **CSV**, you need to provide some additional properties:
+```json
+.........
+"output": { // or input
+  "type": "file",
+  "data-type": {
+    "type": "xml",
+    "root-tag": "persons", // The root tag for the XML file
+    "row-tag": "person" // The row tag for the XML record/row
+  },
+  "path": "/path/to/data/xml/output"
+}
+.........
+```
+
+### c- Note about Parquet:
+
+You can set **compression** for these **output** data types as follows :
+- **Parquet**: The supported compression types for parquet are **snappy** and **gzip**:
+```json
+...........
+  "output": {
+    "type": "file",
+    "data-type": {
+        "type": "parquet",
+        "compression": {  // option field
+            "type": "gzip" // supported values are: snappy' and 'gzip'
+        }
+    },
+    "path": "/path/to/parquet/output"
+  }
+..........
+```
+
+### d- Note about ORC:
+
+You can set **compression** for these **output** data types as follows :
+- **ORC**: The supported compression types for orc are **snappy**, **lzo** and **zlib**:
+```json
+...........
+  "output": {
+    "type": "file",
+    "data-type": {
+        "type": "orc",
+        "compression": { // option field
+            "type": "snappy" // supported values are: snappy', 'lzo', and 'zlib'
+        }
+    },
+    "path": "/path/to/orc/output"
+  }
+..........
+```
+
 # C- Samples:
 
 The following section provides some samples that you can find here [REST queries](https://github.com/ghazi-naceur/data-highway/tree/master/postman).
@@ -267,14 +351,14 @@ that will be created automatically.
     "input": { // 1- The input section
       "type": "file",
       "data-type": {
-        "type": "parquet" // supported values: 'avro', orc, 'parquet', 'xml', 'csv'(See Note about CSV), 'json' and 'xlsx'
+        "type": "parquet" // supported values: 'avro', 'orc'(See **Note about ORC**), 'parquet'(See **Note about Parquet**), 'xml'(See **Note about XML**), 'csv'(See **Note about CSV**), 'json' and 'xlsx'
       },
       "path": "/path/to/data/parquet/input"
     },
     "output": { // 2- The output section
       "type": "file",
       "data-type": {
-        "type": "avro" // supported values: 'avro', orc, 'parquet', 'xml', 'csv'(See Note about CSV), 'json' and 'xlsx'
+        "type": "avro" // supported values: 'avro', 'orc'(See **Note about ORC**), 'parquet'(See **Note about Parquet**), 'xml'(See **Note about XML**), 'csv'(See **Note about CSV**), 'json' and 'xlsx'
       },
       "path": "/path/to/data/avro/output"
     },
@@ -286,38 +370,6 @@ that will be created automatically.
     }
   }
 }
-```
-
-You can set **compression** for these **output** data types as follows :
-  - **Parquet**: The supported compression types for parquet are **snappy** and **gzip**:
-```json
-...........
-  "output": {
-    "type": "file",
-    "data-type": {
-        "type": "parquet",
-        "compression": {  // option field
-            "type": "gzip" // supported values are: snappy' and 'gzip'
-        }
-    },
-    "path": "/path/to/parquet/output"
-  }
-..........
-```
-  - **ORC**: The supported compression types for orc are **snappy**, **lzo** and **zlib**:
-```json
-...........
-  "output": {
-    "type": "file",
-    "data-type": {
-        "type": "orc",
-        "compression": { // option field
-            "type": "snappy" // supported values are: snappy', 'lzo', and 'zlib'
-        }
-    },
-    "path": "/path/to/orc/output"
-  }
-..........
 ```
 
 ### 2- File to Kafka:
@@ -335,7 +387,7 @@ You can produce data to a Kafka topic using one of these 2 modes : `Pure Kafka P
     "input": {
       "type": "file",
       "data-type": {
-        "type": "avro" // supported values: 'avro', orc, 'parquet', 'xml', 'csv'(See Note about CSV), 'json' and 'xlsx'
+        "type": "avro" // supported values: 'avro', 'orc'(See **Note about ORC**), 'parquet'(See **Note about Parquet**), 'xml'(See **Note about XML**), 'csv'(See **Note about CSV**), 'json' and 'xlsx'
       },
       "path": "/path/to/data/avro/input"
     },
@@ -365,7 +417,7 @@ This a one-time job.
     "input": {
       "type": "file",
       "data-type": {
-        "type": "json" // supported values: 'avro', orc, 'parquet', 'xml', 'csv'(See Note about CSV), 'json' and 'xlsx'
+        "type": "json" // supported values: 'avro', 'orc'(See **Note about ORC**), 'parquet'(See **Note about Parquet**), 'xml'(See **Note about XML**), 'csv'(See **Note about CSV**), 'json' and 'xlsx'
       },
       "path": "/path/to/data/json/input"
     },
@@ -383,24 +435,6 @@ This a one-time job.
   }
 }
 ```
-**Note about CSV**:
-
-If your input or output **File** type is **CSV**, you need to provide some additional information to ensure a successful processing 
-in much secure way. You need to configure your entity as follows:
-```json
-.....
-"input": {
-      "type": "file",
-      "data-type": {
-        "type": "csv",
-        "infer-schema": true, // infer schema when reading or writing the data as CSV. It can be "true" or "false"
-        "header": true, // Specify that the first line of the CSV file is a header. It can be "true" or "false" 
-        "separator": ";" // Specify the separator between fields in the CSV file
-      },
-      "path": "/path/to/data/json/input"
-},
-......
-```
 
 ### 3- File to Postgres:
 
@@ -413,7 +447,7 @@ This a one-time job.
     "input": {
       "type": "file",
       "data-type": {
-        "type": "avro" // supported values: 'avro', orc, 'parquet', 'xml', 'csv'(See Note about CSV), 'json' and 'xlsx'
+        "type": "avro" // supported values: 'avro', 'orc'(See **Note about ORC**), 'parquet'(See **Note about Parquet**), 'xml'(See **Note about XML**), 'csv'(See **Note about CSV**), 'json' and 'xlsx'
       },
       "path": "/path/to/data/csv/input"
     },
@@ -443,7 +477,7 @@ This a one-time job.
     "input": {
       "type": "file",
       "data-type": {
-        "type": "avro" // supported values: 'avro', orc, 'parquet', 'xml', 'csv'(See Note about CSV), 'json' and 'xlsx'
+        "type": "avro" // supported values: 'avro', 'orc'(See **Note about ORC**), 'parquet'(See **Note about Parquet**), 'xml'(See **Note about XML**), 'csv'(See **Note about CSV**), 'json' and 'xlsx'
       },
       "path": "/path/to/data/csv/input"
     },
@@ -473,7 +507,7 @@ This a one-time job.
     "input": {
       "type": "file",
       "data-type": {
-        "type": "json" // supported values: 'avro', orc, 'parquet', 'xml', 'csv'(See Note about CSV), 'json' and 'xlsx'
+        "type": "json" // supported values: 'avro', 'orc'(See **Note about ORC**), 'parquet'(See **Note about Parquet**), 'xml'(See **Note about XML**), 'csv'(See **Note about CSV**), 'json' and 'xlsx'
       },
       "path": "/path/to/data/json/input"
     },
@@ -520,7 +554,7 @@ This is a long-running job.
     "output": {
       "type": "file",
       "data-type": {
-        "type": "json" // supported values: 'avro', orc, 'parquet', 'xml', 'csv'(See Note about CSV), 'json' and 'xlsx'
+        "type": "json" // supported values: 'avro', 'orc'(See **Note about ORC**), 'parquet'(See **Note about Parquet**), 'xml'(See **Note about XML**), 'csv'(See **Note about CSV**), 'json' and 'xlsx'
       },
       "path": "/path/to/data/json/input"
     },
@@ -558,7 +592,7 @@ This is a long-running job.
     "output": {
       "type": "file",
       "data-type": {
-        "type": "parquet" // supported values: 'avro', orc, 'parquet', 'xml', 'csv'(See Note about CSV), 'json' and 'xlsx'
+        "type": "parquet" // supported values: 'avro', 'orc'(See **Note about ORC**), 'parquet'(See **Note about Parquet**), 'xml'(See **Note about XML**), 'csv'(See **Note about CSV**), 'json' and 'xlsx'
       },
       "path": "/path/to/data/parquet/input"
     },
@@ -594,7 +628,7 @@ This is a one-time job.
     "output": {
       "type": "file",
       "data-type": {
-        "type": "avro" // supported values: 'avro', orc, 'parquet', 'xml', 'csv'(See Note about CSV), 'json' and 'xlsx'
+        "type": "avro" // supported values: 'avro', 'orc'(See **Note about ORC**), 'parquet'(See **Note about Parquet**), 'xml'(See **Note about XML**), 'csv'(See **Note about CSV**), 'json' and 'xlsx'
       },
       "path": "/path/to/data/avro/input"
     },
@@ -980,7 +1014,7 @@ This is a one-time job.
     "output": {
       "type": "file",
       "data-type": {
-        "type": "json" // supported values: 'avro', orc, 'parquet', 'xml', 'csv'(See Note about CSV), 'json' and 'xlsx'
+        "type": "json" // supported values: 'avro', 'orc'(See **Note about ORC**), 'parquet'(See **Note about Parquet**), 'xml'(See **Note about XML**), 'csv'(See **Note about CSV**), 'json' and 'xlsx'
       },
       "path": "/path/to/data/json/output"
     },
@@ -1135,7 +1169,7 @@ This is a one-time job.
     "output": {
       "type": "file",
       "data-type": {
-        "type": "json" // supported values: 'avro', orc, 'parquet', 'xml', 'csv'(See Note about CSV), 'json' and 'xlsx'
+        "type": "json" // supported values: 'avro', 'orc'(See **Note about ORC**), 'parquet'(See **Note about Parquet**), 'xml'(See **Note about XML**), 'csv'(See **Note about CSV**), 'json' and 'xlsx'
       },
       "path": "/path/to/data/json/output"
     },
@@ -1519,7 +1553,7 @@ This is a one-time job. See section [12- Elasticsearch Search Queries](#12--elas
     "output": {
       "type": "file",
       "data-type": {
-        "type": "json" // supported values: 'avro', orc, 'parquet', 'xml', 'csv'(See Note about CSV), 'json' and 'xlsx'
+        "type": "json" // supported values: 'avro', 'orc'(See **Note about ORC**), 'parquet'(See **Note about Parquet**), 'xml'(See **Note about XML**), 'csv'(See **Note about CSV**), 'json' and 'xlsx'
       },
       "path": "/path/to/data/json/output"
     },
