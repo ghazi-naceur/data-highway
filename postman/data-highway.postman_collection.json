@@ -706,6 +706,122 @@
 									"response": []
 								}
 							]
+						},
+						{
+							"name": "file_to_xml",
+							"item": [
+								{
+									"name": "file-to-xml_docker",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"hdfs://localhost:9000/app/data/parquet/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"xml\",\n            \"rootTag\": \"persons\",\n            \"rowTag\": \"person\"\n        },\n        \"path\": \"hdfs://localhost:9000/app/data/xml/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"save-mode\": {\n        \"type\": \"overwrite\"\n    }\n  }\n}"
+										},
+										"url": {
+											"raw": "http://localhost:5555/conversion/route",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "5555",
+											"path": [
+												"conversion",
+												"route"
+											],
+											"query": [
+												{
+													"key": "",
+													"value": null,
+													"disabled": true
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "file-to-xml_local",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"parquet\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/parquet/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"xml\",\n            \"root-tag\": \"persons\",\n            \"row-tag\": \"person\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/xml/output\"\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    },\n    \"save-mode\": {\n        \"type\": \"overwrite\"\n    }\n  }\n}"
+										},
+										"url": {
+											"raw": "http://localhost:5555/conversion/route",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "5555",
+											"path": [
+												"conversion",
+												"route"
+											],
+											"query": [
+												{
+													"key": "",
+													"value": null,
+													"disabled": true
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "file-to-xml_hdfs",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"csv\",\n            \"infer-schema\": true,\n            \"header\": true,\n            \"separator\": \";\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/csv/input\"\n    },\n    \"output\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"xml\",\n            \"rootTag\": \"persons\",\n            \"rowTag\": \"person\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/xml/output\"\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    },\n    \"save-mode\": {\n        \"type\": \"overwrite\"\n    }\n  }\n}"
+										},
+										"url": {
+											"raw": "http://localhost:5555/conversion/route",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "5555",
+											"path": [
+												"conversion",
+												"route"
+											],
+											"query": [
+												{
+													"key": "",
+													"value": null,
+													"disabled": true
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
 						}
 					]
 				},
@@ -1110,7 +1226,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"xlsx\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/xlsx/input\"\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-3\",\n        \"bulk-enabled\": true\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"xlsx\"\n        },\n        \"path\": \"hdfs://localhost:9000/data/xlsx/input\"\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-9\",\n        \"bulk-enabled\": false\n    },\n    \"storage\": {\n        \"type\": \"hdfs\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
