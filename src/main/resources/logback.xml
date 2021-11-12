@@ -13,6 +13,11 @@
         </encoder>
     </appender>
 
+    <logger name="org.spark_project" level="OFF"/>
+    <logger name="org.apache.spark" level="OFF"/>
+    <logger name="org.apache.hadoop" level="OFF"/>
+    <logger name="org.http4s.blaze.channel.nio1.NIO1SocketServerGroup" level="OFF"/>
+
     <root level="info">
         <appender-ref ref="STDOUT" />
         <appender-ref ref="FILE" />
