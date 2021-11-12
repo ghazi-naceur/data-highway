@@ -1,12 +1,13 @@
 package gn.oss.data.highway.utils
 
+import gn.oss.data.highway.configs.HdfsUtils
 import gn.oss.data.highway.helper.TestHelper
 import org.scalactic.source.Position
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class HdfsUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with TestHelper {
+class HdfsUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with TestHelper with HdfsUtils {
 
   override protected def after(fun: => Any)(implicit pos: Position): Unit = {
     deleteFolderWithItsContent(hdfsEntity.hdfsUri + "/tmp/data-highway")
@@ -15,11 +16,7 @@ class HdfsUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with T
   "HdfsUtils.save" should "save a file" in {
     val time = System.currentTimeMillis().toString
     HdfsUtils
-      .save(
-        hdfsEntity.fs,
-        hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/files/file.txt",
-        "some content"
-      )
+      .save(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/files/file.txt", "some content")
     val files =
       HdfsUtils.listFiles(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/files")
     files.head shouldBe hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/files/file.txt"
@@ -61,11 +58,7 @@ class HdfsUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with T
     HdfsUtils
       .mkdir(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/processed")
     val result = HdfsUtils
-      .move(
-        hdfsEntity.fs,
-        s"/tmp/data-highway/$time/input/dataset",
-        s"/tmp/data-highway/$time/processed"
-      )
+      .move(hdfsEntity.fs, s"/tmp/data-highway/$time/input/dataset", s"/tmp/data-highway/$time/processed")
     val files = HdfsUtils
       .listFiles(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/processed/dataset")
     result.right.get shouldBe true
@@ -198,9 +191,7 @@ class HdfsUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with T
   }
 
   "HdfsUtils.getPathWithoutUriPrefix" should "get the path without the URI prefix 'hdfs://host:port'" in {
-    val result = HdfsUtils.getPathWithoutUriPrefix(
-      "hdfs://localhost:36537/tmp/data-highway-564578894565/input/dataset"
-    )
+    val result = HdfsUtils.getPathWithoutUriPrefix("hdfs://localhost:36537/tmp/data-highway-564578894565/input/dataset")
     result shouldBe "/tmp/data-highway-564578894565/input/dataset"
   }
 
@@ -270,9 +261,9 @@ class HdfsUtilsSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with T
     val result = HdfsUtils
       .listFilesRecursively(hdfsEntity.fs, hdfsEntity.hdfsUri + s"/tmp/data-highway/$time/input")
     result should contain theSameElementsAs List(
-      s"/tmp/data-highway/$time/input/dataset1/file.json",
-      s"/tmp/data-highway/$time/input/dataset1/file2.json",
-      s"/tmp/data-highway/$time/input/dataset2/file.json"
+      s"${hadoopConf.host}:${hadoopConf.port}" + s"/tmp/data-highway/$time/input/dataset1/file.json",
+      s"${hadoopConf.host}:${hadoopConf.port}" + s"/tmp/data-highway/$time/input/dataset1/file2.json",
+      s"${hadoopConf.host}:${hadoopConf.port}" + s"/tmp/data-highway/$time/input/dataset2/file.json"
     )
   }
 }
