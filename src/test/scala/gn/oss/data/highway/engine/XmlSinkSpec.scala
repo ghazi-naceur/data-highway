@@ -10,23 +10,23 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class XlsxSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with DatasetComparer with TestHelper {
+class XmlSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with DatasetComparer with TestHelper {
 
   override def beforeEach(): Unit = {
-    deleteFolderWithItsContent(xlsxFolder + "output")
+    deleteFolderWithItsContent(xmlFolder + "output")
   }
 
-  "BasicSink.convert" should "convert csv to xlsx" in {
+  "BasicSink.convert" should "convert csv to xml" in {
     BasicSink.convert(
       CSV(inferSchema = true, header = true, ";"),
       csvFolder + "input/mock-data-2",
-      XLSX,
-      xlsxFolder + "output/mock-data-2",
+      XML("persons", "person"),
+      xmlFolder + "output/mock-data-2",
       SaveMode.Overwrite
     )
     val filename =
       FilesUtils
-        .listFiles(List(xlsxFolder + "output/mock-data-2"))
+        .listFiles(List(xmlFolder + "output/mock-data-2"))
         .right
         .get
         .filterNot(_.getName.startsWith("."))
@@ -34,7 +34,7 @@ class XlsxSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
         .getName
     val actual =
       DataFrameUtils
-        .loadDataFrame(XLSX, xlsxFolder + s"output/mock-data-2/$filename")
+        .loadDataFrame(XML("persons", "person"), xmlFolder + s"output/mock-data-2/$filename")
         .right
         .get
         .orderBy("id")
@@ -43,12 +43,18 @@ class XlsxSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
     assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
   }
 
-  "BasicSink.convert" should "convert json to xlsx" in {
+  "BasicSink.convert" should "convert json to xml" in {
     BasicSink
-      .convert(JSON, jsonFolder + "input/mock-data-2", XLSX, xlsxFolder + "output/mock-data-2", SaveMode.Overwrite)
+      .convert(
+        JSON,
+        jsonFolder + "input/mock-data-2",
+        XML("persons", "person"),
+        xmlFolder + "output/mock-data-2",
+        SaveMode.Overwrite
+      )
     val filename =
       FilesUtils
-        .listFiles(List(xlsxFolder + "output/mock-data-2"))
+        .listFiles(List(xmlFolder + "output/mock-data-2"))
         .right
         .get
         .filterNot(_.getName.startsWith("."))
@@ -56,7 +62,7 @@ class XlsxSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
         .getName
     val actual =
       DataFrameUtils
-        .loadDataFrame(XLSX, xlsxFolder + s"output/mock-data-2/$filename")
+        .loadDataFrame(XML("persons", "person"), xmlFolder + s"output/mock-data-2/$filename")
         .right
         .get
         .orderBy("id")
@@ -65,88 +71,17 @@ class XlsxSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
     assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
   }
 
-  "BasicSink.convert" should "convert parquet to xlsx" in {
+  "BasicSink.convert" should "convert parquet to xml" in {
     BasicSink.convert(
       PARQUET(None),
       parquetFolder + "input/mock-data-2",
-      XLSX,
-      xlsxFolder + "output/mock-data-2",
-      SaveMode.Overwrite
-    )
-    val filename =
-      FilesUtils
-        .listFiles(List(xlsxFolder + "output/mock-data-2"))
-        .right
-        .get
-        .filterNot(_.getName.startsWith("."))
-        .head
-        .getName
-    val actual =
-      DataFrameUtils
-        .loadDataFrame(XLSX, xlsxFolder + s"output/mock-data-2/$filename")
-        .right
-        .get
-        .orderBy("id")
-        .select("id", "first_name", "last_name", "email", "gender", "ip_address")
-
-    assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
-  }
-
-  "BasicSink.convert" should "convert orc to xlsx" in {
-    BasicSink
-      .convert(ORC(None), orcFolder + "input/mock-data-2", XLSX, xlsxFolder + "output/mock-data-2", SaveMode.Overwrite)
-    val filename =
-      FilesUtils
-        .listFiles(List(xlsxFolder + "output/mock-data-2"))
-        .right
-        .get
-        .filterNot(_.getName.startsWith("."))
-        .head
-        .getName
-    val actual =
-      DataFrameUtils
-        .loadDataFrame(XLSX, xlsxFolder + s"output/mock-data-2/$filename")
-        .right
-        .get
-        .orderBy("id")
-        .select("id", "first_name", "last_name", "email", "gender", "ip_address")
-
-    assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
-  }
-
-  "BasicSink.convert" should "convert avro to xlsx" in {
-    BasicSink
-      .convert(AVRO, avroFolder + "input/mock-data-2", XLSX, xlsxFolder + "output/mock-data-2", SaveMode.Overwrite)
-    val filename =
-      FilesUtils
-        .listFiles(List(xlsxFolder + "output/mock-data-2"))
-        .right
-        .get
-        .filterNot(_.getName.startsWith("."))
-        .head
-        .getName
-    val actual =
-      DataFrameUtils
-        .loadDataFrame(XLSX, xlsxFolder + s"output/mock-data-2/$filename")
-        .right
-        .get
-        .orderBy("id")
-        .select("id", "first_name", "last_name", "email", "gender", "ip_address")
-
-    assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
-  }
-
-  "BasicSink.convert" should "convert xml to xlsx" in {
-    BasicSink.convert(
       XML("persons", "person"),
-      xmlFolder + "input/mock-data-2",
-      XLSX,
-      xlsxFolder + "output/mock-data-2",
+      xmlFolder + "output/mock-data-2",
       SaveMode.Overwrite
     )
     val filename =
       FilesUtils
-        .listFiles(List(xlsxFolder + "output/mock-data-2"))
+        .listFiles(List(xmlFolder + "output/mock-data-2"))
         .right
         .get
         .filterNot(_.getName.startsWith("."))
@@ -154,12 +89,87 @@ class XlsxSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
         .getName
     val actual =
       DataFrameUtils
-        .loadDataFrame(XLSX, xlsxFolder + s"output/mock-data-2/$filename")
+        .loadDataFrame(XML("persons", "person"), xmlFolder + s"output/mock-data-2/$filename")
         .right
         .get
         .orderBy("id")
         .select("id", "first_name", "last_name", "email", "gender", "ip_address")
 
     assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
+  }
+
+  "BasicSink.convert" should "convert orc to xml" in {
+    BasicSink
+      .convert(
+        ORC(None),
+        orcFolder + "input/mock-data-2",
+        XML("persons", "person"),
+        xmlFolder + "output/mock-data-2",
+        SaveMode.Overwrite
+      )
+    val filename =
+      FilesUtils
+        .listFiles(List(xmlFolder + "output/mock-data-2"))
+        .right
+        .get
+        .filterNot(_.getName.startsWith("."))
+        .head
+        .getName
+    val actual =
+      DataFrameUtils
+        .loadDataFrame(XML("persons", "person"), xmlFolder + s"output/mock-data-2/$filename")
+        .right
+        .get
+        .orderBy("id")
+        .select("id", "first_name", "last_name", "email", "gender", "ip_address")
+
+    assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
+  }
+
+  "BasicSink.convert" should "convert avro to xml" in {
+    BasicSink
+      .convert(
+        AVRO,
+        avroFolder + "input/mock-data-2",
+        XML("persons", "person"),
+        xmlFolder + "output/mock-data-2",
+        SaveMode.Overwrite
+      )
+    val filename =
+      FilesUtils
+        .listFiles(List(xmlFolder + "output/mock-data-2"))
+        .right
+        .get
+        .filterNot(_.getName.startsWith("."))
+        .head
+        .getName
+    val actual =
+      DataFrameUtils
+        .loadDataFrame(XML("persons", "person"), xmlFolder + s"output/mock-data-2/$filename")
+        .right
+        .get
+        .orderBy("id")
+        .select("id", "first_name", "last_name", "email", "gender", "ip_address")
+
+    assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
+  }
+
+  "BasicSink.convert" should "convert xlsx to parquet" in {
+    BasicSink.convert(
+      XLSX,
+      xlsxFolder + "input/folder1/mock-xlsx-data-13.xlsx",
+      XML("persons", "person"),
+      xmlFolder + "output/folder1/mock-xlsx-data-13",
+      SaveMode.Overwrite
+    )
+    val actual =
+      DataFrameUtils
+        .loadDataFrame(XML("persons", "person"), xmlFolder + "output/folder1/mock-xlsx-data-13")
+        .right
+        .get
+        .orderBy("id")
+        .select("id", "first_name", "last_name", "email", "gender", "ip_address")
+
+    assertSmallDatasetEquality(actual, expected2, ignoreNullable = true)
   }
 }

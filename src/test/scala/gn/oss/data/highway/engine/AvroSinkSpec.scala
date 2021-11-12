@@ -3,19 +3,14 @@ package gn.oss.data.highway.engine
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
 import gn.oss.data.highway.engine.sinks.BasicSink
 import gn.oss.data.highway.helper.TestHelper
-import gn.oss.data.highway.models.{AVRO, CSV, JSON, ORC, PARQUET, XLSX}
+import gn.oss.data.highway.models.{AVRO, CSV, JSON, ORC, PARQUET, XLSX, XML}
 import gn.oss.data.highway.utils.DataFrameUtils
 import org.apache.spark.sql.SaveMode
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class AvroSinkSpec
-    extends AnyFlatSpec
-    with Matchers
-    with BeforeAndAfterEach
-    with DatasetComparer
-    with TestHelper {
+class AvroSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with DatasetComparer with TestHelper {
 
   override def beforeEach(): Unit = {
     deleteFolderWithItsContent(avroFolder + "output")
@@ -42,13 +37,7 @@ class AvroSinkSpec
 
   "BasicSink.convert" should "convert json to avro" in {
     BasicSink
-      .convert(
-        JSON,
-        jsonFolder + "input/mock-data-2",
-        AVRO,
-        avroFolder + "output/mock-data-2",
-        SaveMode.Overwrite
-      )
+      .convert(JSON, jsonFolder + "input/mock-data-2", AVRO, avroFolder + "output/mock-data-2", SaveMode.Overwrite)
     val actual =
       DataFrameUtils
         .loadDataFrame(AVRO, avroFolder + "output/mock-data-2")
@@ -82,9 +71,23 @@ class AvroSinkSpec
 
   "BasicSink.convert" should "convert orc to avro" in {
     BasicSink
+      .convert(ORC(None), orcFolder + "input/mock-data-2", AVRO, avroFolder + "output/mock-data-2", SaveMode.Overwrite)
+    val actual =
+      DataFrameUtils
+        .loadDataFrame(AVRO, avroFolder + "output/mock-data-2")
+        .right
+        .get
+        .orderBy("id")
+        .select("id", "first_name", "last_name", "email", "gender", "ip_address")
+
+    assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
+  }
+
+  "BasicSink.convert" should "convert xml to avro" in {
+    BasicSink
       .convert(
-        ORC(None),
-        orcFolder + "input/mock-data-2",
+        XML("persons", "person"),
+        xmlFolder + "input/mock-data-2",
         AVRO,
         avroFolder + "output/mock-data-2",
         SaveMode.Overwrite

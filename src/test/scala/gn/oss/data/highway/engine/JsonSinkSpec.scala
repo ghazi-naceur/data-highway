@@ -3,19 +3,14 @@ package gn.oss.data.highway.engine
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
 import gn.oss.data.highway.engine.sinks.BasicSink
 import gn.oss.data.highway.helper.TestHelper
-import gn.oss.data.highway.models.{AVRO, CSV, JSON, ORC, PARQUET, XLSX}
+import gn.oss.data.highway.models.{AVRO, CSV, JSON, ORC, PARQUET, XLSX, XML}
 import gn.oss.data.highway.utils.DataFrameUtils
 import org.apache.spark.sql.SaveMode
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class JsonSinkSpec
-    extends AnyFlatSpec
-    with Matchers
-    with BeforeAndAfterEach
-    with DatasetComparer
-    with TestHelper {
+class JsonSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with DatasetComparer with TestHelper {
 
   override def beforeEach(): Unit = {
     deleteFolderWithItsContent(jsonFolder + "output")
@@ -40,13 +35,8 @@ class JsonSinkSpec
   }
 
   "BasicSink.convert" should "convert avro to json" in {
-    BasicSink.convert(
-      AVRO,
-      avroFolder + "input/mock-data-2",
-      JSON,
-      jsonFolder + "output/mock-data-2",
-      SaveMode.Overwrite
-    )
+    BasicSink
+      .convert(AVRO, avroFolder + "input/mock-data-2", JSON, jsonFolder + "output/mock-data-2", SaveMode.Overwrite)
     val actual =
       DataFrameUtils
         .loadDataFrame(JSON, jsonFolder + "output/mock-data-2")
@@ -60,13 +50,7 @@ class JsonSinkSpec
 
   "BasicSink.convert" should "convert orc to json" in {
     BasicSink
-      .convert(
-        ORC(None),
-        orcFolder + "input/mock-data-2",
-        JSON,
-        jsonFolder + "output/mock-data-2",
-        SaveMode.Overwrite
-      )
+      .convert(ORC(None), orcFolder + "input/mock-data-2", JSON, jsonFolder + "output/mock-data-2", SaveMode.Overwrite)
     val actual =
       DataFrameUtils
         .loadDataFrame(JSON, jsonFolder + "output/mock-data-2")
@@ -82,6 +66,25 @@ class JsonSinkSpec
     BasicSink.convert(
       CSV(inferSchema = true, header = true, ";"),
       csvFolder + "input/mock-data-2",
+      JSON,
+      jsonFolder + "output/mock-data-2",
+      SaveMode.Overwrite
+    )
+    val actual =
+      DataFrameUtils
+        .loadDataFrame(JSON, jsonFolder + "output/mock-data-2")
+        .right
+        .get
+        .orderBy("id")
+        .select("id", "first_name", "last_name", "email", "gender", "ip_address")
+
+    assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
+  }
+
+  "BasicSink.convert" should "convert xml to json" in {
+    BasicSink.convert(
+      XML("persons", "person"),
+      xmlFolder + "input/mock-data-2",
       JSON,
       jsonFolder + "output/mock-data-2",
       SaveMode.Overwrite

@@ -3,19 +3,14 @@ package gn.oss.data.highway.engine
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
 import gn.oss.data.highway.engine.sinks.BasicSink
 import gn.oss.data.highway.helper.TestHelper
-import gn.oss.data.highway.models.{AVRO, CSV, JSON, ORC, PARQUET, Snappy, XLSX}
+import gn.oss.data.highway.models.{AVRO, CSV, JSON, ORC, PARQUET, Snappy, XLSX, XML}
 import gn.oss.data.highway.utils.DataFrameUtils
 import org.apache.spark.sql.SaveMode
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class ParquetSinkSpec
-    extends AnyFlatSpec
-    with Matchers
-    with BeforeAndAfterEach
-    with DatasetComparer
-    with TestHelper {
+class ParquetSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with DatasetComparer with TestHelper {
 
   override def beforeEach(): Unit = {
     deleteFolderWithItsContent(parquetFolder + "output")
@@ -81,6 +76,25 @@ class ParquetSinkSpec
     BasicSink.convert(
       JSON,
       jsonFolder + "input/mock-data-2",
+      PARQUET(Some(Snappy)),
+      parquetFolder + "output/mock-data-2",
+      SaveMode.Overwrite
+    )
+    val actual =
+      DataFrameUtils
+        .loadDataFrame(PARQUET(None), parquetFolder + "output/mock-data-2")
+        .right
+        .get
+        .orderBy("id")
+        .select("id", "first_name", "last_name", "email", "gender", "ip_address")
+
+    assertSmallDatasetEquality(actual, expected, ignoreNullable = true)
+  }
+
+  "BasicSink.convert" should "convert xml to parquet" in {
+    BasicSink.convert(
+      XML("persons", "person"),
+      xmlFolder + "input/mock-data-2",
       PARQUET(Some(Snappy)),
       parquetFolder + "output/mock-data-2",
       SaveMode.Overwrite
