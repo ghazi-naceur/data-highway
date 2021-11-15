@@ -1,5 +1,6 @@
 package gn.oss.data.highway.utils
 
+import com.typesafe.scalalogging.LazyLogging
 import gn.oss.data.highway.configs.{AppUtils, HdfsUtils}
 import gn.oss.data.highway.models.{
   DataHighwayError,
@@ -15,10 +16,11 @@ import gn.oss.data.highway.models.{
   Storage,
   TemporaryLocation
 }
+import gn.oss.data.highway.utils.Constants.EMPTY
 
 import java.util.UUID
 
-object SharedUtils extends HdfsUtils with AppUtils {
+object SharedUtils extends HdfsUtils with AppUtils with LazyLogging {
 
   def setTempoFilePath(module: String, storage: Option[Storage]): TemporaryLocation = {
     storage match {
@@ -59,8 +61,15 @@ object SharedUtils extends HdfsUtils with AppUtils {
     result: Either[Throwable, Any]
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     result match {
-      case Right(_)  => Right(DataHighwaySuccess(Plug.summary(input), Plug.summary(output)))
-      case Left(thr) => Left(DataHighwayError(thr.getMessage, thr.getCause.toString))
+      case Right(_) =>
+        logger.info(s"Successful route. Input: '$input' | Output: '$output'")
+        Right(DataHighwaySuccess(Plug.summary(input), Plug.summary(output)))
+      case Left(thr) =>
+        logger.error(DataHighwayError.prettyError(thr))
+        if (thr.getCause != null)
+          Left(DataHighwayError(thr.getMessage, thr.getCause.toString))
+        else
+          Left(DataHighwayError(thr.getMessage, EMPTY))
     }
   }
 }
