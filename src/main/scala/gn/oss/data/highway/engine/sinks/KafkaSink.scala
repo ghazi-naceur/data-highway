@@ -45,7 +45,7 @@ object KafkaSink extends HdfsUtils with AppUtils with LazyLogging {
   val checkpointFolder: String = SharedUtils.setTempoFilePath("checkpoint", None).path
 
   /**
-    * Handles Kafka sink
+    * Handles file-to-kafka route
     *
     * @param input The input File entity
     * @param output The output Kafka entity
@@ -217,6 +217,7 @@ object KafkaSink extends HdfsUtils with AppUtils with LazyLogging {
 
   /**
     * Publishes dataframe to topic using the Spark Kafka Connector
+    *
     * @param brokers The Kafka brokers
     * @param outputTopic THe output Kafka Topic
     * @param dataframe The Dataframe to be published

@@ -43,7 +43,7 @@ object HdfsUtils extends HdfsUtils {
   }
 
   /**
-    * Move files
+    * Moves files
     *
     * @param fs The provided File System
     * @param src The source folder

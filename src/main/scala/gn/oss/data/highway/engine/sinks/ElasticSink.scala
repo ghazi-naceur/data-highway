@@ -101,12 +101,12 @@ object ElasticSink extends ElasticUtils with HdfsUtils with LazyLogging {
 
   /**
     * Index a DataFrame using an ES Index Query
-    * @param df The DataFrame to be indexed
+    * @param dataframe The DataFrame to be indexed
     * @param output The ES index
     */
-  private def indexDataFrameWithIndexQuery(df: DataFrame, output: String): Unit = {
+  private def indexDataFrameWithIndexQuery(dataframe: DataFrame, output: String): Unit = {
     DataFrameUtils
-      .convertDataFrameToJsonLines(df)
+      .convertDataFrameToJsonLines(dataframe)
       .map(_.map(line => indexDocInEs(output, line)))
   }
 
@@ -168,14 +168,14 @@ object ElasticSink extends ElasticUtils with HdfsUtils with LazyLogging {
   /**
     * Index a DataFrame using an ES Bulk Query
     *
-    * @param df The DataFrame to be indexed
+    * @param dataframe The DataFrame to be indexed
     * @param output The ES index
     * @return Response of BulkResponse, otherwise a Throwable
     */
-  private def indexDataFrameWithBulk(df: DataFrame, output: String): Either[Throwable, Response[BulkResponse]] = {
+  private def indexDataFrameWithBulk(dataframe: DataFrame, output: String): Either[Throwable, Response[BulkResponse]] = {
     import com.sksamuel.elastic4s.ElasticDsl._
     DataFrameUtils
-      .convertDataFrameToJsonLines(df)
+      .convertDataFrameToJsonLines(dataframe)
       .map(lines => {
         val queries = lines.map(line => indexInto(output) doc line refresh RefreshPolicy.IMMEDIATE)
         esClient.execute { bulk(queries).refresh(RefreshPolicy.Immediate) }.await
@@ -197,7 +197,7 @@ object ElasticSink extends ElasticUtils with HdfsUtils with LazyLogging {
   }
 
   /**
-    * Indexes files to Elasticsearch
+    * Handles file-to-elasticsearch route
     *
     * @param input The input File entity
     * @param output The output Elasticsearch entity

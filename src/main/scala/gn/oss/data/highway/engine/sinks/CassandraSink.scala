@@ -48,7 +48,7 @@ object CassandraSink extends HdfsUtils with LazyLogging {
   }
 
   /**
-    * Inserts files content into Cassandra
+    * Handles file-to-cassandra route
     *
     * @param input The input DataHighway File Entity
     * @param output The output DataHighway File Entity

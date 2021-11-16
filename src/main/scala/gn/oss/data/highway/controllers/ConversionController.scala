@@ -7,7 +7,6 @@ import gn.oss.data.highway.configs.ConfigLoader
 import gn.oss.data.highway.engine.Dispatcher
 import gn.oss.data.highway.models
 import gn.oss.data.highway.models.Route
-import org.apache.log4j.Logger
 import org.http4s._
 import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
 import org.http4s.dsl.io._
