@@ -101,10 +101,12 @@ object ElasticSink extends ElasticUtils with HdfsUtils with LazyLogging {
 
   /**
     * Index a DataFrame using an ES Index Query
+    *
     * @param dataframe The DataFrame to be indexed
     * @param output The ES index
+    * @return a List of Unit, otherwise an Throwable
     */
-  private def indexDataFrameWithIndexQuery(dataframe: DataFrame, output: String): Unit = {
+  private def indexDataFrameWithIndexQuery(dataframe: DataFrame, output: String): Either[Throwable, List[Unit]] = {
     DataFrameUtils
       .convertDataFrameToJsonLines(dataframe)
       .map(_.map(line => indexDocInEs(output, line)))
