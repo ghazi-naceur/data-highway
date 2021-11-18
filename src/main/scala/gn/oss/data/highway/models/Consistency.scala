@@ -2,7 +2,6 @@ package gn.oss.data.highway.models
 
 import org.apache.spark.sql.SaveMode
 
-// todo check if SaveMode/Enum is supported by pure config.. if so, delete Consistency class
 sealed trait Consistency {
   def toSaveMode: SaveMode
 }
