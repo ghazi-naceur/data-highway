@@ -2,6 +2,7 @@ package gn.oss.data.highway.engine.ops
 
 import gn.oss.data.highway.configs.ElasticUtils
 import cats.implicits._
+import com.typesafe.scalalogging.LazyLogging
 import gn.oss.data.highway.models.{
   DataHighwayElasticResponse,
   DataHighwayError,
@@ -12,8 +13,9 @@ import gn.oss.data.highway.models.{
   IndexDeletion,
   IndexMapping
 }
+import gn.oss.data.highway.utils.Constants
 
-object ElasticAdminOps extends ElasticUtils {
+object ElasticAdminOps extends ElasticUtils with LazyLogging {
 
   /**
     * Executes an Elasticsearch operation
@@ -45,11 +47,17 @@ object ElasticAdminOps extends ElasticUtils {
       val result = esClient.execute {
         createIndex(indexName)
       }.await.result
-      if (result.acknowledged)
+      if (result.acknowledged) {
+        logger.info(s"'$indexName' index is created successfully")
         DataHighwayElasticResponse(indexName, "Index created successfully")
-      else
+      } else {
+        logger.info(s"'$indexName' index is not created")
         DataHighwayElasticResponse(indexName, "Index is not created")
-    }.leftMap(thr => DataHighwayError(thr.getMessage, thr.getCause.toString))
+      }
+    }.leftMap(thr => {
+      logger.error(s"An error occurred when trying to create the index: ${DataHighwayError.prettyError(thr)}")
+      DataHighwayError(thr.getMessage, Constants.EMPTY)
+    })
   }
 
   /**
@@ -68,11 +76,17 @@ object ElasticAdminOps extends ElasticUtils {
       val result = esClient.execute {
         putMapping(indexName).rawSource(mappings)
       }.await.result
-      if (result.acknowledged)
+      if (result.acknowledged) {
+        logger.info(s"'$indexName' index is created successfully")
         DataHighwayElasticResponse(indexName, "Index created successfully")
-      else
+      } else {
+        logger.info(s"'$indexName' index is not created")
         DataHighwayElasticResponse(indexName, "Index is not created")
-    }.leftMap(thr => DataHighwayError(thr.getMessage, thr.getCause.toString))
+      }
+    }.leftMap(thr => {
+      logger.error(s"An error occurred when trying to create the index: ${DataHighwayError.prettyError(thr)}")
+      DataHighwayError(thr.getMessage, Constants.EMPTY)
+    })
   }
 
   /**
@@ -87,11 +101,17 @@ object ElasticAdminOps extends ElasticUtils {
       val result = esClient.execute {
         deleteIndex(indexName)
       }.await.result
-      if (result.acknowledged)
+      if (result.acknowledged) {
+        logger.info(s"'$indexName' index is deleted successfully")
         DataHighwayElasticResponse(indexName, "Index deleted successfully")
-      else
+      } else {
+        logger.info(s"'$indexName' index is not deleted")
         DataHighwayElasticResponse(indexName, "Index is not deleted")
-    }.leftMap(thr => DataHighwayError(thr.getMessage, thr.getCause.toString))
+      }
+    }.leftMap(thr => {
+      logger.error(s"An error occurred when trying to delete the index: ${DataHighwayError.prettyError(thr)}")
+      DataHighwayError(thr.getMessage, Constants.EMPTY)
+    })
   }
 
   /**
@@ -107,10 +127,16 @@ object ElasticAdminOps extends ElasticUtils {
       val result = esClient.execute {
         putMapping(indexName).rawSource(mappings)
       }.await.result
-      if (result.acknowledged)
+      if (result.acknowledged) {
+        logger.info(s"'$indexName' index mapping added successfully")
         DataHighwayElasticResponse(indexName, "Mapping added successfully")
-      else
+      } else {
+        logger.info(s"'$indexName' index mapping is not added")
         DataHighwayElasticResponse(indexName, "Mapping is not added")
-    }.leftMap(thr => DataHighwayError(thr.getMessage, thr.getCause.toString))
+      }
+    }.leftMap(thr => {
+      logger.error(s"An error occurred when trying to add the mapping: ${DataHighwayError.prettyError(thr)}")
+      DataHighwayError(thr.getMessage, Constants.EMPTY)
+    })
   }
 }
