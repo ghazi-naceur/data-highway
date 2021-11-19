@@ -24,7 +24,7 @@ import java.io.File
 object BasicSink extends HdfsUtils with LazyLogging {
 
   /**
-    * Converts file
+    * Converts the input dataset
     *
     * @param inputDataType The input data type path
     * @param inputPath The input path
@@ -47,7 +47,7 @@ object BasicSink extends HdfsUtils with LazyLogging {
   }
 
   /**
-    * Converts files
+    * Handles the file-to-file route
     *
     * @param input The input DataHighway File Entity
     * @param output The output DataHighway File Entity

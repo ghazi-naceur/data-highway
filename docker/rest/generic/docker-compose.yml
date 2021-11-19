@@ -5,7 +5,7 @@ services:
 
   app:
     build: .
-    image: data-highway-app:v0.5
+    image: data-highway-app:v0.6-beta
     ports:
       - "5555:5555"
     container_name: bungee-gum-app
@@ -28,6 +28,9 @@ services:
       - /home/ghazi/workspace/data-highway/src/test/resources/data/xlsx/input:/app/data/xlsx/input
       - /home/ghazi/workspace/data-highway/src/test/resources/data/xlsx/output:/app/data/xlsx/output
       - /home/ghazi/workspace/data-highway/src/test/resources/data/xlsx/processed:/app/data/xlsx/processed
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/xml/input:/app/data/xml/input
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/xml/output:/app/data/xml/output
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/xml/processed:/app/data/xml/processed
       - /home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/input:/app/data/elasticsearch/input
       - /home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output:/app/data/elasticsearch/output
       - /home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/processed:/app/data/elasticsearch/processed

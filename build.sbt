@@ -1,6 +1,6 @@
 name := "data-highway"
 
-version := "0.5"
+version := "0.6-beta"
 
 scalaVersion := "2.12.12"
 
@@ -36,6 +36,7 @@ val circeVersion = "0.13.0"
 val http4sVersion = "0.21.12"
 val sparkVersion = "2.4.6"
 val sparkExcelVersion = "0.13.7"
+val sparkXmlVersion = "0.14.0"
 val sparkConnectorVersion = "2.5.0"
 val sparkFastTestsVersion = "0.23.0"
 val kafkaVersion = "2.4.0"
@@ -57,6 +58,7 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-avro" % sparkVersion exclude ("org.slf4j", "slf4j-log4j12"),
   "org.apache.spark" %% "spark-streaming" % sparkVersion exclude ("org.slf4j", "slf4j-log4j12"),
   "com.crealytics" %% "spark-excel" % sparkExcelVersion exclude ("org.slf4j", "slf4j-log4j12"),
+  "com.databricks" %% "spark-xml" % sparkXmlVersion exclude ("org.slf4j", "slf4j-log4j12"),
   "com.datastax.spark" %% "spark-cassandra-connector" % sparkConnectorVersion exclude ("org.slf4j", "slf4j-log4j12"),
   "org.apache.spark" %% "spark-sql-kafka-0-10" % kafkaVersion exclude ("org.slf4j", "slf4j-log4j12"),
   "com.github.mrpowers" %% "spark-fast-tests" % sparkFastTestsVersion % Test exclude ("org.slf4j", "slf4j-log4j12"),

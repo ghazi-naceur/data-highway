@@ -1,5 +1,6 @@
 package gn.oss.data.highway.utils
 
+import com.typesafe.scalalogging.LazyLogging
 import gn.oss.data.highway.configs.{AppUtils, HdfsUtils}
 import gn.oss.data.highway.models.{
   DataHighwayError,
@@ -15,11 +16,19 @@ import gn.oss.data.highway.models.{
   Storage,
   TemporaryLocation
 }
+import gn.oss.data.highway.utils.Constants.EMPTY
 
 import java.util.UUID
 
-object SharedUtils extends HdfsUtils with AppUtils {
+object SharedUtils extends HdfsUtils with AppUtils with LazyLogging {
 
+  /**
+    * Sets temporary file path that will be used for intermediate computations
+    *
+    * @param module The module name
+    * @param storage The File System storage
+    * @return a TemporaryLocation entity
+    */
   def setTempoFilePath(module: String, storage: Option[Storage]): TemporaryLocation = {
     storage match {
       case Some(filesystem) =>
@@ -36,12 +45,25 @@ object SharedUtils extends HdfsUtils with AppUtils {
     }
   }
 
+  /**
+    * Sets temporary file path that will be used for intermediate computations in the Local File System
+    *
+    * @param module The module name
+    * @return a TemporaryLocation entity
+    */
   private def setLocalTempoFilePath(module: String): TemporaryLocation = {
     val tempoBasePath = s"${appConf.tmpWorkDir}/$module/${System.currentTimeMillis().toString}/"
     val temporaryPath = tempoBasePath + UUID.randomUUID().toString
     TemporaryLocation(temporaryPath, tempoBasePath)
   }
 
+  /**
+    * Sets the file system
+    *
+    * @param output The output entity
+    * @param storage The file system storage
+    * @return The file system storage
+    */
   def setFileSystem(output: Output, storage: Option[Storage]): Storage = {
     storage match {
       case Some(fileSystem) =>
@@ -53,14 +75,29 @@ object SharedUtils extends HdfsUtils with AppUtils {
     }
   }
 
+  /**
+    * Constructs the IO response
+    *
+    * @param input The input entity
+    * @param output The output entity
+    * @param dataHighwayResult The result of a Data Highway operation
+    * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
+    */
   def constructIOResponse(
     input: Input,
     output: Output,
-    result: Either[Throwable, Any]
+    dataHighwayResult: Either[Throwable, Any]
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
-    result match {
-      case Right(_)  => Right(DataHighwaySuccess(Plug.summary(input), Plug.summary(output)))
-      case Left(thr) => Left(DataHighwayError(thr.getMessage, thr.getCause.toString))
+    dataHighwayResult match {
+      case Right(_) =>
+        logger.info(s"Successful route. Input: '$input' | Output: '$output'")
+        Right(DataHighwaySuccess(Plug.summary(input), Plug.summary(output)))
+      case Left(thr) =>
+        logger.error(DataHighwayError.prettyError(thr))
+        if (thr.getCause != null)
+          Left(DataHighwayError(thr.getMessage, thr.getCause.toString))
+        else
+          Left(DataHighwayError(thr.getMessage, EMPTY))
     }
   }
 }

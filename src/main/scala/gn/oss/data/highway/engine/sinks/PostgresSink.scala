@@ -48,7 +48,7 @@ object PostgresSink extends HdfsUtils with LazyLogging {
   }
 
   /**
-    * Inserts files content into Postgres
+    * Handles file-to-postgres route
     *
     * @param input The input DataHighway File Entity
     * @param output The output DataHighway File Entity

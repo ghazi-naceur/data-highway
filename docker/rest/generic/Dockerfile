@@ -3,7 +3,7 @@ FROM ubuntu:18.04
 RUN apt-get update && apt-get install --no-install-recommends -y tzdata && \
  apt install --no-install-recommends -y openjdk-8-jdk openjdk-8-jre git wget curl
 
-ARG DATA_HIGHWAY_VERSION=0.5
+ARG DATA_HIGHWAY_VERSION=0.6-beta
 
 RUN mkdir -p /app/config && \
   mkdir -p /app/data/parquet/input && \
@@ -24,6 +24,9 @@ RUN mkdir -p /app/config && \
   mkdir -p /app/data/xlsx/input && \
   mkdir -p /app/data/xlsx/output && \
   mkdir -p /app/data/xlsx/processed && \
+  mkdir -p /app/data/xml/input && \
+  mkdir -p /app/data/xml/output && \
+  mkdir -p /app/data/xml/processed && \
   mkdir -p /app/data/kafka/input && \
   mkdir -p /app/data/kafka/output && \
   mkdir -p /app/data/kafka/processed && \

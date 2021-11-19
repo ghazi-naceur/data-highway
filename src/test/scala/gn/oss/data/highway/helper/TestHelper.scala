@@ -23,11 +23,12 @@ trait TestHelper {
   }
 
   val parquetFolder = "src/test/resources/data/parquet/"
-  val jsonFolder    = "src/test/resources/data/json/"
-  val orcFolder     = "src/test/resources/data/orc/"
-  val avroFolder    = "src/test/resources/data/avro/"
-  val xlsxFolder    = "src/test/resources/data/xlsx/"
-  val csvFolder     = "src/test/resources/data/csv/"
+  val jsonFolder = "src/test/resources/data/json/"
+  val orcFolder = "src/test/resources/data/orc/"
+  val avroFolder = "src/test/resources/data/avro/"
+  val xlsxFolder = "src/test/resources/data/xlsx/"
+  val xmlFolder = "src/test/resources/data/xml/"
+  val csvFolder = "src/test/resources/data/csv/"
 
   val expected: DataFrame = {
     import spark.implicits._
@@ -51,13 +52,13 @@ trait TestHelper {
 
   val hdfsEntity: HdfsEntity = {
     val baseDir = Files.createTempDirectory("test_hdfs").toFile.getAbsoluteFile
-    val conf    = new Configuration()
+    val conf = new Configuration()
     conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, baseDir.getAbsolutePath)
-    val builder     = new MiniDFSCluster.Builder(conf)
+    val builder = new MiniDFSCluster.Builder(conf)
     val hdfsCluster = builder.build()
 
     val hdfsURI = "hdfs://localhost:" + hdfsCluster.getNameNodePort()
-    val fs      = hdfsCluster.getFileSystem
+    val fs = hdfsCluster.getFileSystem
     HdfsEntity(fs, hdfsURI)
   }
 
@@ -65,7 +66,7 @@ trait TestHelper {
     new File(path).listFiles.toList
       .filterNot(_.getName.endsWith(".gitkeep"))
       .foreach(file => {
-        val path      = Paths.get(file.getPath)
+        val path = Paths.get(file.getPath)
         val directory = new Directory(file)
         directory.deleteRecursively()
         Files.deleteIfExists(path)

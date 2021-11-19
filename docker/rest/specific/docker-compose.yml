@@ -5,9 +5,9 @@ services:
 
   app:
     build: .
-    image: data-highway-app:v0.5
+    image: data-highway-app:v0.6-beta
     ports:
-      - 5555:5555
+      - "5555:5555"
     container_name: bungee-gum
     volumes:
       - /home/ghazi/workspace/data-highway/src/test/resources/data/parquet/input:/app/data/parquet/input
@@ -28,6 +28,9 @@ services:
       - /home/ghazi/workspace/data-highway/src/test/resources/data/xlsx/input:/app/data/xlsx/input
       - /home/ghazi/workspace/data-highway/src/test/resources/data/xlsx/output:/app/data/xlsx/output
       - /home/ghazi/workspace/data-highway/src/test/resources/data/xlsx/processed:/app/data/xlsx/processed
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/xml/input:/app/data/xml/input
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/xml/output:/app/data/xml/output
+      - /home/ghazi/workspace/data-highway/src/test/resources/data/xml/processed:/app/data/xml/processed
       - /home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/input:/app/data/elasticsearch/input
       - /home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/output:/app/data/elasticsearch/output
       - /home/ghazi/workspace/data-highway/src/test/resources/data/elasticsearch/processed:/app/data/elasticsearch/processed
@@ -37,4 +40,4 @@ services:
       - /home/ghazi/workspace/data-highway/src/main/resources/logback.xml:/app/config/logback.xml
       - /home/ghazi/workspace/data-highway/src/main/resources/application.conf:/app/config/application.conf
     network_mode: "host"
-    entrypoint: ["java", "-cp", "/app/jar/data-highway-0.5.jar", "gn.oss.data.highway.IOMain", "-Dlog4j.configuration=/app/config/logback.xml", "-Dconfig.file=/app/config/application.conf"]
+    entrypoint: ["java", "-cp", "/app/jar/data-highway-0.6-beta.jar", "gn.oss.data.highway.IOMain", "-Dlog4j.configuration=/app/config/logback.xml", "-Dconfig.file=/app/config/application.conf"]

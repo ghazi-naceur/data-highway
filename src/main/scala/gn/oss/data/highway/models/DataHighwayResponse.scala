@@ -1,5 +1,7 @@
 package gn.oss.data.highway.models
 
+import pureconfig.error.ConfigReaderFailures
+
 sealed trait DataHighwayResponse
 
 sealed trait DataHighwaySuccessResponse
@@ -10,6 +12,15 @@ case class DataHighwaySuccess(input: String, output: String) extends DataHighway
 case class DataHighwayElasticResponse(index: String, description: String) extends DataHighwaySuccessResponse
 
 case class DataHighwayError(message: String, cause: String) extends DataHighwayErrorResponse
+object DataHighwayError {
+  def prettyError(thr: Throwable): String =
+    s"""
+       | - Message: ${thr.getMessage}
+       | - Cause: ${thr.getCause}
+       | - Stacktrace: ${thr.getStackTrace.toList.mkString("\n")}
+       |""".stripMargin
+  def prettyErrors(errors: ConfigReaderFailures): String = errors.toList.mkString("\n")
+}
 
 sealed trait DataHighwayRuntimeException extends DataHighwayErrorResponse
 object DataHighwayRuntimeException {

@@ -381,6 +381,14 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils with LazyLogging {
     SharedUtils.constructIOResponse(input, output, result)
   }
 
+  /**
+    * Handles route that uses implicit save modes. It handles the following outputs: Elasticsearch and Kafka.
+    *
+    * @param input The Cassandra entity
+    * @param output The output plug: Elasticsearch or Kafka
+    * @param temporaryPath The temporary path for intermediate processing
+    * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
+    */
   private def handleRouteWithImplicitSaveMode(
     input: Elasticsearch,
     output: Output,
@@ -397,6 +405,16 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils with LazyLogging {
     }
   }
 
+  /**
+    * Handles route that uses explicit save modes. It handles the following outputs: File, Postgres and Cassandra.
+    *
+    * @param input The Cassandra entity
+    * @param output The output plug: File, Postgres or Cassandra
+    * @param storage The File System to be used
+    * @param consistency A representation for the Spark Save Mode
+    * @param temporaryPath The temporary path for intermediate processing
+    * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
+    */
   private def handleRouteWithExplicitSaveMode(
     input: Elasticsearch,
     output: Output,
@@ -418,6 +436,14 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils with LazyLogging {
     }
   }
 
+  /**
+    * Persists Elasticsearch Documents into files
+    *
+    * @param input The input Elasticsearch entity
+    * @param storage The File System storage
+    * @param temporaryPath The temporary path for intermediate processing
+    * @return a List of Unit, otherwise a Throwable
+    */
   private def persistDocs(
     input: Elasticsearch,
     storage: Option[Storage],
