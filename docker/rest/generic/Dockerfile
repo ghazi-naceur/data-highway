@@ -24,6 +24,9 @@ RUN mkdir -p /app/config && \
   mkdir -p /app/data/xlsx/input && \
   mkdir -p /app/data/xlsx/output && \
   mkdir -p /app/data/xlsx/processed && \
+  mkdir -p /app/data/xml/input && \
+  mkdir -p /app/data/xml/output && \
+  mkdir -p /app/data/xml/processed && \
   mkdir -p /app/data/kafka/input && \
   mkdir -p /app/data/kafka/output && \
   mkdir -p /app/data/kafka/processed && \
