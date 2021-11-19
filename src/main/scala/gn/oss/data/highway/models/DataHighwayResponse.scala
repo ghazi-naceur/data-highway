@@ -11,6 +11,8 @@ case class DataHighwaySuccess(input: String, output: String) extends DataHighway
 
 case class DataHighwayElasticResponse(index: String, description: String) extends DataHighwaySuccessResponse
 
+case class DataHighwayKafkaResponse(topic: String, description: String) extends DataHighwaySuccessResponse
+
 case class DataHighwayError(message: String, cause: String) extends DataHighwayErrorResponse
 object DataHighwayError {
   def prettyError(thr: Throwable): String =
