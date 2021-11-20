@@ -66,14 +66,30 @@ object KafkaExtractor extends HdfsUtils with LazyLogging {
     val consumer = input.kafkaMode.asInstanceOf[Option[KafkaConsumer]]
     val fileSystem = SharedUtils.setFileSystem(output, storage)
     consumer match {
-      case Some(km) =>
-        KafkaUtils.verifyTopicExistence(input.topic, km.brokers, enableTopicCreation = false)
-        km match {
-          case PureKafkaConsumer(brokers, consGroup, offset) =>
-            // Continuous job - to be triggered once
-            val result =
-              Either.catchNonFatal(scheduler.scheduleWithFixedDelay(0.seconds, 5.seconds) {
-                sinkWithPureKafkaConsumer(
+      case Some(kafkaConsumer) =>
+        KafkaUtils.verifyTopicExistence(input.topic, kafkaConsumer.brokers) match {
+          case Right(_) =>
+            kafkaConsumer match {
+              case PureKafkaConsumer(brokers, consGroup, offset) =>
+                // Continuous job - to be triggered once
+                val result =
+                  Either.catchNonFatal(scheduler.scheduleWithFixedDelay(0.seconds, 5.seconds) {
+                    sinkWithPureKafkaConsumer(
+                      input.topic,
+                      output,
+                      temporaryLocation,
+                      fileSystem,
+                      consistency,
+                      brokers,
+                      offset,
+                      consGroup,
+                      fs
+                    )
+                  })
+                SharedUtils.constructIOResponse(input, output, result)
+              case PureKafkaStreamsConsumer(brokers, streamAppId, offset) =>
+                // Continuous job - to be triggered once
+                val result = sinkWithPureKafkaStreamsConsumer(
                   input.topic,
                   output,
                   temporaryLocation,
@@ -81,41 +97,28 @@ object KafkaExtractor extends HdfsUtils with LazyLogging {
                   consistency,
                   brokers,
                   offset,
-                  consGroup,
+                  streamAppId,
                   fs
                 )
-              })
-            SharedUtils.constructIOResponse(input, output, result)
-          case PureKafkaStreamsConsumer(brokers, streamAppId, offset) =>
-            // Continuous job - to be triggered once
-            val result = sinkWithPureKafkaStreamsConsumer(
-              input.topic,
-              output,
-              temporaryLocation,
-              fileSystem,
-              consistency,
-              brokers,
-              offset,
-              streamAppId,
-              fs
-            )
-            SharedUtils.constructIOResponse(input, output, result)
-          case SparkKafkaPluginConsumer(brokers, offset) =>
-            // Batch/One-shot job - to be triggered everytime
-            val result = Either.catchNonFatal {
-              sinkWithSparkKafkaConnector(
-                sparkSession,
-                input,
-                output,
-                temporaryLocation,
-                fileSystem,
-                consistency,
-                brokers,
-                offset
-              )
+                SharedUtils.constructIOResponse(input, output, result)
+              case SparkKafkaPluginConsumer(brokers, offset) =>
+                // Batch/One-shot job - to be triggered everytime
+                val result = Either.catchNonFatal {
+                  sinkWithSparkKafkaConnector(
+                    sparkSession,
+                    input,
+                    output,
+                    temporaryLocation,
+                    fileSystem,
+                    consistency,
+                    brokers,
+                    offset
+                  )
+                }
+                SharedUtils.constructIOResponse(input, output, result)
+              case _ => Left(KafkaConsumerSupportModeError)
             }
-            SharedUtils.constructIOResponse(input, output, result)
-          case _ => Left(KafkaConsumerSupportModeError)
+          case Left(thr) => Left(thr)
         }
       case None => Left(KafkaConsumerMissingModeError)
     }

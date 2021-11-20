@@ -8,8 +8,7 @@ import org.apache.kafka.common.serialization.StringDeserializer
 
 import java.util.{Collections, Properties}
 import cats.implicits._
-import gn.oss.data.highway.models.{DataHighwayError, DataHighwayKafkaResponse}
-import gn.oss.data.highway.utils.Constants
+import gn.oss.data.highway.models.DataHighwayKafkaResponse
 
 import scala.jdk.CollectionConverters._
 
@@ -19,9 +18,9 @@ object KafkaAdminOps extends LazyLogging {
     * Lists the available kafka topics
     *
     * @param brokerUrls The brokers urls
-    * @return a List of String, otherwise a DataHighwayError
+    * @return a List of String, otherwise a Throwable
     */
-  def listTopics(brokerUrls: String): Either[DataHighwayError, List[String]] = {
+  def listTopics(brokerUrls: String): Either[Throwable, List[String]] = {
     val props = new Properties()
     props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerUrls)
     props.put(ConsumerConfig.GROUP_ID_CONFIG, "list-topics-consumer-group")
@@ -31,10 +30,7 @@ object KafkaAdminOps extends LazyLogging {
     Either.catchNonFatal {
       val consumer = new KafkaConsumer[String, String](props)
       consumer.listTopics().asScala.toList.map(_._1)
-    }.leftMap(thr => {
-      logger.error(s"An error occurred when trying to create a topic: ${thr.toString}")
-      DataHighwayError(thr.getMessage, Constants.EMPTY)
-    })
+    }
   }
 
   /**
@@ -42,9 +38,9 @@ object KafkaAdminOps extends LazyLogging {
     *
     * @param topic The topic to be created
     * @param brokerUrls The kafka brokers urls
-    * @return DataHighwayKafkaResponse, otherwise a DataHighwayError
+    * @return DataHighwayKafkaResponse, otherwise a Throwable
     */
-  def createTopic(topic: String, brokerUrls: String): Either[DataHighwayError, DataHighwayKafkaResponse] = {
+  def createTopic(topic: String, brokerUrls: String): Either[Throwable, DataHighwayKafkaResponse] = {
     val props = new Properties()
     props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, brokerUrls)
     Either.catchNonFatal {
@@ -54,10 +50,7 @@ object KafkaAdminOps extends LazyLogging {
       createTopicsResult.values().get(topic).get()
       logger.info(s"The topic '$topic' was successfully created.")
       DataHighwayKafkaResponse(topic, s"The topic '$topic' was successfully created.")
-    }.leftMap(thr => {
-      logger.error(s"An error occurred when trying to create a topic: ${thr.toString}")
-      DataHighwayError(thr.getMessage, Constants.EMPTY)
-    })
+    }
   }
 
   /**
@@ -65,9 +58,9 @@ object KafkaAdminOps extends LazyLogging {
     *
     * @param topic The topic to be created
     * @param brokerUrls The kafka brokers urls
-    * @return DataHighwayKafkaResponse, otherwise a DataHighwayError
+    * @return DataHighwayKafkaResponse, otherwise a Throwable
     */
-  def deleteTopic(topic: String, brokerUrls: String): Either[DataHighwayError, DataHighwayKafkaResponse] = {
+  def deleteTopic(topic: String, brokerUrls: String): Either[Throwable, DataHighwayKafkaResponse] = {
     val props = new Properties()
     props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, brokerUrls)
     Either.catchNonFatal {
@@ -76,9 +69,6 @@ object KafkaAdminOps extends LazyLogging {
       deleteTopicsResult.values().get(topic).get()
       logger.info(s"The topic '$topic' was successfully deleted")
       DataHighwayKafkaResponse(topic, s"The topic '$topic' was successfully deleted.")
-    }.leftMap(thr => {
-      logger.error(s"An error occurred when trying to delete a topic: ${thr.toString}")
-      DataHighwayError(thr.getMessage, Constants.EMPTY)
-    })
+    }
   }
 }
