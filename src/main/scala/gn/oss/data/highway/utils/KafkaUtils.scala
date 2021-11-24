@@ -4,6 +4,7 @@ import com.typesafe.scalalogging.LazyLogging
 import gn.oss.data.highway.engine.ops.KafkaAdminOps
 import gn.oss.data.highway.models.DataHighwayRuntimeException.KafkaTopicNotFoundError
 import gn.oss.data.highway.models.{DataHighwayError, DataHighwayErrorResponse}
+import gn.oss.data.highway.utils.Constants.EMPTY
 
 object KafkaUtils extends LazyLogging {
 
@@ -21,7 +22,9 @@ object KafkaUtils extends LazyLogging {
           Right(topic)
         else
           Left(KafkaTopicNotFoundError)
-      case Left(thr) => Left(DataHighwayError(thr.getMessage, thr.getCause.toString))
+      case Left(thr) =>
+        logger.error("An error occurred when trying to verify topic existence : " + DataHighwayError.prettyError(thr))
+        Left(DataHighwayError(thr.getMessage, EMPTY))
     }
   }
 }

@@ -39,6 +39,7 @@ import gn.oss.data.highway.models.{
   Storage,
   XLSX
 }
+import gn.oss.data.highway.utils.Constants.EMPTY
 
 object KafkaSink extends HdfsUtils with AppUtils with LazyLogging {
 
@@ -328,7 +329,10 @@ object KafkaSink extends HdfsUtils with AppUtils with LazyLogging {
       sys.ShutdownHookThread {
         streams.close(Duration.ofSeconds(10))
       }
-    }.leftMap(thr => DataHighwayError(thr.getMessage, thr.getCause.toString))
+    }.leftMap(thr => {
+      logger.error("An error occurred when trying to run the kafka stream: " + DataHighwayError.prettyError(thr))
+      DataHighwayError(thr.getMessage, EMPTY)
+    })
   }
 
   /**
