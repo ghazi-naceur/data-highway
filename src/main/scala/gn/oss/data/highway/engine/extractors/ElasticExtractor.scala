@@ -428,10 +428,10 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils with LazyLogging {
         BasicSink.handleChannel(File(JSON, temporaryPath), file, storage, consistency)
       case cassandra @ Cassandra(_, _) =>
         persistDocs(input, Some(Local), temporaryPath)
-        CassandraSink.handleCassandraChannel(File(JSON, temporaryPath), cassandra, Some(Local), consistency)
+        DBConnectorSink.handleDBConnectorChannel(File(JSON, temporaryPath), cassandra, Some(Local), consistency)
       case postgres @ Postgres(_, _) =>
         persistDocs(input, Some(Local), temporaryPath)
-        PostgresSink.handlePostgresChannel(File(JSON, temporaryPath), postgres, Some(Local), consistency)
+        DBConnectorSink.handleDBConnectorChannel(File(JSON, temporaryPath), postgres, Some(Local), consistency)
       case _ => Left(MustHaveSaveModeError)
     }
   }

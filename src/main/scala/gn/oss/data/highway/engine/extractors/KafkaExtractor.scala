@@ -8,7 +8,7 @@ import monix.execution.Scheduler.{global => scheduler}
 import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import gn.oss.data.highway.configs.HdfsUtils
-import gn.oss.data.highway.engine.sinks.{BasicSink, CassandraSink, ElasticSink, PostgresSink}
+import gn.oss.data.highway.engine.sinks.{BasicSink, DBConnectorSink, ElasticSink}
 import gn.oss.data.highway.models.DataHighwayRuntimeException.{
   KafkaConsumerMissingModeError,
   KafkaConsumerSupportModeError,
@@ -294,10 +294,10 @@ object KafkaExtractor extends HdfsUtils with LazyLogging {
           output match {
             case file @ File(_, _) => convertUsingBasicSink(tempoLocation, file, storage, consist.toSaveMode)
             case cassandra @ Cassandra(_, _) =>
-              CassandraSink
+              DBConnectorSink
                 .insertRows(File(JSON, tempoLocation.path), cassandra, tempoLocation.basePath, consist.toSaveMode)
             case postgres @ Postgres(_, _) =>
-              PostgresSink
+              DBConnectorSink
                 .insertRows(File(JSON, tempoLocation.path), postgres, tempoLocation.basePath, consist.toSaveMode)
             case _ => Left(MustNotHaveSaveModeError)
           }
