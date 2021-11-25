@@ -134,8 +134,11 @@ object KafkaSink extends HdfsUtils with AppUtils with LazyLogging {
         props.put("key.serializer", classOf[StringSerializer].getName)
         props.put("value.serializer", classOf[StringSerializer].getName)
         val prod = new KafkaProducer[String, String](props)
-        KafkaUtils.verifyTopicExistence(output.topic, kafkaMode.brokers) match {
-          case Right(_) =>
+        (
+          KafkaUtils.verifyTopicExistence(input.topic, kafkaMode.brokers),
+          KafkaUtils.verifyTopicExistence(output.topic, kafkaMode.brokers)
+        ) match {
+          case (Right(_), Right(_)) =>
             kafkaMode match {
               case PureKafkaStreamsProducer(brokers, streamAppId, offset) =>
                 val result = runStream(streamAppId, input.topic, brokers, output.topic, offset)
@@ -157,7 +160,9 @@ object KafkaSink extends HdfsUtils with AppUtils with LazyLogging {
                 SharedUtils.constructIOResponse(input, output, result)
               case _ => Left(KafkaMirrorSupportModeError)
             }
-          case Left(thr) => Left(thr)
+          case (Right(_), Left(throwableOutput))             => Left(throwableOutput)
+          case (Left(throwableInput), Right(_))              => Left(throwableInput)
+          case (Left(throwableInput), Left(throwableOutput)) => Left(throwableInput)
         }
       case None => Left(MustHaveSaveModeError)
     }
