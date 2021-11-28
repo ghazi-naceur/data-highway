@@ -1,7 +1,7 @@
 package gn.oss.data.highway.engine
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
-import gn.oss.data.highway.engine.sinks.BasicSink
+import gn.oss.data.highway.engine.converter.FileConverter
 import gn.oss.data.highway.helper.TestHelper
 import gn.oss.data.highway.models.{AVRO, CSV, JSON, ORC, PARQUET, XLSX, XML}
 import gn.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
@@ -17,7 +17,7 @@ class XmlSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with
   }
 
   "BasicSink.convert" should "convert csv to xml" in {
-    BasicSink.convert(
+    FileConverter.convert(
       CSV(inferSchema = true, header = true, ";"),
       csvFolder + "input/mock-data-2",
       XML("persons", "person"),
@@ -44,7 +44,7 @@ class XmlSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with
   }
 
   "BasicSink.convert" should "convert json to xml" in {
-    BasicSink
+    FileConverter
       .convert(
         JSON,
         jsonFolder + "input/mock-data-2",
@@ -72,7 +72,7 @@ class XmlSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with
   }
 
   "BasicSink.convert" should "convert parquet to xml" in {
-    BasicSink.convert(
+    FileConverter.convert(
       PARQUET(None),
       parquetFolder + "input/mock-data-2",
       XML("persons", "person"),
@@ -99,7 +99,7 @@ class XmlSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with
   }
 
   "BasicSink.convert" should "convert orc to xml" in {
-    BasicSink
+    FileConverter
       .convert(
         ORC(None),
         orcFolder + "input/mock-data-2",
@@ -127,7 +127,7 @@ class XmlSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with
   }
 
   "BasicSink.convert" should "convert avro to xml" in {
-    BasicSink
+    FileConverter
       .convert(
         AVRO,
         avroFolder + "input/mock-data-2",
@@ -155,7 +155,7 @@ class XmlSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with
   }
 
   "BasicSink.convert" should "convert xlsx to parquet" in {
-    BasicSink.convert(
+    FileConverter.convert(
       XLSX,
       xlsxFolder + "input/folder1/mock-xlsx-data-13.xlsx",
       XML("persons", "person"),

@@ -2,9 +2,10 @@ package gn.oss.data.highway.engine
 
 import com.typesafe.scalalogging.LazyLogging
 import gn.oss.data.highway.configs.ConfigLoader
+import gn.oss.data.highway.engine.converter.FileConverter
 import gn.oss.data.highway.engine.extractors.{DBConnectorExtractor, ElasticExtractor, KafkaExtractor}
 import gn.oss.data.highway.engine.ops.ElasticAdminOps
-import gn.oss.data.highway.engine.sinks.{BasicSink, DBConnectorSink, ElasticSink, KafkaSink}
+import gn.oss.data.highway.engine.sinks.{DBConnectorSink, ElasticSink, KafkaSink}
 import gn.oss.data.highway.models.DataHighwayRuntimeException.RouteError
 import gn.oss.data.highway.models.{
   Channel,
@@ -37,7 +38,7 @@ object Dispatcher extends LazyLogging {
       case ElasticOps(operation) =>
         ElasticAdminOps.execute(operation)
       case Route(input: File, output: File, storage: Option[Storage], saveMode: Option[Consistency]) =>
-        BasicSink.handleChannel(input, output, storage, saveMode)
+        FileConverter.handleChannel(input, output, storage, saveMode)
       case Route(input: File, output: DBConnector, storage: Option[Storage], saveMode: Option[Consistency]) =>
         DBConnectorSink.handleDBConnectorChannel(input, output, storage, saveMode)
       case Route(input: DBConnector, output: Output, _: Option[Storage], saveMode: Option[Consistency]) =>

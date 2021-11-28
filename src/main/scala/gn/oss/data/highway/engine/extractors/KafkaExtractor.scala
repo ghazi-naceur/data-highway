@@ -8,7 +8,8 @@ import monix.execution.Scheduler.{global => scheduler}
 import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import gn.oss.data.highway.configs.HdfsUtils
-import gn.oss.data.highway.engine.sinks.{BasicSink, DBConnectorSink, ElasticSink}
+import gn.oss.data.highway.engine.converter.FileConverter
+import gn.oss.data.highway.engine.sinks.{DBConnectorSink, ElasticSink}
 import gn.oss.data.highway.models.DataHighwayRuntimeException.{
   KafkaConsumerMissingModeError,
   KafkaConsumerSupportModeError,
@@ -330,6 +331,7 @@ object KafkaExtractor extends HdfsUtils with LazyLogging {
       case Local => new java.io.File(tempoLocation.path).getParent
       case HDFS  => HdfsUtils.getPathWithoutUriPrefix(new java.io.File(tempoLocation.path).getParent)
     }
-    BasicSink.handleChannel(File(JSON, tempInputPath), output, Some(storage), Some(Consistency.toConsistency(saveMode)))
+    FileConverter
+      .handleChannel(File(JSON, tempInputPath), output, Some(storage), Some(Consistency.toConsistency(saveMode)))
   }
 }

@@ -1,7 +1,7 @@
 package gn.oss.data.highway.engine
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
-import gn.oss.data.highway.engine.sinks.BasicSink
+import gn.oss.data.highway.engine.converter.FileConverter
 import gn.oss.data.highway.helper.TestHelper
 import gn.oss.data.highway.models.{AVRO, CSV, JSON, ORC, PARQUET, XLSX, XML}
 import gn.oss.data.highway.utils.{DataFrameUtils, FilesUtils}
@@ -17,7 +17,7 @@ class XlsxSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
   }
 
   "BasicSink.convert" should "convert csv to xlsx" in {
-    BasicSink.convert(
+    FileConverter.convert(
       CSV(inferSchema = true, header = true, ";"),
       csvFolder + "input/mock-data-2",
       XLSX,
@@ -44,7 +44,7 @@ class XlsxSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
   }
 
   "BasicSink.convert" should "convert json to xlsx" in {
-    BasicSink
+    FileConverter
       .convert(JSON, jsonFolder + "input/mock-data-2", XLSX, xlsxFolder + "output/mock-data-2", SaveMode.Overwrite)
     val filename =
       FilesUtils
@@ -66,7 +66,7 @@ class XlsxSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
   }
 
   "BasicSink.convert" should "convert parquet to xlsx" in {
-    BasicSink.convert(
+    FileConverter.convert(
       PARQUET(None),
       parquetFolder + "input/mock-data-2",
       XLSX,
@@ -93,7 +93,7 @@ class XlsxSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
   }
 
   "BasicSink.convert" should "convert orc to xlsx" in {
-    BasicSink
+    FileConverter
       .convert(ORC(None), orcFolder + "input/mock-data-2", XLSX, xlsxFolder + "output/mock-data-2", SaveMode.Overwrite)
     val filename =
       FilesUtils
@@ -115,7 +115,7 @@ class XlsxSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
   }
 
   "BasicSink.convert" should "convert avro to xlsx" in {
-    BasicSink
+    FileConverter
       .convert(AVRO, avroFolder + "input/mock-data-2", XLSX, xlsxFolder + "output/mock-data-2", SaveMode.Overwrite)
     val filename =
       FilesUtils
@@ -137,7 +137,7 @@ class XlsxSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
   }
 
   "BasicSink.convert" should "convert xml to xlsx" in {
-    BasicSink.convert(
+    FileConverter.convert(
       XML("persons", "person"),
       xmlFolder + "input/mock-data-2",
       XLSX,

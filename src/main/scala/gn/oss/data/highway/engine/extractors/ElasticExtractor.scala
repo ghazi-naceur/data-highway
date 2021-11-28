@@ -12,6 +12,7 @@ import java.util.UUID
 import scala.annotation.tailrec
 import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
+import gn.oss.data.highway.engine.converter.FileConverter
 import gn.oss.data.highway.models.DataHighwayRuntimeException.{
   MustHaveFileSystemError,
   MustHaveSaveModeError,
@@ -425,7 +426,7 @@ object ElasticExtractor extends ElasticUtils with HdfsUtils with LazyLogging {
     output match {
       case file @ File(_, _) =>
         persistDocs(input, storage, temporaryPath)
-        BasicSink.handleChannel(File(JSON, temporaryPath), file, storage, consistency)
+        FileConverter.handleChannel(File(JSON, temporaryPath), file, storage, consistency)
       case cassandra @ Cassandra(_, _) =>
         persistDocs(input, Some(Local), temporaryPath)
         DBConnectorSink.handleDBConnectorChannel(File(JSON, temporaryPath), cassandra, Some(Local), consistency)
