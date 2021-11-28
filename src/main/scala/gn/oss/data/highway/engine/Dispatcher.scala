@@ -2,12 +2,11 @@ package gn.oss.data.highway.engine
 
 import com.typesafe.scalalogging.LazyLogging
 import gn.oss.data.highway.configs.ConfigLoader
-import gn.oss.data.highway.engine.extractors.{CassandraExtractor, ElasticExtractor, KafkaExtractor, PostgresExtractor}
+import gn.oss.data.highway.engine.extractors.{DBConnectorExtractor, ElasticExtractor, KafkaExtractor}
 import gn.oss.data.highway.engine.ops.ElasticAdminOps
 import gn.oss.data.highway.engine.sinks.{BasicSink, DBConnectorSink, ElasticSink, KafkaSink}
 import gn.oss.data.highway.models.DataHighwayRuntimeException.RouteError
 import gn.oss.data.highway.models.{
-  Cassandra,
   Channel,
   Consistency,
   DBConnector,
@@ -18,7 +17,6 @@ import gn.oss.data.highway.models.{
   File,
   Kafka,
   Output,
-  Postgres,
   Route,
   Storage
 }
@@ -42,8 +40,8 @@ object Dispatcher extends LazyLogging {
         BasicSink.handleChannel(input, output, storage, saveMode)
       case Route(input: File, output: DBConnector, storage: Option[Storage], saveMode: Option[Consistency]) =>
         DBConnectorSink.handleDBConnectorChannel(input, output, storage, saveMode)
-      case Route(input: Cassandra, output: Output, _: Option[Storage], saveMode: Option[Consistency]) =>
-        CassandraExtractor.extractRows(input, output, saveMode)
+      case Route(input: DBConnector, output: Output, _: Option[Storage], saveMode: Option[Consistency]) =>
+        DBConnectorExtractor.extractRows(input, output, saveMode)
       case Route(input: File, output: Elasticsearch, storage: Option[Storage], _: Option[Consistency]) =>
         ElasticSink.handleElasticsearchChannel(input, output, storage)
       case Route(input: Elasticsearch, output: Output, storage: Option[Storage], saveMode: Option[Consistency]) =>
@@ -54,8 +52,6 @@ object Dispatcher extends LazyLogging {
         KafkaSink.mirrorTopic(input, output)
       case Route(input: Kafka, output: Output, storage: Option[Storage], saveMode: Option[Consistency]) =>
         KafkaExtractor.consumeFromTopic(input, output, storage, saveMode)
-      case Route(input: Postgres, output: Output, _: Option[Storage], saveMode: Option[Consistency]) =>
-        PostgresExtractor.extractRows(input, output, saveMode)
       case _ => Left(RouteError)
     }
   }
