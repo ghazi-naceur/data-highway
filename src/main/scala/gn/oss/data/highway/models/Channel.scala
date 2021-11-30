@@ -47,3 +47,4 @@ case class Kafka(topic: String, kafkaMode: Option[KafkaMode]) extends Input with
 sealed trait Query extends Channel
 
 case class ElasticOps(operation: ElasticOperation) extends Query
+case class KafkaOps(operation: KafkaOperation) extends Query

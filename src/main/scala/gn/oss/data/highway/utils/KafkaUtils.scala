@@ -17,8 +17,8 @@ object KafkaUtils extends LazyLogging {
     */
   def verifyTopicExistence(topic: String, brokerUrls: String): Either[DataHighwayErrorResponse, String] = {
     KafkaAdminOps.listTopics(brokerUrls) match {
-      case Right(topics) =>
-        if (topics.contains(topic))
+      case Right(success) =>
+        if (success.topics.contains(topic))
           Right(topic)
         else
           Left(KafkaTopicNotFoundError)
