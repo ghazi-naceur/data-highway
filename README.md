@@ -67,6 +67,10 @@ In short, **Data Highway** supports the following data flow :
           * [a- Consumer with continuous poll to Elasticsearch](#a--consumer-with-continuous-poll-to-elasticsearch)
           * [b- Consumer with Kafka Streams to Elasticsearch](#b--consumer-with-kafka-streams-to-elasticsearch)
           * [c- Spark Kafka Connector to Elasticsearch](#c--spark-kafka-connector-to-elasticsearch)
+      * [6- Kafka Admin Operations](#6--kafka-admin-operations)
+          * [a- Topic creation](#a--topic-creation)
+          * [b- Topic deletion](#b--topic-deletion)
+          * [c- Topic list](#c--topics-list)
   * [III- Postgres as an input](#II--postgres-as-an-input)  
       * [1- Postgres to File](#1--postgres-to-file)
       * [2- Postgres to Kafka](#2--postgres-to-kafka)
@@ -991,6 +995,57 @@ This is a one-time job.
       "type": "elasticsearch",
       "index": "your-elasticsearch-index",
       "bulk-enabled": false // supported values: 'false' and 'true'
+    }
+  }
+}
+```
+
+### 6- Kafka Admin Operations:
+
+#### a- Topic creation:
+
+`POST http://localhost:5555/conversion/query`
+```json
+{
+  "query": {
+    "type": "kafka-ops",
+    "operation": {
+      "type": "topic-creation",
+      "topic-name": "the-topic-name",
+      "broker-hosts": "broker-host:broker-port", // eg: localhost:9092
+      "partitions": nb-of-partitions,
+      "replication-factor": replication-factor
+    }
+  }
+}
+```
+
+#### b- Topic deletion:
+
+`POST http://localhost:5555/conversion/query`
+```json
+{
+  "route": {
+    "type": "kafka-ops",
+    "operation": {
+      "type": "topic-deletion",
+      "topic-name": "the-topic-name",
+      "broker-hosts": "broker-host:broker-port" // eg: localhost:9092
+    }
+  }
+}
+```
+
+#### c- Topics list:
+
+`POST http://localhost:5555/conversion/query`
+```json
+{
+  "route": {
+    "type": "kafka-ops",
+    "operation": {
+      "type": "topics-list",
+      "broker-hosts": "broker-host:broker-port" // eg: localhost:9092
     }
   }
 }
