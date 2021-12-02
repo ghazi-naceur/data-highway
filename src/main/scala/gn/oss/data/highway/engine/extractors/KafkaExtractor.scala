@@ -42,10 +42,10 @@ import gn.oss.data.highway.models.{
 import gn.oss.data.highway.utils.DataFrameUtils.sparkSession
 import gn.oss.data.highway.utils._
 import org.apache.hadoop.fs.FileSystem
-import org.apache.spark.sql.functions.{struct, to_json}
 
 import scala.concurrent.duration.DurationInt
 import scala.jdk.CollectionConverters._
+import scala.language.postfixOps
 
 object KafkaExtractor extends HdfsUtils with LazyLogging {
 
@@ -256,22 +256,20 @@ object KafkaExtractor extends HdfsUtils with LazyLogging {
       .load()
       .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
       .as[(String, String)]
-      .select(to_json(struct("value")))
-      .toJavaRDD
-
-    frame
-      .collect()
-      .asScala
-      .toList
-      .traverse(data => {
-        val line = data.toString.substring(11, data.toString().length - 3).replace("\\", "")
+      .toDF()
+      .select("value")
+    for {
+      lines <- DataFrameUtils.convertDataFrameToJsonLines(frame)
+      result <- lines.traverse(line => {
+        val adjustedLine = line.substring(10, line.length - 2).replace("\\", "")
         val jsonFileName = s"spark-kafka-plugin-${UUID.randomUUID()}-${System.currentTimeMillis()}.${JSON.extension}"
         storage match {
-          case Local => FilesUtils.createFile(tempoLocation.path, jsonFileName, line)
-          case HDFS  => HdfsUtils.save(fs, s"${tempoLocation.path}/$jsonFileName", line)
+          case Local => FilesUtils.createFile(tempoLocation.path, jsonFileName, adjustedLine)
+          case HDFS  => HdfsUtils.save(fs, s"${tempoLocation.path}/$jsonFileName", adjustedLine)
         }
       })
-    dispatchDataToOutput(tempoLocation, output, storage, consistency)
+      _ <- dispatchDataToOutput(tempoLocation, output, storage, consistency)
+    } yield result
   }
 
   /**

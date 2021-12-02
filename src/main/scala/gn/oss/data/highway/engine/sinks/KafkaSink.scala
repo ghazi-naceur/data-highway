@@ -160,9 +160,9 @@ object KafkaSink extends HdfsUtils with AppUtils with LazyLogging {
                 SharedUtils.constructIOResponse(input, output, result)
               case _ => Left(KafkaMirrorSupportModeError)
             }
-          case (Right(_), Left(throwableOutput))             => Left(throwableOutput)
-          case (Left(throwableInput), Right(_))              => Left(throwableInput)
-          case (Left(throwableInput), Left(throwableOutput)) => Left(throwableInput)
+          case (Right(_), Left(throwableOutput)) => Left(throwableOutput)
+          case (Left(throwableInput), Right(_))  => Left(throwableInput)
+          case (Left(throwableInput), Left(_))   => Left(throwableInput)
         }
       case None => Left(MustHaveSaveModeError)
     }
