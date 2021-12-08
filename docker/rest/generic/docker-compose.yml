@@ -5,7 +5,7 @@ services:
 
   app:
     build: .
-    image: data-highway-app:v0.6-beta
+    image: data-highway-app:v0.6-rc
     ports:
       - "5555:5555"
     container_name: bungee-gum-app

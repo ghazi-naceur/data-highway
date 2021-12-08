@@ -1,7 +1,7 @@
 package gn.oss.data.highway.engine
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
-import gn.oss.data.highway.engine.sinks.BasicSink
+import gn.oss.data.highway.engine.converter.FileConverter
 import gn.oss.data.highway.helper.TestHelper
 import gn.oss.data.highway.models.{AVRO, CSV, JSON, ORC, PARQUET, XLSX, XML}
 import gn.oss.data.highway.utils.DataFrameUtils
@@ -17,7 +17,7 @@ class JsonSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
   }
 
   "BasicSink.convert" should "convert parquet to json" in {
-    BasicSink.convert(
+    FileConverter.convert(
       PARQUET(None),
       parquetFolder + "input/mock-data-2",
       JSON,
@@ -35,7 +35,7 @@ class JsonSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
   }
 
   "BasicSink.convert" should "convert avro to json" in {
-    BasicSink
+    FileConverter
       .convert(AVRO, avroFolder + "input/mock-data-2", JSON, jsonFolder + "output/mock-data-2", SaveMode.Overwrite)
     val actual =
       DataFrameUtils
@@ -49,7 +49,7 @@ class JsonSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
   }
 
   "BasicSink.convert" should "convert orc to json" in {
-    BasicSink
+    FileConverter
       .convert(ORC(None), orcFolder + "input/mock-data-2", JSON, jsonFolder + "output/mock-data-2", SaveMode.Overwrite)
     val actual =
       DataFrameUtils
@@ -63,7 +63,7 @@ class JsonSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
   }
 
   "BasicSink.convert" should "convert csv to json" in {
-    BasicSink.convert(
+    FileConverter.convert(
       CSV(inferSchema = true, header = true, ";"),
       csvFolder + "input/mock-data-2",
       JSON,
@@ -82,7 +82,7 @@ class JsonSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
   }
 
   "BasicSink.convert" should "convert xml to json" in {
-    BasicSink.convert(
+    FileConverter.convert(
       XML("persons", "person"),
       xmlFolder + "input/mock-data-2",
       JSON,
@@ -101,7 +101,7 @@ class JsonSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach wit
   }
 
   "BasicSink.convert" should "convert xlsx to json" in {
-    BasicSink.convert(
+    FileConverter.convert(
       XLSX,
       xlsxFolder + "input/folder1/mock-xlsx-data-13.xlsx",
       JSON,

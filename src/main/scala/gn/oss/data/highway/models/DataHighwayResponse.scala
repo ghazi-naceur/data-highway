@@ -11,6 +11,11 @@ case class DataHighwaySuccess(input: String, output: String) extends DataHighway
 
 case class DataHighwayElasticResponse(index: String, description: String) extends DataHighwaySuccessResponse
 
+case class DataHighwayKafkaResponse(topic: String, description: String) extends DataHighwaySuccessResponse
+
+case class DataHighwayKafkaTopicsListResponse(topics: List[String], description: String)
+    extends DataHighwaySuccessResponse
+
 case class DataHighwayError(message: String, cause: String) extends DataHighwayErrorResponse
 object DataHighwayError {
   def prettyError(thr: Throwable): String =
@@ -68,10 +73,14 @@ object DataHighwayRuntimeException {
       "This mode needs a Kafka consumer mode.",
       s"The supported modes are ${PureKafkaConsumer.getClass}, ${SparkKafkaPluginConsumer.getClass} and ${PureKafkaStreamsConsumer.getClass}."
     )
-  val RouteError: DataHighwayErrorResponse =
+  val RouteError: DataHighwayErrorResponse = {
     DataHighwayError(
       "The provided route is not supported yet. ",
       "This route will be implemented in the upcoming versions. For now, you can combine all the available routes to " +
         "ensure sending data to your desired destination."
     )
+  }
+  val KafkaTopicNotFoundError: DataHighwayErrorResponse = {
+    DataHighwayError(s"The topic does not exist.", "The provided topic is not present. You may want to create it first.")
+  }
 }

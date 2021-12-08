@@ -13,52 +13,60 @@ import gn.oss.data.highway.models.{
   Cassandra,
   CassandraDB,
   Consistency,
+  DBConnector,
   DataHighwayErrorResponse,
   DataHighwaySuccessResponse,
   DataType,
   HDFS,
   Local,
+  Postgres,
+  PostgresDB,
   Storage,
   XLSX
 }
 
 import java.io.File
 
-object CassandraSink extends HdfsUtils with LazyLogging {
+object DBConnectorSink extends HdfsUtils with LazyLogging {
 
   /**
     * Inserts file content into Cassandra
     *
     * @param inputDataType The input data type path
     * @param inputPath The input path
-    * @param output The output Cassandra Entity
+    * @param output The output DBConnector Entity: Cassandra or Postgres
     * @param saveMode The file saving mode
     * @return Path as String, otherwise an Throwable
     */
   def insert(
     inputDataType: DataType,
     inputPath: String,
-    output: Cassandra,
+    output: DBConnector,
     saveMode: SaveMode
   ): Either[Throwable, String] = {
     for {
       dataframe <- DataFrameUtils.loadDataFrame(inputDataType, inputPath)
-      _ <- DataFrameUtils.saveDataFrame(dataframe, CassandraDB(output.keyspace, output.table), EMPTY, saveMode)
+      _ <- output match {
+        case Cassandra(keyspace, table) =>
+          DataFrameUtils.saveDataFrame(dataframe, CassandraDB(keyspace, table), EMPTY, saveMode)
+        case Postgres(database, table) =>
+          DataFrameUtils.saveDataFrame(dataframe, PostgresDB(database, table), EMPTY, saveMode)
+      }
     } yield inputPath
   }
 
   /**
-    * Handles file-to-cassandra route
+    * Handles file-to-dbconnector route. The output can be Cassandra or Postgres.
     *
     * @param input The input DataHighway File Entity
-    * @param output The output DataHighway File Entity
+    * @param output The output DBConnector Entity: Cassandra or Postgres
     * @param storage The file system storage : It can be Local or HDFS
     * @param consistency The file saving mode
     * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
-  def handleCassandraChannel(
+  def handleDBConnectorChannel(
     input: models.File,
-    output: Cassandra,
+    output: DBConnector,
     storage: Option[Storage],
     consistency: Option[Consistency]
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
@@ -77,7 +85,7 @@ object CassandraSink extends HdfsUtils with LazyLogging {
     * Handles inserting data from HDFS to Cassandra
     *
     * @param input The input DataHighway File Entity
-    * @param output The output Cassandra Entity
+    * @param output The output DBConnector Entity: Cassandra or Postgres
     * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
     * @param fs The provided File System
@@ -85,7 +93,7 @@ object CassandraSink extends HdfsUtils with LazyLogging {
     */
   private def handleHDFS(
     input: models.File,
-    output: Cassandra,
+    output: DBConnector,
     basePath: String,
     saveMode: SaveMode,
     fs: FileSystem
@@ -119,14 +127,14 @@ object CassandraSink extends HdfsUtils with LazyLogging {
     * Handles inserting data from Local File System to Cassandra
     *
     * @param input The input DataHighway File Entity
-    * @param output The output Cassandra Entity
+    * @param output The output DBConnector Entity: Cassandra or Postgres
     * @param basePath The base path for input, output and processed folders
     * @param saveMode The file saving mode
     * @return DataHighwaySuccessResponse, otherwise a DataHighwayErrorResponse
     */
   private def handleLocalFS(
     input: models.File,
-    output: Cassandra,
+    output: DBConnector,
     basePath: String,
     saveMode: SaveMode
   ): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
@@ -139,14 +147,14 @@ object CassandraSink extends HdfsUtils with LazyLogging {
     * Inserts rows in Cassandra
     *
     * @param input The File input entity
-    * @param output The Cassandra output entity
+    * @param output The DBConnector output entity: Cassandra or Postgres
     * @param basePath The File entity base path
     * @param saveMode The Spark save mode
     * @return List of List of Path as String, otherwise a Throwable
     */
   def insertRows(
     input: models.File,
-    output: Cassandra,
+    output: DBConnector,
     basePath: String,
     saveMode: SaveMode
   ): Either[Throwable, List[List[String]]] = {

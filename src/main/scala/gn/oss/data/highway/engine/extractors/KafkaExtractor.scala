@@ -8,7 +8,8 @@ import monix.execution.Scheduler.{global => scheduler}
 import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import gn.oss.data.highway.configs.HdfsUtils
-import gn.oss.data.highway.engine.sinks.{BasicSink, CassandraSink, ElasticSink, PostgresSink}
+import gn.oss.data.highway.engine.converter.FileConverter
+import gn.oss.data.highway.engine.sinks.{DBConnectorSink, ElasticSink}
 import gn.oss.data.highway.models.DataHighwayRuntimeException.{
   KafkaConsumerMissingModeError,
   KafkaConsumerSupportModeError,
@@ -41,10 +42,10 @@ import gn.oss.data.highway.models.{
 import gn.oss.data.highway.utils.DataFrameUtils.sparkSession
 import gn.oss.data.highway.utils._
 import org.apache.hadoop.fs.FileSystem
-import org.apache.spark.sql.functions.{struct, to_json}
 
 import scala.concurrent.duration.DurationInt
 import scala.jdk.CollectionConverters._
+import scala.language.postfixOps
 
 object KafkaExtractor extends HdfsUtils with LazyLogging {
 
@@ -66,14 +67,30 @@ object KafkaExtractor extends HdfsUtils with LazyLogging {
     val consumer = input.kafkaMode.asInstanceOf[Option[KafkaConsumer]]
     val fileSystem = SharedUtils.setFileSystem(output, storage)
     consumer match {
-      case Some(km) =>
-        KafkaUtils.verifyTopicExistence(input.topic, km.brokers, enableTopicCreation = false)
-        km match {
-          case PureKafkaConsumer(brokers, consGroup, offset) =>
-            // Continuous job - to be triggered once
-            val result =
-              Either.catchNonFatal(scheduler.scheduleWithFixedDelay(0.seconds, 5.seconds) {
-                sinkWithPureKafkaConsumer(
+      case Some(kafkaConsumer) =>
+        KafkaUtils.verifyTopicExistence(input.topic, kafkaConsumer.brokers) match {
+          case Right(_) =>
+            kafkaConsumer match {
+              case PureKafkaConsumer(brokers, consGroup, offset) =>
+                // Continuous job - to be triggered once
+                val result =
+                  Either.catchNonFatal(scheduler.scheduleWithFixedDelay(0.seconds, 5.seconds) {
+                    sinkWithPureKafkaConsumer(
+                      input.topic,
+                      output,
+                      temporaryLocation,
+                      fileSystem,
+                      consistency,
+                      brokers,
+                      offset,
+                      consGroup,
+                      fs
+                    )
+                  })
+                SharedUtils.constructIOResponse(input, output, result)
+              case PureKafkaStreamsConsumer(brokers, streamAppId, offset) =>
+                // Continuous job - to be triggered once
+                val result = sinkWithPureKafkaStreamsConsumer(
                   input.topic,
                   output,
                   temporaryLocation,
@@ -81,41 +98,28 @@ object KafkaExtractor extends HdfsUtils with LazyLogging {
                   consistency,
                   brokers,
                   offset,
-                  consGroup,
+                  streamAppId,
                   fs
                 )
-              })
-            SharedUtils.constructIOResponse(input, output, result)
-          case PureKafkaStreamsConsumer(brokers, streamAppId, offset) =>
-            // Continuous job - to be triggered once
-            val result = sinkWithPureKafkaStreamsConsumer(
-              input.topic,
-              output,
-              temporaryLocation,
-              fileSystem,
-              consistency,
-              brokers,
-              offset,
-              streamAppId,
-              fs
-            )
-            SharedUtils.constructIOResponse(input, output, result)
-          case SparkKafkaPluginConsumer(brokers, offset) =>
-            // Batch/One-shot job - to be triggered everytime
-            val result = Either.catchNonFatal {
-              sinkWithSparkKafkaConnector(
-                sparkSession,
-                input,
-                output,
-                temporaryLocation,
-                fileSystem,
-                consistency,
-                brokers,
-                offset
-              )
+                SharedUtils.constructIOResponse(input, output, result)
+              case SparkKafkaPluginConsumer(brokers, offset) =>
+                // Batch/One-shot job - to be triggered everytime
+                val result = Either.catchNonFatal {
+                  sinkWithSparkKafkaConnector(
+                    sparkSession,
+                    input,
+                    output,
+                    temporaryLocation,
+                    fileSystem,
+                    consistency,
+                    brokers,
+                    offset
+                  )
+                }
+                SharedUtils.constructIOResponse(input, output, result)
+              case _ => Left(KafkaConsumerSupportModeError)
             }
-            SharedUtils.constructIOResponse(input, output, result)
-          case _ => Left(KafkaConsumerSupportModeError)
+          case Left(thr) => Left(thr)
         }
       case None => Left(KafkaConsumerMissingModeError)
     }
@@ -252,22 +256,20 @@ object KafkaExtractor extends HdfsUtils with LazyLogging {
       .load()
       .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
       .as[(String, String)]
-      .select(to_json(struct("value")))
-      .toJavaRDD
-
-    frame
-      .collect()
-      .asScala
-      .toList
-      .traverse(data => {
-        val line = data.toString.substring(11, data.toString().length - 3).replace("\\", "")
+      .toDF()
+      .select("value")
+    for {
+      lines <- DataFrameUtils.convertDataFrameToJsonLines(frame)
+      result <- lines.traverse(line => {
+        val adjustedLine = line.substring(10, line.length - 2).replace("\\", "")
         val jsonFileName = s"spark-kafka-plugin-${UUID.randomUUID()}-${System.currentTimeMillis()}.${JSON.extension}"
         storage match {
-          case Local => FilesUtils.createFile(tempoLocation.path, jsonFileName, line)
-          case HDFS  => HdfsUtils.save(fs, s"${tempoLocation.path}/$jsonFileName", line)
+          case Local => FilesUtils.createFile(tempoLocation.path, jsonFileName, adjustedLine)
+          case HDFS  => HdfsUtils.save(fs, s"${tempoLocation.path}/$jsonFileName", adjustedLine)
         }
       })
-    dispatchDataToOutput(tempoLocation, output, storage, consistency)
+      _ <- dispatchDataToOutput(tempoLocation, output, storage, consistency)
+    } yield result
   }
 
   /**
@@ -291,10 +293,10 @@ object KafkaExtractor extends HdfsUtils with LazyLogging {
           output match {
             case file @ File(_, _) => convertUsingBasicSink(tempoLocation, file, storage, consist.toSaveMode)
             case cassandra @ Cassandra(_, _) =>
-              CassandraSink
+              DBConnectorSink
                 .insertRows(File(JSON, tempoLocation.path), cassandra, tempoLocation.basePath, consist.toSaveMode)
             case postgres @ Postgres(_, _) =>
-              PostgresSink
+              DBConnectorSink
                 .insertRows(File(JSON, tempoLocation.path), postgres, tempoLocation.basePath, consist.toSaveMode)
             case _ => Left(MustNotHaveSaveModeError)
           }
@@ -327,6 +329,7 @@ object KafkaExtractor extends HdfsUtils with LazyLogging {
       case Local => new java.io.File(tempoLocation.path).getParent
       case HDFS  => HdfsUtils.getPathWithoutUriPrefix(new java.io.File(tempoLocation.path).getParent)
     }
-    BasicSink.handleChannel(File(JSON, tempInputPath), output, Some(storage), Some(Consistency.toConsistency(saveMode)))
+    FileConverter
+      .handleChannel(File(JSON, tempInputPath), output, Some(storage), Some(Consistency.toConsistency(saveMode)))
   }
 }

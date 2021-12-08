@@ -67,7 +67,11 @@ In short, **Data Highway** supports the following data flow :
           * [a- Consumer with continuous poll to Elasticsearch](#a--consumer-with-continuous-poll-to-elasticsearch)
           * [b- Consumer with Kafka Streams to Elasticsearch](#b--consumer-with-kafka-streams-to-elasticsearch)
           * [c- Spark Kafka Connector to Elasticsearch](#c--spark-kafka-connector-to-elasticsearch)
-  * [III- Postgres as an input](#II--postgres-as-an-input)  
+      * [6- Kafka Admin Operations](#6--kafka-admin-operations)
+          * [a- Topic creation](#a--topic-creation)
+          * [b- Topic deletion](#b--topic-deletion)
+          * [c- Topic list](#c--topics-list)
+  * [III- Postgres as an input](#III--postgres-as-an-input)  
       * [1- Postgres to File](#1--postgres-to-file)
       * [2- Postgres to Kafka](#2--postgres-to-kafka)
           * [a- Postgres to Kafka using Kafka Producer](#a--postgres-to-kafka-using-kafka-producer)
@@ -75,7 +79,7 @@ In short, **Data Highway** supports the following data flow :
       * [3- Postgres to Postgres](#3--postgres-to-postgres)
       * [4- Postgres to Cassandra](#22--postgres-to-cassandra)
       * [5- Postgres to Elasticsearch](#5--postgres-to-elasticsearch)
-  * [IV- Cassandra as an input](#II--cassandra-as-an-input)
+  * [IV- Cassandra as an input](#IV--cassandra-as-an-input)
       * [1- Cassandra to File](#1--cassandra-to-file)
       * [2- Cassandra to Kafka](#2--cassandra-to-kafka)
           * [a- Cassandra to Kafka using Kafka Producer](#a--cassandra-to-kafka-using-kafka-producer)
@@ -83,7 +87,7 @@ In short, **Data Highway** supports the following data flow :
       * [3- Cassandra to Postgres](#3--cassandra-to-postgres)
       * [4- Cassandra to Cassandra](#4--cassandra-to-cassandra)
       * [5- Cassandra to Elasticsearch](#5--cassandra-to-elasticsearch)   
-  * [V- Elasticsearch as an input](#II--elasticsearch-as-an-input)      
+  * [V- Elasticsearch as an input](#V--elasticsearch-as-an-input)      
       * [0- Elasticsearch Search Queries](#0--elasticsearch-search-queries)
       * [1- Elasticsearch to File](#1--elasticsearch-to-file)
       * [2- Elasticsearch to Kafka](#2--elasticsearch-to-kafka)
@@ -991,6 +995,57 @@ This is a one-time job.
       "type": "elasticsearch",
       "index": "your-elasticsearch-index",
       "bulk-enabled": false // supported values: 'false' and 'true'
+    }
+  }
+}
+```
+
+### 6- Kafka Admin Operations:
+
+#### a- Topic creation:
+
+`POST http://localhost:5555/conversion/query`
+```json
+{
+  "query": {
+    "type": "kafka-ops",
+    "operation": {
+      "type": "topic-creation",
+      "topic-name": "the-topic-name",
+      "broker-hosts": "broker-host:broker-port", // eg: localhost:9092
+      "partitions": nb-of-partitions,
+      "replication-factor": replication-factor
+    }
+  }
+}
+```
+
+#### b- Topic deletion:
+
+`POST http://localhost:5555/conversion/query`
+```json
+{
+  "route": {
+    "type": "kafka-ops",
+    "operation": {
+      "type": "topic-deletion",
+      "topic-name": "the-topic-name",
+      "broker-hosts": "broker-host:broker-port" // eg: localhost:9092
+    }
+  }
+}
+```
+
+#### c- Topics list:
+
+`POST http://localhost:5555/conversion/query`
+```json
+{
+  "route": {
+    "type": "kafka-ops",
+    "operation": {
+      "type": "topics-list",
+      "broker-hosts": "broker-host:broker-port" // eg: localhost:9092
     }
   }
 }

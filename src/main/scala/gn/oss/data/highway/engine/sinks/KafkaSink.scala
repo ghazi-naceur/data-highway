@@ -39,6 +39,7 @@ import gn.oss.data.highway.models.{
   Storage,
   XLSX
 }
+import gn.oss.data.highway.utils.Constants.EMPTY
 
 object KafkaSink extends HdfsUtils with AppUtils with LazyLogging {
 
@@ -101,15 +102,18 @@ object KafkaSink extends HdfsUtils with AppUtils with LazyLogging {
   ): Either[Throwable, Any] = {
     (storage, output.kafkaMode) match {
       case (Some(filesystem), Some(km)) =>
-        KafkaUtils.verifyTopicExistence(output.topic, km.brokers, enableTopicCreation = true)
-        km match {
-          case PureKafkaProducer(brokers) =>
-            Either.catchNonFatal {
-              publishPathContent(inputDataType, input, output.topic, basePath, filesystem, brokers, fs)
+        KafkaUtils.verifyTopicExistence(output.topic, km.brokers) match {
+          case Right(_) =>
+            km match {
+              case PureKafkaProducer(brokers) =>
+                Either.catchNonFatal {
+                  publishPathContent(inputDataType, input, output.topic, basePath, filesystem, brokers, fs)
+                }
+              case SparkKafkaPluginProducer(brokers) =>
+                publishWithSparkKafkaPlugin(inputDataType, input, filesystem, brokers, output.topic, basePath, fs)
+              case _ => Left(KafkaProducerSupportModeError)
             }
-          case SparkKafkaPluginProducer(brokers) =>
-            publishWithSparkKafkaPlugin(inputDataType, input, filesystem, brokers, output.topic, basePath, fs)
-          case _ => Left(KafkaProducerSupportModeError)
+          case Left(thr) => Left(thr)
         }
       case _ => Left(MustHaveFileSystemError)
     }
@@ -124,26 +128,41 @@ object KafkaSink extends HdfsUtils with AppUtils with LazyLogging {
     */
   def mirrorTopic(input: Kafka, output: Kafka): Either[DataHighwayErrorResponse, DataHighwaySuccessResponse] = {
     input.kafkaMode match {
-      case Some(km) =>
+      case Some(kafkaMode) =>
         val props = new Properties()
-        props.put("bootstrap.servers", km.brokers)
+        props.put("bootstrap.servers", kafkaMode.brokers)
         props.put("key.serializer", classOf[StringSerializer].getName)
         props.put("value.serializer", classOf[StringSerializer].getName)
         val prod = new KafkaProducer[String, String](props)
-        KafkaUtils.verifyTopicExistence(output.topic, km.brokers, enableTopicCreation = true)
-        km match {
-          case PureKafkaStreamsProducer(brokers, streamAppId, offset) =>
-            val result = runStream(streamAppId, input.topic, brokers, output.topic, offset)
-            SharedUtils.constructIOResponse(input, output, result)
-          case SparkKafkaPluginStreamsProducer(brokers, offset) =>
-            val result = Either.catchNonFatal {
-              val thread = new Thread(() => {
-                publishWithSparkKafkaStreamsPlugin(input.topic, prod, brokers, output.topic, checkpointFolder, offset)
-              })
-              thread.start()
+        (
+          KafkaUtils.verifyTopicExistence(input.topic, kafkaMode.brokers),
+          KafkaUtils.verifyTopicExistence(output.topic, kafkaMode.brokers)
+        ) match {
+          case (Right(_), Right(_)) =>
+            kafkaMode match {
+              case PureKafkaStreamsProducer(brokers, streamAppId, offset) =>
+                val result = runStream(streamAppId, input.topic, brokers, output.topic, offset)
+                SharedUtils.constructIOResponse(input, output, result)
+              case SparkKafkaPluginStreamsProducer(brokers, offset) =>
+                val result = Either.catchNonFatal {
+                  val thread = new Thread(() => {
+                    publishWithSparkKafkaStreamsPlugin(
+                      input.topic,
+                      prod,
+                      brokers,
+                      output.topic,
+                      checkpointFolder,
+                      offset
+                    )
+                  })
+                  thread.start()
+                }
+                SharedUtils.constructIOResponse(input, output, result)
+              case _ => Left(KafkaMirrorSupportModeError)
             }
-            SharedUtils.constructIOResponse(input, output, result)
-          case _ => Left(KafkaMirrorSupportModeError)
+          case (Right(_), Left(throwableOutput)) => Left(throwableOutput)
+          case (Left(throwableInput), Right(_))  => Left(throwableInput)
+          case (Left(throwableInput), Left(_))   => Left(throwableInput)
         }
       case None => Left(MustHaveSaveModeError)
     }
@@ -315,7 +334,10 @@ object KafkaSink extends HdfsUtils with AppUtils with LazyLogging {
       sys.ShutdownHookThread {
         streams.close(Duration.ofSeconds(10))
       }
-    }.leftMap(thr => DataHighwayError(thr.getMessage, thr.getCause.toString))
+    }.leftMap(thr => {
+      logger.error("An error occurred when trying to run the kafka stream: " + DataHighwayError.prettyError(thr))
+      DataHighwayError(thr.getMessage, EMPTY)
+    })
   }
 
   /**

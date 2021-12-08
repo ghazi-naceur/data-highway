@@ -1,7 +1,7 @@
 package gn.oss.data.highway.engine
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
-import gn.oss.data.highway.engine.sinks.BasicSink
+import gn.oss.data.highway.engine.converter.FileConverter
 import gn.oss.data.highway.helper.TestHelper
 import gn.oss.data.highway.models.{AVRO, CSV, JSON, Lzo, ORC, PARQUET, XLSX, XML, Zlib}
 import gn.oss.data.highway.utils.DataFrameUtils
@@ -17,7 +17,7 @@ class OrcSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with
   }
 
   "BasicSink.convert" should "convert parquet to orc" in {
-    BasicSink.convert(
+    FileConverter.convert(
       PARQUET(None),
       parquetFolder + "input/mock-data-2",
       ORC(Some(Lzo)),
@@ -35,7 +35,7 @@ class OrcSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with
   }
 
   "BasicSink.convert" should "convert json to orc" in {
-    BasicSink.convert(
+    FileConverter.convert(
       JSON,
       jsonFolder + "input/mock-data-2",
       ORC(Some(Zlib)),
@@ -53,7 +53,7 @@ class OrcSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with
   }
 
   "BasicSink.convert" should "convert avro to orc" in {
-    BasicSink.convert(
+    FileConverter.convert(
       AVRO,
       avroFolder + "input/mock-data-2",
       ORC(Some(Zlib)),
@@ -72,7 +72,7 @@ class OrcSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with
   }
 
   "BasicSink.convert" should "convert csv to orc" in {
-    BasicSink.convert(
+    FileConverter.convert(
       CSV(inferSchema = true, header = true, ";"),
       csvFolder + "input/mock-data-2",
       ORC(Some(Zlib)),
@@ -91,7 +91,7 @@ class OrcSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with
   }
 
   "BasicSink.convert" should "convert xml to orc" in {
-    BasicSink.convert(
+    FileConverter.convert(
       XML("persons", "person"),
       xmlFolder + "input/mock-data-2",
       ORC(Some(Zlib)),
@@ -110,7 +110,7 @@ class OrcSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with
   }
 
   "BasicSink.convert" should "convert xlsx to orc" in {
-    BasicSink.convert(
+    FileConverter.convert(
       XLSX,
       xlsxFolder + "input/folder1/mock-xlsx-data-13.xlsx",
       ORC(Some(Zlib)),

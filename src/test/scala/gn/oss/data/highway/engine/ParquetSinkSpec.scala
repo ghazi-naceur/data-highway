@@ -1,7 +1,7 @@
 package gn.oss.data.highway.engine
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
-import gn.oss.data.highway.engine.sinks.BasicSink
+import gn.oss.data.highway.engine.converter.FileConverter
 import gn.oss.data.highway.helper.TestHelper
 import gn.oss.data.highway.models.{AVRO, CSV, JSON, ORC, PARQUET, Snappy, XLSX, XML}
 import gn.oss.data.highway.utils.DataFrameUtils
@@ -17,7 +17,7 @@ class ParquetSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
   }
 
   "BasicSink.convert" should "convert csv to parquet" in {
-    BasicSink.convert(
+    FileConverter.convert(
       CSV(inferSchema = true, header = true, ";"),
       csvFolder + "input/mock-data-2",
       PARQUET(Some(Snappy)),
@@ -35,7 +35,7 @@ class ParquetSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
   }
 
   "BasicSink.convert" should "convert avro to parquet" in {
-    BasicSink.convert(
+    FileConverter.convert(
       AVRO,
       avroFolder + "input/mock-data-2",
       PARQUET(Some(Snappy)),
@@ -53,7 +53,7 @@ class ParquetSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
   }
 
   "BasicSink.convert" should "convert orc to parquet" in {
-    BasicSink
+    FileConverter
       .convert(
         ORC(None),
         orcFolder + "input/mock-data-2",
@@ -73,7 +73,7 @@ class ParquetSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
   }
 
   "BasicSink.convert" should "convert json to parquet" in {
-    BasicSink.convert(
+    FileConverter.convert(
       JSON,
       jsonFolder + "input/mock-data-2",
       PARQUET(Some(Snappy)),
@@ -92,7 +92,7 @@ class ParquetSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
   }
 
   "BasicSink.convert" should "convert xml to parquet" in {
-    BasicSink.convert(
+    FileConverter.convert(
       XML("persons", "person"),
       xmlFolder + "input/mock-data-2",
       PARQUET(Some(Snappy)),
@@ -111,7 +111,7 @@ class ParquetSinkSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
   }
 
   "BasicSink.convert" should "convert xlsx to parquet" in {
-    BasicSink.convert(
+    FileConverter.convert(
       XLSX,
       xlsxFolder + "input/folder1/mock-xlsx-data-13.xlsx",
       PARQUET(Some(Snappy)),

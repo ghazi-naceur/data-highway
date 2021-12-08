@@ -5,8 +5,7 @@ import cats.effect._
 import com.typesafe.scalalogging.LazyLogging
 import gn.oss.data.highway.configs.ConfigLoader
 import gn.oss.data.highway.engine.Dispatcher
-import gn.oss.data.highway.models
-import gn.oss.data.highway.models.Route
+import gn.oss.data.highway.models.{Query, QueryRequest, RequestType, Route, RouteRequest}
 import org.http4s._
 import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
 import org.http4s.dsl.io._
@@ -22,25 +21,25 @@ object ConversionController extends LazyLogging {
       case req @ GET -> Root / "conversion" =>
         logger.info("GET Request received : " + req.toString())
         Ok(s"Data Highway REST API.")
-      case req @ POST -> Root / "conversion" / "query" => handleRestQuery("query", req)
-      case req @ POST -> Root / "conversion" / "route" => handleRestQuery("route", req)
+      case req @ POST -> Root / "conversion" / "query" => handleRestQuery(QueryRequest, req)
+      case req @ POST -> Root / "conversion" / "route" => handleRestQuery(RouteRequest, req)
     }
     .orNotFound
 
   /**
     * Handles the input HTTP query
     *
-    * @param param The HTTP query body element name
+    * @param requestType The HTTP query body element name
     * @param request The input HTTP query
     * @return IO Response
     */
-  private def handleRestQuery(param: String, request: Request[IO]): IO[Response[IO]] = {
+  private def handleRestQuery(requestType: RequestType, request: Request[IO]): IO[Response[IO]] = {
     import pureconfig.generic.auto._
     logger.info("POST Request received : " + request.toString())
     val ioResponse = request.asJson.map(request => {
-      val parsedRestQuery = param match {
-        case "route" => ConfigLoader().loadConfigsFromString[Route](param, request.asJson.toString())
-        case "query" => ConfigLoader().loadConfigsFromString[models.Query](param, request.asJson.toString())
+      val parsedRestQuery = requestType match {
+        case RouteRequest => ConfigLoader().loadConfigsFromString[Route](requestType.param, request.asJson.toString())
+        case QueryRequest => ConfigLoader().loadConfigsFromString[Query](requestType.param, request.asJson.toString())
       }
       Dispatcher.apply(parsedRestQuery)
     })

@@ -1196,7 +1196,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"xlsx\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/xlsx/input\"\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-2\",\n        \"bulk-enabled\": true\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
+									"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"file\",\n        \"data-type\": {\n            \"type\": \"xml\",\n            \"root-tag\": \"persons\",\n            \"row-tag\": \"person\"\n        },\n        \"path\": \"/home/ghazi/workspace/data-highway/src/test/resources/data/xml/input\"\n    },\n    \"output\": {\n        \"type\": \"elasticsearch\",\n        \"index\": \"persons-index-4\",\n        \"bulk-enabled\": false\n    },\n    \"storage\": {\n        \"type\": \"local\"\n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/route",
@@ -1469,7 +1469,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\",\n        \"kafka-mode\": {\n            \"type\": \"pure-kafka-streams-producer\",\n            \"brokers\" : \"localhost:9092\",\n            \"stream-app-id\" : \"stream-app-name-3\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_2\"\n    }\n  }\n}\n"
+											"raw": "{\n  \"route\": {\n    \"input\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_2\",\n        \"kafka-mode\": {\n            \"type\": \"pure-kafka-streams-producer\",\n            \"brokers\" : \"localhost:9092\",\n            \"stream-app-id\" : \"stream-app-name-1\",\n            \"offset\" : {\n                \"type\": \"earliest\"\n            }\n        }\n    },\n    \"output\": {\n        \"type\": \"kafka\",\n        \"topic\": \"file_to_kafka_local_1\"\n    }\n  }\n}\n"
 										},
 										"url": {
 											"raw": "http://localhost:5555/conversion/route",
@@ -1852,6 +1852,101 @@
 									"response": []
 								}
 							]
+						}
+					]
+				},
+				{
+					"name": "kafka_ops",
+					"item": [
+						{
+							"name": "topic_creation",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"query\": {\n    \"type\": \"kafka-ops\",\n    \"operation\": {\n      \"type\": \"topic-creation\",\n      \"topic-name\": \"new-topic\",\n      \"broker-hosts\": \"localhost:9092\",\n      \"partitions\": 3,\n      \"replication-factor\": 3\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/query",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"query"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "topic_deletion",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"query\": {\n    \"type\": \"kafka-ops\",\n    \"operation\": {\n      \"type\": \"topic-deletion\",\n      \"topic-name\": \"new-topic\",\n      \"broker-hosts\": \"localhost:9092\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/query",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"query"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "topics_list",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"query\": {\n    \"type\": \"kafka-ops\",\n    \"operation\": {\n      \"type\": \"topics-list\",\n      \"broker-hosts\": \"localhost:9092\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:5555/conversion/query",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5555",
+									"path": [
+										"conversion",
+										"query"
+									]
+								}
+							},
+							"response": []
 						}
 					]
 				}
@@ -3237,7 +3332,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"query\": {\n    \"type\": \"elastic-ops\",\n    \"operation\": {\n      \"type\": \"index-creation\",\n      \"index-name\": \"persons-index\",\n      \"mapping\": \"{ \\\"properties\\\":{\\\"id\\\":{\\\"type\\\":\\\"float\\\"},\\\"first_name\\\":{\\\"type\\\":\\\"text\\\"},\\\"last_name\\\":{\\\"type\\\":\\\"text\\\"},\\\"gender\\\":{\\\"type\\\":\\\"keyword\\\"},\\\"email\\\":{\\\"type\\\":\\\"text\\\"},\\\"ip_address\\\":{\\\"type\\\":\\\"keyword\\\"}}}\"   \n    }\n  }\n}"
+									"raw": "{\n  \"query\": {\n    \"type\": \"elastic-ops\",\n    \"operation\": {\n      \"type\": \"index-creation\",\n      \"index-name\": \"persons-index-12\",\n      \"mapping\": \"{ \\\"properties\\\":{\\\"id\\\":{\\\"type\\\":\\\"float\\\"},\\\"first_name\\\":{\\\"type\\\":\\\"text\\\"},\\\"last_name\\\":{\\\"type\\\":\\\"text\\\"},\\\"gender\\\":{\\\"type\\\":\\\"keyword\\\"},\\\"email\\\":{\\\"type\\\":\\\"text\\\"},\\\"ip_address\\\":{\\\"type\\\":\\\"keyword\\\"}}}\"   \n    }\n  }\n}"
 								},
 								"url": {
 									"raw": "http://localhost:5555/conversion/query",

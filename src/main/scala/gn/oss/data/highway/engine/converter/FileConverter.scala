@@ -1,27 +1,18 @@
-package gn.oss.data.highway.engine.sinks
+package gn.oss.data.highway.engine.converter
 
-import gn.oss.data.highway.models
+import com.typesafe.scalalogging.LazyLogging
 import gn.oss.data.highway.configs.HdfsUtils
+import gn.oss.data.highway.models
+import gn.oss.data.highway.models.DataHighwayRuntimeException.MustHaveFileSystemAndSaveModeError
+import gn.oss.data.highway.models._
 import gn.oss.data.highway.utils.{DataFrameUtils, FilesUtils, HdfsUtils, SharedUtils}
 import org.apache.hadoop.fs.FileSystem
 import org.apache.spark.sql.SaveMode
 import cats.implicits._
-import com.typesafe.scalalogging.LazyLogging
-import gn.oss.data.highway.models.DataHighwayRuntimeException.MustHaveFileSystemAndSaveModeError
-import gn.oss.data.highway.models.{
-  Consistency,
-  DataHighwayErrorResponse,
-  DataHighwaySuccessResponse,
-  DataType,
-  HDFS,
-  Local,
-  Storage,
-  XLSX
-}
 
 import java.io.File
 
-object BasicSink extends HdfsUtils with LazyLogging {
+object FileConverter extends HdfsUtils with LazyLogging {
 
   /**
     * Converts the input dataset
