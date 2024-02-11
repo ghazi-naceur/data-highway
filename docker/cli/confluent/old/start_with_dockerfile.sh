@@ -10,5 +10,5 @@ docker run -tid \
 docker ps -a
 docker images
 docker exec -ti kafka_app_1 java -jar -Dconfig.file=/app/config/application.conf \
-     -Dlog4j2.configuration=/app/config/log4j2.properties \
+     -Dlogback.configurationFile=/app/config/logback.xml \
      /app/jar/data-highway-assembly-0.1.jar

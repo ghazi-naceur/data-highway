@@ -1,0 +1,14 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: data-highway
+spec:
+  template:
+    metadata:
+      name: data-highway-kuber
+    spec:
+      containers:
+        - name: data-highway-kuber-container
+          image: data-highway-app:v0.6-rc
+          imagePullPolicy: Never
+      restartPolicy: Never

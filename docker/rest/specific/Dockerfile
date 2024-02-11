@@ -4,6 +4,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y tzdata && \
  apt install --no-install-recommends -y openjdk-8-jdk openjdk-8-jre wget curl
 
 ARG DATA_HIGHWAY_VERSION=0.6-rc
+
 RUN mkdir -p /app/config && \
   mkdir -p /app/data/parquet/input && \
   mkdir -p /app/data/parquet/output && \
@@ -32,10 +33,12 @@ RUN mkdir -p /app/config && \
   mkdir -p /app/data/elasticsearch/input && \
   mkdir -p /app/data/elasticsearch/output && \
   mkdir -p /app/data/elasticsearch/processed && \
-  mkdir /app/jar
+  mkdir /app/jar && \
+  cd /app/jar && \
+  wget https://github.com/ghazi-naceur/data-highway/releases/download/v${DATA_HIGHWAY_VERSION}/data-highway-${DATA_HIGHWAY_VERSION}.jar \
 
-COPY data-highway-0.6-rc.jar /app/jar
-WORKDIR /app/jar
+#COPY data-highway-0.6-rc.jar /app/jar
+#WORKDIR /app/jar
 
 # ARG SBT_VERSION=1.4.1
 # RUN  apt-get update  &&  apt-get -y install git && \

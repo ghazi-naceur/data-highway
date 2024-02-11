@@ -199,10 +199,10 @@ specify your data-highway version (located in the release file name) :
       - /the-path-to-csv-processed-data-located-in-your-host-machine/:/app/data/csv/processed
       - ........
       - ........
-      - /the-path-to-your-log4j-conf-file/logback.xml:/app/config/logback.xml
+      - /the-path-to-your-logback-conf-file/logback.xml:/app/config/logback.xml
       - /the-path-to-your-app-config-file/application.conf:/app/config/application.conf
     network_mode: "host"
-    entrypoint: ["java", "-cp", "/app/jar/data-highway-${version}.jar", "gn.oss.data.highway.IOMain", "-Dlog4j.configuration=/app/config/logback.xml", "-Dconfig.file=/app/config/application.conf"]
+    entrypoint: ["java", "-cp", "/app/jar/data-highway-${version}.jar", "gn.oss.data.highway.IOMain", "-Dlogback.configurationFile=/app/config/logback.xml", "-Dconfig.file=/app/config/application.conf"]
 ```
 4- Run the `start.sh` script under `data-highway/docker/rest/generic` to generate your Data Highway Docker image.
 

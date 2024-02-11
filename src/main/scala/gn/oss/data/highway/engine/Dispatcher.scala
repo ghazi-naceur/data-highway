@@ -22,13 +22,12 @@ import gn.oss.data.highway.models.{
   Route,
   Storage
 }
-import org.apache.log4j.BasicConfigurator
 import pureconfig.generic.auto._
 
 object Dispatcher extends LazyLogging {
 
   def main(args: Array[String]): Unit = {
-    BasicConfigurator.configure()
+//    BasicConfigurator.configure()
     val route = ConfigLoader().loadConfigs[Route]("route")
     apply(route)
   }

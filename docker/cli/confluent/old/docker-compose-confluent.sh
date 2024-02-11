@@ -12,7 +12,7 @@ docker run -tid \
   --name bungee-gum-kafka data-highway-kafka:v1.0
 
 docker exec -ti bungee-gum-kafka java -jar -Dconfig.file=/app/config/application.conf  \
-  -Dlog4j2.configuration=/app/config/log4j2.properties \
+  -Dlogback.configurationFile=/app/config/logback.xml \
   /app/jar/data-highway-assembly-0.1.jar
 
 # View a list of all Docker container IDs :

@@ -12,6 +12,6 @@ services:
       - /home/ghazi/playgroud/data-highway/shell/csv_to_parquet-data/output/:/app/data/kafka/output
       - /home/ghazi/playgroud/data-highway/shell/csv_to_parquet-data/processed/:/app/data/kafka/processed
       - /home/ghazi/workspace/data-highway/docker/data-highway/application.conf:/app/config/application.conf
-      - /home/ghazi/workspace/data-highway/src/main/resources/log4j.properties:/app/config/log4j.properties
-    entrypoint: [ "java", "-jar", "-Dconfig.file=/app/config/application.conf", "-Dlog4j.configuration=/app/config/log4j.properties", "/app/jar/data-highway-assembly-0.1.jar" ]
+      - /home/ghazi/workspace/data-highway/src/main/resources/logback.xml:/app/config/logback.xml
+    entrypoint: [ "java", "-jar", "-Dconfig.file=/app/config/application.conf", "-Dlogback.configurationFile=/app/config/logback.xml", "/app/jar/data-highway-assembly-0.1.jar" ]
     network_mode: "host"

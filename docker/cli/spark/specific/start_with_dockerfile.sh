@@ -13,7 +13,7 @@ docker images
 docker exec -ti bungee-gum-spark spark-submit  \
       --packages org.apache.spark:spark-avro_2.12:2.4.0 \
       --class "io.oss.data.highway.App" --master local[*] \
-      --conf "spark.driver.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlog4j2.configuration=/app/config/log4j2.properties" \
-      --conf "spark.executor.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlog4j2.configuration=/app/config/log4j2.properties" \
-      --files "/app/config/application.conf,/app/config/log4j2.properties" \
+      --conf "spark.driver.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlogback.configurationFile=/app/config/logback.xml" \
+      --conf "spark.executor.extraJavaOptions=-Dconfig.file=/app/config/application.conf -Dlogback.configurationFile=/app/config/logback.xml" \
+      --files "/app/config/application.conf,/app/config/logback.xml" \
       /app/jar/data-highway-assembly-0.1.jar
